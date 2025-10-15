@@ -94,7 +94,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col items-stretch sm:items-center justify-center gap-3 sm:gap-4 sm:flex-row mb-12 sm:mb-16 px-4 max-w-lg mx-auto sm:max-w-none"
             >
-              <Link href="/registracija" className="w-full sm:w-auto">
+              <Link href="/dashboard" className="w-full sm:w-auto">
                 <motion.button
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
