@@ -1,6 +1,5 @@
 // NextAuth.js v5 configuration
 import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db/prisma";
 import bcrypt from "bcryptjs";
@@ -18,6 +17,8 @@ const loginSchema = z
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // Koristimo JWT sesije bez adaptera za jednostavnost
+  trustHost: true,
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },
