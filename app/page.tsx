@@ -104,7 +104,7 @@ export default function Home() {
                 >
                   <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span className="relative flex items-center gap-2">
-                    🎓 Započni besplatno
+                    🎓 Započni odmah
                     <motion.span
                       animate={{ x: [0, 5, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
@@ -285,83 +285,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section - Mobile optimized */}
-      <section className="relative px-4 py-12 sm:py-16 md:py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-10 sm:mb-12 md:mb-16 px-2"
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 sm:mb-4 leading-tight">
-              Šta kažu korisnici? ❤️
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 px-4">
-              Učenici i roditelji obožavaju Osnovce!
-            </p>
-          </motion.div>
-
-          <div className="grid gap-5 sm:gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                name: "Marko, 12 godina",
-                role: "Učenik 6. razreda",
-                text: "Konačno imam sve na jednom mestu! Sviđa mi se što mogu da fotografišem domaći i roditelji odmah vide. Plus XP sistem je super! 🎮",
-                avatar: "M",
-              },
-              {
-                name: "Ana Petrović",
-                role: "Majka dva učenika",
-                text: "Neverovatno korisna aplikacija! Konačno mogu da pratim napredak dece bez stresa. Nedeljni izveštaji su zlata vredni. 🙏",
-                avatar: "A",
-              },
-              {
-                name: "Lena, 10 godina",
-                role: "Učenica 4. razreda",
-                text: "Aplikacija je super lepa i lako se koristi! Volim što mogu da uslikam domaći i mama odmah vidi. Streak sistem me motiviše! ⭐",
-                avatar: "L",
-              },
-            ].map((testimonial, idx) => (
-              <motion.div
-                key={testimonial.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="relative rounded-3xl bg-white p-6 sm:p-8 shadow-xl border-2 border-gray-200 hover:shadow-2xl transition-shadow"
-              >
-                <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-lg sm:text-xl font-bold flex-shrink-0">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900 text-base sm:text-lg">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-600">{testimonial.role}</div>
-                  </div>
-                </div>
-
-                <p className="text-sm sm:text-base text-gray-700 leading-relaxed italic">
-                  "{testimonial.text}"
-                </p>
-
-                <div className="flex gap-0.5 sm:gap-1 mt-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 sm:h-5 sm:w-5 fill-yellow-400 text-yellow-400"
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section - Mobile optimized */}
       <section className="relative px-4 py-16 sm:py-20 md:py-24 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
         {/* Animated background patterns */}
@@ -380,7 +303,7 @@ export default function Home() {
             Spremni za modernu školu?
           </h2>
           <p className="text-base sm:text-xl md:text-2xl text-white/90 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-4">
-            Pridruži se stotinama učenika i roditelja koji već koriste Osnovce
+            Započni svoje digitalno obrazovno iskustvo danas
           </p>
 
           <div className="flex flex-col items-stretch sm:items-center justify-center gap-4 max-w-sm mx-auto sm:max-w-none sm:flex-row">
@@ -401,7 +324,7 @@ export default function Home() {
               transition={{ delay: 0.3 }}
             >
               <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-              <span className="text-sm sm:text-base font-semibold">Besplatno zauvek</span>
+              <span className="text-sm sm:text-base font-semibold">Dostupno sada</span>
             </motion.div>
           </div>
         </motion.div>

@@ -268,7 +268,7 @@ export default function PrijavaPage() {
                     href="/registracija"
                     className="font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 hover:underline touch-manipulation"
                   >
-                    Registruj se besplatno
+                    Registruj se odmah
                   </Link>
                 </p>
 
@@ -284,7 +284,7 @@ export default function PrijavaPage() {
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                     <span className="text-blue-600 flex-shrink-0">✓</span>
-                    <span className="font-medium">Besplatno</span>
+                    <span className="font-medium">Dostupno</span>
                   </div>
                 </div>
               </div>

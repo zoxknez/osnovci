@@ -155,7 +155,7 @@ export default function RegistracijaPage() {
             <span className="text-2xl">🎓</span>
             <p className="text-lg font-medium">Kreiraj novi nalog</p>
           </div>
-          <p className="text-sm text-gray-500">Besplatno zauvek • Bez reklama • Potpuno sigurno</p>
+          <p className="text-sm text-gray-500">Jednostavno • Bez reklama • Potpuno sigurno</p>
         </motion.div>
 
         <motion.div
@@ -516,7 +516,7 @@ export default function RegistracijaPage() {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       <span className="text-blue-600">✓</span>
-                      <span className="font-medium">Besplatno</span>
+                      <span className="font-medium">Dostupno</span>
                     </div>
                   </div>
                 </div>
