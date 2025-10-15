@@ -41,6 +41,16 @@ self.addEventListener("activate", (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener("fetch", (event) => {
+  // Skip caching for POST, PUT, DELETE requests
+  if (event.request.method !== "GET") {
+    return event.respondWith(fetch(event.request));
+  }
+
+  // Skip caching for API routes (auth, etc)
+  if (event.request.url.includes("/api/")) {
+    return event.respondWith(fetch(event.request));
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       // Cache hit - return response
@@ -65,7 +75,7 @@ self.addEventListener("fetch", (event) => {
           // Clone response
           const responseToCache = response.clone();
 
-          // Cache for next time
+          // Cache for next time (only GET requests)
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
