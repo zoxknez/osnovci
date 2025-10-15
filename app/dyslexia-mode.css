@@ -1,0 +1,188 @@
+/* Dyslexia-Friendly Mode - For 10-15% of children!
+ * Mobile-optimized: Large text, high contrast, simple layout
+ */
+
+/* OpenDyslexic Font - optimized for dyslexia */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* Dyslexia Mode Activated */
+.dyslexia-mode {
+  /* Dyslexia-friendly font */
+  font-family: 'OpenDyslexic', 'Comic Sans MS', cursive !important;
+  
+  /* Increased spacing */
+  line-height: 1.8 !important;
+  letter-spacing: 0.12em !important;
+  word-spacing: 0.16em !important;
+  
+  /* Larger base font size (mobile-first!) */
+  font-size: 18px !important;
+}
+
+@media (min-width: 640px) {
+  .dyslexia-mode {
+    font-size: 20px !important;
+  }
+}
+
+/* Paragraphs - shorter lines, better readability */
+.dyslexia-mode p,
+.dyslexia-mode li {
+  max-width: 65ch !important; /* Optimal line length */
+  margin-bottom: 1rem !important;
+  text-align: left !important; /* Never justify */
+}
+
+/* Headings - stronger visual hierarchy */
+.dyslexia-mode h1 {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1.5rem !important;
+  line-height: 1.3 !important;
+}
+
+.dyslexia-mode h2 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1.25rem !important;
+  line-height: 1.3 !important;
+}
+
+.dyslexia-mode h3 {
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1rem !important;
+  line-height: 1.3 !important;
+}
+
+/* Buttons - larger touch targets */
+.dyslexia-mode button,
+.dyslexia-mode a.button {
+  min-height: 56px !important; /* Large touch target */
+  font-size: 1.125rem !important;
+  padding: 1rem 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+/* Inputs - easier to read */
+.dyslexia-mode input,
+.dyslexia-mode textarea,
+.dyslexia-mode select {
+  font-size: 1.125rem !important;
+  padding: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Lists - clear bullets */
+.dyslexia-mode ul,
+.dyslexia-mode ol {
+  padding-left: 2.5rem !important;
+}
+
+.dyslexia-mode li {
+  margin-bottom: 0.75rem !important;
+}
+
+/* Code/Monospace - use dyslexic font */
+.dyslexia-mode code,
+.dyslexia-mode pre {
+  font-family: 'OpenDyslexic', monospace !important;
+  font-size: 1rem !important;
+}
+
+/* Links - underlined always (clear affordance) */
+.dyslexia-mode a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+}
+
+/* Focus - extra visible */
+.dyslexia-mode *:focus-visible {
+  outline: 4px solid #3b82f6 !important;
+  outline-offset: 4px !important;
+  border-radius: 8px !important;
+}
+
+/* Cards - more padding for breathing room */
+.dyslexia-mode .card,
+.dyslexia-mode [class*="Card"] {
+  padding: 2rem !important;
+}
+
+/* Remove animations (can be distracting) */
+.dyslexia-mode * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* High contrast colors */
+.dyslexia-mode {
+  --color-text: #000000;
+  --color-background: #FFFFFF;
+  --color-primary: #0066CC;
+  --color-link: #0000EE;
+  --color-visited: #551A8B;
+}
+
+.dyslexia-mode .text-gray-600,
+.dyslexia-mode .text-gray-500 {
+  color: #333333 !important; /* Darker gray for better contrast */
+}
+
+/* Images - slight border for clarity */
+.dyslexia-mode img {
+  border: 2px solid #E5E7EB !important;
+  border-radius: 8px !important;
+}
+
+/* Tables - clear structure */
+.dyslexia-mode table {
+  border-collapse: separate !important;
+  border-spacing: 0.5rem !important;
+}
+
+.dyslexia-mode th,
+.dyslexia-mode td {
+  padding: 1rem !important;
+  border: 2px solid #D1D5DB !important;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  .dyslexia-mode {
+    font-size: 20px !important; /* Even larger on mobile */
+  }
+  
+  .dyslexia-mode button {
+    min-height: 64px !important; /* Extra large touch target */
+    font-size: 1.25rem !important;
+  }
+  
+  .dyslexia-mode input,
+  .dyslexia-mode textarea {
+    font-size: 1.25rem !important;
+    min-height: 56px !important;
+  }
+}
+
+/* Print - keep dyslexic font */
+@media print {
+  .dyslexia-mode {
+    font-family: 'OpenDyslexic', 'Comic Sans MS', cursive !important;
+  }
+}
+

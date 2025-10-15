@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "./mobile-enhancements.css";
+import "./dyslexia-mode.css";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],

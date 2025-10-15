@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { ActivityLogger } from "@/lib/tracking/activity-logger";
 
 // Max file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -123,6 +124,9 @@ export async function POST(request: NextRequest) {
       homeworkId,
       studentId: user.student.id,
     });
+
+    // Log activity for parents (IMPORTANT - they need to know!)
+    await ActivityLogger.photoUploaded(user.student.id, fileName, homeworkId, request);
 
     // Determine attachment type
     let attachmentType: "IMAGE" | "VIDEO" | "PDF" | "AUDIO" = "IMAGE";

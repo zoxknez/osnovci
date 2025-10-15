@@ -96,6 +96,13 @@ model Student {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // COPPA/GDPR Compliance
+  age       Int? // Calculated from birthDate
+  parentalConsentGiven Boolean @default(false)
+  parentalConsentDate DateTime?
+  parentalConsentEmail String? // Email roditelja koji je dao pristanak
+  accountActive Boolean @default(true) // False dok nema consent
+
   // Osnovne informacije
   jmbg      String? // JMBG broj (opciono, za školu)
   address   String? // Adresa stanovanja
@@ -141,7 +148,62 @@ model Student {
 
   @@index([userId])
   @@index([school, grade, class])
+  @@index([parentalConsentGiven])
   @@map("students")
+}
+
+// ============================================
+// PARENTAL CONSENT (COPPA/GDPR Compliance)
+// ============================================
+
+model ParentalConsent {
+  id               String    @id @default(cuid())
+  studentId        String
+  guardianEmail    String
+  verificationCode String    @unique
+  verified         Boolean   @default(false)
+  verifiedAt       DateTime?
+  ipAddress        String?
+  userAgent        String?
+  expiresAt        DateTime // 7 days to verify
+  createdAt        DateTime  @default(now())
+
+  @@index([studentId])
+  @@index([verificationCode])
+  @@index([guardianEmail])
+  @@map("parental_consents")
+}
+
+// ============================================
+// ACTIVITY LOG (Parental Oversight)
+// ============================================
+
+enum ActivityType {
+  LOGIN
+  HOMEWORK_CREATED
+  HOMEWORK_UPDATED
+  HOMEWORK_DELETED
+  PHOTO_UPLOADED
+  PASSWORD_CHANGED
+  PROFILE_UPDATED
+  PARENT_LINKED
+  PARENT_REMOVED
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  studentId   String
+  type        ActivityType
+  description String
+  metadata    Json? // Additional data
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime     @default(now())
+
+  @@index([studentId])
+  @@index([studentId, createdAt])
+  @@index([type])
+  @@map("activity_logs")
 }
 
 model Guardian {

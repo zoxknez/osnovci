@@ -8,6 +8,7 @@ import { log } from "@/lib/logger";
 import { rateLimit } from "@/middleware/rate-limit";
 import { withAuthAndRateLimit, getAuthenticatedStudent, sanitizeBody, internalError, badRequest, success } from "@/lib/api/middleware";
 import { notifyHomeworkDue } from "@/lib/notifications/create";
+import { ActivityLogger } from "@/lib/tracking/activity-logger";
 
 // Validation schema
 const createHomeworkSchema = z.object({
@@ -121,6 +122,9 @@ export const POST = withAuthAndRateLimit(async (request: NextRequest, session: a
     });
 
     log.info("Homework created", { homeworkId: homework.id, studentId: student.id });
+
+    // Log activity for parents
+    await ActivityLogger.homeworkCreated(student.id, title, request);
 
     // Create notification if due soon
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
