@@ -1,7 +1,6 @@
 // Child Approval API - Step 2 of Stranger Danger Protection
 import { type NextRequest, NextResponse } from "next/server";
 import { childApproves, sendGuardianVerificationEmail } from "@/lib/auth/stranger-danger";
-import { prisma } from "@/lib/db/prisma";
 import { withAuthAndRateLimit, getAuthenticatedStudent, success, internalError } from "@/lib/api/middleware";
 
 /**

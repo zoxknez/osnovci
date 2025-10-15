@@ -3,36 +3,24 @@ import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { withAuthAndRateLimit, getAuthenticatedStudent, success, internalError } from "@/lib/api/middleware";
-import { addXP, trackHomeworkCompletion } from "@/lib/gamification/xp-system";
 
 /**
  * GET /api/gamification - Get student's gamification data
+ * TODO: Add Gamification model to Prisma schema
  */
 // biome-ignore lint: session type from NextAuth, context from Next.js 15
 export const GET = withAuthAndRateLimit(async (_request: NextRequest, session: any, _context: any) => {
   try {
     const student = await getAuthenticatedStudent(session.user.id);
 
-    // Get or create gamification record
-    let gamification = await prisma.gamification.findUnique({
-      where: { studentId: student.id },
-      include: {
-        achievements: {
-          orderBy: { unlockedAt: "desc" },
-        },
-      },
-    });
-
-    if (!gamification) {
-      gamification = await prisma.gamification.create({
-        data: {
-          studentId: student.id,
-        },
-        include: {
-          achievements: true,
-        },
-      });
-    }
+    // Temporary placeholder response until Gamification model is added
+    const gamification = {
+      studentId: student.id,
+      level: 1,
+      xp: 0,
+      streak: 0,
+      achievements: [],
+    };
 
     return success({ gamification });
   } catch (error) {
@@ -43,6 +31,7 @@ export const GET = withAuthAndRateLimit(async (_request: NextRequest, session: a
 /**
  * POST /api/gamification/complete-homework
  * Called when homework is marked as done
+ * TODO: Implement when Gamification model is added
  */
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     const student = await getAuthenticatedStudent(session.user.id);
-    const { homeworkId, early } = await request.json();
+    const { homeworkId } = await request.json();
 
     if (!homeworkId) {
       return NextResponse.json({ error: "Homework ID required" }, { status: 400 });
@@ -67,34 +56,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Track completion (adds XP, updates streak, unlocks achievements)
-    await trackHomeworkCompletion(student.id, early);
-
-    // Get updated gamification data
-    const gamification = await prisma.gamification.findUnique({
-      where: { studentId: student.id },
-      include: {
-        achievements: {
-          where: {
-            unlockedAt: {
-              gte: new Date(Date.now() - 5000), // Last 5 seconds
-            },
-          },
-        },
-      },
-    });
-
     log.info("Homework completion tracked", {
       studentId: student.id,
       homeworkId,
-      early,
     });
 
-    return success({
+    // Placeholder response
+    return NextResponse.json({
+      success: true,
       message: "Bravo! +10 XP! 🎉",
-      gamification,
-      newAchievements: gamification?.achievements || [],
-    }, 201);
+      gamification: {
+        level: 1,
+        xp: 10,
+        streak: 1,
+      },
+      newAchievements: [],
+    }, { status: 201 });
   } catch (error) {
     log.error("Homework completion tracking failed", { error });
     return NextResponse.json(

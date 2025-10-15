@@ -1,11 +1,9 @@
 // Homework API - CRUD operations
-import { type NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
+import { type NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { rateLimit } from "@/middleware/rate-limit";
 import { withAuthAndRateLimit, getAuthenticatedStudent, sanitizeBody, internalError, badRequest, success } from "@/lib/api/middleware";
 import { notifyHomeworkDue } from "@/lib/notifications/create";
 import { ActivityLogger } from "@/lib/tracking/activity-logger";
