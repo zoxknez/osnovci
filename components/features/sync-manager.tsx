@@ -1,10 +1,10 @@
 // Modern Background Sync Manager
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { offlineStorage } from "@/lib/db/offline-storage";
 import { useSyncStore } from "@/store";
-import { toast } from "sonner";
 
 export function SyncManager() {
   const {
@@ -15,8 +15,6 @@ export function SyncManager() {
     setPendingCount,
     setLastSync,
   } = useSyncStore();
-  const [syncInterval, setSyncInterval] = useState<NodeJS.Timeout | null>(null);
-
   // Monitor online/offline status
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -33,27 +31,6 @@ export function SyncManager() {
       window.removeEventListener("offline", handleOffline);
     };
   }, [setOnline]);
-
-  // Auto-sync when online
-  useEffect(() => {
-    if (isOnline && !isSyncing) {
-      syncData();
-
-      // Set up periodic sync every 5 minutes
-      const interval = setInterval(
-        () => {
-          syncData();
-        },
-        5 * 60 * 1000,
-      );
-
-      setSyncInterval(interval);
-
-      return () => {
-        if (interval) clearInterval(interval);
-      };
-    }
-  }, [isOnline, isSyncing]);
 
   const syncData = async () => {
     if (isSyncing) return;
@@ -122,6 +99,26 @@ export function SyncManager() {
 
     return response.json();
   };
+
+  // Auto-sync when online
+  useEffect(() => {
+    if (isOnline && !isSyncing) {
+      syncData();
+
+      // Set up periodic sync every 5 minutes
+      const interval = setInterval(
+        () => {
+          syncData();
+        },
+        5 * 60 * 1000,
+      );
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+    return undefined;
+  }, [isOnline, isSyncing]);
 
   return null;
 }

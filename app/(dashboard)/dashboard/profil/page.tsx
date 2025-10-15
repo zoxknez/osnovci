@@ -1,48 +1,87 @@
 // Profil deteta - Kompletan zdravstveni i lični profil
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 import {
-  User,
-  Heart,
-  Stethoscope,
-  Phone,
-  MapPin,
   Activity,
   AlertCircle,
-  Calendar,
-  Ruler,
-  Weight,
   Droplet,
-  Pill,
-  Shield,
-  Users,
-  Save,
   Edit,
   Eye,
-  Syringe,
   FileText,
-  Camera,
+  Heart,
+  MapPin,
+  Phone,
+  Pill,
+  Ruler,
+  Save,
+  Shield,
+  Stethoscope,
+  Syringe,
+  User,
+  Users,
+  Weight,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   fadeInUp,
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
 
-type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" | "Nepoznata";
+type BloodType =
+  | "A+"
+  | "A-"
+  | "B+"
+  | "B-"
+  | "AB+"
+  | "AB-"
+  | "O+"
+  | "O-"
+  | "Nepoznata";
+
+interface ProfileData {
+  name: string;
+  birthDate: string;
+  address: string;
+  school: string;
+  grade: number;
+  class: string;
+  height: number;
+  weight: number;
+  clothingSize: string;
+  hasGlasses: boolean;
+  bloodType: BloodType;
+  allergies: string[];
+  chronicIllnesses: string[];
+  medications: string[];
+  healthNotes: string;
+  specialNeeds: string;
+  vaccinations: Array<{ name: string; date: string; booster: boolean }>;
+  primaryDoctor: string;
+  primaryDoctorPhone: string;
+  dentist: string;
+  dentistPhone: string;
+  emergencyContact1: string;
+  emergencyContact1Phone: string;
+  emergencyContact2: string;
+  emergencyContact2Phone: string;
+  hobbies: string;
+  sports: string;
+  activities: string;
+  notes: string;
+}
 
 export default function ProfilPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Mock data - TODO: Load from database
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<ProfileData>({
     // Osnovne informacije
     name: "Marko Marković",
     birthDate: "2014-05-15",
@@ -50,13 +89,13 @@ export default function ProfilPage() {
     school: 'OŠ "Vuk Karadžić"',
     grade: 5,
     class: "B",
-    
+
     // Fizičke karakteristike
     height: 145, // cm
     weight: 38, // kg
     clothingSize: "152",
     hasGlasses: true,
-    
+
     // Zdravstvene informacije
     bloodType: "A+" as BloodType,
     allergies: ["Kikiriki", "Pelud breze"],
@@ -64,14 +103,14 @@ export default function ProfilPage() {
     medications: [],
     healthNotes: "Nosi inhalator za astmu u torbi",
     specialNeeds: "",
-    
+
     // Vakcinacije
     vaccinations: [
       { name: "BCG", date: "2014-06-01", booster: false },
       { name: "MMR", date: "2015-06-15", booster: false },
       { name: "DTaP", date: "2014-08-15", booster: true },
     ],
-    
+
     // Lekari i hitni kontakti
     primaryDoctor: "Dr. Jovana Nikolić",
     primaryDoctorPhone: "011/123-4567",
@@ -81,7 +120,7 @@ export default function ProfilPage() {
     emergencyContact1Phone: "065/123-4567",
     emergencyContact2: "Petar Marković (otac)",
     emergencyContact2Phone: "064/987-6543",
-    
+
     // Aktivnosti
     hobbies: "Čitanje, crtanje, šah",
     sports: "Fudbal, plivanje",
@@ -91,17 +130,17 @@ export default function ProfilPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    
+
     try {
       // TODO: Save to database
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       toast.success("✅ Profil sačuvan!", {
         description: "Sve promene su uspešno sačuvane.",
       });
-      
+
       setIsEditing(false);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Greška prilikom čuvanja profila");
     } finally {
       setIsSaving(false);
@@ -109,7 +148,15 @@ export default function ProfilPage() {
   };
 
   const bloodTypeOptions: BloodType[] = [
-    "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Nepoznata"
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "AB+",
+    "AB-",
+    "O+",
+    "O-",
+    "Nepoznata",
   ];
 
   const calculateAge = (birthDate: string) => {
@@ -117,7 +164,10 @@ export default function ProfilPage() {
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     return age;
@@ -190,9 +240,9 @@ export default function ProfilPage() {
               🔒 Privatnost i sigurnost
             </div>
             <div className="text-sm text-blue-800">
-              Sve zdravstvene informacije su šifrovane i vidljive samo roditeljima i
-              ovlašćenom osoblju škole. Podaci se koriste isključivo za bezbednost i
-              dobrobit deteta.
+              Sve zdravstvene informacije su šifrovane i vidljive samo
+              roditeljima i ovlašćenom osoblju škole. Podaci se koriste
+              isključivo za bezbednost i dobrobit deteta.
             </div>
           </div>
         </div>
@@ -265,7 +315,9 @@ export default function ProfilPage() {
                     }
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg">{profile.address}</div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    {profile.address}
+                  </div>
                 )}
               </div>
 
@@ -281,7 +333,9 @@ export default function ProfilPage() {
                     }
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg">{profile.school}</div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    {profile.school}
+                  </div>
                 )}
               </div>
 
@@ -297,7 +351,10 @@ export default function ProfilPage() {
                       max="8"
                       value={profile.grade}
                       onChange={(e) =>
-                        setProfile({ ...profile, grade: Number(e.target.value) })
+                        setProfile({
+                          ...profile,
+                          grade: Number(e.target.value),
+                        })
                       }
                     />
                   ) : (
@@ -546,15 +603,16 @@ export default function ProfilPage() {
                   {isEditing ? (
                     <Input
                       value={profile.medications.join(", ")}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const medications = e.target.value
+                          .split(",")
+                          .map((m) => m.trim())
+                          .filter(Boolean);
                         setProfile({
                           ...profile,
-                          medications: e.target.value
-                            .split(",")
-                            .map((m) => m.trim())
-                            .filter(Boolean),
-                        })
-                      }
+                          medications,
+                        });
+                      }}
                       placeholder="Lekovi odvojeni zarezima (npr. Aspirin, Paracetamol)"
                     />
                   ) : (
@@ -585,7 +643,9 @@ export default function ProfilPage() {
                       className="p-3 bg-green-50 border border-green-200 rounded-lg"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-green-900">{vac.name}</span>
+                        <span className="font-medium text-green-900">
+                          {vac.name}
+                        </span>
                         {vac.booster && (
                           <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">
                             Revakcina
@@ -617,21 +677,29 @@ export default function ProfilPage() {
               <div className="p-4 bg-cyan-50 border border-cyan-200 rounded-lg space-y-3">
                 <div className="flex items-center gap-2">
                   <Stethoscope className="h-5 w-5 text-cyan-600" />
-                  <div className="font-semibold text-cyan-900">Primarni lekar</div>
+                  <div className="font-semibold text-cyan-900">
+                    Primarni lekar
+                  </div>
                 </div>
                 {isEditing ? (
                   <>
                     <Input
                       value={profile.primaryDoctor}
                       onChange={(e) =>
-                        setProfile({ ...profile, primaryDoctor: e.target.value })
+                        setProfile({
+                          ...profile,
+                          primaryDoctor: e.target.value,
+                        })
                       }
                       placeholder="Ime i prezime lekara"
                     />
                     <Input
                       value={profile.primaryDoctorPhone}
                       onChange={(e) =>
-                        setProfile({ ...profile, primaryDoctorPhone: e.target.value })
+                        setProfile({
+                          ...profile,
+                          primaryDoctorPhone: e.target.value,
+                        })
                       }
                       placeholder="Telefon"
                       type="tel"
@@ -639,7 +707,9 @@ export default function ProfilPage() {
                   </>
                 ) : (
                   <>
-                    <div className="text-gray-800 font-medium">{profile.primaryDoctor}</div>
+                    <div className="text-gray-800 font-medium">
+                      {profile.primaryDoctor}
+                    </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="h-4 w-4 text-cyan-600" />
                       <a
@@ -679,7 +749,9 @@ export default function ProfilPage() {
                   </>
                 ) : (
                   <>
-                    <div className="text-gray-800 font-medium">{profile.dentist}</div>
+                    <div className="text-gray-800 font-medium">
+                      {profile.dentist}
+                    </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="h-4 w-4 text-blue-600" />
                       <a
@@ -697,21 +769,29 @@ export default function ProfilPage() {
               <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg space-y-3">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-red-600" />
-                  <div className="font-semibold text-red-900">Hitni kontakt 1</div>
+                  <div className="font-semibold text-red-900">
+                    Hitni kontakt 1
+                  </div>
                 </div>
                 {isEditing ? (
                   <>
                     <Input
                       value={profile.emergencyContact1}
                       onChange={(e) =>
-                        setProfile({ ...profile, emergencyContact1: e.target.value })
+                        setProfile({
+                          ...profile,
+                          emergencyContact1: e.target.value,
+                        })
                       }
                       placeholder="Ime i veza (npr. Ana Marković - majka)"
                     />
                     <Input
                       value={profile.emergencyContact1Phone}
                       onChange={(e) =>
-                        setProfile({ ...profile, emergencyContact1Phone: e.target.value })
+                        setProfile({
+                          ...profile,
+                          emergencyContact1Phone: e.target.value,
+                        })
                       }
                       placeholder="Telefon"
                       type="tel"
@@ -739,21 +819,29 @@ export default function ProfilPage() {
               <div className="p-4 bg-orange-50 border-2 border-orange-300 rounded-lg space-y-3">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-orange-600" />
-                  <div className="font-semibold text-orange-900">Hitni kontakt 2</div>
+                  <div className="font-semibold text-orange-900">
+                    Hitni kontakt 2
+                  </div>
                 </div>
                 {isEditing ? (
                   <>
                     <Input
                       value={profile.emergencyContact2}
                       onChange={(e) =>
-                        setProfile({ ...profile, emergencyContact2: e.target.value })
+                        setProfile({
+                          ...profile,
+                          emergencyContact2: e.target.value,
+                        })
                       }
                       placeholder="Ime i veza (npr. Petar Marković - otac)"
                     />
                     <Input
                       value={profile.emergencyContact2Phone}
                       onChange={(e) =>
-                        setProfile({ ...profile, emergencyContact2Phone: e.target.value })
+                        setProfile({
+                          ...profile,
+                          emergencyContact2Phone: e.target.value,
+                        })
                       }
                       placeholder="Telefon"
                       type="tel"
@@ -803,7 +891,9 @@ export default function ProfilPage() {
                     placeholder="Šta dete voli da radi u slobodno vreme?"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg">{profile.hobbies}</div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    {profile.hobbies}
+                  </div>
                 )}
               </div>
 
@@ -820,7 +910,9 @@ export default function ProfilPage() {
                     placeholder="Koje sportove dete trenira?"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg">{profile.sports}</div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    {profile.sports}
+                  </div>
                 )}
               </div>
 
@@ -837,7 +929,9 @@ export default function ProfilPage() {
                     placeholder="Sekcije i aktivnosti u školi"
                   />
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded-lg">{profile.activities}</div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    {profile.activities}
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -862,4 +956,3 @@ export default function ProfilPage() {
     </div>
   );
 }
-

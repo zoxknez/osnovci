@@ -1,14 +1,14 @@
 // Raspored časova - Modern Weekly Schedule
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Clock, BookOpen, Bell } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { format, addDays, startOfWeek, isSameDay } from "date-fns";
+import { addDays, format, isSameDay, startOfWeek } from "date-fns";
 import { sr } from "date-fns/locale";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bell, BookOpen, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   fadeInUp,
   staggerContainer,
@@ -232,14 +232,21 @@ export default function RasporedPage() {
               }
               className="flex-shrink-0 h-10 w-10 sm:h-9 sm:w-auto sm:px-3 p-0 touch-manipulation"
             >
-              <ChevronLeft className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
+              <ChevronLeft
+                className="h-5 w-5 sm:h-4 sm:w-4"
+                aria-hidden="true"
+              />
             </Button>
 
             {/* Horizontalni scroll na mobilnom, grid na desktopu - Mobile optimized */}
-            <div ref={scrollContainerRef} className="flex-1 overflow-x-auto scroll-smooth scrollbar-hide">
+            <div
+              ref={scrollContainerRef}
+              className="flex-1 overflow-x-auto scroll-smooth scrollbar-hide"
+            >
               <div className="flex lg:grid lg:grid-cols-7 gap-2 sm:gap-3 pb-1">
                 {weekDays.map((day) => {
-                  const dayKey = DAYS[day.getDay() === 0 ? 6 : day.getDay() - 1];
+                  const dayKey =
+                    DAYS[day.getDay() === 0 ? 6 : day.getDay() - 1];
                   const lessonsCount = MOCK_SCHEDULE.filter(
                     (l) => l.dayOfWeek === dayKey.key,
                   ).length;
@@ -257,40 +264,50 @@ export default function RasporedPage() {
                         relative p-3 rounded-xl text-center transition-all flex-shrink-0 
                         w-[72px] sm:w-20 lg:w-auto min-h-[88px] sm:min-h-[96px]
                         touch-manipulation group
-                        ${selected 
-                          ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30" 
-                          : "bg-white border-2 border-gray-200 hover:border-blue-300 hover:shadow-md"
+                        ${
+                          selected
+                            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30"
+                            : "bg-white border-2 border-gray-200 hover:border-blue-300 hover:shadow-md"
                         }
                         ${today && !selected ? "ring-2 ring-offset-2 ring-blue-400" : ""}
                       `}
                     >
                       {/* Day label */}
-                      <div className={`text-[11px] sm:text-xs font-semibold mb-1.5 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}>
+                      <div
+                        className={`text-[11px] sm:text-xs font-semibold mb-1.5 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
+                      >
                         {dayKey.short}
                       </div>
-                      
+
                       {/* Date number */}
-                      <div className={`text-2xl sm:text-3xl font-bold mb-1.5 ${selected ? "text-white" : "text-gray-900"}`}>
+                      <div
+                        className={`text-2xl sm:text-3xl font-bold mb-1.5 ${selected ? "text-white" : "text-gray-900"}`}
+                      >
                         {format(day, "d")}
                       </div>
-                      
+
                       {/* Lessons indicator */}
                       {lessonsCount > 0 && (
-                        <div className={`
+                        <div
+                          className={`
                           text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full inline-block
-                          ${selected 
-                            ? "bg-white/20 text-white" 
-                            : "bg-blue-50 text-blue-600 group-hover:bg-blue-100"
+                          ${
+                            selected
+                              ? "bg-white/20 text-white"
+                              : "bg-blue-50 text-blue-600 group-hover:bg-blue-100"
                           }
-                        `}>
+                        `}
+                        >
                           {lessonsCount} čas
                         </div>
                       )}
-                      
+
                       {/* Today indicator dot */}
                       {today && (
                         <div className="absolute top-1.5 right-1.5">
-                          <span className={`block w-2 h-2 rounded-full ${selected ? "bg-white" : "bg-blue-500"}`}></span>
+                          <span
+                            className={`block w-2 h-2 rounded-full ${selected ? "bg-white" : "bg-blue-500"}`}
+                          ></span>
                         </div>
                       )}
                     </motion.button>
@@ -312,7 +329,10 @@ export default function RasporedPage() {
               }
               className="flex-shrink-0 h-10 w-10 sm:h-9 sm:w-auto sm:px-3 p-0 touch-manipulation"
             >
-              <ChevronRight className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
+              <ChevronRight
+                className="h-5 w-5 sm:h-4 sm:w-4"
+                aria-hidden="true"
+              />
             </Button>
           </div>
         </CardContent>
@@ -567,7 +587,9 @@ export default function RasporedPage() {
                 aria-label="Idi na domaće"
               >
                 <span className="text-2xl">📚</span>
-                <span className="text-xs font-medium text-gray-700">Domaći</span>
+                <span className="text-xs font-medium text-gray-700">
+                  Domaći
+                </span>
               </Link>
               <Link
                 href="/dashboard/ocene"

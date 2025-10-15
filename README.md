@@ -1,352 +1,570 @@
-# 🎓 Osnovci - Modern School Companion AppThis is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎓 Osnovci - Savršena Aplikacija za Učenike i Roditelje
 
-
-
-**Ultra-modern PWA aplikacija za učenike osnovne škole i njihove roditelje**## Getting Started
-
-
-
-![Status](https://img.shields.io/badge/status-MVP%20v1-success)First, run the development server:
-
-![Next.js](https://img.shields.io/badge/Next.js-15.5-black)
-
-![React](https://img.shields.io/badge/React-19.1-blue)```bash
-
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)npm run dev
-
-![Tailwind](https://img.shields.io/badge/Tailwind-4.0-38bdf8)# or
-
-yarn dev
-
----# or
-
-pnpm dev
-
-## ✨ Implementirane Features# or
-
-bun dev
-
-### 🏠 **Dashboard (Danas)**```
-
-- **Live statistika** - Aktivni domaći, nedeljni časovi, nove ocene
-
-- **Današnji raspored** - Timeline prikaz časovaOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-- **Skoriji domaći** - 3 najskorija zadatka
-
-- **Status indicators** - Prosli rokovi, hitno, etc.You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-
-
-### 📚 **Domaći zadaci**This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-- ✅ CRUD interface sa pregledom, dodavanjem, izmenom
-
-- 🔍 Advanced filtering (pretraga, status, predmet)## Learn More
-
-- 📸 **Camera Integration** - AI document enhancement
-
-- 🎯 Status tracking (Dodeljeno, U toku, Gotovo)To learn more about Next.js, take a look at the following resources:
-
-- 🏷️ Priority badges (Normal, Important, Urgent)
-
-- 🎨 Subject colors (svaki predmet ima boju)- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-
-- 📎 Attachment counter- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-
-
-### 📅 **Raspored časova**You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-- 📆 Day/Week view toggle
-
-- 🔴 **LIVE indicator** - Real-time trenutni čas## Deploy on Vercel
-
-- 🗓️ Week navigation sa calendar buttonima
-
-- ⭐ Today highlightThe easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-- 📋 Subject cards (predmet, učitelj, učionica)
-
-- 🔢 Class number badgesCheck out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-
-### 📊 **Ocene & Analitika**
-- 📈 **Charts**: Trend line, Radar profil, Bar distribucija
-- 📊 Stats cards (prosek, odličnih, petica, ukupno)
-- 📚 Subject cards sa trendom (up/down/stable)
-- 🏆 **Achievements** sistema
-- 💾 Export funkcionalnost
-
-### 👨‍👩‍👧 **Family Linking**
-- 📱 **QR Code generation** (6-digit)
-- 🔗 Manual linking opcija
-- 👥 Family members lista
-- 🔒 **Permissions management** (6 types)
-- 🛡️ Security notice
-
-### ⚙️ **Podešavanja**
-- 👤 Profile section (avatar, info)
-- 🎨 Theme selector (Light/Dark/Auto)
-- 🌍 Language (Srpski/English)
-- 🔔 Notifications (4 types sa toggle)
-- 🔐 Security (password, biometric, 2FA)
+**Moderna PWA aplikacija** za praćenje školskih obaveza, domaćih zadataka, rasporeda i analitike.  
+Dizajnirana sa ljubavlju za decu i roditelje. 💙
 
 ---
 
-## 🚀 Ultra-Modern PWA Stack
+## ✨ Features
 
-### ✅ **Service Worker** (Workbox)
-```javascript
-✓ Precaching (HTML, CSS, JS, Fonts)
-✓ Image cache (CacheFirst, 30 days)
-✓ API cache (NetworkFirst, 5 min)
-✓ Background sync (offline queue)
-✓ Push notifications (ready)
-```
+### 🎯 Osnovne Funkcionalnosti
+- 📚 **Domaći zadaci** sa foto dokazima i AI enhancement
+- 📅 **Raspored časova** sa automatskim podsetnicima
+- 📊 **Ocene i analitika** sa grafičkim prikazima
+- 👨‍👩‍👧 **Povezivanje roditelja** sa QR kodom
+- 🎮 **Gamifikacija** - XP, leveli, bedževi, streaks
+- 🔐 **Potpuna sigurnost** - Content filtering za decu
 
-### 💾 **Offline Storage** (IndexedDB)
-```javascript
-✓ homework store
-✓ attachments store  
-✓ pending-sync queue
-✓ Full CRUD API
-✓ Auto-sync when online
-```
+### 🚀 Napredne Funkcionalnosti
+- 📱 **PWA** - Instalabilna kao native app
+- 🌙 **Dark Mode** - Prijatno za oči
+- 📸 **Smart Camera** - AI poboljšanje i kompresija slika
+- 🔔 **Push Notifikacije** - Za podsetke i notifikacije
+- 👤 **Biometric Auth** - Face ID / Touch ID
+- 💾 **Offline Mode** - Radi i bez interneta
+- 🔄 **Auto Sync** - Automatska sinhronizacija
 
-### 📸 **Modern Camera**
-```javascript
-✓ AI Document Enhancement
-✓ Auto-contrast + brightness
-✓ Face/Environment switching
-✓ Gallery import fallback
-✓ Haptic feedback
-```
+### 🛡️ Security & Performance
+- ✅ TypeScript Strict Mode
+- ✅ Content Security Policy (CSP)
+- ✅ Auth Middleware za protected routes
+- ✅ Rate Limiting
+- ✅ Input Validation sa Zod
+- ✅ Image Compression (50-70% redukcija)
+- ✅ Error Boundaries
+- ✅ Structured Logging
 
 ---
 
 ## 🛠️ Tech Stack
 
-```
-Frontend:
-├── Next.js 15.5      → React framework + App Router
-├── React 19.1        → Latest React features
-├── Tailwind CSS 4    → Utility-first CSS
-├── Turbopack         → Ultra-fast bundler
-├── Framer Motion 12  → Advanced animations
-└── Recharts          → Beautiful charts
+### Core
+- **Framework:** Next.js 15 (App Router, Turbopack)
+- **React:** 19.1.0
+- **TypeScript:** 5.x (strict mode)
+- **Styling:** Tailwind CSS 4.1
 
-Backend:
-├── NextAuth.js v5    → Authentication (beta)
-├── Prisma 6.17       → Type-safe ORM
-└── SQLite/PostgreSQL → Database
+### Database & Auth
+- **ORM:** Prisma 6.17
+- **Database:** PostgreSQL
+- **Auth:** NextAuth v5
+- **Password:** bcryptjs
 
-State & PWA:
-├── Zustand           → State management
-├── IndexedDB (idb)   → Offline storage
-└── Workbox           → Service Worker toolkit
+### State & Data
+- **State Management:** Zustand 5.0
+- **Forms:** React Hook Form + Zod
+- **Date:** date-fns 4.1
 
-UI/UX:
-├── Lucide React      → Icons
-├── Sonner            → Toast notifications
-├── React Hook Form   → Forms + Zod validation
-└── react-qr-code     → QR generation
+### UI & Animations
+- **Components:** Radix UI primitives
+- **Animations:** Framer Motion 12
+- **Icons:** Lucide React
+- **Toasts:** Sonner
 
-Dev Tools:
-├── Biome             → Linter + Formatter
-├── TypeScript        → Type safety
-└── tsx               → TypeScript runner
-```
+### Offline & PWA
+- **Service Worker:** Workbox 7.3
+- **Storage:** IndexedDB (idb 8.0)
+- **PWA:** next-pwa 5.6
 
----
+### Features
+- **QR Codes:** qrcode + react-qr-code
+- **Charts:** Recharts 3.2
+- **Camera:** Modern Camera API
+- **Image Compression:** browser-image-compression
+- **Theme:** next-themes
+- **Logging:** Pino
 
-## 📊 Database Schema
-
-**15+ Models:**
-- User, Student, Guardian, Link (family)
-- Subject, StudentSubject, Homework, Attachment
-- ScheduleEntry, Event, Notification, Session
-- WeeklyReport (ready for future)
-
-**Enums:**
-- UserRole, Language, Theme, DayOfWeek
-- HomeworkStatus, Priority, EventType
+### Development
+- **Testing:** Vitest + Testing Library
+- **Linting:** Biome 2.2
+- **Type Checking:** TypeScript ESLint
 
 ---
 
-## 🎯 Demo Account
+## 📋 Prerequisites
 
-**Student:**
-```
-Email: ucenik@demo.rs
-Password: demo123
-```
-
-**Guardian:**
-```
-Email: roditelj@demo.rs
-Password: demo123
-```
-
-**Demo Data:**
-- ✅ 3 subjects (Matematika, Srpski, Engleski)
-- ✅ 3 homework assignments
-- ✅ Schedule for Monday (3 classes)
-- ✅ Link code: DEMO123
+- **Node.js:** 20.x ili noviji
+- **npm:** 10.x ili noviji
+- **PostgreSQL:** 14.x ili noviji (ili Supabase/Neon)
 
 ---
 
 ## 🚀 Quick Start
 
-```bash
-# 1. Install dependencies
-npm install
+### 1. Kloniraj Repo
 
-# 2. Setup database
+```bash
+git clone <repo-url>
+cd osnovci
+```
+
+### 2. Instaliraj Dependencies
+
+```bash
+npm install
+```
+
+### 3. Setup Environment Variables
+
+Kreiraj `.env` fajl:
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/osnovci?schema=public"
+
+# NextAuth
+NEXTAUTH_SECRET="your-secret-key-minimum-32-characters-long"
+NEXTAUTH_URL="http://localhost:3000"
+
+# App
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Optional: Push Notifications
+# NEXT_PUBLIC_VAPID_PUBLIC_KEY="your-vapid-public-key"
+# VAPID_PRIVATE_KEY="your-vapid-private-key"
+```
+
+**Generiši NEXTAUTH_SECRET:**
+```bash
+openssl rand -base64 32
+```
+
+### 4. Setup Database
+
+```bash
+# Push schema
 npm run db:push
 
-# 3. Seed demo data
+# Seed database sa demo data
 npm run db:seed
+```
 
-# 4. Start dev server
+### 5. Run Development Server
+
+```bash
 npm run dev
 ```
 
-Open **http://localhost:3000** (or 3001)
+Otvori [http://localhost:3000](http://localhost:3000) 🎉
 
 ---
 
-## 📱 PWA Installation
+## 📝 Available Scripts
 
-1. ✅ Open app in Chrome/Edge
-2. ✅ Service Worker auto-registers
-3. ✅ Install prompt appears
-4. ✅ Click "Install"
-5. ✅ Works offline! ✨
+### Development
+```bash
+npm run dev          # Start dev server (Turbopack)
+npm run build        # Build za production
+npm run start        # Start production server
+```
+
+### Database
+```bash
+npm run db:push      # Push Prisma schema to DB
+npm run db:seed      # Seed database
+npm run db:studio    # Open Prisma Studio
+npm run db:reset     # Reset DB i seed
+```
+
+### Quality
+```bash
+npm run lint         # Biome lint
+npm run format       # Biome format
+npm run type-check   # TypeScript check
+```
+
+### Testing
+```bash
+npm test             # Run tests (watch mode)
+npm run test:ui      # Open Vitest UI
+npm run test:run     # Run tests once
+npm run test:coverage # Generate coverage report
+```
 
 ---
 
-## 🎨 Design System
-
-**Colors:**
-```css
-Primary:  #3b82f6 (Blue)
-Success:  #10b981 (Green)
-Warning:  #f59e0b (Orange)
-Error:    #ef4444 (Red)
-Purple:   #8b5cf6 (Special)
-```
-
-**Animations:**
-```javascript
-fadeInUp, slideIn, scaleIn, bounceIn
-stagger, pulse, confetti, hoverScale
-```
-
-**Typography:**
-```
-Font: Inter (Variable)
-Weights: 400, 500, 600, 700, 800
-Locale: SR (Serbian)
-```
-
----
-
-## 🎭 Key Features
-
-| Feature | Status | Tech |
-|---------|--------|------|
-| Dashboard | ✅ MVP | Next.js 15 + Framer Motion |
-| Homework | ✅ MVP | Camera API + IndexedDB |
-| Schedule | ✅ MVP | date-fns + SR locale |
-| Grades | ✅ MVP | Recharts (3 chart types) |
-| Family Link | ✅ MVP | QR Code + Permissions |
-| Settings | ✅ MVP | Theme + i18n ready |
-| PWA | ✅ MVP | Workbox + Service Worker |
-| Offline | ✅ MVP | IndexedDB + Sync Queue |
-
----
-
-## 📂 Project Structure
+## 🗂️ Project Structure
 
 ```
 osnovci/
-├── app/
-│   ├── (auth)/          # Login, Register
-│   ├── (dashboard)/     # Main app pages
-│   │   ├── domaci/      # Homework
-│   │   ├── raspored/    # Schedule
-│   │   ├── ocene/       # Grades
-│   │   ├── porodica/    # Family
-│   │   └── podesavanja/ # Settings
-│   ├── api/
-│   │   └── auth/        # NextAuth routes
-│   └── layout.tsx       # Root layout + PWA
-├── components/
-│   ├── ui/              # Button, Card, Input
-│   └── features/        # Camera, PWA, Sync
-├── lib/
-│   ├── auth/            # NextAuth config
-│   ├── db/              # Prisma, IndexedDB
-│   ├── animations/      # Framer Motion
-│   └── utils/           # Helpers
-├── prisma/
-│   ├── schema.prisma    # Database schema
-│   └── seed.ts          # Demo data
-├── public/
-│   ├── sw.js            # Service Worker
-│   ├── manifest.json    # PWA manifest
-│   └── icons/           # App icons
-└── types/               # TypeScript types
+├── app/                      # Next.js App Router
+│   ├── (auth)/              # Auth pages group
+│   │   ├── prijava/         # Login page
+│   │   └── registracija/    # Register page
+│   ├── (dashboard)/         # Protected dashboard
+│   │   └── dashboard/
+│   │       ├── domaci/      # Homework page
+│   │       ├── raspored/    # Schedule page
+│   │       ├── ocene/       # Grades page
+│   │       ├── profil/      # Profile page
+│   │       └── podesavanja/ # Settings page
+│   ├── api/                 # API Routes
+│   │   ├── auth/           # NextAuth endpoints
+│   │   ├── homework/       # Homework CRUD
+│   │   ├── schedule/       # Schedule CRUD
+│   │   └── events/         # Events CRUD
+│   ├── globals.css         # Global styles
+│   ├── layout.tsx          # Root layout
+│   └── page.tsx            # Landing page
+│
+├── components/              # React Components
+│   ├── ui/                 # Reusable UI components
+│   ├── features/           # Feature components
+│   ├── onboarding/         # Onboarding tutorial
+│   ├── error-boundary.tsx  # Error handling
+│   ├── theme-provider.tsx  # Theme context
+│   └── theme-toggle.tsx    # Theme switcher
+│
+├── lib/                     # Utilities & Helpers
+│   ├── auth/               # Auth utilities
+│   │   ├── config.ts       # NextAuth config
+│   │   └── biometric.ts    # Biometric auth
+│   ├── db/                 # Database
+│   │   ├── prisma.ts       # Prisma client
+│   │   └── offline-storage.ts # IndexedDB
+│   ├── notifications/      # Push notifications
+│   ├── safety/             # Content filtering
+│   ├── utils/              # Utility functions
+│   ├── logger.ts           # Structured logging
+│   └── env.ts              # Environment validation
+│
+├── store/                   # Zustand stores
+│   └── index.ts            # Global state
+│
+├── types/                   # TypeScript types
+│   └── index.ts            # Type definitions
+│
+├── prisma/                  # Prisma schema
+│   ├── schema.prisma       # Database schema
+│   └── seed.ts             # Seed script
+│
+├── public/                  # Static files
+│   ├── icons/              # PWA icons
+│   ├── manifest.json       # PWA manifest
+│   └── sw.js               # Service Worker
+│
+├── __tests__/              # Test files
+│   ├── lib/
+│   └── components/
+│
+├── middleware.ts            # Auth middleware
+├── next.config.ts          # Next.js config
+├── tsconfig.json           # TypeScript config
+├── vitest.config.ts        # Vitest config
+├── biome.json              # Biome config
+└── package.json            # Dependencies
+
 ```
 
 ---
 
-## 🔮 Future Roadmap
+## 🔐 Authentication
 
-- [ ] Real-time sync sa backend
-- [ ] Push notifications za ocene
-- [ ] Chat (učenik ↔ roditelj)
-- [ ] Nedeljni izveštaji
-- [ ] Praćenje prisustva
-- [ ] PDF export
-- [ ] Kalendar događaja
-- [ ] Social features
-- [ ] Gamification
+### Demo Accounts
+
+Aplikacija dolazi sa demo nalogom za testiranje:
+
+**Email:** demo@osnovci.rs  
+**Lozinka:** demo123
+
+### Login Flow
+
+1. Korisnik ulazi email/telefon i lozinku
+2. NextAuth vrši autentifikaciju
+3. Middleware proverava protected routes
+4. Redirect na `/dashboard` ako je uspeš
+
+### Biometric Auth
+
+```tsx
+import { authenticateWithBiometric } from "@/lib/auth/biometric";
+
+const result = await authenticateWithBiometric();
+if (result.success) {
+  // Login successful
+}
+```
 
 ---
 
-## 🎯 Best Practices
+## 🎨 Theming
 
-✅ **Modern Stack** - Latest versions (Next 15, React 19)  
-✅ **Type Safety** - Full TypeScript coverage  
-✅ **Performance** - Turbopack, code splitting, lazy loading  
-✅ **Offline First** - PWA + IndexedDB + Service Worker  
-✅ **Mobile First** - Responsive design  
-✅ **Accessibility** - Semantic HTML, ARIA  
-✅ **DX** - Biome (fast linting), Hot reload  
-✅ **Security** - NextAuth v5, bcrypt, env variables  
+### Dark Mode
+
+Aplikacija podržava 3 theme mode-a:
+- 🌞 **Light:** Svetla tema
+- 🌙 **Dark:** Tamna tema
+- 💻 **System:** Prati sistem
+
+**Usage:**
+```tsx
+import { SimpleThemeToggle } from "@/components/theme-toggle";
+
+<SimpleThemeToggle />
+```
+
+---
+
+## 📸 Camera & Images
+
+### Smart Camera
+
+Moderna kamera sa:
+- AI enhancement (kontrast, brightness)
+- Automatska kompresija (do 1MB)
+- WebP/JPEG optimizacija
+- Offline support
+- Haptic feedback
+
+**Usage:**
+```tsx
+import { ModernCamera } from "@/components/features/modern-camera";
+
+<ModernCamera
+  onCapture={(file) => console.log(file)}
+  onClose={() => setOpen(false)}
+/>
+```
+
+---
+
+## 🔔 Notifications
+
+### Push Notifications
+
+```tsx
+import { subscribeToPush, showLocalNotification } from "@/lib/notifications/push";
+
+// Subscribe
+await subscribeToPush();
+
+// Show notification
+await showLocalNotification("Naslov", {
+  body: "Poruka",
+  icon: "/icons/icon-192x192.svg",
+});
+```
+
+### Templates
+
+```tsx
+import { notificationTemplates } from "@/lib/notifications/push";
+
+const notification = notificationTemplates.homeworkReminder(
+  "Matematika - Zadaci",
+  "Sutra"
+);
+```
+
+---
+
+## 🧪 Testing
+
+### Run Tests
+
+```bash
+# Watch mode
+npm test
+
+# UI mode
+npm run test:ui
+
+# Coverage
+npm run test:coverage
+```
+
+### Write Tests
+
+```tsx
+// __tests__/components/button.test.tsx
+import { render, screen } from "@testing-library/react";
+import { Button } from "@/components/ui/button";
+
+describe("Button", () => {
+  it("should render", () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByRole("button")).toBeInTheDocument();
+  });
+});
+```
+
+---
+
+## 📊 Logging
+
+### Structured Logging
+
+```tsx
+import { log } from "@/lib/logger";
+
+// Info
+log.info("User logged in", { userId: "123" });
+
+// Error
+log.error("Failed to save", error, { context: "homework" });
+
+// Security event
+logSecurityEvent("login_failure", userId, { ip: "..." });
+```
+
+---
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+
+1. Push to GitHub
+2. Import u Vercel
+3. Dodaj Environment Variables:
+   - `DATABASE_URL`
+   - `NEXTAUTH_SECRET`
+   - `NEXTAUTH_URL` (auto)
+
+4. Deploy! 🚀
+
+### Manual Deployment
+
+```bash
+# Build
+npm run build
+
+# Start
+npm run start
+```
+
+---
+
+## 📈 Performance
+
+### Lighthouse Score (Target)
+
+- **Performance:** 90+
+- **Accessibility:** 95+
+- **Best Practices:** 95+
+- **SEO:** 95+
+- **PWA:** 100
+
+### Optimizations
+
+- ✅ Image compression (50-70% reduction)
+- ✅ Code splitting
+- ✅ Turbopack build
+- ✅ Static asset caching
+- ✅ Service Worker precaching
+- ✅ React Server Components (gde je moguće)
+
+---
+
+## 🛡️ Security
+
+### Implemented
+
+- ✅ Content Security Policy (CSP)
+- ✅ Strict-Transport-Security (HSTS)
+- ✅ X-Frame-Options: DENY
+- ✅ Auth middleware
+- ✅ Rate limiting
+- ✅ Input validation (Zod)
+- ✅ Password hashing (bcrypt)
+- ✅ Content filtering za decu
+- ✅ PII detection
+
+---
+
+## 🐛 Debugging
+
+### Development Mode
+
+```bash
+# Enable debug logging
+LOG_LEVEL=debug npm run dev
+
+# TypeScript errors
+npm run type-check
+
+# Linting
+npm run lint
+```
+
+### Database
+
+```bash
+# Open Prisma Studio
+npm run db:studio
+
+# View logs
+tail -f .next/trace
+```
+
+---
+
+## 📚 Dodatna Dokumentacija
+
+**Sva dokumentacija je organizovana u `izvestaji/` folderu:**
+
+### 🎯 Najvažnije
+- **[QUICK_START.md](./izvestaji/QUICK_START.md)** - 5-minutni setup
+- **[PRODUCTION_DEPLOYMENT.md](./izvestaji/PRODUCTION_DEPLOYMENT.md)** - Deploy guide
+- **[⭐_MASTER_SUMMARY.md](./izvestaji/⭐_MASTER_SUMMARY.md)** - Kompletan pregled
+
+### 📖 Sve Kategorije
+- **[00_INDEX.md](./izvestaji/00_INDEX.md)** - Kompletan index svih dokumenata
+
+**Kategorije:**
+- 🚀 Getting Started (2 fajla)
+- 📊 Analiza & Planiranje (3 fajla)
+- 🔧 Implementacija (2 fajla)
+- 🚀 Deployment (2 fajla)
+- 🗄️ Database & Backup (2 fajla)
+- 🛡️ Security & Monitoring (2 fajla)
+- 🧪 Testing (2 fajla)
+- 🎉 Final Reports (4 fajla)
+
+**Total: 19 MD fajlova** sa kompletnom dokumentacijom!
+
+---
+
+## 🤝 Contributing
+
+Trenutno nije otvoreno za eksterne contribute-ore.  
+Ovo je privatni projekat za osnovnoškolce.
 
 ---
 
 ## 📄 License
 
-© 2025 Osnovci. All rights reserved.
+Proprietary - Sva prava zadržana © 2025 Osnovci
+
+---
+
+## 👨‍💻 Author
+
+**Tim Osnovci**  
+Kontakt: [Tvoj email]
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built with ❤️ using:
-- Next.js Team
-- Vercel
-- Prisma
-- Tailwind Labs
-- Framer
-- Recharts
-
-Made with 🇷🇸 in Serbia
+- Next.js tim za odličan framework
+- Vercel za hosting
+- Prisma za najbolji ORM
+- shadcn/ui za dizajn sistem
+- I svim open-source library-ma koje koristimo!
 
 ---
 
-**Star ⭐ this repo if you like it!**
+## 📞 Support
+
+Za pitanja ili probleme:
+1. Proveri dokumentaciju u `izvestaji/` folderu
+2. Pogledaj [00_INDEX.md](./izvestaji/00_INDEX.md) za brzu navigaciju
+3. Proveri issues na GitHub-u
+4. Kontaktiraj tim
+
+---
+
+**Srećno i prijatno kodiranje! 🚀**
+
+_Pravimo budućnost obrazovanja, jedan commit po jedan._ ✨
+

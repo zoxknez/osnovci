@@ -3,11 +3,11 @@
 
 "use client";
 
+import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 
-export default function Error({
+export default function ErrorPage({
   error,
   reset,
 }: {
@@ -85,7 +85,9 @@ export default function Error({
                 variant="outline"
                 size="lg"
                 className="w-full gap-2"
-                onClick={() => (window.location.href = "/")}
+                onClick={() => {
+                  window.location.href = "/";
+                }}
               >
                 🏠 Nazad na početnu
               </Button>

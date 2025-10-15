@@ -1,11 +1,14 @@
 // Prijava stranica - moderna, child-friendly
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { motion } from "framer-motion";
+import { LogIn, Shield, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -13,10 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
-import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { LogIn, Sparkles, Shield } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export default function PrijavaPage() {
   const router = useRouter();
@@ -66,7 +66,7 @@ export default function PrijavaPage() {
 
       // Automatski loguj sa demo nalogom
       console.log("🔐 Demo login:", data.email);
-      
+
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -154,9 +154,13 @@ export default function PrijavaPage() {
           </Link>
           <div className="flex items-center justify-center gap-2 text-gray-600 mb-1.5 sm:mb-2">
             <LogIn className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-            <p className="text-base sm:text-lg font-medium">Prijavi se na svoj nalog</p>
+            <p className="text-base sm:text-lg font-medium">
+              Prijavi se na svoj nalog
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-gray-500">Nastavi tamo gde si stao 🎯</p>
+          <p className="text-xs sm:text-sm text-gray-500">
+            Nastavi tamo gde si stao 🎯
+          </p>
         </motion.div>
 
         {/* Main Card */}

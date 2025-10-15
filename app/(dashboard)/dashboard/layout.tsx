@@ -1,19 +1,19 @@
 // Dashboard Layout - child-friendly sidebar navigation
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
-  Home,
+  BarChart3,
   BookOpen,
   Calendar,
-  BarChart3,
-  Users,
-  Settings,
-  X,
+  Home,
   LogOut,
+  Settings,
+  Users,
+  X,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 
 const navigation = [
@@ -107,7 +107,7 @@ export default function DashboardLayout({
           type="button"
           className="fixed inset-0 z-50 bg-gray-900/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-          onKeyDown={(e) => e.key === 'Escape' && setSidebarOpen(false)}
+          onKeyDown={(e) => e.key === "Escape" && setSidebarOpen(false)}
           aria-label="Zatvori meni"
         />
       )}

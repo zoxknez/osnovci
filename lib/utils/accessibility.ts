@@ -39,7 +39,7 @@ function getLuminance(color: string): number {
     const channel = val / 255;
     return channel <= 0.03928
       ? channel / 12.92
-      : Math.pow((channel + 0.055) / 1.055, 2.4);
+      : ((channel + 0.055) / 1.055) ** 2.4;
   });
 
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;

@@ -1,8 +1,9 @@
 // Registracija API - kreiranje novog korisnika
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+
 import bcrypt from "bcryptjs";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { prisma } from "@/lib/db/prisma";
 
 const registerSchema = z
   .object({

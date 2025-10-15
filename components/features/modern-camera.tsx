@@ -1,19 +1,20 @@
 // Ultra-modern Camera Component sa document scanning
 "use client";
 
-import { useRef, useState, useCallback, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import imageCompression from "browser-image-compression";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Camera,
-  X,
-  FlipHorizontal,
   CheckCircle2,
-  Loader2,
+  FlipHorizontal,
   Image as ImageIcon,
+  Loader2,
   Sparkles,
+  X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface CameraProps {
@@ -139,17 +140,39 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
     }
   }, [enhanceDocument]);
 
-  // Confirm and save
+  // Confirm and save with compression
   const handleConfirm = useCallback(async () => {
     if (!capturedImage) return;
 
     setIsProcessing(true);
 
     try {
+      // Convert to file
       const file = dataURLtoFile(capturedImage, `dokaz-${Date.now()}.jpg`);
-      onCapture(file);
-      toast.success("Dokaz sačuvan! 📸");
-    } catch {
+
+      // Compress image for mobile optimization
+      const options = {
+        maxSizeMB: 1, // Max 1MB
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: "image/jpeg",
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      // Log compression results
+      const originalSizeKB = (file.size / 1024).toFixed(2);
+      const compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
+      console.log(
+        `📸 Image compressed: ${originalSizeKB}KB → ${compressedSizeKB}KB (${((1 - compressedFile.size / file.size) * 100).toFixed(1)}% reduction)`,
+      );
+
+      onCapture(compressedFile);
+      toast.success("Dokaz sačuvan! 📸", {
+        description: `Kompresovano: ${originalSizeKB}KB → ${compressedSizeKB}KB`,
+      });
+    } catch (error) {
+      console.error("Image compression error:", error);
       toast.error("Greška pri čuvanju");
     } finally {
       setIsProcessing(false);

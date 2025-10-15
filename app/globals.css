@@ -7,16 +7,36 @@
   --color-accent: 147 51 234; /* Purple 600 */
   --color-background: 255 255 255;
   --color-foreground: 15 23 42; /* Slate 900 */
-  
+
   /* Mobile-optimized spacing */
   --spacing-touch-target: 44px; /* Apple HIG minimum */
   --spacing-comfortable: 16px;
   --spacing-compact: 12px;
 }
 
-[data-theme="dark"] {
-  --color-background: 15 23 42;
-  --color-foreground: 248 250 252;
+/* Dark Mode Support */
+.dark {
+  --color-background: 15 23 42; /* Slate 900 */
+  --color-foreground: 248 250 252; /* Gray 50 */
+  --color-primary: 96 165 250; /* Blue 400 - lighter for dark */
+  --color-accent: 168 85 247; /* Purple 500 */
+  --color-secondary: 30 41 59; /* Slate 800 */
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: rgb(30 41 59); /* slate-800 */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgb(51 65 85); /* slate-700 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(71 85 105); /* slate-600 */
+}
+
+.dark :focus-visible {
+  outline-color: rgb(96 165 250); /* blue-400 for dark mode */
 }
 
 @theme {
@@ -95,7 +115,8 @@ body {
 
 /* Subtle bounce effect for mobile interactions */
 @keyframes bounce-subtle {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -118,17 +139,24 @@ body {
 /* Mobile-specific optimizations */
 @media (max-width: 640px) {
   /* Larger touch targets on mobile */
-  button, a, input, select, textarea {
+  button,
+  a,
+  input,
+  select,
+  textarea {
     min-height: 44px;
   }
-  
+
   /* Better line-height for readability */
-  p, li {
+  p,
+  li {
     line-height: 1.6;
   }
-  
+
   /* Comfortable spacing */
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     letter-spacing: -0.02em;
   }
 }
@@ -186,17 +214,17 @@ body {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
   }
 }
 
 /* Print styles - Za printing domaćih zadataka */
 @media print {
   .no-print {
-    display: none !important;
+    display: none;
   }
 
   body {

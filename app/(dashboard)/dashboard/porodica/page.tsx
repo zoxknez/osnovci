@@ -1,26 +1,25 @@
 // Porodica - Family Linking with QR Codes
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  QrCode,
-  Link as LinkIcon,
-  UserPlus,
-  Copy,
   Check,
-  Trash2,
-  Shield,
+  Copy,
   Eye,
+  Link as LinkIcon,
+  QrCode,
+  Shield,
+  Trash2,
+  UserPlus,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import QRCodeSVG from "react-qr-code";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   fadeInUp,
-  scaleIn,
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";

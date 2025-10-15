@@ -1,5 +1,5 @@
 // Modern IndexedDB wrapper sa TypeScript
-import { openDB, DBSchema, IDBPDatabase } from "idb";
+import { type DBSchema, type IDBPDatabase, openDB } from "idb";
 
 // Database schema
 interface OsnovciDB extends DBSchema {

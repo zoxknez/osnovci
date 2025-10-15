@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 class RateLimiter {
   private requests: Map<string, number[]> = new Map();
   private readonly windowMs: number;
-  private readonly maxRequests: number;
+  readonly maxRequests: number;
 
   constructor(windowMs: number, maxRequests: number) {
     this.windowMs = windowMs;
@@ -131,7 +131,7 @@ export function rateLimit(limiter: keyof typeof limiters = "api") {
             "Retry-After": String(
               Math.ceil((result.resetAt - Date.now()) / 1000),
             ),
-            "X-RateLimit-Limit": String(limit["maxRequests"]),
+            "X-RateLimit-Limit": String(limit.maxRequests),
             "X-RateLimit-Remaining": String(result.remaining),
             "X-RateLimit-Reset": String(result.resetAt),
           },
@@ -142,7 +142,7 @@ export function rateLimit(limiter: keyof typeof limiters = "api") {
     // Add rate limit headers to response
     return NextResponse.next({
       headers: {
-        "X-RateLimit-Limit": String(limit["maxRequests"]),
+        "X-RateLimit-Limit": String(limit.maxRequests),
         "X-RateLimit-Remaining": String(result.remaining),
         "X-RateLimit-Reset": String(result.resetAt),
       },

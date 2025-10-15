@@ -55,10 +55,14 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { PWAInstaller } from "@/components/features/pwa-installer";
-import { SyncManager } from "@/components/features/sync-manager";
 import { SkipLink } from "@/components/features/skip-link";
+import { SyncManager } from "@/components/features/sync-manager";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export default function RootLayout({
   children,
@@ -67,19 +71,34 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="sr" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-gray-50`}>
-        {/* Accessibility: Skip Links - WCAG 2.1 AA */}
-        <SkipLink href="#main-content">Preskoči na glavni sadržaj</SkipLink>
+      <body
+        className={`${inter.variable} font-sans antialiased bg-gray-50 dark:bg-gray-900`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ErrorBoundary>
+            {/* Accessibility: Skip Links - WCAG 2.1 AA */}
+            <SkipLink href="#main-content">Preskoči na glavni sadržaj</SkipLink>
 
-        {/* PWA Features */}
-        <PWAInstaller />
-        <SyncManager />
+            {/* PWA Features */}
+            <PWAInstaller />
+            <SyncManager />
 
-        {/* Main Content */}
-        {children}
+            {/* Main Content */}
+            {children}
 
-        {/* Global Notifications */}
-        <Toaster position="top-center" richColors />
+            {/* Global Notifications */}
+            <Toaster position="top-center" richColors />
+
+            {/* Analytics & Performance Monitoring */}
+            <Analytics />
+            <SpeedInsights />
+          </ErrorBoundary>
+        </ThemeProvider>
       </body>
     </html>
   );

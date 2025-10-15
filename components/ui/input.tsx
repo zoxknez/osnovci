@@ -1,7 +1,8 @@
 // Modern Input component - Full Accessibility & Validation
+
+import { AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
-import { AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

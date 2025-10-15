@@ -1,28 +1,22 @@
 // Domaći zadaci stranica - lista svih zadataka
 "use client";
 
-import { useState } from "react";
+import { motion } from "framer-motion";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  Search,
+  AlertCircle,
   Camera,
   CheckCircle2,
   Clock,
-  AlertCircle,
   FileText,
+  Plus,
+  Search,
 } from "lucide-react";
-import { ModernCamera } from "@/components/features/modern-camera";
+import { useState } from "react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { ModernCamera } from "@/components/features/modern-camera";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,7 +126,7 @@ export default function DomaciPage() {
     setCameraOpen(true);
   };
 
-  const handlePhotoCapture = async (file: File) => {
+  const handlePhotoCapture = async (_file: File) => {
     try {
       // TODO: Save to IndexedDB offline-storage
       toast.success("📸 Fotografija je snimljena!", {
@@ -203,24 +197,24 @@ export default function DomaciPage() {
               >
                 Sve
               </Button>
-                  <Button
-                    variant={filterStatus === "active" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus("active")}
-                    aria-label="Prikaži samo aktivne zadatke"
-                    aria-pressed={filterStatus === "active"}
-                  >
-                    Aktivni
-                  </Button>
-                  <Button
-                    variant={filterStatus === "done" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus("done")}
-                    aria-label="Prikaži samo završene zadatke"
-                    aria-pressed={filterStatus === "done"}
-                  >
-                    Urađeni
-                  </Button>
+              <Button
+                variant={filterStatus === "active" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterStatus("active")}
+                aria-label="Prikaži samo aktivne zadatke"
+                aria-pressed={filterStatus === "active"}
+              >
+                Aktivni
+              </Button>
+              <Button
+                variant={filterStatus === "done" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterStatus("done")}
+                aria-label="Prikaži samo završene zadatke"
+                aria-pressed={filterStatus === "done"}
+              >
+                Urađeni
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -228,26 +222,26 @@ export default function DomaciPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">
-                  {homework.filter((h) => h.status !== "done").length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Aktivni zadaci</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">
-                  {homework.filter((h) => h.status === "done").length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Urađeno</p>
-              </div>
-            </CardContent>
-          </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-blue-600">
+                {homework.filter((h) => h.status !== "done").length}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">Aktivni zadaci</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-green-600">
+                {homework.filter((h) => h.status === "done").length}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">Urađeno</p>
+            </div>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
@@ -351,16 +345,16 @@ export default function DomaciPage() {
                       >
                         {task.attachments > 0 ? "Dodaj dokaz" : "Uslikaj dokaz"}
                       </Button>
-                        {task.status !== "done" && (
-                          <Button
-                            size="sm"
-                            variant="success"
-                            className="flex-1 sm:flex-initial"
-                            aria-label={`Označi zadatak ${task.title} kao urađen`}
-                          >
-                            Označi urađeno
-                          </Button>
-                        )}
+                      {task.status !== "done" && (
+                        <Button
+                          size="sm"
+                          variant="success"
+                          className="flex-1 sm:flex-initial"
+                          aria-label={`Označi zadatak ${task.title} kao urađen`}
+                        >
+                          Označi urađeno
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

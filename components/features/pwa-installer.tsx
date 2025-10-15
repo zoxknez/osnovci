@@ -4,6 +4,12 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 
+// TypeScript type for BeforeInstallPrompt event
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 export function PWAInstaller() {
   useEffect(() => {
     // Register Service Worker
@@ -27,11 +33,11 @@ export function PWAInstaller() {
     }
 
     // Handle app install prompt
-    let deferredPrompt: any;
+    let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
-    window.addEventListener("beforeinstallprompt", (e) => {
+    window.addEventListener("beforeinstallprompt", (e: Event) => {
       e.preventDefault();
-      deferredPrompt = e;
+      deferredPrompt = e as BeforeInstallPromptEvent;
 
       // Show custom install button/toast
       toast.info("Instaliraj Osnovci aplikaciju!", {

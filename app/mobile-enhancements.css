@@ -4,25 +4,32 @@
 .hero-badge {
   /* Glassmorphism effect */
   backdrop-filter: blur(12px);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(147, 51, 234, 0.1) 100%
+  );
 }
 
 /* === TOUCH OPTIMIZATIONS === */
 @media (hover: none) and (pointer: coarse) {
   /* Na touch devices, povećaj interaktivne elemente */
-  button, a[role="button"], .touch-target {
+  button,
+  a[role="button"],
+  .touch-target {
     min-height: 48px;
     min-width: 48px;
     padding: 12px 20px;
   }
-  
+
   /* Ukloni hover efekte na mobilnom */
   .hover-effect {
     transition: none;
   }
-  
+
   /* Active state umesto hover */
-  button:active, a:active {
+  button:active,
+  a:active {
     transform: scale(0.97);
     opacity: 0.9;
   }
@@ -32,7 +39,8 @@
 
 /* Smooth gradient animation */
 @keyframes gradient-shift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -47,7 +55,8 @@
 
 /* Floating animation for badges */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -61,11 +70,14 @@
 
 /* Pulse glow effect */
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), 0 0 60px rgba(147, 51, 234, 0.4);
+    box-shadow:
+      0 0 40px rgba(59, 130, 246, 0.6),
+      0 0 60px rgba(147, 51, 234, 0.4);
   }
 }
 
@@ -81,12 +93,12 @@
     line-height: 1.1;
     letter-spacing: -0.02em;
   }
-  
+
   .mobile-subtitle {
     font-size: clamp(0.875rem, 4vw, 1rem);
     line-height: 1.6;
   }
-  
+
   .mobile-body {
     font-size: clamp(0.875rem, 3.5vw, 1rem);
     line-height: 1.6;
@@ -98,15 +110,15 @@
   .safe-top {
     padding-top: max(1rem, env(safe-area-inset-top));
   }
-  
+
   .safe-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
-  
+
   .safe-left {
     padding-left: max(1rem, env(safe-area-inset-left));
   }
-  
+
   .safe-right {
     padding-right: max(1rem, env(safe-area-inset-right));
   }
@@ -167,7 +179,9 @@ html {
 
 /* === CARD HOVER EFFECTS === */
 .card-interactive {
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out;
 }
 
 .card-interactive:hover {
@@ -183,7 +197,7 @@ html {
   .card-interactive:hover {
     transform: translateY(-2px);
   }
-  
+
   .card-interactive:active {
     transform: scale(0.98);
   }
@@ -198,14 +212,18 @@ html {
 }
 
 .gradient-border::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: 1.5rem;
   padding: 2px;
   background: linear-gradient(135deg, #3b82f6, #9333ea, #ec4899);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
 }
@@ -236,10 +254,15 @@ html {
 }
 
 .button-primary::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transform: translateX(-100%);
   transition: transform 0.6s ease;
 }
@@ -266,14 +289,14 @@ html {
 
 /* === OPTIMIZED SHADOWS === */
 .shadow-elevated-mobile {
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.12),
     0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 @media (min-width: 640px) {
   .shadow-elevated-mobile {
-    box-shadow: 
+    box-shadow:
       0 10px 15px -3px rgba(0, 0, 0, 0.1),
       0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
@@ -285,7 +308,7 @@ html {
     background-color: rgba(30, 30, 30, 0.95);
     border-color: rgba(255, 255, 255, 0.1);
   }
-  
+
   .mobile-nav {
     background: rgba(30, 30, 30, 0.95);
     border-top-color: rgba(255, 255, 255, 0.1);

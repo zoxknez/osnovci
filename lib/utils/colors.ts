@@ -31,7 +31,6 @@ export function getPriorityColor(
       return "text-red-600 bg-red-50 border-red-200";
     case "IMPORTANT":
       return "text-orange-600 bg-orange-50 border-orange-200";
-    case "NORMAL":
     default:
       return "text-blue-600 bg-blue-50 border-blue-200";
   }

@@ -1,9 +1,10 @@
 // NextAuth.js v5 configuration
+
+import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "@/lib/db/prisma";
-import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { prisma } from "@/lib/db/prisma";
 
 const loginSchema = z
   .object({
@@ -37,7 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         console.log("🔐 Authorize called with:", credentials);
-        
+
         const validated = loginSchema.safeParse(credentials);
 
         if (!validated.success) {

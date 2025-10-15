@@ -5,16 +5,34 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 const STUDENT_NAMES = [
-  "Marko Marković", "Ana Petrović", "Stefan Nikolić", "Jelena Jovanović",
-  "Nikola Đorđević", "Milica Stanković", "Luka Pavlović", "Sara Stojanović",
-  "Filip Ilić", "Teodora Todorović", "Aleksandar Mitić", "Jovana Popović",
-  "Dušan Kostić", "Katarina Simić", "Miloš Radović", "Emilija Đukić",
-  "Vuk Marić", "Anastasija Lukić", "David Tomić", "Sofija Živković"
+  "Marko Marković",
+  "Ana Petrović",
+  "Stefan Nikolić",
+  "Jelena Jovanović",
+  "Nikola Đorđević",
+  "Milica Stanković",
+  "Luka Pavlović",
+  "Sara Stojanović",
+  "Filip Ilić",
+  "Teodora Todorović",
+  "Aleksandar Mitić",
+  "Jovana Popović",
+  "Dušan Kostić",
+  "Katarina Simić",
+  "Miloš Radović",
+  "Emilija Đukić",
+  "Vuk Marić",
+  "Anastasija Lukić",
+  "David Tomić",
+  "Sofija Živković",
 ];
 
 const SCHOOLS = [
-  'OŠ "Vuk Karadžić"', 'OŠ "Dositej Obradović"', 'OŠ "Jovan Jovanović Zmaj"',
-  'OŠ "Petar Petrović Njegoš"', 'OŠ "Branko Radičević"'
+  'OŠ "Vuk Karadžić"',
+  'OŠ "Dositej Obradović"',
+  'OŠ "Jovan Jovanović Zmaj"',
+  'OŠ "Petar Petrović Njegoš"',
+  'OŠ "Branko Radičević"',
 ];
 
 async function main() {
@@ -36,19 +54,19 @@ async function main() {
 
   // Kreiraj 20 demo učenika
   const students = [];
-  
+
   for (let i = 0; i < 20; i++) {
     const student = await prisma.user.create({
       data: {
         email: `demo${i + 1}@osnovci.rs`,
-        phone: `064${String(i + 1).padStart(7, '0')}`,
+        phone: `064${String(i + 1).padStart(7, "0")}`,
         password: hashedPassword,
         role: "STUDENT",
         student: {
           create: {
             name: STUDENT_NAMES[i],
             school: SCHOOLS[i % SCHOOLS.length],
-            grade: Math.floor(i / 4) % 8 + 1, // Razredi 1-8
+            grade: (Math.floor(i / 4) % 8) + 1, // Razredi 1-8
             class: String.fromCharCode(65 + (i % 4)), // Odeljenja A, B, C, D
           },
         },
@@ -57,7 +75,7 @@ async function main() {
         student: true,
       },
     });
-    
+
     students.push(student);
     console.log(`✅ Demo učenik ${i + 1}/20 kreiran: ${student.student?.name}`);
   }
@@ -81,7 +99,7 @@ async function main() {
     prisma.subject.create({
       data: { name: "Engleski jezik", color: "#10b981", icon: "🇬🇧" },
     }),
-    
+
     // Prirodne nauke
     prisma.subject.create({
       data: { name: "Fizika", color: "#6366f1", icon: "⚛️" },
@@ -92,7 +110,7 @@ async function main() {
     prisma.subject.create({
       data: { name: "Biologija", color: "#22c55e", icon: "🔬" },
     }),
-    
+
     // Društvene nauke
     prisma.subject.create({
       data: { name: "Istorija", color: "#8b5cf6", icon: "🏛️" },
@@ -100,7 +118,7 @@ async function main() {
     prisma.subject.create({
       data: { name: "Geografija", color: "#06b6d4", icon: "🌍" },
     }),
-    
+
     // Ostali predmeti
     prisma.subject.create({
       data: { name: "Fizičko vaspitanje", color: "#f59e0b", icon: "⚽" },
@@ -119,12 +137,14 @@ async function main() {
   console.log("✅ Svi predmeti kreirani (12 predmeta)");
 
   // Poveži sve predmete sa učenikom
-  await prisma.studentSubject.createMany({
-    data: subjects.map((subject) => ({
-      studentId: student.student!.id,
-      subjectId: subject.id,
-    })),
-  });
+  if (student.student?.id) {
+    await prisma.studentSubject.createMany({
+      data: subjects.map((subject) => ({
+        studentId: student.student!.id,
+        subjectId: subject.id,
+      })),
+    });
+  }
 
   console.log("✅ Svi predmeti povezani sa učenikom");
 
@@ -209,39 +229,189 @@ async function main() {
   await prisma.scheduleEntry.createMany({
     data: [
       // PONEDELJAK
-      { studentId: student.student!.id, subjectId: subjects[0].id, dayOfWeek: "MONDAY", startTime: "08:00", endTime: "08:45" }, // Matematika
-      { studentId: student.student!.id, subjectId: subjects[1].id, dayOfWeek: "MONDAY", startTime: "08:50", endTime: "09:35" }, // Srpski
-      { studentId: student.student!.id, subjectId: subjects[2].id, dayOfWeek: "MONDAY", startTime: "09:55", endTime: "10:40" }, // Engleski
-      { studentId: student.student!.id, subjectId: subjects[8].id, dayOfWeek: "MONDAY", startTime: "10:45", endTime: "11:30" }, // Fizičko
-      { studentId: student.student!.id, subjectId: subjects[6].id, dayOfWeek: "MONDAY", startTime: "11:35", endTime: "12:20" }, // Istorija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[0].id,
+        dayOfWeek: "MONDAY",
+        startTime: "08:00",
+        endTime: "08:45",
+      }, // Matematika
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[1].id,
+        dayOfWeek: "MONDAY",
+        startTime: "08:50",
+        endTime: "09:35",
+      }, // Srpski
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[2].id,
+        dayOfWeek: "MONDAY",
+        startTime: "09:55",
+        endTime: "10:40",
+      }, // Engleski
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[8].id,
+        dayOfWeek: "MONDAY",
+        startTime: "10:45",
+        endTime: "11:30",
+      }, // Fizičko
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[6].id,
+        dayOfWeek: "MONDAY",
+        startTime: "11:35",
+        endTime: "12:20",
+      }, // Istorija
 
       // UTORAK
-      { studentId: student.student!.id, subjectId: subjects[0].id, dayOfWeek: "TUESDAY", startTime: "08:00", endTime: "08:45" }, // Matematika
-      { studentId: student.student!.id, subjectId: subjects[3].id, dayOfWeek: "TUESDAY", startTime: "08:50", endTime: "09:35" }, // Fizika
-      { studentId: student.student!.id, subjectId: subjects[5].id, dayOfWeek: "TUESDAY", startTime: "09:55", endTime: "10:40" }, // Biologija
-      { studentId: student.student!.id, subjectId: subjects[7].id, dayOfWeek: "TUESDAY", startTime: "10:45", endTime: "11:30" }, // Geografija
-      { studentId: student.student!.id, subjectId: subjects[10].id, dayOfWeek: "TUESDAY", startTime: "11:35", endTime: "12:20" }, // Muzičko
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[0].id,
+        dayOfWeek: "TUESDAY",
+        startTime: "08:00",
+        endTime: "08:45",
+      }, // Matematika
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[3].id,
+        dayOfWeek: "TUESDAY",
+        startTime: "08:50",
+        endTime: "09:35",
+      }, // Fizika
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[5].id,
+        dayOfWeek: "TUESDAY",
+        startTime: "09:55",
+        endTime: "10:40",
+      }, // Biologija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[7].id,
+        dayOfWeek: "TUESDAY",
+        startTime: "10:45",
+        endTime: "11:30",
+      }, // Geografija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[10].id,
+        dayOfWeek: "TUESDAY",
+        startTime: "11:35",
+        endTime: "12:20",
+      }, // Muzičko
 
       // SREDA
-      { studentId: student.student!.id, subjectId: subjects[1].id, dayOfWeek: "WEDNESDAY", startTime: "08:00", endTime: "08:45" }, // Srpski
-      { studentId: student.student!.id, subjectId: subjects[2].id, dayOfWeek: "WEDNESDAY", startTime: "08:50", endTime: "09:35" }, // Engleski
-      { studentId: student.student!.id, subjectId: subjects[4].id, dayOfWeek: "WEDNESDAY", startTime: "09:55", endTime: "10:40" }, // Hemija
-      { studentId: student.student!.id, subjectId: subjects[9].id, dayOfWeek: "WEDNESDAY", startTime: "10:45", endTime: "11:30" }, // Informatika
-      { studentId: student.student!.id, subjectId: subjects[11].id, dayOfWeek: "WEDNESDAY", startTime: "11:35", endTime: "12:20" }, // Likovno
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[1].id,
+        dayOfWeek: "WEDNESDAY",
+        startTime: "08:00",
+        endTime: "08:45",
+      }, // Srpski
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[2].id,
+        dayOfWeek: "WEDNESDAY",
+        startTime: "08:50",
+        endTime: "09:35",
+      }, // Engleski
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[4].id,
+        dayOfWeek: "WEDNESDAY",
+        startTime: "09:55",
+        endTime: "10:40",
+      }, // Hemija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[9].id,
+        dayOfWeek: "WEDNESDAY",
+        startTime: "10:45",
+        endTime: "11:30",
+      }, // Informatika
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[11].id,
+        dayOfWeek: "WEDNESDAY",
+        startTime: "11:35",
+        endTime: "12:20",
+      }, // Likovno
 
       // ČETVRTAK
-      { studentId: student.student!.id, subjectId: subjects[0].id, dayOfWeek: "THURSDAY", startTime: "08:00", endTime: "08:45" }, // Matematika
-      { studentId: student.student!.id, subjectId: subjects[3].id, dayOfWeek: "THURSDAY", startTime: "08:50", endTime: "09:35" }, // Fizika
-      { studentId: student.student!.id, subjectId: subjects[6].id, dayOfWeek: "THURSDAY", startTime: "09:55", endTime: "10:40" }, // Istorija
-      { studentId: student.student!.id, subjectId: subjects[7].id, dayOfWeek: "THURSDAY", startTime: "10:45", endTime: "11:30" }, // Geografija
-      { studentId: student.student!.id, subjectId: subjects[8].id, dayOfWeek: "THURSDAY", startTime: "11:35", endTime: "12:20" }, // Fizičko
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[0].id,
+        dayOfWeek: "THURSDAY",
+        startTime: "08:00",
+        endTime: "08:45",
+      }, // Matematika
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[3].id,
+        dayOfWeek: "THURSDAY",
+        startTime: "08:50",
+        endTime: "09:35",
+      }, // Fizika
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[6].id,
+        dayOfWeek: "THURSDAY",
+        startTime: "09:55",
+        endTime: "10:40",
+      }, // Istorija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[7].id,
+        dayOfWeek: "THURSDAY",
+        startTime: "10:45",
+        endTime: "11:30",
+      }, // Geografija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[8].id,
+        dayOfWeek: "THURSDAY",
+        startTime: "11:35",
+        endTime: "12:20",
+      }, // Fizičko
 
       // PETAK
-      { studentId: student.student!.id, subjectId: subjects[1].id, dayOfWeek: "FRIDAY", startTime: "08:00", endTime: "08:45" }, // Srpski
-      { studentId: student.student!.id, subjectId: subjects[2].id, dayOfWeek: "FRIDAY", startTime: "08:50", endTime: "09:35" }, // Engleski
-      { studentId: student.student!.id, subjectId: subjects[5].id, dayOfWeek: "FRIDAY", startTime: "09:55", endTime: "10:40" }, // Biologija
-      { studentId: student.student!.id, subjectId: subjects[4].id, dayOfWeek: "FRIDAY", startTime: "10:45", endTime: "11:30" }, // Hemija
-      { studentId: student.student!.id, subjectId: subjects[9].id, dayOfWeek: "FRIDAY", startTime: "11:35", endTime: "12:20" }, // Informatika
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[1].id,
+        dayOfWeek: "FRIDAY",
+        startTime: "08:00",
+        endTime: "08:45",
+      }, // Srpski
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[2].id,
+        dayOfWeek: "FRIDAY",
+        startTime: "08:50",
+        endTime: "09:35",
+      }, // Engleski
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[5].id,
+        dayOfWeek: "FRIDAY",
+        startTime: "09:55",
+        endTime: "10:40",
+      }, // Biologija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[4].id,
+        dayOfWeek: "FRIDAY",
+        startTime: "10:45",
+        endTime: "11:30",
+      }, // Hemija
+      {
+        studentId: student.student!.id,
+        subjectId: subjects[9].id,
+        dayOfWeek: "FRIDAY",
+        startTime: "11:35",
+        endTime: "12:20",
+      }, // Informatika
     ],
   });
 

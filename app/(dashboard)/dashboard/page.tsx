@@ -1,6 +1,19 @@
 // Dashboard "Danas" ekran - glavni pregled
 "use client";
 
+import { motion } from "framer-motion";
+import {
+  AlertCircle,
+  BookOpen,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Plus,
+  Trophy,
+  Zap,
+} from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,24 +21,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Calendar,
-  BookOpen,
-  Clock,
-  Plus,
-  CheckCircle2,
-  AlertCircle,
-  Trophy,
-  Zap,
-} from "lucide-react";
-import { motion } from "framer-motion";
 import {
   fadeInUp,
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
-import Link from "next/link";
 
 export default function DashboardPage() {
   // Mock data - ovo će kasnije biti real data iz baze
@@ -168,7 +168,8 @@ export default function DashboardPage() {
                 {currentStreak} dana u nizu!
               </div>
               <p className="text-white/90">
-                Super ti ide! Nastavi ovako i otključaj "Nepokolebljivi" bedž! 🏆
+                Super ti ide! Nastavi ovako i otključaj "Nepokolebljivi" bedž!
+                🏆
               </p>
             </div>
             <div className="text-right">
@@ -473,11 +474,11 @@ export default function DashboardPage() {
                                     : "bg-gray-100 text-gray-700"
                               }`}
                             >
-                                  {task.status === "done"
-                                    ? "Urađeno"
-                                    : task.status === "in_progress"
-                                      ? "Radim"
-                                      : "Novo"}
+                              {task.status === "done"
+                                ? "Urađeno"
+                                : task.status === "in_progress"
+                                  ? "Radim"
+                                  : "Novo"}
                             </span>
                             <span className="text-xs text-gray-500">
                               • {task.dueDate}

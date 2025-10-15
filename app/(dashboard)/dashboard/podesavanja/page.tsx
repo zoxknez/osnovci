@@ -1,31 +1,31 @@
 // Podešavanja - Ultra-Modern Settings Page with Instant Feedback
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 import {
   Bell,
-  Shield,
-  Moon,
-  Sun,
-  Smartphone,
-  LogOut,
-  Save,
   Camera,
-  Mail,
-  Phone,
-  School,
-  Lock,
   Fingerprint,
   Key,
+  Lock,
+  LogOut,
+  Mail,
+  Moon,
+  Palette,
+  Phone,
+  Save,
+  School,
+  Shield,
+  Smartphone,
+  Sun,
   Upload,
   User,
-  Palette,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   fadeInUp,
   staggerContainer,
@@ -52,7 +52,10 @@ export default function PodjesavanjaPage() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   // Auto-save helpers
-  const autoSave = async (setting: string, value: string | boolean | object) => {
+  const autoSave = async (
+    setting: string,
+    value: string | boolean | object,
+  ) => {
     // TODO: Save to backend API
     console.log(`💾 Auto-saving: ${setting} = ${JSON.stringify(value)}`);
 
@@ -120,10 +123,10 @@ export default function PodjesavanjaPage() {
   const handleProfileChange = async (field: string, value: string) => {
     const newProfile = { ...profileData, [field]: value };
     setProfileData(newProfile);
-    
+
     // Auto-save with debounce
     await autoSave(`profile.${field}`, value);
-    
+
     toast.success("✅ Sačuvano", {
       description: "Podaci ažurirani",
       duration: 1500,
@@ -134,9 +137,9 @@ export default function PodjesavanjaPage() {
   const handleAvatarUpload = async () => {
     // Simulate file upload
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSaving(false);
-    
+
     toast.success("📸 Slika promenjena!", {
       description: "Avatar je uspešno ažuriran",
       duration: 2000,
@@ -147,9 +150,9 @@ export default function PodjesavanjaPage() {
   const handleBiometricToggle = async () => {
     const newValue = !biometricEnabled;
     setBiometricEnabled(newValue);
-    
+
     await autoSave("biometric", newValue);
-    
+
     toast.success(newValue ? "✅ Aktivirano" : "❌ Deaktivirano", {
       description: `Biometrijska autentifikacija ${newValue ? "uključena" : "isključena"}`,
       duration: 2000,
@@ -160,9 +163,9 @@ export default function PodjesavanjaPage() {
   const handleTwoFactorToggle = async () => {
     const newValue = !twoFactorEnabled;
     setTwoFactorEnabled(newValue);
-    
+
     await autoSave("twoFactor", newValue);
-    
+
     toast.success(newValue ? "✅ Aktivirano" : "❌ Deaktivirano", {
       description: `Dvostruka verifikacija ${newValue ? "uključena" : "isključena"}`,
       duration: 2000,
@@ -230,7 +233,7 @@ export default function PodjesavanjaPage() {
               {/* Avatar - Interactive */}
               <div className="flex items-center gap-6">
                 <div className="relative group">
-                  <motion.div 
+                  <motion.div
                     className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -247,7 +250,11 @@ export default function PodjesavanjaPage() {
                     {isSaving ? (
                       <motion.div
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
                       >
                         <Upload className="h-4 w-4" />
                       </motion.div>
@@ -257,14 +264,18 @@ export default function PodjesavanjaPage() {
                   </motion.button>
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-white text-xs font-medium">Promeni</span>
+                    <span className="text-white text-xs font-medium">
+                      Promeni
+                    </span>
                   </div>
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">
                     {profileData.name}
                   </h3>
-                  <p className="text-sm text-gray-600">Učenik, {profileData.class}</p>
+                  <p className="text-sm text-gray-600">
+                    Učenik, {profileData.class}
+                  </p>
                   <motion.button
                     onClick={handleAvatarUpload}
                     whileHover={{ scale: 1.05 }}
@@ -288,8 +299,15 @@ export default function PodjesavanjaPage() {
                     <Input
                       type="email"
                       value={profileData.email}
-                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                      onBlur={(e) => handleProfileChange("email", e.target.value)}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          email: e.target.value,
+                        })
+                      }
+                      onBlur={(e) =>
+                        handleProfileChange("email", e.target.value)
+                      }
                       className="pl-10"
                     />
                   </div>
@@ -305,8 +323,15 @@ export default function PodjesavanjaPage() {
                     <Input
                       type="tel"
                       value={profileData.phone}
-                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                      onBlur={(e) => handleProfileChange("phone", e.target.value)}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          phone: e.target.value,
+                        })
+                      }
+                      onBlur={(e) =>
+                        handleProfileChange("phone", e.target.value)
+                      }
                       className="pl-10"
                     />
                   </div>
@@ -319,11 +344,18 @@ export default function PodjesavanjaPage() {
                   </label>
                   <div className="relative">
                     <School className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input 
+                    <Input
                       value={profileData.school}
-                      onChange={(e) => setProfileData({ ...profileData, school: e.target.value })}
-                      onBlur={(e) => handleProfileChange("school", e.target.value)}
-                      className="pl-10" 
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          school: e.target.value,
+                        })
+                      }
+                      onBlur={(e) =>
+                        handleProfileChange("school", e.target.value)
+                      }
+                      className="pl-10"
                     />
                   </div>
                 </div>
@@ -333,9 +365,11 @@ export default function PodjesavanjaPage() {
                     Razred
                     <span className="text-xs text-gray-500">(auto-save)</span>
                   </label>
-                  <Input 
+                  <Input
                     value={profileData.class}
-                    onChange={(e) => setProfileData({ ...profileData, class: e.target.value })}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, class: e.target.value })
+                    }
                     onBlur={(e) => handleProfileChange("class", e.target.value)}
                   />
                 </div>
@@ -558,8 +592,12 @@ export default function PodjesavanjaPage() {
                     <Lock className="h-5 w-5 text-blue-600" />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-gray-900">Promeni lozinku</div>
-                    <div className="text-xs text-gray-600">Poslednja promena: Pre 30 dana</div>
+                    <div className="font-semibold text-gray-900">
+                      Promeni lozinku
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      Poslednja promena: Pre 30 dana
+                    </div>
                   </div>
                 </div>
                 <Key className="h-5 w-5 text-gray-400" />
@@ -568,15 +606,21 @@ export default function PodjesavanjaPage() {
               {/* Biometric Authentication Toggle */}
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    biometricEnabled ? "bg-green-100" : "bg-gray-200"
-                  }`}>
-                    <Fingerprint className={`h-5 w-5 transition-colors ${
-                      biometricEnabled ? "text-green-600" : "text-gray-500"
-                    }`} />
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                      biometricEnabled ? "bg-green-100" : "bg-gray-200"
+                    }`}
+                  >
+                    <Fingerprint
+                      className={`h-5 w-5 transition-colors ${
+                        biometricEnabled ? "text-green-600" : "text-gray-500"
+                      }`}
+                    />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">Biometrija</div>
+                    <div className="font-semibold text-gray-900">
+                      Biometrija
+                    </div>
                     <div className="text-xs text-gray-600">
                       {biometricEnabled ? "Aktivan otisak prsta" : "Neaktivno"}
                     </div>
@@ -603,17 +647,25 @@ export default function PodjesavanjaPage() {
               {/* Two-Factor Authentication Toggle */}
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    twoFactorEnabled ? "bg-purple-100" : "bg-gray-200"
-                  }`}>
-                    <Shield className={`h-5 w-5 transition-colors ${
-                      twoFactorEnabled ? "text-purple-600" : "text-gray-500"
-                    }`} />
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                      twoFactorEnabled ? "bg-purple-100" : "bg-gray-200"
+                    }`}
+                  >
+                    <Shield
+                      className={`h-5 w-5 transition-colors ${
+                        twoFactorEnabled ? "text-purple-600" : "text-gray-500"
+                      }`}
+                    />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">2FA Verifikacija</div>
+                    <div className="font-semibold text-gray-900">
+                      2FA Verifikacija
+                    </div>
                     <div className="text-xs text-gray-600">
-                      {twoFactorEnabled ? "Dodatna zaštita aktivna" : "Neaktivno"}
+                      {twoFactorEnabled
+                        ? "Dodatna zaštita aktivna"
+                        : "Neaktivno"}
                     </div>
                   </div>
                 </div>

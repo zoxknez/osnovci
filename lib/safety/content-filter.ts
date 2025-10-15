@@ -25,7 +25,7 @@ export class ContentFilter {
     const flagged: string[] = [];
 
     // Check za neprikladne reči
-    for (const word of this.inappropriateWords) {
+    for (const word of ContentFilter.inappropriateWords) {
       if (lowerText.includes(word)) {
         flagged.push(word);
       }
@@ -89,7 +89,7 @@ export class AgeFilter {
     }
 
     // Check za kompleksnost teksta (Flesch Reading Ease)
-    const complexity = this.calculateComplexity(content);
+    const complexity = AgeFilter.calculateComplexity(content);
 
     // Za decu 7-10: jednostavan jezik
     if (age <= 10 && complexity > 60) {
@@ -118,7 +118,7 @@ export class AgeFilter {
   private static calculateComplexity(text: string): number {
     const words = text.split(/\s+/).length;
     const sentences = text.split(/[.!?]+/).length;
-    const syllables = this.countSyllables(text);
+    const syllables = AgeFilter.countSyllables(text);
 
     // Flesch Reading Ease formula (prilagođeno za srpski)
     const score =

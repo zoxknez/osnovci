@@ -1,7 +1,7 @@
 // Zustand store za globalni state (moderna alternativa Redux-u)
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import type { User, Student, Guardian, Notification } from "@/types";
+import { createJSONStorage, persist } from "zustand/middleware";
+import type { Notification, Student, User } from "@/types";
 
 // ============================================
 // AUTH STORE

@@ -1,5 +1,5 @@
 // Focus trap hook for modals and dialogs
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface UseFocusTrapOptions {
   active: boolean;
@@ -89,4 +89,3 @@ export function useFocusTrap({
 
   return containerRef;
 }
-

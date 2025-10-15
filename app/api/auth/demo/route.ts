@@ -21,8 +21,7 @@ export async function GET() {
   } catch {
     return NextResponse.json(
       { success: false, error: "Greška pri dodeli demo naloga" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

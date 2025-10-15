@@ -1,17 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import {
-  Camera,
-  Calendar,
   BarChart3,
-  Users,
+  Calendar,
+  Camera,
   CheckCircle2,
+  Shield,
   Sparkles,
   Trophy,
-  Shield,
+  Users,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -56,7 +56,9 @@ export default function Home() {
               className="mb-6 sm:mb-8 inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-semibold text-blue-700 ring-2 ring-blue-200 shadow-lg"
             >
               <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-              <span className="leading-tight">Savršena aplikacija za učenike i roditelje</span>
+              <span className="leading-tight">
+                Savršena aplikacija za učenike i roditelje
+              </span>
             </motion.div>
 
             {/* Main Heading - Mobile first typography */}
@@ -79,8 +81,8 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mx-auto mb-8 sm:mb-10 max-w-3xl text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 leading-relaxed px-4"
             >
-              Domaći zadaci sa dokazima, raspored časova, ocene, analitika i mnogo
-              više.
+              Domaći zadaci sa dokazima, raspored časova, ocene, analitika i
+              mnogo više.
               <br className="hidden sm:block" />
               <span className="block mt-2 sm:mt-1 sm:inline font-semibold text-gray-900">
                 Prilagođeno deci, sigurno za roditelje.
@@ -288,7 +290,9 @@ export default function Home() {
               transition={{ delay: 0.3 }}
             >
               <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-              <span className="text-sm sm:text-base font-semibold">Dostupno sada</span>
+              <span className="text-sm sm:text-base font-semibold">
+                Dostupno sada
+              </span>
             </motion.div>
           </div>
         </motion.div>
