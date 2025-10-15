@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { rateLimit } from "@/middleware/rate-limit";
+import { checkRateLimit } from "@/middleware/rate-limit";
 import { sanitizeText } from "@/lib/utils/sanitize";
 import { captureException } from "@/lib/monitoring/error-tracking";
 
@@ -116,36 +116,47 @@ export function sanitizeBody<T extends Record<string, any>>(
 /**
  * With Auth Middleware
  * Checks authentication before proceeding
+ * Next.js 15 compatible
  */
 export function withAuth(
-  handler: (req: NextRequest, session: any) => Promise<NextResponse>,
+  // biome-ignore lint: session type comes from NextAuth
+  handler: (req: NextRequest, session: any, context?: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
 ) {
-  return async (req: NextRequest, ...args: any[]) => {
+  return async (req: NextRequest, context?: { params: Promise<Record<string, string>> }) => {
     const session = await auth();
 
     if (!session?.user?.id) {
       return unauthorized();
     }
 
-    return handler(req, session);
+    return handler(req, session, context);
   };
 }
 
 /**
  * Composite Middleware: Auth + Rate Limiting
+ * Next.js 15 compatible
  */
 export function withAuthAndRateLimit(
-  handler: (req: NextRequest, session: any) => Promise<NextResponse>,
-  limiter: "api" | "auth" | "upload" = "api",
+  // biome-ignore lint: session type comes from NextAuth
+  handler: (req: NextRequest, session: any, context?: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
+  limiterType: "api" | "auth" | "upload" = "api",
 ) {
-  return rateLimit(limiter)(async (req: NextRequest, ...args: any[]) => {
+  return async (req: NextRequest, context?: { params: Promise<Record<string, string>> }) => {
+    // Check rate limit first
+    const rateLimitResult = await checkRateLimit(req, limiterType);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response as unknown as NextResponse;
+    }
+
+    // Then check auth
     const session = await auth();
 
     if (!session?.user?.id) {
       return unauthorized();
     }
 
-    return handler(req, session);
-  });
+    return handler(req, session, context);
+  };
 }
 
