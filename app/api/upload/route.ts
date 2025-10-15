@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    let buffer = Buffer.from(bytes);
+    let buffer: Buffer = Buffer.from(bytes);
 
     // Generate unique filename
     const timestamp = Date.now();
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
           .toBuffer();
 
         // Save optimized versions
-        buffer = optimized; // Replace original with optimized
+        buffer = Buffer.from(optimized); // Replace original with optimized
 
         const thumbnailPath = join(thumbnailsDir, thumbnailName);
         await writeFile(thumbnailPath, thumbnail);
