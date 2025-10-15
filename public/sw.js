@@ -1,17 +1,28 @@
 // Simple Service Worker - Basic PWA functionality
 // NOTE: For production, use Workbox with proper build step
 
-const CACHE_NAME = "osnovci-v2"; // Updated to force cache refresh
-const urlsToCache = ["/", "/dashboard", "/favicon.ico"];
+const CACHE_NAME = "osnovci-v3"; // Updated to force cache refresh
+const urlsToCache = ["/", "/favicon.ico"];
 
 // Install event - cache resources
 self.addEventListener("install", (event) => {
+  console.log("🔧 Service Worker: Installing...");
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) => {
         console.log("✅ Service Worker: Cache opened");
-        return cache.addAll(urlsToCache);
+        // Add URLs individually to avoid blocking on 404s
+        return Promise.allSettled(
+          urlsToCache.map((url) =>
+            cache.add(url).catch((err) => {
+              console.warn(`⚠️ Service Worker: Failed to cache ${url}:`, err);
+            })
+          )
+        );
+      })
+      .then(() => {
+        console.log("✅ Service Worker: Installation complete");
       })
       .catch((error) => {
         console.error("❌ Service Worker: Cache failed", error);
@@ -48,6 +59,11 @@ self.addEventListener("fetch", (event) => {
 
   // Skip caching for API routes (auth, etc)
   if (event.request.url.includes("/api/")) {
+    return event.respondWith(fetch(event.request));
+  }
+
+  // Skip caching for external resources (analytics, etc)
+  if (!event.request.url.startsWith(self.location.origin)) {
     return event.respondWith(fetch(event.request));
   }
 

@@ -20,11 +20,11 @@ const nextConfig: NextConfig = {
     // Content Security Policy
     const ContentSecurityPolicy = `
       default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline';
+      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https:;
       font-src 'self' data:;
-      connect-src 'self' https: wss:;
+      connect-src 'self' https: wss: https://vitals.vercel-insights.com;
       media-src 'self' blob:;
       worker-src 'self' blob:;
       frame-ancestors 'none';
@@ -80,18 +80,18 @@ const nextConfig: NextConfig = {
             key: "X-XSS-Protection",
             value: "1; mode=block",
           },
-          // Cross-Origin Policies
+          // Cross-Origin Policies (relaxed for development & analytics)
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
+            value: process.env.NODE_ENV === "production" ? "same-origin" : "same-origin-allow-popups",
           },
           {
             key: "Cross-Origin-Resource-Policy",
-            value: "same-origin",
+            value: "cross-origin",
           },
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
+            value: process.env.NODE_ENV === "production" ? "require-corp" : "unsafe-none",
           },
         ],
       },
