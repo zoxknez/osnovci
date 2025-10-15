@@ -9,7 +9,7 @@ import { addXP, trackHomeworkCompletion } from "@/lib/gamification/xp-system";
  * GET /api/gamification - Get student's gamification data
  */
 // biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
+export const GET = withAuthAndRateLimit(async (_request: NextRequest, session: any, _context: any) => {
   try {
     const student = await getAuthenticatedStudent(session.user.id);
 

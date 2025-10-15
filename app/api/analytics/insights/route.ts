@@ -8,7 +8,7 @@ import { analyzeLearningPatterns, getWeeklySummary } from "@/lib/analytics/learn
  * Get learning insights for student
  */
 // biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
+export const GET = withAuthAndRateLimit(async (_request: NextRequest, session: any, _context: any) => {
   try {
     const student = await getAuthenticatedStudent(session.user.id);
 

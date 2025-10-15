@@ -8,7 +8,8 @@ import { withAuthAndRateLimit, getAuthenticatedStudent, success, internalError }
  * POST /api/link/child-approve
  * Child confirms: "Da, ovo je moj roditelj"
  */
-export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any) => {
+// biome-ignore lint: session type from NextAuth, context from Next.js 15
+export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
   try {
     const student = await getAuthenticatedStudent(session.user.id);
     const { linkCode, approved, guardianEmail } = await request.json();

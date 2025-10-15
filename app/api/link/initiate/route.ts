@@ -9,7 +9,8 @@ import { withAuthAndRateLimit, success, internalError } from "@/lib/api/middlewa
  * POST /api/link/initiate
  * Guardian scans QR → Returns linkCode for child approval
  */
-export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any) => {
+// biome-ignore lint: session type from NextAuth, context from Next.js 15
+export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
   try {
     const { studentQRData } = await request.json(); // QR contains studentId
 
