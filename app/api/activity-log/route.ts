@@ -9,7 +9,7 @@ import { getActivityLog } from "@/lib/tracking/activity-logger";
  * Parents can see child's activity
  */
 // biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any, _context?: any) => {
+export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");

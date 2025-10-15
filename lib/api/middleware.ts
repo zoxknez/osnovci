@@ -120,9 +120,9 @@ export function sanitizeBody<T extends Record<string, any>>(
  */
 export function withAuth(
   // biome-ignore lint: session type comes from NextAuth
-  handler: (req: NextRequest, session: any, context?: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
+  handler: (req: NextRequest, session: any, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
 ) {
-  return async (req: NextRequest, context?: { params: Promise<Record<string, string>> }) => {
+  return async (req: NextRequest, context: { params: Promise<Record<string, string>> }) => {
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -139,10 +139,10 @@ export function withAuth(
  */
 export function withAuthAndRateLimit(
   // biome-ignore lint: session type comes from NextAuth
-  handler: (req: NextRequest, session: any, context?: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
+  handler: (req: NextRequest, session: any, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
   limiterType: "api" | "auth" | "upload" = "api",
 ) {
-  return async (req: NextRequest, context?: { params: Promise<Record<string, string>> }) => {
+  return async (req: NextRequest, context: { params: Promise<Record<string, string>> }) => {
     // Check rate limit first
     const rateLimitResult = await checkRateLimit(req, limiterType);
     if (!rateLimitResult.success) {

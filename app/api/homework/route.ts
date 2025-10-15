@@ -21,7 +21,7 @@ const createHomeworkSchema = z.object({
 
 // GET /api/homework - Get all homework for student
 // biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any, _context?: any) => {
+export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
   try {
     // Get student (helper eliminates duplicate query!)
     const student = await getAuthenticatedStudent(session.user.id);
@@ -90,7 +90,7 @@ export const GET = withAuthAndRateLimit(async (request: NextRequest, session: an
 
 // POST /api/homework - Create new homework
 // biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any, _context?: any) => {
+export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
   try {
     // Get student
     const student = await getAuthenticatedStudent(session.user.id);
