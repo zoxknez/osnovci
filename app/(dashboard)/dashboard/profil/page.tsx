@@ -303,7 +303,7 @@ export default function ProfilPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
                   Adresa
                 </label>
@@ -396,7 +396,7 @@ export default function ProfilPage() {
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Ruler className="h-4 w-4" />
                   Visina (cm)
                 </label>
@@ -419,7 +419,7 @@ export default function ProfilPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Weight className="h-4 w-4" />
                   Težina (kg)
                 </label>
@@ -472,7 +472,7 @@ export default function ProfilPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Eye className="h-4 w-4" />
                   Naočare
                 </label>
@@ -502,7 +502,7 @@ export default function ProfilPage() {
             <CardContent className="grid gap-6">
               {/* Krvna grupa */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Droplet className="h-4 w-4" />
                   Krvna grupa
                 </label>
@@ -533,7 +533,7 @@ export default function ProfilPage() {
 
               {/* Alergije */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Alergije
                 </label>
@@ -572,7 +572,7 @@ export default function ProfilPage() {
               {/* Zdravstvene napomene */}
               {(isEditing || profile.healthNotes) && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     Zdravstvene napomene
                   </label>
@@ -596,7 +596,7 @@ export default function ProfilPage() {
               {/* Lekovi */}
               {(isEditing || profile.medications.length > 0) && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Pill className="h-4 w-4" />
                     Trenutna terapija
                   </label>
