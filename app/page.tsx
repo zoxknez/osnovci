@@ -3,15 +3,14 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
-  ArrowRight,
-  Book,
   Camera,
   Calendar,
   BarChart3,
-  Users as UsersIcon,
+  Users,
   CheckCircle2,
   Sparkles,
   Trophy,
+  Shield,
 } from "lucide-react";
 
 export default function Home() {
