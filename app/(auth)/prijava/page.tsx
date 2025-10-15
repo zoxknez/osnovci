@@ -65,20 +65,26 @@ export default function PrijavaPage() {
       }
 
       // Automatski loguj sa demo nalogom
+      console.log("🔐 Demo login:", data.email);
+      
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
       });
 
+      console.log("✅ SignIn result:", result);
+
       if (result?.error) {
-        toast.error("Greška pri demo prijavi");
+        console.error("❌ Auth error:", result.error);
+        toast.error(`Greška: ${result.error}`);
       } else {
-        toast.success(`🎉 Demo nalog dodeljen! Dobrodošao/la!`);
+        toast.success(`🎉 Ulogovan: ${data.email}!`);
         router.push("/dashboard");
         router.refresh();
       }
-    } catch {
+    } catch (error) {
+      console.error("❌ Demo login error:", error);
       toast.error("Greška pri demo prijavi");
     } finally {
       setIsDemoLoading(false);
