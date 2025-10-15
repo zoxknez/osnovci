@@ -173,19 +173,15 @@ export async function POST(request: NextRequest) {
     });
 
     // SAFETY CHECK - Image moderation for children!
-    let flaggedForReview = false;
-    let safetyScore = 100;
-
     if (file.type.startsWith("image/")) {
       const safetyResult = await checkImageSafety(buffer);
-      flaggedForReview = safetyResult.flaggedForReview;
-      safetyScore = safetyResult.score;
 
       if (!safetyResult.safe) {
         log.warn("Image flagged as potentially unsafe", {
           fileName,
           score: safetyResult.score,
           reasons: safetyResult.reasons,
+          flagged: safetyResult.flaggedForReview,
         });
       }
 
