@@ -1,7 +1,7 @@
 // Simple Service Worker - Basic PWA functionality
 // NOTE: For production, use Workbox with proper build step
 
-const CACHE_NAME = "osnovci-v1";
+const CACHE_NAME = "osnovci-v2"; // Updated to force cache refresh
 const urlsToCache = ["/", "/dashboard", "/favicon.ico"];
 
 // Install event - cache resources
