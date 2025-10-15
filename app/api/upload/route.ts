@@ -1,11 +1,13 @@
-// Upload API - File uploads (Images, PDFs, etc)
+// Upload API - File uploads (Images, PDFs, etc) - Mobile Optimized!
 import { type NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
+import sharp from "sharp";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { ActivityLogger } from "@/lib/tracking/activity-logger";
+import { checkImageSafety } from "@/lib/safety/image-safety";
 
 // Max file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -102,16 +104,61 @@ export async function POST(request: NextRequest) {
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    let buffer = Buffer.from(bytes);
 
     // Generate unique filename
     const timestamp = Date.now();
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const fileName = `${timestamp}-${sanitizedName}`;
+    const fileName = `${timestamp}-${sanitizedName.replace(/\.[^.]+$/, ".jpg")}`; // Always JPEG
+    const thumbnailName = `${timestamp}-thumb-${sanitizedName.replace(/\.[^.]+$/, ".jpg")}`;
 
-    // Create uploads directory if it doesn't exist
+    // Create uploads directories
     const uploadsDir = join(process.cwd(), "public", "uploads");
+    const thumbnailsDir = join(uploadsDir, "thumbnails");
     await mkdir(uploadsDir, { recursive: true });
+    await mkdir(thumbnailsDir, { recursive: true });
+
+    // Mobile Optimization: Compress images with Sharp!
+    if (file.type.startsWith("image/")) {
+      try {
+        // Optimize image - Mobile friendly!
+        const optimized = await sharp(buffer)
+          .resize(1920, 1080, {
+            fit: "inside",
+            withoutEnlargement: true,
+          })
+          .jpeg({
+            quality: 85,
+            progressive: true, // Better for mobile loading
+            mozjpeg: true, // Better compression
+          })
+          .toBuffer();
+
+        // Generate thumbnail (fast loading on mobile!)
+        const thumbnail = await sharp(buffer)
+          .resize(400, 400, {
+            fit: "cover",
+            position: "center",
+          })
+          .jpeg({ quality: 75 })
+          .toBuffer();
+
+        // Save optimized versions
+        buffer = optimized; // Replace original with optimized
+
+        const thumbnailPath = join(thumbnailsDir, thumbnailName);
+        await writeFile(thumbnailPath, thumbnail);
+
+        log.info("Image optimized for mobile", {
+          originalSize: bytes.byteLength,
+          optimizedSize: buffer.length,
+          reduction: `${(((bytes.byteLength - buffer.length) / bytes.byteLength) * 100).toFixed(1)}%`,
+        });
+      } catch (error) {
+        log.warn("Image optimization failed, using original", { error });
+        // Continue with original if optimization fails
+      }
+    }
 
     // Save file to disk
     const filePath = join(uploadsDir, fileName);
@@ -124,6 +171,30 @@ export async function POST(request: NextRequest) {
       homeworkId,
       studentId: user.student.id,
     });
+
+    // SAFETY CHECK - Image moderation for children!
+    let flaggedForReview = false;
+    let safetyScore = 100;
+
+    if (file.type.startsWith("image/")) {
+      const safetyResult = await checkImageSafety(buffer);
+      flaggedForReview = safetyResult.flaggedForReview;
+      safetyScore = safetyResult.score;
+
+      if (!safetyResult.safe) {
+        log.warn("Image flagged as potentially unsafe", {
+          fileName,
+          score: safetyResult.score,
+          reasons: safetyResult.reasons,
+        });
+      }
+
+      // Notify parent if required
+      if (safetyResult.parentNotificationRequired) {
+        // TODO: Send email to parent
+        log.info("Parent notification required for flagged image", { fileName });
+      }
+    }
 
     // Log activity for parents (IMPORTANT - they need to know!)
     await ActivityLogger.photoUploaded(user.student.id, fileName, homeworkId, request);
@@ -140,10 +211,11 @@ export async function POST(request: NextRequest) {
         homeworkId,
         type: attachmentType,
         fileName,
-        fileSize: file.size,
-        mimeType: file.type,
+        fileSize: buffer.length, // Optimized size!
+        mimeType: attachmentType === "IMAGE" ? "image/jpeg" : file.type,
         localUri: `/uploads/${fileName}`,
-        remoteUrl: `/uploads/${fileName}`, // For now, same as local
+        remoteUrl: `/uploads/${fileName}`,
+        thumbnail: attachmentType === "IMAGE" ? `/uploads/thumbnails/${thumbnailName}` : undefined,
         uploadedAt: new Date(),
       },
     });
