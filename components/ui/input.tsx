@@ -65,7 +65,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="mb-2 block text-sm font-medium text-gray-700"
+            className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
           >
             {label}
             {required && (
@@ -96,7 +96,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               // Base styles
               "flex h-11 w-full rounded-xl border-2 bg-white px-4 py-2 text-sm transition-all duration-200",
-              "placeholder:text-gray-400",
+              // Text color - IMPORTANT!
+              "text-gray-900 dark:text-white",
+              // Placeholder
+              "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+              // Background
+              "dark:bg-gray-800 dark:border-gray-600",
 
               // Focus styles
               "focus:outline-none focus:ring-3 focus:ring-offset-1",
@@ -106,10 +111,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 ? "border-red-300 focus:border-red-500 focus:ring-red-500/30"
                 : success
                   ? "border-green-300 focus:border-green-500 focus:ring-green-500/30"
-                  : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/30",
+                  : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/30 dark:focus:border-blue-400",
 
               // Disabled state
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50",
+              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50 dark:disabled:bg-gray-900",
 
               // Icon padding
               leftIcon && "pl-10",
