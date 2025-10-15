@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 const registerSchema = z
   .object({
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Registration error:", error);
+    log.error("Registration failed", { error });
     return NextResponse.json(
       { error: "Greška pri kreiranju naloga" },
       { status: 500 },

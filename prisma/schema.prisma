@@ -264,6 +264,10 @@ model Homework {
   @@index([subjectId])
   @@index([dueDate])
   @@index([status])
+  // Compound indexes za performance
+  @@index([studentId, status])
+  @@index([studentId, dueDate, status])
+  @@index([status, dueDate])
   @@map("homework")
 }
 
@@ -334,6 +338,9 @@ model ScheduleEntry {
   @@index([studentId])
   @@index([subjectId])
   @@index([dayOfWeek])
+  // Compound indexes
+  @@index([studentId, dayOfWeek])
+  @@index([studentId, dayOfWeek, startTime])
   @@map("schedule_entries")
 }
 
@@ -367,6 +374,9 @@ model Event {
   @@index([studentId])
   @@index([dateTime])
   @@index([type])
+  // Compound indexes
+  @@index([studentId, dateTime])
+  @@index([studentId, type, dateTime])
   @@map("events")
 }
 
@@ -396,6 +406,9 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+  // Compound indexes
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
   @@map("notifications")
 }
 

@@ -2,6 +2,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 // GET /api/notifications - Get user notifications
 export async function GET(_request: NextRequest) {
@@ -31,7 +32,7 @@ export async function GET(_request: NextRequest) {
       count: notifications.length,
     });
   } catch (error) {
-    console.error("GET /api/notifications error:", error);
+    log.error("GET /api/notifications failed", { error });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -69,7 +70,7 @@ export async function PATCH(request: NextRequest) {
       message: "Notifikacije označene kao pročitane!",
     });
   } catch (error) {
-    console.error("PATCH /api/notifications error:", error);
+    log.error("PATCH /api/notifications failed", { error });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

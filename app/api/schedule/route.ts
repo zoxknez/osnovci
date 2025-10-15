@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 const createScheduleSchema = z.object({
   subjectId: z.string().cuid(),
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
       count: schedule.length,
     });
   } catch (error) {
-    console.error("GET /api/schedule error:", error);
+    log.error("GET /api/schedule failed", { error });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("POST /api/schedule error:", error);
+    log.error("POST /api/schedule failed", { error });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

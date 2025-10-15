@@ -4,6 +4,8 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
+import { rateLimit } from "@/middleware/rate-limit";
 
 // Validation schema
 const createHomeworkSchema = z.object({
@@ -15,7 +17,7 @@ const createHomeworkSchema = z.object({
 });
 
 // GET /api/homework - Get all homework for student
-export async function GET(request: NextRequest) {
+const getHandler = async (request: NextRequest) => {
   try {
     const session = await auth();
 
@@ -84,7 +86,7 @@ export async function GET(request: NextRequest) {
       count: homework.length,
     });
   } catch (error) {
-    console.error("GET /api/homework error:", error);
+    log.error("GET /api/homework failed", { error, userId: request.headers.get("user-id") });
     return NextResponse.json(
       {
         error: "Internal Server Error",
@@ -163,7 +165,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("POST /api/homework error:", error);
+    log.error("POST /api/homework failed", { error });
     return NextResponse.json(
       {
         error: "Internal Server Error",

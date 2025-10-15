@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 const createEventSchema = z.object({
   type: z.enum(["EXAM", "MEETING", "TRIP", "COMPETITION", "OTHER"]),
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
       count: events.length,
     });
   } catch (error) {
-    console.error("GET /api/events error:", error);
+    log.error("GET /api/events failed", { error });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("POST /api/events error:", error);
+    log.error("POST /api/events failed", { error });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

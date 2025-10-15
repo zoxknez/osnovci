@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 const updateHomeworkSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -63,7 +64,7 @@ export async function GET(
 
     return NextResponse.json({ success: true, homework });
   } catch (error) {
-    console.error("GET /api/homework/[id] error:", error);
+    log.error("GET /api/homework/[id] failed", { error, homeworkId: (await params).id });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },
@@ -137,7 +138,7 @@ export async function PATCH(
       homework: updated,
     });
   } catch (error) {
-    console.error("PATCH /api/homework/[id] error:", error);
+    log.error("PATCH /api/homework/[id] failed", { error, homeworkId: (await params).id });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },
@@ -187,7 +188,7 @@ export async function DELETE(
       message: "Zadatak je obrisan!",
     });
   } catch (error) {
-    console.error("DELETE /api/homework/[id] error:", error);
+    log.error("DELETE /api/homework/[id] failed", { error, homeworkId: (await params).id });
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
@@ -53,7 +54,7 @@ export async function GET(_request: NextRequest) {
       user,
     });
   } catch (error) {
-    console.error("GET /api/profile error:", error);
+    log.error("GET /api/profile failed", { error });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -103,7 +104,7 @@ export async function PATCH(request: NextRequest) {
       profile: updated,
     });
   } catch (error) {
-    console.error("PATCH /api/profile error:", error);
+    log.error("PATCH /api/profile failed", { error });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

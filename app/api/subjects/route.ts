@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 const createSubjectSchema = z.object({
   name: z.string().min(1).max(100),
@@ -31,7 +32,7 @@ export async function GET(_request: NextRequest) {
       count: subjects.length,
     });
   } catch (error) {
-    console.error("GET /api/subjects error:", error);
+    log.error("GET /api/subjects failed", { error });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("POST /api/subjects error:", error);
+    log.error("POST /api/subjects failed", { error });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

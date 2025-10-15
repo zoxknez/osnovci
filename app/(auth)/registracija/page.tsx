@@ -1,17 +1,18 @@
-// Registracija stranica - multi-step, child-friendly
+// Registracija stranica - multi-step, child-friendly, dark mode support
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   GraduationCap,
   Shield,
   Sparkles,
   Users,
+  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ export default function RegistracijaPage() {
   const [step, setStep] = useState<Step>("role");
   const [role, setRole] = useState<Role | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -42,6 +44,13 @@ export default function RegistracijaPage() {
     grade: 1,
     class: "",
   });
+
+  // Auto-focus kada se pređe na details step
+  useEffect(() => {
+    if (step === "details") {
+      nameInputRef.current?.focus();
+    }
+  }, [step]);
 
   const handleRoleSelect = (selectedRole: Role) => {
     setRole(selectedRole);
@@ -98,11 +107,11 @@ export default function RegistracijaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       {/* Animated background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-20 -left-20 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
+          className="absolute -top-10 sm:-top-20 -left-10 sm:-left-20 w-64 h-64 sm:w-96 sm:h-96 bg-blue-300 dark:bg-blue-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 dark:opacity-10"
           animate={{
             x: [0, 50, 0],
             y: [0, 30, 0],
@@ -115,7 +124,7 @@ export default function RegistracijaPage() {
           }}
         />
         <motion.div
-          className="absolute -bottom-20 -right-20 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
+          className="absolute -bottom-10 sm:-bottom-20 -right-10 sm:-right-20 w-64 h-64 sm:w-96 sm:h-96 bg-purple-300 dark:bg-purple-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-20 dark:opacity-10"
           animate={{
             x: [0, -50, 0],
             y: [0, -30, 0],
@@ -157,13 +166,26 @@ export default function RegistracijaPage() {
               Osnovci
             </h1>
           </Link>
-          <div className="flex items-center justify-center gap-2 text-gray-600 mb-2">
+          <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-300 mb-2">
             <span className="text-2xl">🎓</span>
-            <p className="text-lg font-medium">Kreiraj novi nalog</p>
+            <p className="text-base sm:text-lg font-medium">Kreiraj novi nalog</p>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Jednostavno • Bez reklama • Potpuno sigurno
           </p>
+          {/* Progress Indicator */}
+          {step === "details" && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex items-center justify-center gap-2"
+            >
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-full">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span>Korak 2/2</span>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         <motion.div
@@ -171,7 +193,7 @@ export default function RegistracijaPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card className="shadow-2xl border-2 border-gray-200 backdrop-blur-sm bg-white/80 overflow-hidden">
+          <Card className="shadow-2xl border-2 border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 overflow-hidden">
             {/* Decorative gradient bar */}
             <div className="h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" />
 
@@ -195,7 +217,7 @@ export default function RegistracijaPage() {
                     aria-label="Registruj se kao učenik"
                     whileHover={{ y: -5, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group relative overflow-hidden rounded-3xl border-3 border-blue-200 bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-50 p-8 text-left transition-all hover:border-blue-400 hover:shadow-2xl active:scale-95 focus:ring-4 focus:ring-blue-500/30 focus:outline-none"
+                    className="group relative overflow-hidden rounded-3xl border-3 border-blue-200 dark:border-blue-700 bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-50 dark:from-blue-900/40 dark:via-blue-800/40 dark:to-cyan-900/40 p-8 text-left transition-all hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-2xl active:scale-95 focus:ring-4 focus:ring-blue-500/30 focus:outline-none"
                   >
                     {/* Animated gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -208,32 +230,32 @@ export default function RegistracijaPage() {
                       <GraduationCap className="h-10 w-10" aria-hidden="true" />
                     </motion.div>
 
-                    <h3 className="relative mb-3 text-2xl font-extrabold text-gray-900">
+                    <h3 className="relative mb-3 text-2xl font-extrabold text-gray-900 dark:text-white">
                       Ja sam učenik
                     </h3>
-                    <p className="relative text-base text-gray-700 leading-relaxed mb-4">
+                    <p className="relative text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                       Pratim domaće, raspored časova i svoje ocene
                     </p>
 
                     {/* Features list */}
                     <div className="relative space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="text-green-600">✓</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-green-600 dark:text-green-400">✓</span>
                         <span>Fotografisanje domaćih</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="text-green-600">✓</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-green-600 dark:text-green-400">✓</span>
                         <span>Gamifikacija i XP sistem</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="text-green-600">✓</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-green-600 dark:text-green-400">✓</span>
                         <span>Povezivanje sa roditeljima</span>
                       </div>
                     </div>
 
                     {/* Arrow indicator */}
                     <motion.div
-                      className="absolute bottom-4 right-4 text-blue-600 opacity-0 group-hover:opacity-100"
+                      className="absolute bottom-4 right-4 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100"
                       animate={{ x: [0, 5, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
@@ -248,7 +270,7 @@ export default function RegistracijaPage() {
                     aria-label="Registruj se kao roditelj ili staratelj"
                     whileHover={{ y: -5, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group relative overflow-hidden rounded-3xl border-3 border-purple-200 bg-gradient-to-br from-purple-50 via-purple-100 to-pink-50 p-8 text-left transition-all hover:border-purple-400 hover:shadow-2xl active:scale-95 focus:ring-4 focus:ring-purple-500/30 focus:outline-none"
+                    className="group relative overflow-hidden rounded-3xl border-3 border-purple-200 dark:border-purple-700 bg-gradient-to-br from-purple-50 via-purple-100 to-pink-50 dark:from-purple-900/40 dark:via-purple-800/40 dark:to-pink-900/40 p-8 text-left transition-all hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-2xl active:scale-95 focus:ring-4 focus:ring-purple-500/30 focus:outline-none"
                   >
                     {/* Animated gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-pink-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -261,32 +283,32 @@ export default function RegistracijaPage() {
                       <Users className="h-10 w-10" aria-hidden="true" />
                     </motion.div>
 
-                    <h3 className="relative mb-3 text-2xl font-extrabold text-gray-900">
+                    <h3 className="relative mb-3 text-2xl font-extrabold text-gray-900 dark:text-white">
                       Ja sam roditelj
                     </h3>
-                    <p className="relative text-base text-gray-700 leading-relaxed mb-4">
+                    <p className="relative text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                       Pratim decu, njihove obaveze i napredak
                     </p>
 
                     {/* Features list */}
                     <div className="relative space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="text-green-600">✓</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-green-600 dark:text-green-400">✓</span>
                         <span>Praćenje više dece</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="text-green-600">✓</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-green-600 dark:text-green-400">✓</span>
                         <span>Nedeljni izveštaji</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="text-green-600">✓</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-green-600 dark:text-green-400">✓</span>
                         <span>Analitika napretka</span>
                       </div>
                     </div>
 
                     {/* Arrow indicator */}
                     <motion.div
-                      className="absolute bottom-4 right-4 text-purple-600 opacity-0 group-hover:opacity-100"
+                      className="absolute bottom-4 right-4 text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100"
                       animate={{ x: [0, 5, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
@@ -332,6 +354,7 @@ export default function RegistracijaPage() {
                     aria-label={`Forma za registraciju ${role === "STUDENT" ? "učenika" : "roditelja"}`}
                   >
                     <Input
+                      ref={nameInputRef}
                       label="Ime i prezime"
                       type="text"
                       placeholder="Petar Petrović"
@@ -386,7 +409,7 @@ export default function RegistracijaPage() {
                           <div>
                             <label
                               htmlFor="grade-select"
-                              className="mb-2 block text-sm font-medium text-gray-700"
+                              className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
                             >
                               Razred
                             </label>
@@ -399,7 +422,7 @@ export default function RegistracijaPage() {
                                   grade: Number(e.target.value),
                                 })
                               }
-                              className="flex h-11 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                              className="flex h-11 w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-2 text-sm transition-all focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-3 focus:ring-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                               disabled={isLoading}
                             >
                               {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => (
@@ -498,37 +521,37 @@ export default function RegistracijaPage() {
                   {/* Divider */}
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300" />
+                      <div className="w-full border-t border-gray-300 dark:border-gray-600" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">ili</span>
+                      <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">ili</span>
                     </div>
                   </div>
 
                   {/* Sign in link */}
                   <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
                       Već imaš nalog?{" "}
                       <Link
                         href="/prijava"
-                        className="font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                        className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
                       >
                         Prijavi se ovde
                       </Link>
                     </p>
 
                     {/* Trust badges */}
-                    <div className="flex items-center justify-center gap-6 mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <Shield className="h-4 w-4 text-green-600" />
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                        <Shield className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                         <span className="font-medium">100% Sigurno</span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <Sparkles className="h-4 w-4 text-purple-600" />
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                        <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                         <span className="font-medium">Bez reklama</span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <span className="text-blue-600">✓</span>
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-blue-600 dark:text-blue-400 flex-shrink-0">✓</span>
                         <span className="font-medium">Dostupno</span>
                       </div>
                     </div>
@@ -543,9 +566,16 @@ export default function RegistracijaPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-8 text-center text-xs text-gray-500"
+          className="mt-6 sm:mt-8 text-center text-xs text-gray-500 dark:text-gray-400 leading-relaxed px-4"
         >
-          Registracijom se slažeš sa našim uslovima korišćenja i privatnosti
+          Registracijom se slažeš sa našim{" "}
+          <Link href="/uslovi" className="underline hover:text-blue-600 dark:hover:text-blue-400">
+            uslovima korišćenja
+          </Link>
+          {" "}i{" "}
+          <Link href="/privatnost" className="underline hover:text-blue-600 dark:hover:text-blue-400">
+            privatnosti
+          </Link>
         </motion.p>
       </motion.div>
     </div>
