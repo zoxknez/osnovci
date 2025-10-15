@@ -1,6 +1,7 @@
 // Notification Creation Helpers
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { sendPushNotification, NotificationTemplates } from "./send";
 
 export type NotificationType =
   | "HOMEWORK_DUE"
@@ -44,6 +45,15 @@ export async function createNotification({
       notificationId: notification.id,
       userId,
       type,
+    });
+
+    // Send push notification
+    await sendPushNotification(userId, {
+      title,
+      body: message,
+      data,
+    }).catch((err) => {
+      log.warn("Failed to send push notification", { error: err });
     });
 
     return notification;

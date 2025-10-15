@@ -5,6 +5,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
+import { recordLoginAttempt, isAccountLocked } from "@/lib/auth/account-lockout";
 
 const loginSchema = z
   .object({
@@ -37,17 +38,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Lozinka", type: "password" },
       },
       async authorize(credentials) {
-        console.log("🔐 Authorize called with:", credentials);
-
         const validated = loginSchema.safeParse(credentials);
 
         if (!validated.success) {
-          console.error("❌ Validation failed:", validated.error.flatten());
           return null;
         }
 
-        console.log("✅ Validation passed:", validated.data);
         const { email, phone, password } = validated.data;
+        const loginEmail = email || phone || "";
+
+        // Check if account is locked
+        const lockStatus = isAccountLocked(loginEmail);
+        if (lockStatus.locked) {
+          // Return null but with message (NextAuth will show error)
+          throw new Error(lockStatus.message || "Account locked");
+        }
 
         // Pronađi korisnika po email-u ili telefonu
         const user = await prisma.user.findFirst({
@@ -61,6 +66,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (!user || !user.password) {
+          // Record failed attempt
+          await recordLoginAttempt({ email: loginEmail, success: false });
           return null;
         }
 
@@ -68,8 +75,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
+          // Record failed attempt
+          const lockResult = await recordLoginAttempt({
+            email: loginEmail,
+            success: false,
+          });
+
+          if (lockResult.locked) {
+            throw new Error(lockResult.message || "Account locked");
+          }
+
           return null;
         }
+
+        // Successful login - clear failed attempts
+        await recordLoginAttempt({ email: loginEmail, success: true });
 
         return {
           id: user.id,

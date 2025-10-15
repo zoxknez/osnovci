@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { rateLimit } from "@/middleware/rate-limit";
 import { sanitizeText } from "@/lib/utils/sanitize";
+import { captureException } from "@/lib/monitoring/error-tracking";
 
 /**
  * Authenticated Student Middleware
@@ -73,6 +74,14 @@ export function success(data: any, status = 200) {
 
 export function internalError(error: unknown, customMessage?: string) {
   log.error("API Internal Error", { error });
+  
+  // Track error
+  if (error instanceof Error) {
+    captureException(error, {
+      tags: { type: "api_error" },
+      extra: { customMessage },
+    });
+  }
 
   return NextResponse.json(
     {
