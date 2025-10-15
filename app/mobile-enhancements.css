@@ -1,0 +1,293 @@
+/* 📱 Mobile-First Enhancements za Osnovci App */
+
+/* === HERO SEKCIJA === */
+.hero-badge {
+  /* Glassmorphism effect */
+  backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+}
+
+/* === TOUCH OPTIMIZATIONS === */
+@media (hover: none) and (pointer: coarse) {
+  /* Na touch devices, povećaj interaktivne elemente */
+  button, a[role="button"], .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 20px;
+  }
+  
+  /* Ukloni hover efekte na mobilnom */
+  .hover-effect {
+    transition: none;
+  }
+  
+  /* Active state umesto hover */
+  button:active, a:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+}
+
+/* === VISUAL POLISH === */
+
+/* Smooth gradient animation */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Floating animation for badges */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse glow effect */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), 0 0 60px rgba(147, 51, 234, 0.4);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* === MOBILE TYPOGRAPHY === */
+@media (max-width: 640px) {
+  /* Better readability on small screens */
+  .mobile-title {
+    font-size: clamp(2rem, 8vw, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  
+  .mobile-subtitle {
+    font-size: clamp(0.875rem, 4vw, 1rem);
+    line-height: 1.6;
+  }
+  
+  .mobile-body {
+    font-size: clamp(0.875rem, 3.5vw, 1rem);
+    line-height: 1.6;
+  }
+}
+
+/* === SAFE AREA INSETS (za notch na iPhone) === */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .safe-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+  
+  .safe-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* === SMOOTH SCROLL === */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* === BETTER FOCUS INDICATORS === */
+@media (max-width: 640px) {
+  *:focus-visible {
+    outline: 3px solid rgb(59 130 246);
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+}
+
+/* === LOADING STATES === */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* === HAPTIC FEEDBACK VISUAL === */
+@keyframes tap-feedback {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.tap-feedback:active {
+  animation: tap-feedback 0.2s ease-out;
+}
+
+/* === CARD HOVER EFFECTS === */
+.card-interactive {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.card-interactive:hover {
+  transform: translateY(-4px);
+}
+
+.card-interactive:active {
+  transform: translateY(-2px);
+}
+
+/* Mobile: Manje movement */
+@media (max-width: 640px) {
+  .card-interactive:hover {
+    transform: translateY(-2px);
+  }
+  
+  .card-interactive:active {
+    transform: scale(0.98);
+  }
+}
+
+/* === GRADIENT BORDERS === */
+.gradient-border {
+  position: relative;
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1px;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1.5rem;
+  padding: 2px;
+  background: linear-gradient(135deg, #3b82f6, #9333ea, #ec4899);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* === MOBILE NAVIGATION === */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 0;
+  z-index: 1000;
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .mobile-nav {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* === MICRO-INTERACTIONS === */
+.button-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.button-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.button-primary:hover::after {
+  transform: translateX(100%);
+}
+
+/* === SCROLL SNAP (za carousel na mobilnom) === */
+.scroll-snap-container {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.scroll-snap-container::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-snap-item {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+/* === OPTIMIZED SHADOWS === */
+.shadow-elevated-mobile {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 640px) {
+  .shadow-elevated-mobile {
+    box-shadow: 
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* === DARK MODE SUPPORT === */
+@media (prefers-color-scheme: dark) {
+  .card-interactive {
+    background-color: rgba(30, 30, 30, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-nav {
+    background: rgba(30, 30, 30, 0.95);
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+}

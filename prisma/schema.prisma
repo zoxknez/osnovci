@@ -1,0 +1,420 @@
+// Prisma Schema za Osnovci MVP v1
+// Modern best practices: relations, indexes, timestamps
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+enum UserRole {
+  STUDENT
+  GUARDIAN
+}
+
+enum Language {
+  SR_LATN // Srpski latinica
+  SR_CYRL // Srpski ćirilica
+  EN      // English
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  AUTO
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     String?  @unique
+  password  String?  // Hashed with bcrypt
+  role      UserRole
+  locale    Language @default(SR_LATN)
+  theme     Theme    @default(AUTO)
+  pinCode   String?  // Encrypted PIN for quick access
+  biometric Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  student  Student?
+  guardian Guardian?
+  sessions Session[]
+
+  @@index([email])
+  @@index([phone])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// ============================================
+// PROFILES
+// ============================================
+
+enum BloodType {
+  A_POSITIVE  // A+
+  A_NEGATIVE  // A-
+  B_POSITIVE  // B+
+  B_NEGATIVE  // B-
+  AB_POSITIVE // AB+
+  AB_NEGATIVE // AB-
+  O_POSITIVE  // O+
+  O_NEGATIVE  // O-
+  UNKNOWN     // Nepoznata
+}
+
+model Student {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String
+  school    String
+  grade     Int // Razred: 1-8
+  class     String // Odeljenje: 1, 2, 3...
+  avatar    String?
+  birthDate DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Osnovne informacije
+  jmbg      String? // JMBG broj (opciono, za školu)
+  address   String? // Adresa stanovanja
+  
+  // Fizičke karakteristike
+  height    Float? // Visina u cm
+  weight    Float? // Težina u kg
+  clothingSize String? // Veličina garderobe (za školske aktivnosti)
+  hasGlasses Boolean @default(false) // Da li nosi naočare
+  
+  // Zdravstvene informacije
+  bloodType    BloodType @default(UNKNOWN)
+  allergies    String? // JSON array ili text sa alergijama (hrana, lekovi, polen, itd.)
+  chronicIllnesses String? // Hronična oboljenja (astma, dijabetes, epilepsija)
+  medications  String? // Terapija/lekovi koje trenutno uzima
+  vaccinations String? // Vakcinacioni karton - JSON sa datumima
+  healthNotes  String? // Dodatne zdravstvene napomene
+  specialNeeds String? // Posebne potrebe (dijeta, pristupačnost)
+  
+  // Kontakt informacije za hitne slučajeve
+  primaryDoctor      String? // Primarni lekar (ime i telefon)
+  primaryDoctorPhone String?
+  dentist            String? // Stomatolog (ime i telefon)
+  dentistPhone       String?
+  emergencyContact1  String? // Kontakt u hitnim slučajevima 1 (ime i telefon)
+  emergencyContact1Phone String?
+  emergencyContact2  String? // Kontakt u hitnim slučajevima 2
+  emergencyContact2Phone String?
+  
+  // Aktivnosti i interesovanja
+  hobbies      String? // Hobiji i interesovanja
+  sports       String? // Sportovi koje trenira
+  activities   String? // Vannastavne aktivnosti
+  notes        String? // Opšte napomene
+
+  // Relations
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links     Link[]
+  homework  Homework[]
+  schedule  ScheduleEntry[]
+  events    Event[]
+  subjects  StudentSubject[]
+
+  @@index([userId])
+  @@index([school, grade, class])
+  @@map("students")
+}
+
+model Guardian {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links Link[]
+
+  @@index([userId])
+  @@map("guardians")
+}
+
+// ============================================
+// FAMILY LINKING (Roditelj ↔ Učenik)
+// ============================================
+
+model Link {
+  id          String   @id @default(cuid())
+  guardianId  String
+  studentId   String
+  linkCode    String   @unique // 6-digit code for pairing
+  isActive    Boolean  @default(true)
+  permissions Json? // Custom permissions object
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime? // Link code expiry
+
+  guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([guardianId, studentId])
+  @@index([linkCode])
+  @@index([guardianId])
+  @@index([studentId])
+  @@map("links")
+}
+
+// ============================================
+// SUBJECTS (Predmeti)
+// ============================================
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String // Matematika, Srpski, Engleski...
+  color     String   @default("#3b82f6") // Hex color
+  icon      String?  // Emoji or icon name
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  students StudentSubject[]
+  homework Homework[]
+  schedule ScheduleEntry[]
+
+  @@map("subjects")
+}
+
+// Many-to-many: Student can have custom subjects
+model StudentSubject {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String
+  notes     String? // Custom notes per student
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subjectId])
+  @@index([studentId])
+  @@index([subjectId])
+  @@map("student_subjects")
+}
+
+// ============================================
+// HOMEWORK (Domaći zadaci + Dokazi)
+// ============================================
+
+enum Priority {
+  NORMAL
+  IMPORTANT
+  URGENT
+}
+
+enum HomeworkStatus {
+  ASSIGNED   // Dodeljeno
+  IN_PROGRESS // U toku
+  DONE       // Gotovo
+  SUBMITTED  // Poslato
+  REVIEWED   // Pregledano od roditelja
+  REVISION   // Traži doradu
+}
+
+model Homework {
+  id          String         @id @default(cuid())
+  studentId   String
+  subjectId   String
+  title       String
+  description String?
+  dueDate     DateTime
+  priority    Priority       @default(NORMAL)
+  status      HomeworkStatus @default(ASSIGNED)
+  notes       String? // Učenikove beleške
+  reviewNote  String? // Roditeljska napomena
+  reviewedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  student     Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  attachments Attachment[]
+
+  @@index([studentId])
+  @@index([subjectId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("homework")
+}
+
+// ============================================
+// ATTACHMENTS (Dokazi - slike, video, PDF)
+// ============================================
+
+enum AttachmentType {
+  IMAGE
+  VIDEO
+  PDF
+  AUDIO
+}
+
+model Attachment {
+  id         String         @id @default(cuid())
+  homeworkId String
+  type       AttachmentType
+  fileName   String
+  fileSize   Int // bytes
+  mimeType   String
+  localUri   String? // Za offline
+  remoteUrl  String? // Cloud storage URL
+  thumbnail  String? // Thumbnail URL za slike/video
+  width      Int?
+  height     Int?
+  duration   Int? // Za video/audio (sekunde)
+  uploadedAt DateTime       @default(now())
+  syncedAt   DateTime? // Kad je sinhronizovano sa cloud-om
+
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+
+  @@index([homeworkId])
+  @@map("attachments")
+}
+
+// ============================================
+// SCHEDULE (Raspored časova)
+// ============================================
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model ScheduleEntry {
+  id        String    @id @default(cuid())
+  studentId String
+  subjectId String
+  dayOfWeek DayOfWeek
+  startTime String // "08:00"
+  endTime   String // "08:45"
+  room      String? // Učionica
+  notes     String? // "Poneti pribor za crtanje"
+  isAWeek   Boolean   @default(true) // A smena
+  isBWeek   Boolean   @default(true) // B smena
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@index([studentId])
+  @@index([subjectId])
+  @@index([dayOfWeek])
+  @@map("schedule_entries")
+}
+
+// ============================================
+// EVENTS (Kontrolni, izleti, sastanci)
+// ============================================
+
+enum EventType {
+  EXAM        // Kontrolni/pismeni
+  MEETING     // Roditeljski sastanak
+  TRIP        // Izlet
+  COMPETITION // Takmičenje
+  OTHER
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  studentId   String
+  type        EventType
+  title       String
+  description String?
+  dateTime    DateTime
+  location    String?
+  notes       String?
+  notifyAt    DateTime? // Kad poslati notifikaciju
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([dateTime])
+  @@index([type])
+  @@map("events")
+}
+
+// ============================================
+// NOTIFICATIONS (Push notifikacije)
+// ============================================
+
+enum NotificationType {
+  HOMEWORK_DUE
+  HOMEWORK_SUBMITTED
+  HOMEWORK_REVIEWED
+  EVENT_REMINDER
+  SCHEDULE_CHANGE
+  LINK_REQUEST
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json? // Dodatni podaci
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================
+// ANALYTICS (Za roditeljske izveštaje)
+// ============================================
+
+model WeeklyReport {
+  id                 String   @id @default(cuid())
+  studentId          String
+  weekStart          DateTime
+  weekEnd            DateTime
+  totalHomework      Int      @default(0)
+  completedHomework  Int      @default(0)
+  lateHomework       Int      @default(0)
+  subjectBreakdown   Json // { "Matematika": { total: 5, completed: 4 }, ... }
+  generatedAt        DateTime @default(now())
+
+  @@index([studentId])
+  @@index([weekStart])
+  @@map("weekly_reports")
+}

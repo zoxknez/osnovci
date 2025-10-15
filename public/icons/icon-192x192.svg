@@ -1,0 +1,21 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect width="192" height="192" rx="28.799999999999997" fill="url(#grad)"/>
+  
+  <!-- Book icon -->
+  <g transform="translate(48, 48)">
+    <path d="M 15.36 0 L 80.64 0 C 90.24 0 96 5.76 96 15.36 L 96 80.64 C 96 90.24 90.24 96 80.64 96 L 15.36 96 C 5.76 96 0 90.24 0 80.64 L 0 15.36 C 0 5.76 5.76 0 15.36 0 Z" 
+          fill="white" opacity="0.9"/>
+    <rect x="19.200000000000003" y="28.799999999999997" width="57.599999999999994" height="5.76" fill="#3b82f6" rx="1.92"/>
+    <rect x="19.200000000000003" y="44.160000000000004" width="48" height="5.76" fill="#3b82f6" rx="1.92"/>
+    <rect x="19.200000000000003" y="59.519999999999996" width="53.760000000000005" height="5.76" fill="#3b82f6" rx="1.92"/>
+  </g>
+</svg>

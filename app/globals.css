@@ -1,26 +1,210 @@
 @import "tailwindcss";
 
+/* Modern CSS Variables za Osnovci - Mobile First */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: 59 130 246; /* Blue 500 */
+  --color-secondary: 248 250 252; /* Gray 50 */
+  --color-accent: 147 51 234; /* Purple 600 */
+  --color-background: 255 255 255;
+  --color-foreground: 15 23 42; /* Slate 900 */
+  
+  /* Mobile-optimized spacing */
+  --spacing-touch-target: 44px; /* Apple HIG minimum */
+  --spacing-comfortable: 16px;
+  --spacing-compact: 12px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-theme="dark"] {
+  --color-background: 15 23 42;
+  --color-foreground: 248 250 252;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
+  font-feature-settings:
+    "rlig" 1,
+    "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
+  /* Better text rendering on mobile */
+  text-rendering: optimizeLegibility;
+}
+
+/* Touch-friendly interactions */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar za moderan izgled */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgb(241 245 249); /* gray-100 */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225); /* gray-300 */
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(148 163 184); /* gray-400 */
+}
+
+/* Smooth animations za dečji UI - Mobile optimized */
+.animate-in {
+  animation: animate-in 0.3s ease-out;
+}
+
+@keyframes animate-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subtle bounce effect for mobile interactions */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 0.3s ease-in-out;
+}
+
+/* Focus states za accessibility - Savršeno vidljiv za keyboard users */
+:focus-visible {
+  outline: 3px solid rgb(59 130 246); /* blue-500 */
+  outline-offset: 3px;
+  border-radius: 4px;
+  transition: outline 0.2s ease;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Larger touch targets on mobile */
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  /* Better line-height for readability */
+  p, li {
+    line-height: 1.6;
+  }
+  
+  /* Comfortable spacing */
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Screen Reader Only - WCAG 2.1 AA Required */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* High Contrast Mode - Za osobe sa oštećenjem vida */
+@media (prefers-contrast: more) {
+  .text-gray-500 {
+    color: rgb(75 85 99); /* gray-600 - better contrast */
+  }
+
+  .text-gray-600 {
+    color: rgb(55 65 81); /* gray-700 */
+  }
+
+  .border-gray-200 {
+    border-color: rgb(156 163 175); /* gray-400 */
+  }
+
+  /* Jači shadow za better visibility */
+  .shadow-sm {
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.15);
+  }
+
+  .shadow-md {
+    box-shadow: 0 4px 8px 0 rgb(0 0 0 / 0.2);
+  }
+}
+
+/* Reduced Motion - Za korisnike sa vestibularnim problemima */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles - Za printing domaćih zadataka */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .print-break-before {
+    page-break-before: always;
+  }
 }

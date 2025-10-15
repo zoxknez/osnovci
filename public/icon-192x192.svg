@@ -1,0 +1,28 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <rect width="192" height="192" rx="42" fill="url(#paint0_linear)"/>
+  
+  <!-- Book Icon -->
+  <path d="M96 48C76 48 60 64 60 84V144C60 150.627 65.373 156 72 156H120C126.627 156 132 150.627 132 144V84C132 64 116 48 96 48Z" fill="white" opacity="0.95"/>
+  
+  <!-- Book Pages -->
+  <line x1="96" y1="60" x2="96" y2="144" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+  <line x1="76" y1="80" x2="88" y2="80" stroke="#6366F1" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="76" y1="96" x2="88" y2="96" stroke="#6366F1" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="76" y1="112" x2="88" y2="112" stroke="#6366F1" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="104" y1="80" x2="116" y2="80" stroke="#6366F1" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="104" y1="96" x2="116" y2="96" stroke="#6366F1" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="104" y1="112" x2="116" y2="112" stroke="#6366F1" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  
+  <!-- Checkmark -->
+  <circle cx="140" cy="52" r="24" fill="#10B981"/>
+  <path d="M132 52L138 58L148 46" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="192" y2="192" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+</svg>
