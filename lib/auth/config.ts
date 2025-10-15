@@ -34,12 +34,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Lozinka", type: "password" },
       },
       async authorize(credentials) {
+        console.log("🔐 Authorize called with:", credentials);
+        
         const validated = loginSchema.safeParse(credentials);
 
         if (!validated.success) {
+          console.error("❌ Validation failed:", validated.error.flatten());
           return null;
         }
 
+        console.log("✅ Validation passed:", validated.data);
         const { email, phone, password } = validated.data;
 
         // Pronađi korisnika po email-u ili telefonu
