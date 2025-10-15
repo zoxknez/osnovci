@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 export default function PrijavaPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -49,45 +48,6 @@ export default function PrijavaPage() {
       toast.error("Greška pri prijavljivanju");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setIsDemoLoading(true);
-
-    try {
-      // Dobavi random demo nalog
-      const response = await fetch("/api/auth/demo");
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error("Greška pri dodeli demo naloga");
-      }
-
-      // Automatski loguj sa demo nalogom
-      console.log("🔐 Demo login:", data.email);
-
-      const result = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      console.log("✅ SignIn result:", result);
-
-      if (result?.error) {
-        console.error("❌ Auth error:", result.error);
-        toast.error(`Greška: ${result.error}`);
-      } else {
-        toast.success(`🎉 Ulogovan: ${data.email}!`);
-        router.push("/dashboard");
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("❌ Demo login error:", error);
-      toast.error("Greška pri demo prijavi");
-    } finally {
-      setIsDemoLoading(false);
     }
   };
 
@@ -236,39 +196,6 @@ export default function PrijavaPage() {
                   )}
                 </Button>
               </form>
-
-              {/* Divider */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">ili</span>
-                </div>
-              </div>
-
-              {/* Demo Login Button */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-2 border-blue-300 hover:bg-blue-50 text-blue-700 font-bold shadow-md hover:shadow-lg transition-all"
-                size="lg"
-                onClick={handleDemoLogin}
-                loading={isDemoLoading}
-                disabled={isDemoLoading || isLoading}
-                aria-label={
-                  isDemoLoading
-                    ? "Dodela demo naloga u toku..."
-                    : "Probaj demo nalog odmah"
-                }
-              >
-                {!isDemoLoading && (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Probaj Demo (bez registracije)
-                  </>
-                )}
-              </Button>
 
               {/* Sign up link */}
               <div className="text-center mt-5 sm:mt-6">
