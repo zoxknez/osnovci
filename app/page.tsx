@@ -3,16 +3,15 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
+  ArrowRight,
+  Book,
   Camera,
   Calendar,
   BarChart3,
-  Heart,
-  Shield,
-  Sparkles,
-  Users,
-  Trophy,
-  Star,
+  Users as UsersIcon,
   CheckCircle2,
+  Sparkles,
+  Trophy,
 } from "lucide-react";
 
 export default function Home() {
@@ -127,40 +126,6 @@ export default function Home() {
             </motion.div>
 
             {/* Social Proof - Mobile optimized */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-20 text-gray-700 px-4"
-            >
-              <div className="flex items-center gap-2.5 bg-white/80 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-md">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 ring-2 ring-white flex items-center justify-center text-white text-xs sm:text-sm font-bold"
-                    >
-                      {i}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-sm sm:text-base font-semibold">500+ učenika</span>
-              </div>
-
-              <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-md">
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <span className="text-sm sm:text-base font-semibold">4.9/5 ocena</span>
-              </div>
-
-              <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-md">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
-                <span className="text-sm sm:text-base font-semibold">100% sigurno</span>
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>
@@ -333,14 +298,11 @@ export default function Home() {
       {/* Footer - Mobile friendly */}
       <footer className="relative px-4 py-10 sm:py-12 sm:px-6 lg:px-8 bg-gray-50 border-t border-gray-200">
         <div className="mx-auto max-w-7xl text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3 sm:mb-4">
-            <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500 animate-pulse flex-shrink-0" />
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-              &copy; 2025 Osnovci. Dizajnirano sa ljubavlju za decu i roditelje.
-            </p>
-          </div>
+          <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-3 sm:mb-4">
+            © 2025 Osnovci. o0o0o0o
+          </p>
           <p className="text-xs sm:text-sm text-gray-500">
-            Sigurna, privatna i potpuno besplatna aplikacija.
+            Sigurna, privatna i inovativna.
           </p>
         </div>
       </footer>
