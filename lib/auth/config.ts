@@ -18,6 +18,7 @@ const loginSchema = z
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // Koristimo JWT sesije bez adaptera za jednostavnost
   trustHost: true,
+  basePath: "/api/auth",
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
