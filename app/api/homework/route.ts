@@ -6,6 +6,8 @@ import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { rateLimit } from "@/middleware/rate-limit";
+import { withAuthAndRateLimit, getAuthenticatedStudent, sanitizeBody, internalError, badRequest, success } from "@/lib/api/middleware";
+import { notifyHomeworkDue } from "@/lib/notifications/create";
 
 // Validation schema
 const createHomeworkSchema = z.object({
@@ -17,38 +19,22 @@ const createHomeworkSchema = z.object({
 });
 
 // GET /api/homework - Get all homework for student
-const getHandler = async (request: NextRequest) => {
+export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any) => {
   try {
-    const session = await auth();
+    // Get student (helper eliminates duplicate query!)
+    const student = await getAuthenticatedStudent(session.user.id);
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Morate biti ulogovani" },
-        { status: 401 },
-      );
-    }
-
-    // Get student ID
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { student: true },
-    });
-
-    if (!user?.student) {
-      return NextResponse.json(
-        { error: "Not Found", message: "Student profil nije pronađen" },
-        { status: 404 },
-      );
-    }
-
-    // Get query params for filtering
+    // Get query params for filtering and pagination
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const subjectId = searchParams.get("subjectId");
+    const page = Math.max(1, Number(searchParams.get("page")) || 1);
+    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 50));
+    const skip = (page - 1) * limit;
 
     // Build where clause
     const where: Prisma.HomeworkWhereInput = {
-      studentId: user.student.id,
+      studentId: student.id,
     };
 
     if (status) {
@@ -59,82 +45,60 @@ const getHandler = async (request: NextRequest) => {
       where.subjectId = subjectId;
     }
 
-    // Fetch homework
-    const homework = await prisma.homework.findMany({
-      where,
-      include: {
-        subject: true,
-        attachments: {
-          select: {
-            id: true,
-            type: true,
-            fileName: true,
-            thumbnail: true,
-            uploadedAt: true,
+    // Fetch homework with pagination
+    const [homework, total] = await Promise.all([
+      prisma.homework.findMany({
+        where,
+        include: {
+          subject: true,
+          attachments: {
+            select: {
+              id: true,
+              type: true,
+              fileName: true,
+              thumbnail: true,
+              uploadedAt: true,
+            },
           },
         },
-      },
-      orderBy: [
-        { status: "asc" }, // Active first
-        { dueDate: "asc" }, // Closest deadline first
-      ],
-    });
+        orderBy: [
+          { status: "asc" }, // Active first
+          { dueDate: "asc" }, // Closest deadline first
+        ],
+        skip,
+        take: limit,
+      }),
+      prisma.homework.count({ where }),
+    ]);
 
-    return NextResponse.json({
-      success: true,
+    return success({
       homework,
-      count: homework.length,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: page * limit < total,
+      },
     });
   } catch (error) {
-    log.error("GET /api/homework failed", { error, userId: request.headers.get("user-id") });
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        message: "Greška pri učitavanju zadataka",
-      },
-      { status: 500 },
-    );
+    return internalError(error, "Greška pri učitavanju zadataka");
   }
-}
+});
 
 // POST /api/homework - Create new homework
-export async function POST(request: NextRequest) {
+export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any) => {
   try {
-    const session = await auth();
+    // Get student
+    const student = await getAuthenticatedStudent(session.user.id);
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Morate biti ulogovani" },
-        { status: 401 },
-      );
-    }
-
-    // Get student ID
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { student: true },
-    });
-
-    if (!user?.student) {
-      return NextResponse.json(
-        { error: "Not Found", message: "Student profil nije pronađen" },
-        { status: 404 },
-      );
-    }
-
-    // Validate request body
+    // Validate and sanitize request body
     const body = await request.json();
-    const validated = createHomeworkSchema.safeParse(body);
+    const sanitized = sanitizeBody(body, ["title", "description"]);
+    const validated = createHomeworkSchema.safeParse(sanitized);
 
     if (!validated.success) {
-      return NextResponse.json(
-        {
-          error: "Validation Error",
-          message: "Nevažeći podaci",
-          details: validated.error.flatten(),
-        },
-        { status: 400 },
-      );
+      return badRequest("Nevažeći podaci", validated.error.flatten());
     }
 
     const { subjectId, title, description, dueDate, priority } = validated.data;
@@ -142,7 +106,7 @@ export async function POST(request: NextRequest) {
     // Create homework
     const homework = await prisma.homework.create({
       data: {
-        studentId: user.student.id,
+        studentId: student.id,
         subjectId,
         title,
         description,
@@ -156,22 +120,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Domaći zadatak je kreiran!",
-        homework,
-      },
-      { status: 201 },
-    );
+    log.info("Homework created", { homeworkId: homework.id, studentId: student.id });
+
+    // Create notification if due soon
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (user) {
+      await notifyHomeworkDue(user.id, homework.id, title, new Date(dueDate)).catch((err) => {
+        log.warn("Failed to create homework notification", { error: err });
+      });
+    }
+
+    return success({ message: "Domaći zadatak je kreiran!", homework }, 201);
   } catch (error) {
-    log.error("POST /api/homework failed", { error });
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        message: "Greška pri kreiranju zadatka",
-      },
-      { status: 500 },
-    );
+    return internalError(error, "Greška pri kreiranju zadatka");
   }
-}
+});
