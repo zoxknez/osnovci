@@ -1,58 +1,81 @@
 // Hook za offline homework management
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { offlineHomeworkDB } from "@/lib/db/offline-storage";
+import { offlineStorage, type StoredHomework } from "@/lib/db/offline-storage";
 import { useSyncStore } from "@/store";
+
+export type OfflineHomeworkStatus =
+  | "ASSIGNED"
+  | "IN_PROGRESS"
+  | "DONE"
+  | "SUBMITTED";
 
 export interface OfflineHomework {
   id: string;
   title: string;
-  subject: string;
+  subjectId: string;
   description?: string;
   dueDate: Date;
   priority: "NORMAL" | "IMPORTANT" | "URGENT";
+  status: OfflineHomeworkStatus;
   createdAt: Date;
   synced: boolean;
+  studentId?: string;
 }
 
 export function useOfflineHomework() {
   const [offlineItems, setOfflineItems] = useState<OfflineHomework[]>([]);
   const { isOnline, setPendingCount } = useSyncStore();
 
-  // Load offline items on mount
-  useEffect(() => {
-    loadOfflineItems();
-  }, []);
+  const mapStoredToOffline = useCallback((item: StoredHomework): OfflineHomework => ({
+    id: item.id,
+    title: item.title,
+    subjectId: item.subjectId,
+    description: item.description || undefined,
+    dueDate: new Date(item.dueDate),
+    priority: item.priority,
+    status: item.status as OfflineHomeworkStatus,
+    createdAt: new Date(item.createdAt),
+    synced: item.synced,
+    studentId: item.studentId,
+  }), []);
 
-  // Sync when online
-  useEffect(() => {
-    if (isOnline && offlineItems.length > 0) {
-      syncOfflineItems();
-    }
-  }, [isOnline]);
-
-  const loadOfflineItems = async () => {
+  const loadOfflineItems = useCallback(async () => {
     try {
-      const items = await offlineHomeworkDB.getAll();
-      setOfflineItems(items);
-      setPendingCount(items.length);
+      const items = await offlineStorage.getAllHomework();
+      const mapped = items.map(mapStoredToOffline);
+      setOfflineItems(mapped);
+      setPendingCount(mapped.filter((item) => !item.synced).length);
     } catch (error) {
       console.error("Failed to load offline items:", error);
     }
-  };
+  }, [mapStoredToOffline, setPendingCount]);
 
-  const saveOffline = async (homework: Omit<OfflineHomework, "id" | "createdAt" | "synced">) => {
+  const saveOffline = useCallback(async (homework: Omit<OfflineHomework, "id" | "createdAt" | "synced">) => {
     try {
       const item: OfflineHomework = {
         ...homework,
         id: `offline-${Date.now()}`,
+        status: homework.status ?? "ASSIGNED",
         createdAt: new Date(),
         synced: false,
       };
 
-      await offlineHomeworkDB.add(item);
+      await offlineStorage.saveHomework({
+        id: item.id,
+        studentId: item.studentId ?? "offline-student",
+        subjectId: item.subjectId,
+        title: item.title,
+        description: item.description,
+        dueDate: item.dueDate.toISOString(),
+        priority: item.priority,
+        status: item.status,
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.createdAt.toISOString(),
+        synced: item.synced,
+      });
       await loadOfflineItems();
 
       toast.success("Sačuvano offline", {
@@ -65,9 +88,9 @@ export function useOfflineHomework() {
       toast.error("Greška pri čuvanju offline");
       throw error;
     }
-  };
+  }, [loadOfflineItems]);
 
-  const syncOfflineItems = async () => {
+  const syncOfflineItems = useCallback(async () => {
     if (!isOnline) {
       toast.info("Nisi povezan na internet");
       return;
@@ -101,7 +124,7 @@ export function useOfflineHomework() {
 
         if (response.ok) {
           // Remove from offline storage
-          await offlineHomeworkDB.delete(item.id);
+          await offlineStorage.deleteHomework(item.id);
           synced++;
         } else {
           failed++;
@@ -121,26 +144,44 @@ export function useOfflineHomework() {
     if (failed > 0) {
       toast.error(`${failed} zadataka nije uspelo`);
     }
-  };
+  }, [isOnline, offlineItems, loadOfflineItems]);
 
-  const deleteOffline = async (id: string) => {
+  const deleteOffline = useCallback(async (id: string) => {
     try {
-      await offlineHomeworkDB.delete(id);
+      await offlineStorage.deleteHomework(id);
       await loadOfflineItems();
       toast.success("Offline zadatak obrisan");
     } catch (error) {
       console.error("Failed to delete offline item:", error);
       toast.error("Greška pri brisanju");
     }
-  };
+  }, [loadOfflineItems]);
+
+  // Load offline items on mount
+  useEffect(() => {
+    void loadOfflineItems();
+  }, [loadOfflineItems]);
+
+  // Sync when online and there are pending items
+  useEffect(() => {
+    if (isOnline && offlineItems.some((item) => !item.synced)) {
+      void syncOfflineItems();
+    }
+  }, [isOnline, offlineItems, syncOfflineItems]);
+
+  const hasOfflineItems = useMemo(() => offlineItems.length > 0, [offlineItems]);
+  const unsyncedCount = useMemo(
+    () => offlineItems.filter((item) => !item.synced).length,
+    [offlineItems],
+  );
 
   return {
     offlineItems,
     saveOffline,
     syncOfflineItems,
     deleteOffline,
-    hasOfflineItems: offlineItems.length > 0,
-    unsynced Count: offlineItems.filter((i) => !i.synced).length,
+    hasOfflineItems,
+    unsyncedCount,
   };
 }
 

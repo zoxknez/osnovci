@@ -169,7 +169,8 @@ export async function getWeeklySummary(studentId: string) {
   ]);
 
   const completed = homeworkThisWeek.filter(
-    (h) => h.status === "DONE" || h.status === "SUBMITTED",
+    (h: (typeof homeworkThisWeek)[number]) =>
+      h.status === "DONE" || h.status === "SUBMITTED",
   ).length;
 
   return {

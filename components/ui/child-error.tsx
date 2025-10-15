@@ -3,7 +3,7 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { getChildFriendlyError, type ChildFriendlyError } from "@/lib/utils/child-friendly-errors";
+import { getChildFriendlyError } from "@/lib/utils/child-friendly-errors";
 
 interface ChildErrorProps {
   errorCode: string | number;

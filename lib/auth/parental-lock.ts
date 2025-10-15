@@ -1,5 +1,4 @@
 // Parental Lock - PIN protection for sensitive actions
-import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
 const DEFAULT_ACTIONS_REQUIRING_APPROVAL = [
@@ -14,7 +13,7 @@ const DEFAULT_ACTIONS_REQUIRING_APPROVAL = [
  * Check if action requires parental approval
  */
 export async function requiresParentalApproval(
-  studentId: string,
+  _studentId: string,
   action: string,
 ): Promise<boolean> {
   // For now, use default list

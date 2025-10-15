@@ -1,7 +1,8 @@
 // Notification Creation Helpers
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { sendPushNotification, NotificationTemplates } from "./send";
+import { sendPushNotification } from "./send";
 
 export type NotificationType =
   | "HOMEWORK_DUE"
@@ -16,7 +17,7 @@ interface CreateNotificationParams {
   type: NotificationType;
   title: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -36,7 +37,7 @@ export async function createNotification({
         type,
         title,
         message,
-        data: data || {},
+  data: (data || {}) as Prisma.JsonObject,
         isRead: false,
       },
     });
@@ -168,7 +169,7 @@ export async function createNotifications(notifications: CreateNotificationParam
         type: n.type,
         title: n.title,
         message: n.message,
-        data: n.data || {},
+        data: (n.data || {}) as Prisma.JsonObject,
         isRead: false,
       })),
     });

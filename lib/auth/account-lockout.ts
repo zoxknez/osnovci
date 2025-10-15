@@ -1,5 +1,4 @@
 // Account Lockout - Prevent brute-force attacks
-import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
 const MAX_FAILED_ATTEMPTS = 5;

@@ -1,4 +1,5 @@
 // XP & Leveling System - Gamification for kids
+import type { AchievementRarity, AchievementType } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createNotification } from "@/lib/notifications/create";
@@ -192,10 +193,10 @@ export async function updateStreak(studentId: string) {
  */
 async function checkAchievements(
   gamificationId: string,
-  type: "HOMEWORK_MILESTONE" | "STREAK_MILESTONE" | "LEVEL_MILESTONE" | "PERFECT_WEEK" | "EARLY_BIRD" | "SUBJECT_MASTER",
+  type: AchievementType,
   value: number,
 ) {
-  const achievements = {
+  const achievements: Record<AchievementType, { at: number; title: string; desc: string; icon: string; xp: number }[]> = {
     HOMEWORK_MILESTONE: [
       { at: 10, title: "Prvi Koraci", desc: "Završio 10 zadataka!", icon: "🏃", xp: 20 },
       { at: 50, title: "Vredan Učenik", desc: "Završio 50 zadataka!", icon: "📚", xp: 50 },
@@ -211,10 +212,22 @@ async function checkAchievements(
       { at: 10, title: "Superstar", desc: "Dostigao Level 10!", icon: "💫", xp: 50 },
       { at: 20, title: "Living Legend", desc: "Dostigao Level 20!", icon: "🚀", xp: 100 },
     ],
+    PERFECT_WEEK: [
+      { at: 1, title: "Savršena Nedelja", desc: "Sve obaveze završene!", icon: "📅", xp: 75 },
+      { at: 4, title: "Mesečni Šampion", desc: "4 savršene nedelje!", icon: "🏅", xp: 150 },
+    ],
+    EARLY_BIRD: [
+      { at: 1, title: "Ranoranilac", desc: "Zadatak završen ranije!", icon: "🌅", xp: 20 },
+      { at: 10, title: "Planer", desc: "10 zadataka ranije!", icon: "🗓️", xp: 60 },
+    ],
+    SUBJECT_MASTER: [
+      { at: 5, title: "Mini Majstor", desc: "5 zadataka iz jednog predmeta!", icon: "📘", xp: 25 },
+      { at: 20, title: "Predmet Guru", desc: "20 zadataka iz istog predmeta!", icon: "🎓", xp: 80 },
+    ],
   };
 
   const milestones = achievements[type];
-  if (!milestones) return;
+  if (!milestones?.length) return;
 
   for (const milestone of milestones) {
     if (value >= milestone.at) {
@@ -237,7 +250,13 @@ async function checkAchievements(
             description: milestone.desc,
             icon: milestone.icon,
             xpReward: milestone.xp,
-            rarity: value >= 100 ? "legendary" : value >= 50 ? "epic" : value >= 20 ? "rare" : "common",
+            rarity: (value >= 100
+              ? "LEGENDARY"
+              : value >= 50
+                ? "EPIC"
+                : value >= 20
+                  ? "RARE"
+                  : "COMMON") as AchievementRarity,
           },
         });
 

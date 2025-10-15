@@ -116,7 +116,9 @@ export async function moderateImage(filePath: string): Promise<{
   */
 
   // Mock response for now
-  log.warn("Using mock image moderation - integrate real AI for production!");
+  log.warn("Using mock image moderation - integrate real AI for production!", {
+    filePath,
+  });
 
   return {
     safe: true,

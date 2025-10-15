@@ -1,7 +1,7 @@
 // Parental PIN Dialog - Mobile-Optimized
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export function ParentalPINDialog({
 }: ParentalPINDialogProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const inputId = useId();
 
   const handleVerify = () => {
     if (verifyParentPIN(pin, studentId)) {
@@ -50,6 +51,7 @@ export function ParentalPINDialog({
       >
         {/* Close button */}
         <button
+          type="button"
           onClick={onCancel}
           className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition"
           aria-label="Zatvori"
@@ -66,6 +68,10 @@ export function ParentalPINDialog({
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
             Pozovi roditelja! 👨‍👩‍👧
           </h2>
+
+          <p className="text-xs font-semibold uppercase tracking-wide text-purple-600 mb-1">
+            {action}
+          </p>
           
           <p className="text-base sm:text-lg text-gray-700">
             {description}
@@ -74,22 +80,27 @@ export function ParentalPINDialog({
 
         {/* PIN Input - Mobile optimized! */}
         <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 mb-3 text-center">
+          <label htmlFor={inputId} className="block text-sm font-semibold text-gray-700 mb-3 text-center">
             Roditelj treba da unese PIN kod:
           </label>
-          
-          <Input
-            type="password"
-            inputMode="numeric" // Mobile numeric keyboard
-            pattern="[0-9]*" // iOS optimization
-            maxLength={4}
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-            placeholder="••••"
-            className={`text-center text-3xl tracking-widest font-bold ${error ? "border-red-500 shake" : ""}`}
-            autoFocus
-            aria-label="PIN kod (4 cifre)"
-          />
+          <motion.div
+            animate={error ? { x: [-10, 10, -6, 6, -3, 3, 0] } : { x: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+          >
+            <Input
+              id={inputId}
+              type="password"
+              inputMode="numeric" // Mobile numeric keyboard
+              pattern="[0-9]*" // iOS optimization
+              maxLength={4}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="••••"
+              className={`text-center text-3xl tracking-widest font-bold ${error ? "border-red-500" : ""}`}
+              autoFocus
+              aria-label="PIN kod (4 cifre)"
+            />
+          </motion.div>
           
           {error && (
             <motion.p
@@ -130,16 +141,5 @@ export function ParentalPINDialog({
       </motion.div>
     </motion.div>
   );
-}
-
-/* Shake animation for wrong PIN */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-  20%, 40%, 60%, 80% { transform: translateX(10px); }
-}
-
-.shake {
-  animation: shake 0.5s;
 }
 

@@ -53,6 +53,10 @@ interface OsnovciDB extends DBSchema {
   };
 }
 
+export type StoredHomework = OsnovciDB["homework"]["value"];
+export type StoredAttachment = OsnovciDB["attachments"]["value"];
+export type StoredSyncItem = OsnovciDB["pending-sync"]["value"];
+
 class OfflineStorage {
   private dbPromise: Promise<IDBPDatabase<OsnovciDB>> | null = null;
 
@@ -100,31 +104,31 @@ class OfflineStorage {
   // HOMEWORK OPERATIONS
   // ========================================
 
-  async saveHomework(homework: OsnovciDB["homework"]["value"]) {
+  async saveHomework(homework: StoredHomework): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.put("homework", homework);
   }
 
-  async getHomework(id: string) {
+  async getHomework(id: string): Promise<StoredHomework | undefined> {
     if (!this.dbPromise) return undefined;
     const db = await this.dbPromise;
     return db.get("homework", id);
   }
 
-  async getAllHomework() {
+  async getAllHomework(): Promise<StoredHomework[]> {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     return db.getAll("homework");
   }
 
-  async getHomeworkByStatus(status: string) {
+  async getHomeworkByStatus(status: string): Promise<StoredHomework[]> {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     return db.getAllFromIndex("homework", "by-status", status);
   }
 
-  async deleteHomework(id: string) {
+  async deleteHomework(id: string): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.delete("homework", id);
@@ -134,25 +138,25 @@ class OfflineStorage {
   // ATTACHMENT OPERATIONS
   // ========================================
 
-  async saveAttachment(attachment: OsnovciDB["attachments"]["value"]) {
+  async saveAttachment(attachment: StoredAttachment): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.put("attachments", attachment);
   }
 
-  async getAttachment(id: string) {
+  async getAttachment(id: string): Promise<StoredAttachment | undefined> {
     if (!this.dbPromise) return undefined;
     const db = await this.dbPromise;
     return db.get("attachments", id);
   }
 
-  async getAttachmentsByHomework(homeworkId: string) {
+  async getAttachmentsByHomework(homeworkId: string): Promise<StoredAttachment[]> {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     return db.getAllFromIndex("attachments", "by-homework", homeworkId);
   }
 
-  async deleteAttachment(id: string) {
+  async deleteAttachment(id: string): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.delete("attachments", id);
@@ -162,25 +166,25 @@ class OfflineStorage {
   // SYNC OPERATIONS
   // ========================================
 
-  async addToSyncQueue(item: OsnovciDB["pending-sync"]["value"]) {
+  async addToSyncQueue(item: StoredSyncItem): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.put("pending-sync", item);
   }
 
-  async getSyncQueue() {
+  async getSyncQueue(): Promise<StoredSyncItem[]> {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     return db.getAll("pending-sync");
   }
 
-  async removeSyncItem(id: string) {
+  async removeSyncItem(id: string): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.delete("pending-sync", id);
   }
 
-  async clearSyncQueue() {
+  async clearSyncQueue(): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.clear("pending-sync");
@@ -190,7 +194,7 @@ class OfflineStorage {
   // UTILITY OPERATIONS
   // ========================================
 
-  async getUnsyncedItems() {
+  async getUnsyncedItems(): Promise<{ homework: StoredHomework[]; attachments: StoredAttachment[] }> {
     if (!this.dbPromise) return { homework: [], attachments: [] };
     const db = await this.dbPromise;
     const homework = await db.getAllFromIndex("homework", "by-synced", 0);
@@ -198,7 +202,7 @@ class OfflineStorage {
     return { homework, attachments };
   }
 
-  async clearAll() {
+  async clearAll(): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.clear("homework");
@@ -206,7 +210,7 @@ class OfflineStorage {
     await db.clear("pending-sync");
   }
 
-  async getStorageSize() {
+  async getStorageSize(): Promise<{ usage: number; quota: number; percentage: number }> {
     if ("storage" in navigator && "estimate" in navigator.storage) {
       const estimate = await navigator.storage.estimate();
       return {

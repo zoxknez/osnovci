@@ -82,7 +82,7 @@ async function main() {
   for (const account of DEMO_ACCOUNTS) {
     const hashedPassword = await bcrypt.hash(account.password, 10);
 
-    const user = await prisma.user.create({
+    const created = await prisma.user.create({
       data: {
         email: account.email,
         phone: account.phone,
@@ -97,10 +97,20 @@ async function main() {
           },
         },
       },
-      include: {
-        student: true,
+      select: {
+        student: {
+          select: { id: true },
+        },
       },
     });
+
+    if (created.student) {
+      await prisma.gamification.create({
+        data: {
+          studentId: created.student.id,
+        },
+      });
+    }
 
     console.log(`✅ ${account.name}`);
     console.log(`   📧 Email: ${account.email}`);
@@ -153,6 +163,14 @@ async function main() {
 
   console.log(`✅ Kreirano ${subjects.length} predmeta\n`);
 
+  const getSubject = (name: string) => {
+    const subject = subjects.find((s) => s.name === name);
+    if (!subject) {
+      throw new Error(`Subject "${name}" nije pronađen tokom seed-a.`);
+    }
+    return subject;
+  };
+
   // Dodaj po nekoliko domaćih zadataka za prvog učenika (Marko)
   const marko = await prisma.user.findUnique({
     where: { email: "marko@demo.rs" },
@@ -162,51 +180,45 @@ async function main() {
   if (marko?.student) {
     console.log("📝 Dodajem domaće zadatke za Marka...\n");
 
-    const matematika = subjects.find((s) => s.name === "Matematika");
-    const srpski = subjects.find((s) => s.name === "Srpski jezik");
-    const engleski = subjects.find((s) => s.name === "Engleski jezik");
+    const matematika = getSubject("Matematika");
+    const srpski = getSubject("Srpski jezik");
+    const engleski = getSubject("Engleski jezik");
 
-    if (matematika) {
-      await prisma.homework.create({
-        data: {
-          title: "Kvadratne jednačine - vežbe",
-          description: "Rešiti zadatke 1-10 iz udžbenika strana 45",
-          dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Za 2 dana
-          priority: "IMPORTANT",
-          status: "ASSIGNED",
-          studentId: marko.student.id,
-          subjectId: matematika.id,
-        },
-      });
-    }
+    await prisma.homework.create({
+      data: {
+        title: "Kvadratne jednačine - vežbe",
+        description: "Rešiti zadatke 1-10 iz udžbenika strana 45",
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Za 2 dana
+        priority: "IMPORTANT",
+        status: "ASSIGNED",
+        studentId: marko.student.id,
+        subjectId: matematika.id,
+      },
+    });
 
-    if (srpski) {
-      await prisma.homework.create({
-        data: {
-          title: "Esej o proleću",
-          description: "Napisati esej od 200 reči o proleću i prirodi",
-          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // Za 5 dana
-          priority: "NORMAL",
-          status: "IN_PROGRESS",
-          studentId: marko.student.id,
-          subjectId: srpski.id,
-        },
-      });
-    }
+    await prisma.homework.create({
+      data: {
+        title: "Esej o proleću",
+        description: "Napisati esej od 200 reči o proleću i prirodi",
+        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // Za 5 dana
+        priority: "NORMAL",
+        status: "IN_PROGRESS",
+        studentId: marko.student.id,
+        subjectId: srpski.id,
+      },
+    });
 
-    if (engleski) {
-      await prisma.homework.create({
-        data: {
-          title: "Past Simple Tense",
-          description: "Vežbati prošlo vreme - workbook str. 23-25",
-          dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // Sutra
-          priority: "URGENT",
-          status: "ASSIGNED",
-          studentId: marko.student.id,
-          subjectId: engleski.id,
-        },
-      });
-    }
+    await prisma.homework.create({
+      data: {
+        title: "Past Simple Tense",
+        description: "Vežbati prošlo vreme - workbook str. 23-25",
+        dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // Sutra
+        priority: "URGENT",
+        status: "ASSIGNED",
+        studentId: marko.student.id,
+        subjectId: engleski.id,
+      },
+    });
 
     console.log("✅ Dodato 3 domaća zadatka\n");
   }
@@ -215,12 +227,12 @@ async function main() {
   if (marko?.student) {
     console.log("📅 Kreiram raspored časova za Marka...\n");
 
-    const matematika = subjects.find((s) => s.name === "Matematika");
-    const srpski = subjects.find((s) => s.name === "Srpski jezik");
-    const engleski = subjects.find((s) => s.name === "Engleski jezik");
-    const fizika = subjects.find((s) => s.name === "Fizika");
-    const istorija = subjects.find((s) => s.name === "Istorija");
-    const fizicko = subjects.find((s) => s.name === "Fizičko");
+  const matematika = getSubject("Matematika");
+  const srpski = getSubject("Srpski jezik");
+  const engleski = getSubject("Engleski jezik");
+  const fizika = getSubject("Fizika");
+  const istorija = getSubject("Istorija");
+  const fizicko = getSubject("Fizičko");
 
     await Promise.all([
       // Ponedeljak

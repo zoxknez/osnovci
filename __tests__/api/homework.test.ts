@@ -1,5 +1,6 @@
 // API Tests - Homework Routes
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { MockedFunction } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, POST } from "@/app/api/homework/route";
 
@@ -31,22 +32,82 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 vi.mock("@/middleware/rate-limit", () => ({
-  rateLimit: () => (handler: any) => handler,
+  checkRateLimit: vi.fn(async () => ({ success: true })),
 }));
 
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { checkRateLimit } from "@/middleware/rate-limit";
+
+type MockSession = {
+  user: {
+    id: string;
+  };
+};
+
+type MockStudent = {
+  id: string;
+  name?: string;
+  grade?: number;
+  class?: string;
+};
+
+type MockHomework = {
+  id: string;
+  title: string;
+  dueDate: Date;
+  status: string;
+  subject: { name: string };
+  attachments: unknown[];
+  description?: string;
+  priority?: string;
+};
+
+const authMock =
+  auth as unknown as MockedFunction<() => Promise<MockSession | null>>;
+const rateLimitMock =
+  checkRateLimit as unknown as MockedFunction<typeof checkRateLimit>;
+const prismaUserFindUniqueMock =
+  prisma.user.findUnique as unknown as MockedFunction<
+    typeof prisma.user.findUnique
+  >;
+const prismaHomeworkFindManyMock =
+  prisma.homework.findMany as unknown as MockedFunction<
+    typeof prisma.homework.findMany
+  >;
+const prismaHomeworkCountMock =
+  prisma.homework.count as unknown as MockedFunction<
+    typeof prisma.homework.count
+  >;
+const prismaHomeworkCreateMock =
+  prisma.homework.create as unknown as MockedFunction<
+    typeof prisma.homework.create
+  >;
+
+type PrismaUserResult = Awaited<ReturnType<typeof prisma.user.findUnique>>;
+type PrismaHomeworkListResult = Awaited<
+  ReturnType<typeof prisma.homework.findMany>
+>;
+type PrismaHomeworkCreateResult = Awaited<
+  ReturnType<typeof prisma.homework.create>
+>;
+
+type RouteContext = { params: Promise<Record<string, string>> };
+const createContext = (): RouteContext => ({
+  params: Promise.resolve({} as Record<string, string>),
+});
 
 describe("GET /api/homework", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    rateLimitMock.mockResolvedValue({ success: true });
   });
 
   it("should return 401 if not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    authMock.mockResolvedValue(null);
 
     const request = new NextRequest("http://localhost:3000/api/homework");
-    const response = await GET(request);
+    const response = await GET(request, createContext());
     const data = await response.json();
 
     expect(response.status).toBe(401);
@@ -54,18 +115,18 @@ describe("GET /api/homework", () => {
   });
 
   it("should return homework list for authenticated student", async () => {
-    const mockSession = {
+    const mockSession: MockSession = {
       user: { id: "user-1" },
     };
 
-    const mockStudent = {
+    const mockStudent: MockStudent = {
       id: "student-1",
       name: "Test Student",
       grade: 5,
       class: "A",
     };
 
-    const mockHomework = [
+    const mockHomework: MockHomework[] = [
       {
         id: "hw-1",
         title: "Math homework",
@@ -76,16 +137,20 @@ describe("GET /api/homework", () => {
       },
     ];
 
-    vi.mocked(auth).mockResolvedValue(mockSession);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: "user-1",
-      student: mockStudent,
-    } as any);
-    vi.mocked(prisma.homework.findMany).mockResolvedValue(mockHomework as any);
-    vi.mocked(prisma.homework.count).mockResolvedValue(1);
+    authMock.mockResolvedValue(mockSession);
+    prismaUserFindUniqueMock.mockResolvedValue(
+      {
+        id: "user-1",
+        student: mockStudent,
+      } as unknown as PrismaUserResult,
+    );
+    prismaHomeworkFindManyMock.mockResolvedValue(
+      mockHomework as unknown as PrismaHomeworkListResult,
+    );
+    prismaHomeworkCountMock.mockResolvedValue(1);
 
     const request = new NextRequest("http://localhost:3000/api/homework");
-    const response = await GET(request);
+    const response = await GET(request, createContext());
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -95,28 +160,32 @@ describe("GET /api/homework", () => {
   });
 
   it("should filter by status", async () => {
-    const mockSession = {
+    const mockSession: MockSession = {
       user: { id: "user-1" },
     };
 
-    const mockStudent = {
+    const mockStudent: MockStudent = {
       id: "student-1",
     };
 
-    vi.mocked(auth).mockResolvedValue(mockSession);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: "user-1",
-      student: mockStudent,
-    } as any);
-    vi.mocked(prisma.homework.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.homework.count).mockResolvedValue(0);
+    authMock.mockResolvedValue(mockSession);
+    prismaUserFindUniqueMock.mockResolvedValue(
+      {
+        id: "user-1",
+        student: mockStudent,
+      } as unknown as PrismaUserResult,
+    );
+    prismaHomeworkFindManyMock.mockResolvedValue(
+      [] as unknown as PrismaHomeworkListResult,
+    );
+    prismaHomeworkCountMock.mockResolvedValue(0);
 
     const request = new NextRequest(
       "http://localhost:3000/api/homework?status=DONE",
     );
-    const response = await GET(request);
+    await GET(request, createContext());
 
-    expect(vi.mocked(prisma.homework.findMany)).toHaveBeenCalledWith(
+    expect(prismaHomeworkFindManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           status: "DONE",
@@ -126,26 +195,30 @@ describe("GET /api/homework", () => {
   });
 
   it("should support pagination", async () => {
-    const mockSession = {
+    const mockSession: MockSession = {
       user: { id: "user-1" },
     };
 
-    const mockStudent = {
+    const mockStudent: MockStudent = {
       id: "student-1",
     };
 
-    vi.mocked(auth).mockResolvedValue(mockSession);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: "user-1",
-      student: mockStudent,
-    } as any);
-    vi.mocked(prisma.homework.findMany).mockResolvedValue([]);
-    vi.mocked(prisma.homework.count).mockResolvedValue(50);
+    authMock.mockResolvedValue(mockSession);
+    prismaUserFindUniqueMock.mockResolvedValue(
+      {
+        id: "user-1",
+        student: mockStudent,
+      } as unknown as PrismaUserResult,
+    );
+    prismaHomeworkFindManyMock.mockResolvedValue(
+      [] as unknown as PrismaHomeworkListResult,
+    );
+    prismaHomeworkCountMock.mockResolvedValue(50);
 
     const request = new NextRequest(
       "http://localhost:3000/api/homework?page=2&limit=20",
     );
-    const response = await GET(request);
+    const response = await GET(request, createContext());
     const data = await response.json();
 
     expect(data.pagination.page).toBe(2);
@@ -158,18 +231,19 @@ describe("GET /api/homework", () => {
 describe("POST /api/homework", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    rateLimitMock.mockResolvedValue({ success: true });
   });
 
   it("should create homework successfully", async () => {
-    const mockSession = {
+    const mockSession: MockSession = {
       user: { id: "user-1" },
     };
 
-    const mockStudent = {
+    const mockStudent: MockStudent = {
       id: "student-1",
     };
 
-    const mockHomework = {
+    const mockHomework: MockHomework = {
       id: "hw-1",
       title: "New homework",
       description: "Test",
@@ -180,12 +254,16 @@ describe("POST /api/homework", () => {
       attachments: [],
     };
 
-    vi.mocked(auth).mockResolvedValue(mockSession);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: "user-1",
-      student: mockStudent,
-    } as any);
-    vi.mocked(prisma.homework.create).mockResolvedValue(mockHomework as any);
+    authMock.mockResolvedValue(mockSession);
+    prismaUserFindUniqueMock.mockResolvedValue(
+      {
+        id: "user-1",
+        student: mockStudent,
+      } as unknown as PrismaUserResult,
+    );
+    prismaHomeworkCreateMock.mockResolvedValue(
+      mockHomework as unknown as PrismaHomeworkCreateResult,
+    );
 
     const requestBody = {
       subjectId: "subject-1",
@@ -200,7 +278,7 @@ describe("POST /api/homework", () => {
       body: JSON.stringify(requestBody),
     });
 
-    const response = await POST(request);
+    const response = await POST(request, createContext());
     const data = await response.json();
 
     expect(response.status).toBe(201);
@@ -209,19 +287,21 @@ describe("POST /api/homework", () => {
   });
 
   it("should return 400 for invalid data", async () => {
-    const mockSession = {
+    const mockSession: MockSession = {
       user: { id: "user-1" },
     };
 
-    const mockStudent = {
+    const mockStudent: MockStudent = {
       id: "student-1",
     };
 
-    vi.mocked(auth).mockResolvedValue(mockSession);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: "user-1",
-      student: mockStudent,
-    } as any);
+    authMock.mockResolvedValue(mockSession);
+    prismaUserFindUniqueMock.mockResolvedValue(
+      {
+        id: "user-1",
+        student: mockStudent,
+      } as unknown as PrismaUserResult,
+    );
 
     const requestBody = {
       // Missing required fields
@@ -233,7 +313,7 @@ describe("POST /api/homework", () => {
       body: JSON.stringify(requestBody),
     });
 
-    const response = await POST(request);
+    const response = await POST(request, createContext());
     const data = await response.json();
 
     expect(response.status).toBe(400);
@@ -241,20 +321,24 @@ describe("POST /api/homework", () => {
   });
 
   it("should sanitize input (XSS protection)", async () => {
-    const mockSession = {
+    const mockSession: MockSession = {
       user: { id: "user-1" },
     };
 
-    const mockStudent = {
+    const mockStudent: MockStudent = {
       id: "student-1",
     };
 
-    vi.mocked(auth).mockResolvedValue(mockSession);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: "user-1",
-      student: mockStudent,
-    } as any);
-    vi.mocked(prisma.homework.create).mockResolvedValue({} as any);
+    authMock.mockResolvedValue(mockSession);
+    prismaUserFindUniqueMock.mockResolvedValue(
+      {
+        id: "user-1",
+        student: mockStudent,
+      } as unknown as PrismaUserResult,
+    );
+    prismaHomeworkCreateMock.mockResolvedValue(
+      {} as unknown as PrismaHomeworkCreateResult,
+    );
 
     const requestBody = {
       subjectId: "subject-1",
@@ -269,10 +353,9 @@ describe("POST /api/homework", () => {
       body: JSON.stringify(requestBody),
     });
 
-    await POST(request);
+    await POST(request, createContext());
 
-    // Check that create was called with sanitized data
-    expect(vi.mocked(prisma.homework.create)).toHaveBeenCalledWith(
+    expect(prismaHomeworkCreateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.not.objectContaining({
           title: expect.stringContaining("<script>"),

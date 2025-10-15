@@ -1,13 +1,12 @@
 // Push Notification Sending
 import { log } from "@/lib/logger";
-import { showLocalNotification } from "@/lib/notifications/push";
 
 interface PushNotificationPayload {
   title: string;
   body: string;
   icon?: string;
   badge?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   tag?: string;
 }
 

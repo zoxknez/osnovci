@@ -145,6 +145,7 @@ model Student {
   schedule  ScheduleEntry[]
   events    Event[]
   subjects  StudentSubject[]
+  gamification Gamification?
 
   @@index([userId])
   @@index([school, grade, class])
@@ -492,4 +493,63 @@ model WeeklyReport {
   @@index([studentId])
   @@index([weekStart])
   @@map("weekly_reports")
+}
+
+// ============================================
+// GAMIFICATION (XP, Levels, Achievements)
+// ============================================
+
+enum AchievementType {
+  HOMEWORK_MILESTONE
+  STREAK_MILESTONE
+  LEVEL_MILESTONE
+  PERFECT_WEEK
+  EARLY_BIRD
+  SUBJECT_MASTER
+}
+
+enum AchievementRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model Gamification {
+  id                String      @id @default(cuid())
+  studentId         String      @unique
+  level             Int         @default(1)
+  xp                Int         @default(0)
+  totalXPEarned     Int         @default(0)
+  totalHomeworkDone Int         @default(0)
+  streak            Int         @default(0)
+  longestStreak     Int         @default(0)
+  lastActivityDate  DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievements  Achievement[]
+
+  @@index([studentId])
+  @@map("gamification")
+}
+
+model Achievement {
+  id              String             @id @default(cuid())
+  gamificationId  String
+  type            AchievementType
+  title           String
+  description     String?
+  icon            String?
+  xpReward        Int                @default(0)
+  rarity          AchievementRarity  @default(COMMON)
+  unlockedAt      DateTime           @default(now())
+
+  gamification Gamification @relation(fields: [gamificationId], references: [id], onDelete: Cascade)
+
+  @@index([gamificationId])
+  @@index([type])
+  @@unique([gamificationId, title])
+  @@map("achievements")
 }
