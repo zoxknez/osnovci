@@ -1,8 +1,8 @@
 // Prijava stranica - moderna, child-friendly, dark mode support
 "use client";
 
-import { motion } from "framer-motion";
-import { LogIn, Shield, Sparkles, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LogIn, Shield, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -29,7 +29,7 @@ const DEMO_ACCOUNTS = [
 export default function PrijavaPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
+  const [showDemoAccounts, setShowDemoAccounts] = useState(true); // Pokazuj odmah demo naloge
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     email: "",
@@ -93,28 +93,26 @@ export default function PrijavaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Animated background blobs - Mobile optimized */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+      {/* Animated background blobs - Isti stil kao landing page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-10 sm:-top-20 -left-10 sm:-left-20 w-64 h-64 sm:w-96 sm:h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
+          className="absolute top-10 sm:top-20 -left-10 sm:left-10 w-48 h-48 sm:w-72 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
           animate={{
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-            scale: [1, 1.1, 1],
+            x: [0, 100, 0],
+            y: [0, 50, 0],
           }}
           transition={{
-            duration: 12,
+            duration: 20,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         />
         <motion.div
-          className="absolute -bottom-10 sm:-bottom-20 -right-10 sm:-right-20 w-64 h-64 sm:w-96 sm:h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
+          className="absolute bottom-10 sm:bottom-20 -right-10 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
           animate={{
-            x: [0, -50, 0],
-            y: [0, -30, 0],
-            scale: [1, 1.1, 1],
+            x: [0, -100, 0],
+            y: [0, -50, 0],
           }}
           transition={{
             duration: 15,
@@ -249,58 +247,97 @@ export default function PrijavaPage() {
                 </Button>
               </form>
 
-              {/* Demo Accounts Panel */}
-              <motion.div
-                initial={false}
-                animate={{ height: showDemoAccounts ? "auto" : 0, opacity: showDemoAccounts ? 1 : 0 }}
-                className="overflow-hidden mt-4"
-              >
-                <div className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200 space-y-2">
-                  <p className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                    <Info className="h-4 w-4" />
-                    Demo Nalozi - Brzi pristup:
-                  </p>
-                  {DEMO_ACCOUNTS.map((account) => (
-                    <button
-                      key={account.email}
-                      type="button"
-                      onClick={() => handleDemoLogin(account.email, account.password)}
-                      disabled={isLoading}
-                      className="w-full p-3 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:shadow-md transition-all text-left group disabled:opacity-50"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-900 text-sm">{account.name}</p>
-                          <p className="text-xs text-gray-600">{account.email}</p>
-                        </div>
-                        <div className="text-xs text-blue-600 group-hover:translate-x-1 transition-transform">
-                          {account.desc} →
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+              {/* Separator */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
                 </div>
-              </motion.div>
-
-              <div className="text-center mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 mx-auto"
-                >
-                  {showDemoAccounts ? (
-                    <>
-                      <ChevronUp className="h-4 w-4" />
-                      Sakrij demo naloge
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      Probaj demo nalog
-                    </>
-                  )}
-                </button>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-4 text-gray-500 font-medium">ili probaj demo</span>
+                </div>
               </div>
+
+              {/* Demo Accounts Panel - Poboljšan dizajn */}
+              <AnimatePresence mode="wait">
+                {showDemoAccounts && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200 space-y-2.5">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-bold text-blue-900 flex items-center gap-2">
+                          <Sparkles className="h-4 w-4" />
+                          Demo Nalozi - Klikni za pristup
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setShowDemoAccounts(false)}
+                          className="text-gray-500 hover:text-gray-700"
+                          aria-label="Zatvori demo naloge"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="grid gap-2">
+                        {DEMO_ACCOUNTS.map((account, idx) => (
+                          <motion.button
+                            key={account.email}
+                            type="button"
+                            onClick={() => handleDemoLogin(account.email, account.password)}
+                            disabled={isLoading}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            whileHover={{ scale: 1.02, x: 4 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full p-3.5 bg-white rounded-xl border-2 border-blue-100 hover:border-blue-400 hover:shadow-lg transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 text-sm truncate">{account.name}</p>
+                                <p className="text-xs text-gray-600 truncate">{account.email}</p>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-lg">
+                                  {account.desc}
+                                </span>
+                                <motion.span
+                                  className="text-blue-600"
+                                  animate={{ x: [0, 4, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                >
+                                  →
+                                </motion.span>
+                              </div>
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {!showDemoAccounts && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowDemoAccounts(true)}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1.5 mx-auto hover:gap-2 transition-all"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                    Prikaži demo naloge
+                  </button>
+                </motion.div>
+              )}
 
               {/* Sign up link */}
               <div className="text-center mt-5 sm:mt-6">
