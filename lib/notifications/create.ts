@@ -37,7 +37,7 @@ export async function createNotification({
         type,
         title,
         message,
-  data: (data || {}) as Prisma.JsonObject,
+        data: (data || {}) as Prisma.JsonObject,
         isRead: false,
       },
     });
@@ -118,7 +118,8 @@ export async function notifyHomeworkReviewed(
     userId,
     type: "HOMEWORK_REVIEWED",
     title: "Domaći pregledan!",
-    message: reviewNote || `Domaći "${title}" je pregledan od strane roditelja.`,
+    message:
+      reviewNote || `Domaći "${title}" je pregledan od strane roditelja.`,
     data: { homeworkId, reviewNote },
   });
 }
@@ -161,7 +162,9 @@ export async function notifyLinkRequest(
 /**
  * Batch create notifications for multiple users
  */
-export async function createNotifications(notifications: CreateNotificationParams[]) {
+export async function createNotifications(
+  notifications: CreateNotificationParams[],
+) {
   try {
     const created = await prisma.notification.createMany({
       data: notifications.map((n) => ({
@@ -182,4 +185,3 @@ export async function createNotifications(notifications: CreateNotificationParam
     throw error;
   }
 }
-

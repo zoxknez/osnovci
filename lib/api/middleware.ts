@@ -41,24 +41,15 @@ export class ApiError extends Error {
  * Standard API Responses
  */
 export function unauthorized(message = "Morate biti ulogovani") {
-  return NextResponse.json(
-    { error: "Unauthorized", message },
-    { status: 401 },
-  );
+  return NextResponse.json({ error: "Unauthorized", message }, { status: 401 });
 }
 
 export function forbidden(message = "Nemate dozvolu za ovu akciju") {
-  return NextResponse.json(
-    { error: "Forbidden", message },
-    { status: 403 },
-  );
+  return NextResponse.json({ error: "Forbidden", message }, { status: 403 });
 }
 
 export function notFound(message = "Resurs nije pronađen") {
-  return NextResponse.json(
-    { error: "Not Found", message },
-    { status: 404 },
-  );
+  return NextResponse.json({ error: "Not Found", message }, { status: 404 });
 }
 
 export function badRequest(message: string, details?: Record<string, unknown>) {
@@ -74,7 +65,7 @@ export function success(data: Record<string, unknown>, status = 200) {
 
 export function internalError(error: unknown, customMessage?: string) {
   log.error("API Internal Error", { error });
-  
+
   // Track error
   if (error instanceof Error) {
     captureException(error, {
@@ -120,9 +111,16 @@ export function sanitizeBody<T extends Record<string, any>>(
  */
 export function withAuth(
   // biome-ignore lint: session type comes from NextAuth
-  handler: (req: NextRequest, session: any, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
+  handler: (
+    req: NextRequest,
+    session: any,
+    context: { params: Promise<Record<string, string>> },
+  ) => Promise<NextResponse>,
 ) {
-  return async (req: NextRequest, context: { params: Promise<Record<string, string>> }) => {
+  return async (
+    req: NextRequest,
+    context: { params: Promise<Record<string, string>> },
+  ) => {
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -139,10 +137,17 @@ export function withAuth(
  */
 export function withAuthAndRateLimit(
   // biome-ignore lint: session type comes from NextAuth
-  handler: (req: NextRequest, session: any, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse>,
+  handler: (
+    req: NextRequest,
+    session: any,
+    context: { params: Promise<Record<string, string>> },
+  ) => Promise<NextResponse>,
   limiterType: "api" | "auth" | "upload" = "api",
 ) {
-  return async (req: NextRequest, context: { params: Promise<Record<string, string>> }) => {
+  return async (
+    req: NextRequest,
+    context: { params: Promise<Record<string, string>> },
+  ) => {
     // Check rate limit first
     const rateLimitResult = await checkRateLimit(req, limiterType);
     if (!rateLimitResult.success) {
@@ -159,4 +164,3 @@ export function withAuthAndRateLimit(
     return handler(req, session, context);
   };
 }
-

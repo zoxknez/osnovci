@@ -32,10 +32,7 @@ export const UpdateProfileSchema = z.object({
     .min(1, "Razred mora biti između 1 i 8")
     .max(8, "Razred mora biti između 1 i 8")
     .optional(),
-  bio: z
-    .string()
-    .max(500, "Opis može biti najviše 500 karaktera")
-    .optional(),
+  bio: z.string().max(500, "Opis može biti najviše 500 karaktera").optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
@@ -43,15 +40,16 @@ export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
 // Change password schema
 export const ChangePasswordSchema = z
   .object({
-    currentPassword: z
-      .string()
-      .min(1, "Trenutna šifra je obavezna"),
+    currentPassword: z.string().min(1, "Trenutna šifra je obavezna"),
     newPassword: z
       .string()
       .min(8, "Nova šifra mora biti najmanje 8 karaktera")
       .regex(/[A-Z]/, "Nova šifra mora sadržavati jedno velika slova")
       .regex(/[0-9]/, "Nova šifra mora sadržavati jedan broj")
-      .regex(/[!@#$%^&*]/, "Nova šifra mora sadržavati jedan specijalan karakter"),
+      .regex(
+        /[!@#$%^&*]/,
+        "Nova šifra mora sadržavati jedan specijalan karakter",
+      ),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

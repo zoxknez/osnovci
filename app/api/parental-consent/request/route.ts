@@ -30,26 +30,33 @@ export async function POST(request: NextRequest) {
         guardianEmail,
         verificationCode,
         expiresAt,
-        ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+        ipAddress:
+          request.headers.get("x-forwarded-for") ||
+          request.headers.get("x-real-ip") ||
+          "unknown",
         userAgent: request.headers.get("user-agent") || "unknown",
       },
     });
 
     // TODO: Send verification email to parent
     // await sendParentalConsentEmail(guardianEmail, verificationCode);
-    
+
     log.info("Parental consent requested", {
       studentId,
       guardianEmail,
       expiresAt,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Email poslat roditelju! Nalog će biti aktivan kada roditelj potvrdi.",
-      consentId: consent.id,
-      expiresAt,
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          "Email poslat roditelju! Nalog će biti aktivan kada roditelj potvrdi.",
+        consentId: consent.id,
+        expiresAt,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     log.error("Parental consent request failed", { error });
     return NextResponse.json(
@@ -58,4 +65,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

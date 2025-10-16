@@ -49,22 +49,6 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
-  
-  // Inovativna formatiranja za decu
-  const dayOfWeek = currentDate.toLocaleDateString("sr-Latn-RS", { weekday: "short" }).toUpperCase();
-  const dayNum = currentDate.getDate();
-  const month = currentDate.toLocaleDateString("sr-Latn-RS", { month: "short" }).toUpperCase();
-  const hours = String(currentDate.getHours()).padStart(2, "0");
-  const minutes = String(currentDate.getMinutes()).padStart(2, "0");
-  
-  // Emoji za vreme
-  const getTimeEmoji = () => {
-    const hour = currentDate.getHours();
-    if (hour >= 6 && hour < 12) return "🌅";
-    if (hour >= 12 && hour < 17) return "☀️";
-    if (hour >= 17 && hour < 21) return "🌆";
-    return "🌙";
-  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -84,7 +68,12 @@ export default function DashboardLayout({
   }, [sidebarOpen]);
 
   return (
-    <div className={cn("min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30", sidebarOpen && "overflow-hidden")}>
+    <div
+      className={cn(
+        "min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30",
+        sidebarOpen && "overflow-hidden",
+      )}
+    >
       {/* Mobile header - Enhanced & optimized for small screens */}
       <header className="sticky top-0 z-40 flex h-auto sm:h-16 items-center justify-start gap-2 sm:gap-3 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-white backdrop-blur-lg px-2 sm:px-4 py-3 sm:py-0 shadow-md lg:hidden flex-wrap sm:flex-nowrap">
         {/* Left: Menu Button with animated icon - UOKVIRENO */}
@@ -100,7 +89,7 @@ export default function DashboardLayout({
           <div className="relative w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center">
             {/* Outer spinning circle */}
             <div className="absolute inset-0 rounded-full border-1.5 border-transparent border-t-blue-500 border-r-purple-500 group-hover:animate-spin"></div>
-            
+
             {/* Inner animated hamburger */}
             <div className="flex flex-col gap-1.5 sm:gap-2">
               <span className="block h-0.75 sm:h-1 w-5 sm:w-6 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
@@ -122,11 +111,23 @@ export default function DashboardLayout({
           {navigation.slice(0, 3).map((item) => {
             const isActive = pathname === item.href;
             const tabColors: Record<string, { bg: string; text: string }> = {
-              "/dashboard": { bg: "from-blue-500 to-blue-600", text: "text-blue-600" },
-              "/dashboard/domaci": { bg: "from-amber-500 to-orange-600", text: "text-amber-600" },
-              "/dashboard/raspored": { bg: "from-purple-500 to-purple-600", text: "text-purple-600" },
+              "/dashboard": {
+                bg: "from-blue-500 to-blue-600",
+                text: "text-blue-600",
+              },
+              "/dashboard/domaci": {
+                bg: "from-amber-500 to-orange-600",
+                text: "text-amber-600",
+              },
+              "/dashboard/raspored": {
+                bg: "from-purple-500 to-purple-600",
+                text: "text-purple-600",
+              },
             };
-            const colors = tabColors[item.href] || { bg: "from-gray-500 to-gray-600", text: "text-gray-600" };
+            const colors = tabColors[item.href] || {
+              bg: "from-gray-500 to-gray-600",
+              text: "text-gray-600",
+            };
 
             return (
               <Link
@@ -136,13 +137,15 @@ export default function DashboardLayout({
                   "flex items-center justify-center gap-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg transition-all touch-manipulation flex-1 sm:flex-none",
                   isActive
                     ? `bg-gradient-to-r ${colors.bg} text-white shadow-md font-semibold`
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium",
                 )}
                 aria-label={item.name}
                 aria-current={isActive ? "page" : undefined}
               >
                 <span className="text-3xl sm:text-4xl">{item.emoji}</span>
-                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">{item.name}</span>
+                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">
+                  {item.name}
+                </span>
               </Link>
             );
           })}
@@ -239,8 +242,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Brand Section na dnu menija - Sat, Osnovci, Datum */}
-          <div className="mt-auto pt-8 border-t border-gray-200">
-          </div>
+          <div className="mt-auto pt-8 border-t border-gray-200"></div>
         </nav>
       </div>
 

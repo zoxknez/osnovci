@@ -92,7 +92,10 @@ const nextConfig: NextConfig = {
           // Cross-Origin Policies - RELAXED for development
           {
             key: "Cross-Origin-Opener-Policy",
-            value: process.env.NODE_ENV === "production" ? "same-origin" : "same-origin-allow-popups",
+            value:
+              process.env.NODE_ENV === "production"
+                ? "same-origin"
+                : "same-origin-allow-popups",
           },
           {
             key: "Cross-Origin-Resource-Policy",
@@ -100,7 +103,10 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: process.env.NODE_ENV === "production" ? "require-corp" : "unsafe-none",
+            value:
+              process.env.NODE_ENV === "production"
+                ? "require-corp"
+                : "unsafe-none",
           },
         ],
       },

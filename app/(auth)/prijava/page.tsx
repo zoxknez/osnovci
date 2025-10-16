@@ -19,11 +19,36 @@ import {
 import { Input } from "@/components/ui/input";
 
 const DEMO_ACCOUNTS = [
-  { name: "Marko Marković", email: "marko@demo.rs", password: "marko123", desc: "5/A - Matematika" },
-  { name: "Ana Petrović", email: "ana@demo.rs", password: "ana123", desc: "6/B - Jezici" },
-  { name: "Stefan Nikolić", email: "stefan@demo.rs", password: "stefan123", desc: "7/C - Sport" },
-  { name: "Milica Stanković", email: "milica@demo.rs", password: "milica123", desc: "4/A - Umetnost" },
-  { name: "Luka Pavlović", email: "luka@demo.rs", password: "luka123", desc: "8/D - IT" },
+  {
+    name: "Marko Marković",
+    email: "marko@demo.rs",
+    password: "marko123",
+    desc: "5/A - Matematika",
+  },
+  {
+    name: "Ana Petrović",
+    email: "ana@demo.rs",
+    password: "ana123",
+    desc: "6/B - Jezici",
+  },
+  {
+    name: "Stefan Nikolić",
+    email: "stefan@demo.rs",
+    password: "stefan123",
+    desc: "7/C - Sport",
+  },
+  {
+    name: "Milica Stanković",
+    email: "milica@demo.rs",
+    password: "milica123",
+    desc: "4/A - Umetnost",
+  },
+  {
+    name: "Luka Pavlović",
+    email: "luka@demo.rs",
+    password: "luka123",
+    desc: "8/D - IT",
+  },
 ];
 
 export default function PrijavaPage() {
@@ -253,7 +278,9 @@ export default function PrijavaPage() {
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-gray-500 font-medium">ili probaj demo</span>
+                  <span className="bg-white px-4 text-gray-500 font-medium">
+                    ili probaj demo
+                  </span>
                 </div>
               </div>
 
@@ -287,7 +314,9 @@ export default function PrijavaPage() {
                           <motion.button
                             key={account.email}
                             type="button"
-                            onClick={() => handleDemoLogin(account.email, account.password)}
+                            onClick={() =>
+                              handleDemoLogin(account.email, account.password)
+                            }
                             disabled={isLoading}
                             initial={{ opacity: 1, x: 0 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -298,8 +327,12 @@ export default function PrijavaPage() {
                           >
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex-1 min-w-0">
-                                <p className="font-bold text-gray-900 text-sm truncate">{account.name}</p>
-                                <p className="text-xs text-gray-600 truncate">{account.email}</p>
+                                <p className="font-bold text-gray-900 text-sm truncate">
+                                  {account.name}
+                                </p>
+                                <p className="text-xs text-gray-600 truncate">
+                                  {account.email}
+                                </p>
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-lg">
@@ -308,7 +341,10 @@ export default function PrijavaPage() {
                                 <motion.span
                                   className="text-blue-600"
                                   animate={{ x: [0, 4, 0] }}
-                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                  transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                  }}
                                 >
                                   →
                                 </motion.span>
@@ -380,8 +416,8 @@ export default function PrijavaPage() {
           Prijavom se slažeš sa našim{" "}
           <Link href="/uslovi" className="underline hover:text-blue-600">
             uslovima korišćenja
-          </Link>
-          {" "}i{" "}
+          </Link>{" "}
+          i{" "}
           <Link href="/privatnost" className="underline hover:text-blue-600">
             privatnosti
           </Link>

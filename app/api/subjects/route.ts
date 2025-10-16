@@ -33,7 +33,10 @@ export async function GET(_request: NextRequest) {
     });
   } catch (error) {
     log.error("GET /api/subjects failed", { error });
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -70,7 +73,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     log.error("POST /api/subjects failed", { error });
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
-

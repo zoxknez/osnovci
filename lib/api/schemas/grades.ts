@@ -78,7 +78,7 @@ export const GradeStatsSchema = z.object({
       subject: z.string(),
       average: z.number(),
       count: z.number(),
-    })
+    }),
   ),
 });
 

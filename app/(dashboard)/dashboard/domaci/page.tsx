@@ -18,7 +18,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/features/page-header";
-import { AddHomeworkModal, HomeworkFormData } from "@/components/modals/add-homework-modal";
+import {
+  AddHomeworkModal,
+  HomeworkFormData,
+} from "@/components/modals/add-homework-modal";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,9 +29,11 @@ export default function DomaciPage() {
     "all",
   );
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null);
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(
+    null,
+  );
   const [showAddModal, setShowAddModal] = useState(false);
-  
+
   // Nova stanja za API
   const [homework, setHomework] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +55,7 @@ export default function DomaciPage() {
           `/api/homework?page=${page}&limit=20&sortBy=dueDate&order=asc`,
           {
             credentials: "include",
-          }
+          },
         );
 
         if (!response.ok) {
@@ -58,7 +63,7 @@ export default function DomaciPage() {
         }
 
         const data = await response.json();
-        
+
         // Mapiraj podatke sa API-ja na format koji frontend očekuje
         const mapped = data.data.map((hw: Record<string, unknown>) => ({
           id: hw.id,
@@ -69,14 +74,16 @@ export default function DomaciPage() {
           status: (hw.status as string).toLowerCase(),
           priority: (hw.priority as string).toLowerCase(),
           attachments: hw.attachmentsCount,
-          color: (hw.subject as Record<string, unknown>).color || getRandomColor(),
+          color:
+            (hw.subject as Record<string, unknown>).color || getRandomColor(),
         }));
 
         setHomework(mapped);
         setTotal(data.pagination.total);
         setError(null);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Nepoznata greška";
+        const errorMessage =
+          err instanceof Error ? err.message : "Nepoznata greška";
         setError(errorMessage);
         toast.error("Greška pri učitavanju", { description: errorMessage });
       } finally {
@@ -130,8 +137,11 @@ export default function DomaciPage() {
       task.subject.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter =
       filterStatus === "all" ||
-      (filterStatus === "active" && task.status !== "done" && task.status !== "submitted") ||
-      (filterStatus === "done" && (task.status === "done" || task.status === "submitted"));
+      (filterStatus === "active" &&
+        task.status !== "done" &&
+        task.status !== "submitted") ||
+      (filterStatus === "done" &&
+        (task.status === "done" || task.status === "submitted"));
     return matchesSearch && matchesFilter;
   });
 
@@ -192,13 +202,13 @@ export default function DomaciPage() {
 
       // Osvježi listu
       setPage(1);
-      
+
       const newResponse = await fetch(
         `/api/homework?page=1&limit=20&sortBy=dueDate&order=asc`,
-        { credentials: "include" }
+        { credentials: "include" },
       );
       const newData = await newResponse.json();
-      
+
       const mapped = newData.data.map((hw: any) => ({
         id: hw.id,
         subject: hw.subject.name,
@@ -214,9 +224,7 @@ export default function DomaciPage() {
       setHomework(mapped);
       setTotal(newData.pagination.total);
     } catch (err) {
-      throw new Error(
-        err instanceof Error ? err.message : "Nepoznata greška"
-      );
+      throw new Error(err instanceof Error ? err.message : "Nepoznata greška");
     }
   };
 
@@ -268,10 +276,7 @@ export default function DomaciPage() {
                 aria-label="Pretraži domaće zadatke po nazivu ili predmetu"
               />
             </div>
-            <fieldset
-              className="flex gap-2"
-              aria-label="Filteri za zadatke"
-            >
+            <fieldset className="flex gap-2" aria-label="Filteri za zadatke">
               <legend className="sr-only">Filteri za zadatke</legend>
               <Button
                 variant={filterStatus === "all" ? "default" : "outline"}
@@ -311,7 +316,11 @@ export default function DomaciPage() {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-blue-600">
-                {homework.filter((h) => h.status !== "done" && h.status !== "submitted").length}
+                {
+                  homework.filter(
+                    (h) => h.status !== "done" && h.status !== "submitted",
+                  ).length
+                }
               </p>
               <p className="text-sm text-gray-600 mt-1">Aktivni zadaci</p>
             </div>
@@ -321,7 +330,11 @@ export default function DomaciPage() {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-green-600">
-                {homework.filter((h) => h.status === "done" || h.status === "submitted").length}
+                {
+                  homework.filter(
+                    (h) => h.status === "done" || h.status === "submitted",
+                  ).length
+                }
               </p>
               <p className="text-sm text-gray-600 mt-1">Urađeno</p>
             </div>
@@ -333,7 +346,10 @@ export default function DomaciPage() {
               <p className="text-3xl font-bold text-red-600">
                 {
                   homework.filter(
-                    (h) => h.priority === "urgent" && h.status !== "done" && h.status !== "submitted",
+                    (h) =>
+                      h.priority === "urgent" &&
+                      h.status !== "done" &&
+                      h.status !== "submitted",
                   ).length
                 }
               </p>
@@ -363,7 +379,9 @@ export default function DomaciPage() {
         ) : (
           filteredHomework.map((task) => {
             const isOverdue =
-              task.dueDate < new Date() && task.status !== "done" && task.status !== "submitted";
+              task.dueDate < new Date() &&
+              task.status !== "done" &&
+              task.status !== "submitted";
             return (
               <Card
                 key={task.id}
@@ -437,17 +455,18 @@ export default function DomaciPage() {
                       >
                         {task.attachments > 0 ? "Dodaj dokaz" : "Uslikaj dokaz"}
                       </Button>
-                      {task.status !== "done" && task.status !== "submitted" && (
-                        <Button
-                          size="sm"
-                          variant="success"
-                          className="flex-1 sm:flex-initial"
-                          aria-label={`Označi zadatak ${task.title} kao urađen`}
-                          onClick={() => handleMarkComplete(task.id)}
-                        >
-                          Označi urađeno
-                        </Button>
-                      )}
+                      {task.status !== "done" &&
+                        task.status !== "submitted" && (
+                          <Button
+                            size="sm"
+                            variant="success"
+                            className="flex-1 sm:flex-initial"
+                            aria-label={`Označi zadatak ${task.title} kao urađen`}
+                            onClick={() => handleMarkComplete(task.id)}
+                          >
+                            Označi urađeno
+                          </Button>
+                        )}
                     </div>
                   </div>
                 </CardContent>
@@ -463,7 +482,7 @@ export default function DomaciPage() {
           <Button
             variant="outline"
             disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
+            onClick={() => setPage((p) => p - 1)}
           >
             Prethodna
           </Button>
@@ -473,7 +492,7 @@ export default function DomaciPage() {
           <Button
             variant="outline"
             disabled={page >= Math.ceil(total / 20)}
-            onClick={() => setPage(p => p + 1)}
+            onClick={() => setPage((p) => p + 1)}
           >
             Sljedeća
           </Button>

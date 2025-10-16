@@ -11,8 +11,10 @@ export function LastUpdatedNotice() {
       className="text-center text-sm text-gray-500 py-4"
     >
       <p>
-        Poslednja izmena: {" "}
-        <span className="font-medium">{new Date().toLocaleDateString("sr-RS")}</span>
+        Poslednja izmena:{" "}
+        <span className="font-medium">
+          {new Date().toLocaleDateString("sr-RS")}
+        </span>
       </p>
     </motion.div>
   );

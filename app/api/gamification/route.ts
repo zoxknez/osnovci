@@ -11,7 +11,11 @@ import {
   badRequest,
   forbidden,
 } from "@/lib/api/middleware";
-import { addXP, getXPForNextLevel, trackHomeworkCompletion } from "@/lib/gamification/xp-system";
+import {
+  addXP,
+  getXPForNextLevel,
+  trackHomeworkCompletion,
+} from "@/lib/gamification/xp-system";
 
 const GAMIFICATION_INCLUDE = {
   achievements: {
@@ -48,24 +52,26 @@ function formatGamification(gamification: GamificationWithAchievements | null) {
  * GET /api/gamification - Get student's gamification data
  */
 // biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const GET = withAuthAndRateLimit(async (_request: NextRequest, session: any, _context: any) => {
-  try {
-    const student = await getAuthenticatedStudent(session.user.id);
+export const GET = withAuthAndRateLimit(
+  async (_request: NextRequest, session: any, _context: any) => {
+    try {
+      const student = await getAuthenticatedStudent(session.user.id);
 
-    const gamification = await prisma.gamification.upsert({
-      where: { studentId: student.id },
-      create: {
-        studentId: student.id,
-      },
-      update: {},
-      include: GAMIFICATION_INCLUDE,
-    });
+      const gamification = await prisma.gamification.upsert({
+        where: { studentId: student.id },
+        create: {
+          studentId: student.id,
+        },
+        update: {},
+        include: GAMIFICATION_INCLUDE,
+      });
 
-    return success({ gamification: formatGamification(gamification) });
-  } catch (error) {
-    return internalError(error, "Greška pri učitavanju XP podataka");
-  }
-});
+      return success({ gamification: formatGamification(gamification) });
+    } catch (error) {
+      return internalError(error, "Greška pri učitavanju XP podataka");
+    }
+  },
+);
 
 /**
  * POST /api/gamification/complete-homework
@@ -95,7 +101,10 @@ export async function POST(request: NextRequest) {
       return forbidden();
     }
 
-    const dueDate = homework.dueDate instanceof Date ? homework.dueDate : new Date(homework.dueDate);
+    const dueDate =
+      homework.dueDate instanceof Date
+        ? homework.dueDate
+        : new Date(homework.dueDate);
     const isEarly = Number.isFinite(dueDate.getTime())
       ? dueDate.getTime() - Date.now() > 3 * 24 * 60 * 60 * 1000
       : false;
@@ -118,10 +127,15 @@ export async function POST(request: NextRequest) {
       isEarly,
     });
 
-    return success({
-      message: isEarly ? "Bravo! +15 XP za rano urađen domaći! 🎉" : "Bravo! +10 XP! 🎉",
-      gamification: formatGamification(updated),
-    }, 201);
+    return success(
+      {
+        message: isEarly
+          ? "Bravo! +15 XP za rano urađen domaći! 🎉"
+          : "Bravo! +10 XP! 🎉",
+        gamification: formatGamification(updated),
+      },
+      201,
+    );
   } catch (error) {
     log.error("Homework completion tracking failed", { error });
     return NextResponse.json(
@@ -130,4 +144,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

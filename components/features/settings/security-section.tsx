@@ -44,8 +44,12 @@ export function SecuritySection({
                 <Lock className="h-5 w-5 text-blue-600" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-gray-900">Promeni lozinku</div>
-                <div className="text-xs text-gray-600">Poslednja promena: Pre 30 dana</div>
+                <div className="font-semibold text-gray-900">
+                  Promeni lozinku
+                </div>
+                <div className="text-xs text-gray-600">
+                  Poslednja promena: Pre 30 dana
+                </div>
               </div>
             </div>
             <Key className="h-5 w-5 text-gray-400" />
@@ -53,7 +57,9 @@ export function SecuritySection({
 
           <SecurityToggle
             title="Biometrija"
-            description={biometricEnabled ? "Aktivan otisak prsta" : "Neaktivno"}
+            description={
+              biometricEnabled ? "Aktivan otisak prsta" : "Neaktivno"
+            }
             enabled={biometricEnabled}
             icon={<Fingerprint className="h-5 w-5" />}
             activeColor="green"
@@ -62,7 +68,9 @@ export function SecuritySection({
 
           <SecurityToggle
             title="2FA Verifikacija"
-            description={twoFactorEnabled ? "Dodatna zaštita aktivna" : "Neaktivno"}
+            description={
+              twoFactorEnabled ? "Dodatna zaštita aktivna" : "Neaktivno"
+            }
             enabled={twoFactorEnabled}
             icon={<Shield className="h-5 w-5" />}
             activeColor="purple"
@@ -83,23 +91,33 @@ interface SecurityToggleProps {
   onToggle: () => Promise<void>;
 }
 
-function SecurityToggle({ title, description, enabled, icon, activeColor, onToggle }: SecurityToggleProps) {
-  const colors = activeColor === "green"
-    ? {
-        container: enabled ? "bg-green-100" : "bg-gray-200",
-        icon: enabled ? "text-green-600" : "text-gray-500",
-        track: enabled ? "bg-green-500" : "bg-gray-300",
-      }
-    : {
-        container: enabled ? "bg-purple-100" : "bg-gray-200",
-        icon: enabled ? "text-purple-600" : "text-gray-500",
-        track: enabled ? "bg-purple-500" : "bg-gray-300",
-      };
+function SecurityToggle({
+  title,
+  description,
+  enabled,
+  icon,
+  activeColor,
+  onToggle,
+}: SecurityToggleProps) {
+  const colors =
+    activeColor === "green"
+      ? {
+          container: enabled ? "bg-green-100" : "bg-gray-200",
+          icon: enabled ? "text-green-600" : "text-gray-500",
+          track: enabled ? "bg-green-500" : "bg-gray-300",
+        }
+      : {
+          container: enabled ? "bg-purple-100" : "bg-gray-200",
+          icon: enabled ? "text-purple-600" : "text-gray-500",
+          track: enabled ? "bg-purple-500" : "bg-gray-300",
+        };
 
   return (
     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${colors.container}`}>
+        <div
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${colors.container}`}
+        >
           <span className={`transition-colors ${colors.icon}`}>{icon}</span>
         </div>
         <div>

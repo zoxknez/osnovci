@@ -5,7 +5,10 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
-import { recordLoginAttempt, isAccountLocked } from "@/lib/auth/account-lockout";
+import {
+  recordLoginAttempt,
+  isAccountLocked,
+} from "@/lib/auth/account-lockout";
 
 const loginSchema = z
   .object({

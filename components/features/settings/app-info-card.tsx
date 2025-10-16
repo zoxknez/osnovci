@@ -13,7 +13,9 @@ export function AppInfoCard() {
             <div className="text-4xl mb-2">📱</div>
             <div className="font-semibold text-gray-900">Osnovci App</div>
             <div className="text-sm text-gray-600">Verzija 1.0.0</div>
-            <div className="text-xs text-gray-500 mt-4">© 2025 Osnovci. Sva prava zadržana.</div>
+            <div className="text-xs text-gray-500 mt-4">
+              © 2025 Osnovci. Sva prava zadržana.
+            </div>
           </div>
         </CardContent>
       </Card>

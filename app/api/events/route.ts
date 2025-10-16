@@ -45,7 +45,12 @@ export async function GET(request: NextRequest) {
     };
 
     if (type) {
-      where.type = type as "EXAM" | "MEETING" | "TRIP" | "COMPETITION" | "OTHER";
+      where.type = type as
+        | "EXAM"
+        | "MEETING"
+        | "TRIP"
+        | "COMPETITION"
+        | "OTHER";
     }
 
     if (from || to) {

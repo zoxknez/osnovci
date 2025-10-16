@@ -19,7 +19,10 @@ export type ScheduleStatus = z.infer<typeof ScheduleStatus>;
 // Time format HH:MM
 const timeFormat = z
   .string()
-  .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Vrijeme mora biti u formatu HH:MM");
+  .regex(
+    /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+    "Vrijeme mora biti u formatu HH:MM",
+  );
 
 // Create schedule entry schema
 export const CreateScheduleSchema = z.object({

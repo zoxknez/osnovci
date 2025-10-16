@@ -92,27 +92,15 @@ export function VirtualHomeworkList({
       estimateSize={120}
       className="max-h-[600px]"
       renderItem={(item, _index) => (
-        <div
+        <button
           key={item.id}
           onClick={() => onItemClick?.(item)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onItemClick?.(item);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          className="p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"
+          className="w-full text-left p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h4 className="font-semibold text-gray-900">
-                {item.title}
-              </h4>
-              <p className="text-sm text-gray-600">
-                {item.subject}
-              </p>
+              <h4 className="font-semibold text-gray-900">{item.title}</h4>
+              <p className="text-sm text-gray-600">{item.subject}</p>
             </div>
             <span
               className={`text-xs px-2 py-1 rounded-full ${
@@ -127,7 +115,7 @@ export function VirtualHomeworkList({
           <p className="text-xs text-gray-500 mt-2">
             {new Date(item.dueDate).toLocaleDateString("sr-RS")}
           </p>
-        </div>
+        </button>
       )}
     />
   );

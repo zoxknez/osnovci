@@ -128,7 +128,10 @@ export async function verifyEmailCodeAndLink(
   }
 
   if (verification.emailCode !== emailCode.toUpperCase()) {
-    return { success: false, error: "Pogrešan kod! Proveri email i unesi tačan kod." };
+    return {
+      success: false,
+      error: "Pogrešan kod! Proveri email i unesi tačan kod.",
+    };
   }
 
   if (new Date() > verification.expiresAt) {
@@ -191,4 +194,3 @@ export function cleanupExpiredVerifications() {
 if (typeof window === "undefined") {
   setInterval(cleanupExpiredVerifications, 10 * 60 * 1000);
 }
-

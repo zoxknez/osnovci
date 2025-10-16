@@ -22,7 +22,8 @@
 
 /* Hero glow effect animation */
 @keyframes hero-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
   }
   50% {
@@ -414,7 +415,8 @@ html {
 
 /* Floating animation */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -428,7 +430,8 @@ html {
 
 /* Pulse animation for djecu */
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
   }
   50% {
@@ -475,7 +478,8 @@ html {
 }
 
 @keyframes bounce-kid {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -485,12 +489,16 @@ html {
 
 /* Smooth color transitions for theme switching */
 * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* Wobble animation */
 @keyframes wobble {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   25% {

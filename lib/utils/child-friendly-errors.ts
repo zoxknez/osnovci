@@ -12,12 +12,16 @@ export interface ChildFriendlyError {
 /**
  * Convert technical errors to child-friendly messages
  */
-export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> = {
+export const CHILD_FRIENDLY_ERRORS: Record<
+  string | number,
+  ChildFriendlyError
+> = {
   // Auth errors
   401: {
     emoji: "🔐",
     title: "Ups! Nisi prijavljen",
-    message: "Moraš prvo da se prijaviš da bi mogao ovo da radiš. Klikni dugme ispod!",
+    message:
+      "Moraš prvo da se prijaviš da bi mogao ovo da radiš. Klikni dugme ispod!",
     action: "Prijavi se",
     color: "blue",
   },
@@ -25,7 +29,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   403: {
     emoji: "🙅‍♂️",
     title: "Opa! Ne smeš ovde",
-    message: "Ovo mogu samo roditelji ili nastavnici. Pitaj ih za pomoć ako ti treba!",
+    message:
+      "Ovo mogu samo roditelji ili nastavnici. Pitaj ih za pomoć ako ti treba!",
     action: "Nazad",
     color: "red",
   },
@@ -41,7 +46,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   500: {
     emoji: "🛠️",
     title: "Ajoj! Nešto se pokvarilo",
-    message: "Ne brini, to nije tvoja greška! Pokušaj ponovo za malo. Ako ne radi, reci roditelju.",
+    message:
+      "Ne brini, to nije tvoja greška! Pokušaj ponovo za malo. Ako ne radi, reci roditelju.",
     action: "Pokušaj ponovo",
     color: "orange",
   },
@@ -50,7 +56,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   file_too_large: {
     emoji: "📏",
     title: "Slika je prevelika!",
-    message: "Tvoja slika je malo prevelika za upload. Probaj da je smanjiš ili izaberi drugu sliku.",
+    message:
+      "Tvoja slika je malo prevelika za upload. Probaj da je smanjiš ili izaberi drugu sliku.",
     action: "Izaberi drugu",
     color: "yellow",
   },
@@ -58,7 +65,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   invalid_file_type: {
     emoji: "📸",
     title: "Pogrešan tip fajla",
-    message: "Mogu samo slike (.jpg, .png) ili PDF fajlove. Probaj sa drugom slikom!",
+    message:
+      "Mogu samo slike (.jpg, .png) ili PDF fajlove. Probaj sa drugom slikom!",
     action: "Izaberi novu sliku",
     color: "yellow",
   },
@@ -66,7 +74,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   missing_required: {
     emoji: "✏️",
     title: "Zaboravio si nešto!",
-    message: "Neka polja su obavezna (označena sa *). Proveri da li si sve popunio!",
+    message:
+      "Neka polja su obavezna (označena sa *). Proveri da li si sve popunio!",
     action: "Proveri ponovo",
     color: "blue",
   },
@@ -74,7 +83,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   password_mismatch: {
     emoji: "🔑",
     title: "Lozinke se ne poklapaju",
-    message: "Upisao si dve različite lozinke. Proveri i unesi istu lozinku oba puta!",
+    message:
+      "Upisao si dve različite lozinke. Proveri i unesi istu lozinku oba puta!",
     action: "Pokušaj ponovo",
     color: "yellow",
   },
@@ -82,7 +92,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   account_locked: {
     emoji: "🔒",
     title: "Nalog je zaključan",
-    message: "Previše puta si uneo pogrešnu lozinku. Pitaj roditelja da ti pomogne!",
+    message:
+      "Previše puta si uneo pogrešnu lozinku. Pitaj roditelja da ti pomogne!",
     action: "Pitaj roditelja",
     color: "red",
   },
@@ -90,7 +101,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   network_error: {
     emoji: "📡",
     title: "Nema interneta",
-    message: "Ups! Izgubio si internet vezu. Proveri WiFi ili mobilne podatke, pa pokušaj ponovo!",
+    message:
+      "Ups! Izgubio si internet vezu. Proveri WiFi ili mobilne podatke, pa pokušaj ponovo!",
     action: "Pokušaj ponovo",
     color: "orange",
   },
@@ -98,7 +110,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   timeout: {
     emoji: "⏱️",
     title: "Traje predugo...",
-    message: "Internet je spor ili server ne odgovara. Sačekaj malo pa pokušaj ponovo!",
+    message:
+      "Internet je spor ili server ne odgovara. Sačekaj malo pa pokušaj ponovo!",
     action: "Pokušaj ponovo",
     color: "yellow",
   },
@@ -116,7 +129,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   upload_failed: {
     emoji: "😵",
     title: "Upload nije uspeo",
-    message: "Slika se nije uspešno upload-ovala. Internet je možda spor. Probaj ponovo!",
+    message:
+      "Slika se nije uspešno upload-ovala. Internet je možda spor. Probaj ponovo!",
     action: "Pokušaj ponovo",
     color: "red",
   },
@@ -125,7 +139,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   parental_approval_needed: {
     emoji: "👨‍👩‍👧",
     title: "Treba ti dozvola roditelja",
-    message: "Za ovu akciju moraš pitati roditelja da unese PIN kod. Pozovi ih!",
+    message:
+      "Za ovu akciju moraš pitati roditelja da unese PIN kod. Pozovi ih!",
     action: "Pozovi roditelja",
     color: "purple",
   },
@@ -134,7 +149,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   too_young: {
     emoji: "👶",
     title: "Malo si mlad za ovo",
-    message: "Moraš imati najmanje 7 godina da koristiš aplikaciju. Pitaj roditelja za pomoć!",
+    message:
+      "Moraš imati najmanje 7 godina da koristiš aplikaciju. Pitaj roditelja za pomoć!",
     action: "OK",
     color: "blue",
   },
@@ -142,7 +158,8 @@ export const CHILD_FRIENDLY_ERRORS: Record<string | number, ChildFriendlyError> 
   consent_required: {
     emoji: "✉️",
     title: "Čekamo roditelja",
-    message: "Poslali smo email tvom roditelju. Kada on potvrdi, moći ćeš da koristiš aplikaciju!",
+    message:
+      "Poslali smo email tvom roditelju. Kada on potvrdi, moći ćeš da koristiš aplikaciju!",
     action: "Razumem",
     color: "green",
   },
@@ -220,4 +237,3 @@ export const SUCCESS_MESSAGES = {
     message: "WOW! Dostigao si novi level! Ti si šampion!",
   },
 };
-

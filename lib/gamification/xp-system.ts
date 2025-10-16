@@ -31,11 +31,7 @@ export const LEVEL_THRESHOLDS = [
 /**
  * Add XP to student
  */
-export async function addXP(
-  studentId: string,
-  amount: number,
-  reason: string,
-) {
+export async function addXP(studentId: string, amount: number, reason: string) {
   try {
     // Get or create gamification record
     let gamif = await prisma.gamification.findUnique({
@@ -75,7 +71,10 @@ export async function addXP(
     // Level up notification
     if (leveledUp) {
       const user = await prisma.user.findUnique({
-        where: { id: (await prisma.student.findUnique({ where: { id: studentId } }))?.userId },
+        where: {
+          id: (await prisma.student.findUnique({ where: { id: studentId } }))
+            ?.userId,
+        },
       });
 
       if (user) {
@@ -196,33 +195,126 @@ async function checkAchievements(
   type: AchievementType,
   value: number,
 ) {
-  const achievements: Record<AchievementType, { at: number; title: string; desc: string; icon: string; xp: number }[]> = {
+  const achievements: Record<
+    AchievementType,
+    { at: number; title: string; desc: string; icon: string; xp: number }[]
+  > = {
     HOMEWORK_MILESTONE: [
-      { at: 10, title: "Prvi Koraci", desc: "Završio 10 zadataka!", icon: "🏃", xp: 20 },
-      { at: 50, title: "Vredan Učenik", desc: "Završio 50 zadataka!", icon: "📚", xp: 50 },
-      { at: 100, title: "Majstor Zadataka", desc: "Završio 100 zadataka!", icon: "🏆", xp: 100 },
+      {
+        at: 10,
+        title: "Prvi Koraci",
+        desc: "Završio 10 zadataka!",
+        icon: "🏃",
+        xp: 20,
+      },
+      {
+        at: 50,
+        title: "Vredan Učenik",
+        desc: "Završio 50 zadataka!",
+        icon: "📚",
+        xp: 50,
+      },
+      {
+        at: 100,
+        title: "Majstor Zadataka",
+        desc: "Završio 100 zadataka!",
+        icon: "🏆",
+        xp: 100,
+      },
     ],
     STREAK_MILESTONE: [
-      { at: 7, title: "Sedmodnevni Šampion", desc: "7 dana uzastopno!", icon: "🔥", xp: 30 },
-      { at: 30, title: "Mesečna Zvezda", desc: "30 dana streak!", icon: "⭐", xp: 100 },
-      { at: 100, title: "Legenda", desc: "100 dana streak!", icon: "👑", xp: 300 },
+      {
+        at: 7,
+        title: "Sedmodnevni Šampion",
+        desc: "7 dana uzastopno!",
+        icon: "🔥",
+        xp: 30,
+      },
+      {
+        at: 30,
+        title: "Mesečna Zvezda",
+        desc: "30 dana streak!",
+        icon: "⭐",
+        xp: 100,
+      },
+      {
+        at: 100,
+        title: "Legenda",
+        desc: "100 dana streak!",
+        icon: "👑",
+        xp: 300,
+      },
     ],
     LEVEL_MILESTONE: [
-      { at: 5, title: "Rising Star", desc: "Dostigao Level 5!", icon: "🌟", xp: 25 },
-      { at: 10, title: "Superstar", desc: "Dostigao Level 10!", icon: "💫", xp: 50 },
-      { at: 20, title: "Living Legend", desc: "Dostigao Level 20!", icon: "🚀", xp: 100 },
+      {
+        at: 5,
+        title: "Rising Star",
+        desc: "Dostigao Level 5!",
+        icon: "🌟",
+        xp: 25,
+      },
+      {
+        at: 10,
+        title: "Superstar",
+        desc: "Dostigao Level 10!",
+        icon: "💫",
+        xp: 50,
+      },
+      {
+        at: 20,
+        title: "Living Legend",
+        desc: "Dostigao Level 20!",
+        icon: "🚀",
+        xp: 100,
+      },
     ],
     PERFECT_WEEK: [
-      { at: 1, title: "Savršena Nedelja", desc: "Sve obaveze završene!", icon: "📅", xp: 75 },
-      { at: 4, title: "Mesečni Šampion", desc: "4 savršene nedelje!", icon: "🏅", xp: 150 },
+      {
+        at: 1,
+        title: "Savršena Nedelja",
+        desc: "Sve obaveze završene!",
+        icon: "📅",
+        xp: 75,
+      },
+      {
+        at: 4,
+        title: "Mesečni Šampion",
+        desc: "4 savršene nedelje!",
+        icon: "🏅",
+        xp: 150,
+      },
     ],
     EARLY_BIRD: [
-      { at: 1, title: "Ranoranilac", desc: "Zadatak završen ranije!", icon: "🌅", xp: 20 },
-      { at: 10, title: "Planer", desc: "10 zadataka ranije!", icon: "🗓️", xp: 60 },
+      {
+        at: 1,
+        title: "Ranoranilac",
+        desc: "Zadatak završen ranije!",
+        icon: "🌅",
+        xp: 20,
+      },
+      {
+        at: 10,
+        title: "Planer",
+        desc: "10 zadataka ranije!",
+        icon: "🗓️",
+        xp: 60,
+      },
     ],
     SUBJECT_MASTER: [
-      { at: 5, title: "Mini Majstor", desc: "5 zadataka iz jednog predmeta!", icon: "📘", xp: 25 },
-      { at: 20, title: "Predmet Guru", desc: "20 zadataka iz istog predmeta!", icon: "🎓", xp: 80 },
+      {
+        at: 5,
+        title: "Mini Majstor",
+        desc: "5 zadataka iz jednog predmeta!",
+        icon: "📘",
+        xp: 25,
+      },
+      {
+        at: 20,
+        title: "Predmet Guru",
+        desc: "20 zadataka iz istog predmeta!",
+        icon: "🎓",
+        xp: 80,
+      },
     ],
   };
 
@@ -267,11 +359,20 @@ async function checkAchievements(
         });
 
         // Add XP reward
-        const gamif = await prisma.gamification.findUnique({ where: { id: gamificationId } });
+        const gamif = await prisma.gamification.findUnique({
+          where: { id: gamificationId },
+        });
         if (gamif) {
-          const student = await prisma.student.findUnique({ where: { id: gamif.studentId }, include: { user: true } });
+          const student = await prisma.student.findUnique({
+            where: { id: gamif.studentId },
+            include: { user: true },
+          });
           if (student) {
-            await addXP(gamif.studentId, milestone.xp, `Achievement: ${milestone.title}`);
+            await addXP(
+              gamif.studentId,
+              milestone.xp,
+              `Achievement: ${milestone.title}`,
+            );
 
             // Notify user
             await createNotification({
@@ -291,7 +392,10 @@ async function checkAchievements(
 /**
  * Track homework completion
  */
-export async function trackHomeworkCompletion(studentId: string, early = false) {
+export async function trackHomeworkCompletion(
+  studentId: string,
+  early = false,
+) {
   try {
     const gamif = await prisma.gamification.findUnique({
       where: { studentId },
@@ -310,8 +414,14 @@ export async function trackHomeworkCompletion(studentId: string, early = false) 
     });
 
     // Add XP
-    const xpAmount = early ? XP_REWARDS.HOMEWORK_EARLY : XP_REWARDS.HOMEWORK_COMPLETED;
-    await addXP(studentId, xpAmount, early ? "Homework (early!)" : "Homework completed");
+    const xpAmount = early
+      ? XP_REWARDS.HOMEWORK_EARLY
+      : XP_REWARDS.HOMEWORK_COMPLETED;
+    await addXP(
+      studentId,
+      xpAmount,
+      early ? "Homework (early!)" : "Homework completed",
+    );
 
     // Update streak
     await updateStreak(studentId);
@@ -325,4 +435,3 @@ export async function trackHomeworkCompletion(studentId: string, early = false) 
     log.error("Failed to track homework completion", { error, studentId });
   }
 }
-

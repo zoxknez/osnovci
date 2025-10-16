@@ -21,7 +21,12 @@ export function withCsrf<Args extends unknown[]>(
         return handler(req, ...args);
       }
 
-  if (!csrfToken || !sessionToken || csrfToken !== sessionToken || !validateCSRFToken(csrfToken)) {
+      if (
+        !csrfToken ||
+        !sessionToken ||
+        csrfToken !== sessionToken ||
+        !validateCSRFToken(csrfToken)
+      ) {
         log.warn("CSRF validation failed", {
           path: req.nextUrl.pathname,
           method: req.method,
@@ -58,4 +63,3 @@ export function setCsrfToken(response: NextResponse): NextResponse {
 
   return response;
 }
-

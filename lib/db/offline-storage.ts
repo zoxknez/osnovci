@@ -150,7 +150,9 @@ class OfflineStorage {
     return db.get("attachments", id);
   }
 
-  async getAttachmentsByHomework(homeworkId: string): Promise<StoredAttachment[]> {
+  async getAttachmentsByHomework(
+    homeworkId: string,
+  ): Promise<StoredAttachment[]> {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     return db.getAllFromIndex("attachments", "by-homework", homeworkId);
@@ -194,7 +196,10 @@ class OfflineStorage {
   // UTILITY OPERATIONS
   // ========================================
 
-  async getUnsyncedItems(): Promise<{ homework: StoredHomework[]; attachments: StoredAttachment[] }> {
+  async getUnsyncedItems(): Promise<{
+    homework: StoredHomework[];
+    attachments: StoredAttachment[];
+  }> {
     if (!this.dbPromise) return { homework: [], attachments: [] };
     const db = await this.dbPromise;
     const homework = await db.getAllFromIndex("homework", "by-synced", 0);
@@ -210,7 +215,11 @@ class OfflineStorage {
     await db.clear("pending-sync");
   }
 
-  async getStorageSize(): Promise<{ usage: number; quota: number; percentage: number }> {
+  async getStorageSize(): Promise<{
+    usage: number;
+    quota: number;
+    percentage: number;
+  }> {
     if ("storage" in navigator && "estimate" in navigator.storage) {
       const estimate = await navigator.storage.estimate();
       return {

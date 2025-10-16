@@ -13,10 +13,13 @@ export function PrivacyNotice() {
       <div className="flex gap-3">
         <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div>
-          <div className="font-semibold text-blue-900 mb-1">🔒 Privatnost i sigurnost</div>
+          <div className="font-semibold text-blue-900 mb-1">
+            🔒 Privatnost i sigurnost
+          </div>
           <div className="text-sm text-blue-800">
-            Sve zdravstvene informacije su šifrovane i vidljive samo roditeljima i ovlašćenom
-            osoblju škole. Podaci se koriste isključivo za bezbednost i dobrobit deteta.
+            Sve zdravstvene informacije su šifrovane i vidljive samo roditeljima
+            i ovlašćenom osoblju škole. Podaci se koriste isključivo za
+            bezbednost i dobrobit deteta.
           </div>
         </div>
       </div>

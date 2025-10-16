@@ -19,10 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/features/page-header";
-import {
-  staggerContainer,
-  staggerItem,
-} from "@/lib/animations/variants";
+import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 
 // Mock data - TODO: Replace with real API
 const MOCK_FAMILY = [

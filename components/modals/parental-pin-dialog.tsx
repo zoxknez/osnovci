@@ -64,7 +64,7 @@ export function ParentalPINDialog({
           <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-100 rounded-full mb-4">
             <Lock className="h-10 w-10 text-purple-600" />
           </div>
-          
+
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
             Pozovi roditelja! 👨‍👩‍👧
           </h2>
@@ -72,15 +72,16 @@ export function ParentalPINDialog({
           <p className="text-xs font-semibold uppercase tracking-wide text-purple-600 mb-1">
             {action}
           </p>
-          
-          <p className="text-base sm:text-lg text-gray-700">
-            {description}
-          </p>
+
+          <p className="text-base sm:text-lg text-gray-700">{description}</p>
         </div>
 
         {/* PIN Input - Mobile optimized! */}
         <div className="mb-6">
-          <label htmlFor={inputId} className="block text-sm font-semibold text-gray-700 mb-3 text-center">
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-semibold text-gray-700 mb-3 text-center"
+          >
             Roditelj treba da unese PIN kod:
           </label>
           <motion.div
@@ -101,7 +102,7 @@ export function ParentalPINDialog({
               aria-label="PIN kod (4 cifre)"
             />
           </motion.div>
-          
+
           {error && (
             <motion.p
               initial={{ opacity: 0, y: -10 }}
@@ -123,7 +124,7 @@ export function ParentalPINDialog({
           >
             Potvrdi PIN
           </Button>
-          
+
           <Button
             onClick={onCancel}
             variant="outline"
@@ -142,4 +143,3 @@ export function ParentalPINDialog({
     </motion.div>
   );
 }
-

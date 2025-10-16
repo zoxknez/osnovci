@@ -44,7 +44,11 @@ export function ProfileHeader({
           </Button>
         ) : (
           <>
-            <Button variant="outline" onClick={onCancel} aria-label="Otkaži izmene">
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              aria-label="Otkaži izmene"
+            >
               Otkaži
             </Button>
             <Button

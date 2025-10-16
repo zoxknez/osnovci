@@ -32,7 +32,12 @@ const buttonColorMap = {
   gray: "from-gray-600 to-gray-700",
 };
 
-export function ChildError({ errorCode, customMessage, onRetry, onDismiss }: ChildErrorProps) {
+export function ChildError({
+  errorCode,
+  customMessage,
+  onRetry,
+  onDismiss,
+}: ChildErrorProps) {
   const error = getChildFriendlyError(errorCode, customMessage);
 
   return (
@@ -116,7 +121,12 @@ interface ChildSuccessProps {
   onClose: () => void;
 }
 
-export function ChildSuccess({ emoji, title, message, onClose }: ChildSuccessProps) {
+export function ChildSuccess({
+  emoji,
+  title,
+  message,
+  onClose,
+}: ChildSuccessProps) {
   return (
     <motion.div
       initial={{ scale: 0, rotate: -180 }}
@@ -159,4 +169,3 @@ export function ChildSuccess({ emoji, title, message, onClose }: ChildSuccessPro
     </motion.div>
   );
 }
-

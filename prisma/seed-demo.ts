@@ -227,12 +227,12 @@ async function main() {
   if (marko?.student) {
     console.log("📅 Kreiram raspored časova za Marka...\n");
 
-  const matematika = getSubject("Matematika");
-  const srpski = getSubject("Srpski jezik");
-  const engleski = getSubject("Engleski jezik");
-  const fizika = getSubject("Fizika");
-  const istorija = getSubject("Istorija");
-  const fizicko = getSubject("Fizičko");
+    const matematika = getSubject("Matematika");
+    const srpski = getSubject("Srpski jezik");
+    const engleski = getSubject("Engleski jezik");
+    const fizika = getSubject("Fizika");
+    const istorija = getSubject("Istorija");
+    const fizicko = getSubject("Fizičko");
 
     await Promise.all([
       // Ponedeljak
@@ -413,4 +413,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

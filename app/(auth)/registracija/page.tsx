@@ -167,7 +167,9 @@ export default function RegistracijaPage() {
           </Link>
           <div className="flex items-center justify-center gap-2 text-gray-600 mb-1.5 sm:mb-2">
             <span className="text-xl sm:text-2xl">🎓</span>
-            <p className="text-base sm:text-lg font-medium">Kreiraj novi nalog</p>
+            <p className="text-base sm:text-lg font-medium">
+              Kreiraj novi nalog
+            </p>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 px-4">
             Jednostavno • Bez reklama • Potpuno sigurno
@@ -179,7 +181,7 @@ export default function RegistracijaPage() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 flex items-center justify-center gap-2"
             >
-              <motion.div 
+              <motion.div
                 className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 bg-gradient-to-r from-green-100 to-blue-100 px-4 py-2 rounded-full shadow-md"
                 whileHover={{ scale: 1.05 }}
               >
@@ -222,7 +224,7 @@ export default function RegistracijaPage() {
                     className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border-3 border-blue-200 bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-50 p-6 sm:p-8 text-left transition-all hover:border-blue-400 hover:shadow-2xl hover:shadow-blue-200/50 active:scale-95 focus:ring-4 focus:ring-blue-500/30 focus:outline-none touch-manipulation"
                   >
                     {/* Animated gradient overlay */}
-                    <motion.div 
+                    <motion.div
                       className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 opacity-0 group-hover:opacity-100 transition-opacity"
                       initial={false}
                     />
@@ -232,7 +234,10 @@ export default function RegistracijaPage() {
                       transition={{ duration: 0.5, type: "spring" }}
                       className="relative mb-5 sm:mb-6 inline-flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-xl group-hover:shadow-2xl group-hover:shadow-blue-300/50 transition-all"
                     >
-                      <GraduationCap className="h-8 w-8 sm:h-10 sm:w-10" aria-hidden="true" />
+                      <GraduationCap
+                        className="h-8 w-8 sm:h-10 sm:w-10"
+                        aria-hidden="true"
+                      />
                     </motion.div>
 
                     <h3 className="relative mb-2 sm:mb-3 text-xl sm:text-2xl font-extrabold text-gray-900">
@@ -246,15 +251,21 @@ export default function RegistracijaPage() {
                     <div className="relative space-y-1.5 sm:space-y-2">
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                         <span className="text-green-600 font-bold">✓</span>
-                        <span className="font-medium">Fotografisanje domaćih</span>
+                        <span className="font-medium">
+                          Fotografisanje domaćih
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                         <span className="text-green-600 font-bold">✓</span>
-                        <span className="font-medium">Gamifikacija i XP sistem</span>
+                        <span className="font-medium">
+                          Gamifikacija i XP sistem
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                         <span className="text-green-600 font-bold">✓</span>
-                        <span className="font-medium">Povezivanje sa roditeljima</span>
+                        <span className="font-medium">
+                          Povezivanje sa roditeljima
+                        </span>
                       </div>
                     </div>
 
@@ -278,7 +289,7 @@ export default function RegistracijaPage() {
                     className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border-3 border-purple-200 bg-gradient-to-br from-purple-50 via-purple-100 to-pink-50 p-6 sm:p-8 text-left transition-all hover:border-purple-400 hover:shadow-2xl hover:shadow-purple-200/50 active:scale-95 focus:ring-4 focus:ring-purple-500/30 focus:outline-none touch-manipulation"
                   >
                     {/* Animated gradient overlay */}
-                    <motion.div 
+                    <motion.div
                       className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity"
                       initial={false}
                     />
@@ -288,7 +299,10 @@ export default function RegistracijaPage() {
                       transition={{ duration: 0.5, type: "spring" }}
                       className="relative mb-5 sm:mb-6 inline-flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-xl group-hover:shadow-2xl group-hover:shadow-purple-300/50 transition-all"
                     >
-                      <Users className="h-8 w-8 sm:h-10 sm:w-10" aria-hidden="true" />
+                      <Users
+                        className="h-8 w-8 sm:h-10 sm:w-10"
+                        aria-hidden="true"
+                      />
                     </motion.div>
 
                     <h3 className="relative mb-2 sm:mb-3 text-xl sm:text-2xl font-extrabold text-gray-900">
@@ -552,7 +566,7 @@ export default function RegistracijaPage() {
                         Prijavi se ovde
                       </Link>
                     </p>
-                    
+
                     {/* Quick demo access */}
                     <p className="text-xs text-gray-500 mb-4">
                       Ili samo želiš da probaš?{" "}
@@ -595,8 +609,8 @@ export default function RegistracijaPage() {
           Registracijom se slažeš sa našim{" "}
           <Link href="/uslovi" className="underline hover:text-blue-600">
             uslovima korišćenja
-          </Link>
-          {" "}i{" "}
+          </Link>{" "}
+          i{" "}
           <Link href="/privatnost" className="underline hover:text-blue-600">
             privatnosti
           </Link>

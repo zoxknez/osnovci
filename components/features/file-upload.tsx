@@ -86,7 +86,8 @@ export function FileUpload({
             ),
           );
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : "Greška pri uploadu";
+          const errorMessage =
+            error instanceof Error ? error.message : "Greška pri uploadu";
           setFiles((prev) =>
             prev.map((f) =>
               f.id === uploadFile.id
@@ -149,7 +150,13 @@ export function FileUpload({
       // Start upload
       uploadFilesSequentially(uploadFiles);
     },
-    [files.length, maxFiles, validateFile, compressImages, uploadFilesSequentially],
+    [
+      files.length,
+      maxFiles,
+      validateFile,
+      compressImages,
+      uploadFilesSequentially,
+    ],
   );
 
   const removeFile = (id: string) => {
@@ -193,11 +200,10 @@ export function FileUpload({
   return (
     <div className="w-full">
       {/* Drop Zone */}
-      <div
+      <section
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        role="region"
         aria-label="Drop zone za upload fajlova"
         className={`relative border-2 border-dashed rounded-xl p-8 transition-all ${
           isDragging
@@ -238,7 +244,7 @@ export function FileUpload({
             Max {maxSize}MB • Do {maxFiles} fajlova
           </p>
         </label>
-      </div>
+      </section>
 
       {/* File List */}
       <AnimatePresence>

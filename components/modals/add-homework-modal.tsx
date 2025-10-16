@@ -120,8 +120,7 @@ export function AddHomeworkModal({
       });
     } catch (err) {
       toast.error("Greška pri kreiranju", {
-        description:
-          err instanceof Error ? err.message : "Nepoznata greška",
+        description: err instanceof Error ? err.message : "Nepoznata greška",
       });
     } finally {
       setSubmitting(false);
@@ -207,9 +206,7 @@ export function AddHomeworkModal({
                       setFormData({ ...formData, subjectId: e.target.value })
                     }
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.subjectId
-                        ? "border-red-500"
-                        : "border-gray-300"
+                      errors.subjectId ? "border-red-500" : "border-gray-300"
                     }`}
                     disabled={loading}
                   >

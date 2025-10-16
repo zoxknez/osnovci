@@ -34,10 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/features/page-header";
-import {
-  staggerContainer,
-  staggerItem,
-} from "@/lib/animations/variants";
+import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 import { toast } from "sonner";
 
 // Mock data - TODO: Replace with real API
@@ -166,7 +163,8 @@ export default function OcenePage() {
         setStats(data.data.stats);
         setError(null);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Nepoznata greška";
+        const errorMessage =
+          err instanceof Error ? err.message : "Nepoznata greška";
         setError(errorMessage);
         toast.error("Greška pri učitavanju", { description: errorMessage });
       } finally {
@@ -193,7 +191,8 @@ export default function OcenePage() {
 
   // Konvertuj u niz i kalkuliši prosjeke
   const subjectGrades = Object.values(gradesBySubject).map((sg: any) => {
-    const avg = sg.grades.reduce((a: number, b: number) => a + b, 0) / sg.grades.length;
+    const avg =
+      sg.grades.reduce((a: number, b: number) => a + b, 0) / sg.grades.length;
     const trend =
       sg.grades.length > 1
         ? sg.grades[0] > sg.grades[sg.grades.length - 1]
@@ -320,10 +319,16 @@ export default function OcenePage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Najbolji predmet</p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      Najbolji predmet
+                    </p>
                     <p className="text-2xl font-bold text-purple-600">
-                      {subjectGrades.reduce((max, s) => 
-                        s.average > max.average ? s : max, subjectGrades[0])?.subject.substring(0, 10)}
+                      {subjectGrades
+                        .reduce(
+                          (max, s) => (s.average > max.average ? s : max),
+                          subjectGrades[0],
+                        )
+                        ?.subject.substring(0, 10)}
                     </p>
                   </div>
                   <Target className="h-12 w-12 text-purple-400 opacity-20" />
@@ -399,7 +404,13 @@ export default function OcenePage() {
                   <PolarGrid />
                   <PolarAngleAxis dataKey="name" />
                   <PolarRadiusAxis angle={90} domain={[0, 5]} />
-                  <Radar name="Prosjek" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                  <Radar
+                    name="Prosjek"
+                    dataKey="value"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.6}
+                  />
                   <Tooltip />
                 </RadarChart>
               </ResponsiveContainer>
@@ -427,7 +438,9 @@ export default function OcenePage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{sg.icon}</span>
-                    <h3 className="font-semibold text-gray-900">{sg.subject}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {sg.subject}
+                    </h3>
                   </div>
                   {sg.trend === "up" && (
                     <TrendingUp className="h-5 w-5 text-green-600" />

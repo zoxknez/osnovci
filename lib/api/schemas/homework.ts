@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 // Homework status enum
-export const HomeworkStatus = z.enum(["ASSIGNED", "IN_PROGRESS", "DONE", "SUBMITTED"]);
+export const HomeworkStatus = z.enum([
+  "ASSIGNED",
+  "IN_PROGRESS",
+  "DONE",
+  "SUBMITTED",
+]);
 export type HomeworkStatus = z.infer<typeof HomeworkStatus>;
 
 // Homework priority enum

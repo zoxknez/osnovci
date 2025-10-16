@@ -40,10 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Check if already verified
     if (consent.verified) {
-      return NextResponse.json(
-        { error: "Već verifikovano" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Već verifikovano" }, { status: 400 });
     }
 
     // Mark as verified
@@ -83,4 +80,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

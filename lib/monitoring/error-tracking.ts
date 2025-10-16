@@ -13,14 +13,20 @@ export interface ErrorContext {
  * Installation: npm install @sentry/nextjs
  * Setup: npx @sentry/wizard@latest -i nextjs
  */
-export function captureException(error: Error | unknown, context?: ErrorContext) {
+export function captureException(
+  error: Error | unknown,
+  context?: ErrorContext,
+) {
   // For now, use structured logging
   log.error("Exception captured", {
-    error: error instanceof Error ? {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    } : error,
+    error:
+      error instanceof Error
+        ? {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          }
+        : error,
     ...context,
   });
 
@@ -44,7 +50,11 @@ export function captureException(error: Error | unknown, context?: ErrorContext)
 /**
  * Capture message (non-error)
  */
-export function captureMessage(message: string, level: "info" | "warning" | "error" = "info", context?: ErrorContext) {
+export function captureMessage(
+  message: string,
+  level: "info" | "warning" | "error" = "info",
+  context?: ErrorContext,
+) {
   log[level === "warning" ? "warn" : level](message, context);
 
   // TODO: Uncomment when Sentry is configured
@@ -57,7 +67,7 @@ export function captureMessage(message: string, level: "info" | "warning" | "err
 export function setUser(user: { id: string; email?: string; role?: string }) {
   // TODO: Uncomment when Sentry is configured
   // Sentry.setUser(user);
-  
+
   log.debug("User context set", { userId: user.id });
 }
 
@@ -67,14 +77,18 @@ export function setUser(user: { id: string; email?: string; role?: string }) {
 export function clearUser() {
   // TODO: Uncomment when Sentry is configured
   // Sentry.setUser(null);
-  
+
   log.debug("User context cleared");
 }
 
 /**
  * Add breadcrumb (track user actions)
  */
-export function addBreadcrumb(message: string, category: string, data?: Record<string, any>) {
+export function addBreadcrumb(
+  message: string,
+  category: string,
+  data?: Record<string, any>,
+) {
   // TODO: Uncomment when Sentry is configured
   // Sentry.addBreadcrumb({
   //   message,
@@ -82,7 +96,7 @@ export function addBreadcrumb(message: string, category: string, data?: Record<s
   //   data,
   //   timestamp: Date.now(),
   // });
-  
+
   log.debug("Breadcrumb", { message, category, data });
 }
 
@@ -115,4 +129,3 @@ export const ErrorTracking = {
 };
 
 export default ErrorTracking;
-

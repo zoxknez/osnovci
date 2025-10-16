@@ -11,7 +11,10 @@ interface NotificationsSectionProps {
   onToggle: (key: NotificationKey) => Promise<void>;
 }
 
-export function NotificationsSection({ notifications, onToggle }: NotificationsSectionProps) {
+export function NotificationsSection({
+  notifications,
+  onToggle,
+}: NotificationsSectionProps) {
   return (
     <motion.div variants={staggerItem}>
       <Card>
@@ -27,10 +30,15 @@ export function NotificationsSection({ notifications, onToggle }: NotificationsS
           {NOTIFICATION_OPTIONS.map((option) => {
             const active = notifications[option.key];
             return (
-              <div key={option.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div
+                key={option.key}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{option.icon}</span>
-                  <span className="font-medium text-gray-900">{option.label}</span>
+                  <span className="font-medium text-gray-900">
+                    {option.label}
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -45,7 +53,9 @@ export function NotificationsSection({ notifications, onToggle }: NotificationsS
                     animate={{ x: active ? 24 : 0 }}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
-                  <span className="sr-only">{active ? "Uključeno" : "Isključeno"}</span>
+                  <span className="sr-only">
+                    {active ? "Uključeno" : "Isključeno"}
+                  </span>
                 </button>
               </div>
             );

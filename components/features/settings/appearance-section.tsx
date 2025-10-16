@@ -11,7 +11,10 @@ interface AppearanceSectionProps {
   onLanguageChange: (language: LanguageOption) => Promise<void>;
 }
 
-export function AppearanceSection({ language, onLanguageChange }: AppearanceSectionProps) {
+export function AppearanceSection({
+  language,
+  onLanguageChange,
+}: AppearanceSectionProps) {
   return (
     <motion.div variants={staggerItem}>
       <Card>
@@ -39,11 +42,15 @@ export function AppearanceSection({ language, onLanguageChange }: AppearanceSect
                       : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                   }`}
                 >
-                  {language === option.value && <SelectionBadge layoutId="language-indicator" />}
+                  {language === option.value && (
+                    <SelectionBadge layoutId="language-indicator" />
+                  )}
                   <span className="text-2xl">{option.flag}</span>
                   <span
                     className={`font-medium transition-colors ${
-                      language === option.value ? "text-blue-600" : "text-gray-900"
+                      language === option.value
+                        ? "text-blue-600"
+                        : "text-gray-900"
                     }`}
                   >
                     {option.label}
@@ -59,7 +66,9 @@ export function AppearanceSection({ language, onLanguageChange }: AppearanceSect
 }
 
 function Label({ text }: { text: string }) {
-  return <div className="text-sm font-medium text-gray-700 mb-3 block">{text}</div>;
+  return (
+    <div className="text-sm font-medium text-gray-700 mb-3 block">{text}</div>
+  );
 }
 
 function SelectionBadge({ layoutId }: { layoutId: string }) {

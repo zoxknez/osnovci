@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
       validatedQuery.page,
       validatedQuery.limit,
       total,
-      `Pronađeno ${total} članove porodice`
+      `Pronađeno ${total} članove porodice`,
     );
   } catch (error) {
     return handleAPIError(error);
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
         status: familyLink.status,
         permissions: familyLink.permissions,
       },
-      "Poziv je poslana na email"
+      "Poziv je poslana na email",
     );
   } catch (error) {
     return handleAPIError(error);

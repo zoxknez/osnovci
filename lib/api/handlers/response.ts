@@ -24,7 +24,7 @@ export interface PaginatedResponse<T> {
 export function successResponse<T>(
   data: T,
   message?: string,
-  statusCode = 200
+  statusCode = 200,
 ): NextResponse {
   return NextResponse.json(
     {
@@ -33,7 +33,7 @@ export function successResponse<T>(
       ...(message && { message }),
       timestamp: new Date().toISOString(),
     } as APISuccessResponse<T>,
-    { status: statusCode }
+    { status: statusCode },
   );
 }
 
@@ -44,10 +44,10 @@ export function paginatedResponse<T>(
   limit: number,
   total: number,
   message?: string,
-  statusCode = 200
+  statusCode = 200,
 ): NextResponse {
   const pages = Math.ceil(total / limit);
-  
+
   return NextResponse.json(
     {
       success: true,
@@ -64,14 +64,14 @@ export function paginatedResponse<T>(
       ...(message && { message }),
       timestamp: new Date().toISOString(),
     },
-    { status: statusCode }
+    { status: statusCode },
   );
 }
 
 // Created response (201)
 export function createdResponse<T>(
   data: T,
-  message = "Kreirano uspješno"
+  message = "Kreirano uspješno",
 ): NextResponse {
   return successResponse(data, message, 201);
 }

@@ -22,10 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/features/page-header";
-import {
-  staggerContainer,
-  staggerItem,
-} from "@/lib/animations/variants";
+import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 
 export default function DashboardPage() {
   // Mock data - ovo će kasnije biti real data iz baze

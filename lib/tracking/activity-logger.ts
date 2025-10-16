@@ -40,7 +40,10 @@ export async function logActivity({
         type,
         description,
         metadata: metadata || {},
-        ipAddress: request?.headers.get("x-forwarded-for") || request?.headers.get("x-real-ip") || undefined,
+        ipAddress:
+          request?.headers.get("x-forwarded-for") ||
+          request?.headers.get("x-real-ip") ||
+          undefined,
         userAgent: request?.headers.get("user-agent") || undefined,
       },
     });
@@ -109,17 +112,19 @@ async function checkParentalNotification(
       });
 
       // Also create in-app notification
-      await prisma.notification.create({
-        data: {
-          userId: link.guardian.userId,
-          type: "SCHEDULE_CHANGE", // Reuse enum (or create new)
-          title: `Aktivnost deteta: ${type}`,
-          message: description,
-          data: { studentId, activityType: type },
-        },
-      }).catch((err) => {
-        log.warn("Failed to create parent notification", { error: err });
-      });
+      await prisma.notification
+        .create({
+          data: {
+            userId: link.guardian.userId,
+            type: "SCHEDULE_CHANGE", // Reuse enum (or create new)
+            title: `Aktivnost deteta: ${type}`,
+            message: description,
+            data: { studentId, activityType: type },
+          },
+        })
+        .catch((err) => {
+          log.warn("Failed to create parent notification", { error: err });
+        });
     }
   }
 }
@@ -147,7 +152,11 @@ export const ActivityLogger = {
       request,
     }),
 
-  homeworkCreated: (studentId: string, homeworkTitle: string, request?: NextRequest) =>
+  homeworkCreated: (
+    studentId: string,
+    homeworkTitle: string,
+    request?: NextRequest,
+  ) =>
     logActivity({
       studentId,
       type: "HOMEWORK_CREATED",
@@ -156,7 +165,12 @@ export const ActivityLogger = {
       request,
     }),
 
-  photoUploaded: (studentId: string, fileName: string, homeworkId: string, request?: NextRequest) =>
+  photoUploaded: (
+    studentId: string,
+    fileName: string,
+    homeworkId: string,
+    request?: NextRequest,
+  ) =>
     logActivity({
       studentId,
       type: "PHOTO_UPLOADED",
@@ -173,4 +187,3 @@ export const ActivityLogger = {
       request,
     }),
 };
-

@@ -7,7 +7,7 @@ export class APIError extends Error {
   constructor(
     public statusCode: number,
     public message: string,
-    public errors?: Record<string, string[]>
+    public errors?: Record<string, string[]>,
   ) {
     super(message);
     this.name = "APIError";
@@ -53,7 +53,7 @@ export class ConflictError extends APIError {
 // Handle Zod validation errors
 export function handleZodError(error: ZodError) {
   const errors: Record<string, string[]> = {};
-  
+
   error.issues.forEach((issue) => {
     const path = issue.path.join(".");
     if (!errors[path]) {
@@ -74,7 +74,10 @@ export function formatErrorResponse(error: unknown) {
   } else if (error instanceof APIError) {
     apiError = error;
   } else if (error instanceof Error) {
-    log.error("Unexpected error", { message: error.message, stack: error.stack });
+    log.error("Unexpected error", {
+      message: error.message,
+      stack: error.stack,
+    });
     apiError = new APIError(500, "Interna greška servera");
   } else {
     log.error("Unknown error", { error });
@@ -91,7 +94,7 @@ export function formatErrorResponse(error: unknown) {
 // Handle API errors globally
 export function handleAPIError(error: unknown) {
   const formatted = formatErrorResponse(error);
-  
+
   log.error("API Error", {
     statusCode: formatted.statusCode,
     message: formatted.message,
@@ -106,6 +109,6 @@ export function handleAPIError(error: unknown) {
         ...(formatted.errors && { errors: formatted.errors }),
       },
     },
-    { status: formatted.statusCode }
+    { status: formatted.statusCode },
   );
 }

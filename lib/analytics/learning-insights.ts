@@ -17,7 +17,9 @@ export interface LearningInsights {
  * Analyze student's learning patterns
  * Mobile-optimized: Simple, actionable insights
  */
-export async function analyzeLearningPatterns(studentId: string): Promise<LearningInsights> {
+export async function analyzeLearningPatterns(
+  studentId: string,
+): Promise<LearningInsights> {
   try {
     // Get homework data
     const homework = await prisma.homework.findMany({
@@ -33,11 +35,17 @@ export async function analyzeLearningPatterns(studentId: string): Promise<Learni
     });
 
     // Calculate completion rate
-    const completed = homework.filter((h) => h.status === "DONE" || h.status === "SUBMITTED").length;
-    const completionRate = homework.length > 0 ? (completed / homework.length) * 100 : 0;
+    const completed = homework.filter(
+      (h) => h.status === "DONE" || h.status === "SUBMITTED",
+    ).length;
+    const completionRate =
+      homework.length > 0 ? (completed / homework.length) * 100 : 0;
 
     // Find strengths (subjects with high completion rate)
-    const subjectStats = new Map<string, { completed: number; total: number }>();
+    const subjectStats = new Map<
+      string,
+      { completed: number; total: number }
+    >();
 
     for (const hw of homework) {
       const subject = hw.subject.name;
@@ -176,7 +184,10 @@ export async function getWeeklySummary(studentId: string) {
   return {
     homeworkAssigned: homeworkThisWeek.length,
     homeworkCompleted: completed,
-    completionRate: homeworkThisWeek.length > 0 ? (completed / homeworkThisWeek.length) * 100 : 0,
+    completionRate:
+      homeworkThisWeek.length > 0
+        ? (completed / homeworkThisWeek.length) * 100
+        : 0,
     activitiesCount: activitiesThisWeek.length,
     xpGained: gamif?.xp || 0,
     currentLevel: gamif?.level || 1,
@@ -184,4 +195,3 @@ export async function getWeeklySummary(studentId: string) {
     newAchievements: gamif?.achievements || [],
   };
 }
-

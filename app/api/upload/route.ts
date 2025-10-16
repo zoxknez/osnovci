@@ -54,10 +54,7 @@ export async function POST(request: NextRequest) {
     const homeworkId = formData.get("homeworkId") as string;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     if (!homeworkId) {
@@ -188,12 +185,19 @@ export async function POST(request: NextRequest) {
       // Notify parent if required
       if (safetyResult.parentNotificationRequired) {
         // TODO: Send email to parent
-        log.info("Parent notification required for flagged image", { fileName });
+        log.info("Parent notification required for flagged image", {
+          fileName,
+        });
       }
     }
 
     // Log activity for parents (IMPORTANT - they need to know!)
-    await ActivityLogger.photoUploaded(user.student.id, fileName, homeworkId, request);
+    await ActivityLogger.photoUploaded(
+      user.student.id,
+      fileName,
+      homeworkId,
+      request,
+    );
 
     // Determine attachment type
     let attachmentType: "IMAGE" | "VIDEO" | "PDF" | "AUDIO" = "IMAGE";
@@ -211,7 +215,10 @@ export async function POST(request: NextRequest) {
         mimeType: attachmentType === "IMAGE" ? "image/jpeg" : file.type,
         localUri: `/uploads/${fileName}`,
         remoteUrl: `/uploads/${fileName}`,
-        thumbnail: attachmentType === "IMAGE" ? `/uploads/thumbnails/${thumbnailName}` : undefined,
+        thumbnail:
+          attachmentType === "IMAGE"
+            ? `/uploads/thumbnails/${thumbnailName}`
+            : undefined,
         uploadedAt: new Date(),
       },
     });
@@ -241,4 +248,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

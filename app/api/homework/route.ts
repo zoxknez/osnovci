@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       validatedQuery.page,
       validatedQuery.limit,
       total,
-      `Pronađeno ${total} domaćih`
+      `Pronađeno ${total} domaćih`,
     );
   } catch (error) {
     return handleAPIError(error);
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
         createdAt: homework.createdAt,
         updatedAt: homework.updatedAt,
       },
-      "Domaći je uspješno kreiran"
+      "Domaći je uspješno kreiran",
     );
   } catch (error) {
     return handleAPIError(error);

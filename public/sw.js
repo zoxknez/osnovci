@@ -17,8 +17,8 @@ self.addEventListener("install", (event) => {
           urlsToCache.map((url) =>
             cache.add(url).catch((err) => {
               console.warn(`⚠️ Service Worker: Failed to cache ${url}:`, err);
-            })
-          )
+            }),
+          ),
         );
       })
       .then(() => {

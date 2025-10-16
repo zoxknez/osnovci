@@ -27,7 +27,7 @@ export async function sendPushNotification(
 
     // For now, rely on client-side local notifications
     // The client will show notifications when in-app
-    
+
     log.info("Push notification queued", {
       userId,
       title: payload.title,
@@ -133,4 +133,3 @@ export const NotificationTemplates = {
     data: { type: "parent_linked" },
   }),
 };
-

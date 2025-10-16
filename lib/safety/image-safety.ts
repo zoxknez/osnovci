@@ -14,7 +14,9 @@ export interface ImageSafetyResult {
 /**
  * Basic image safety checks (before AI moderation)
  */
-export async function checkImageSafety(buffer: Buffer): Promise<ImageSafetyResult> {
+export async function checkImageSafety(
+  buffer: Buffer,
+): Promise<ImageSafetyResult> {
   const reasons: string[] = [];
   let score = 100;
 
@@ -127,4 +129,3 @@ export async function moderateImage(filePath: string): Promise<{
     racy: 0,
   };
 }
-

@@ -13,7 +13,8 @@ export function useTextToSpeech() {
 
   useEffect(() => {
     // Check browser support
-    const speechSupported = typeof window !== "undefined" && "speechSynthesis" in window;
+    const speechSupported =
+      typeof window !== "undefined" && "speechSynthesis" in window;
     setSupported(speechSupported);
 
     if (!speechSupported) {
@@ -36,52 +37,58 @@ export function useTextToSpeech() {
     };
   }, []);
 
-  const speak = useCallback((text: string, options?: {
-    rate?: number;
-    pitch?: number;
-    volume?: number;
-    lang?: string;
-  }) => {
-    if (!supported) {
-      toast.error("Tvoj browser ne podržava čitanje naglas 😔");
-      return;
-    }
+  const speak = useCallback(
+    (
+      text: string,
+      options?: {
+        rate?: number;
+        pitch?: number;
+        volume?: number;
+        lang?: string;
+      },
+    ) => {
+      if (!supported) {
+        toast.error("Tvoj browser ne podržava čitanje naglas 😔");
+        return;
+      }
 
-    // Stop current speech
-    window.speechSynthesis.cancel();
+      // Stop current speech
+      window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(text);
 
-    // Settings optimized for children
-    utterance.rate = options?.rate || 0.85; // Slower - easier to understand
-    utterance.pitch = options?.pitch || 1.1; // Higher pitch - friendlier
-    utterance.volume = options?.volume || 1.0;
-    utterance.lang = options?.lang || "sr-RS";
+      // Settings optimized for children
+      utterance.rate = options?.rate || 0.85; // Slower - easier to understand
+      utterance.pitch = options?.pitch || 1.1; // Higher pitch - friendlier
+      utterance.volume = options?.volume || 1.0;
+      utterance.lang = options?.lang || "sr-RS";
 
-    // Try to find Serbian voice
-    const serbianVoice = voices.find((v) => v.lang.startsWith("sr"));
-    if (serbianVoice) {
-      utterance.voice = serbianVoice;
-    }
+      // Try to find Serbian voice
+      const serbianVoice = voices.find((v) => v.lang.startsWith("sr"));
+      if (serbianVoice) {
+        utterance.voice = serbianVoice;
+      }
 
-    // Event handlers
-    utterance.onstart = () => {
-      setSpeaking(true);
-      toast.info("🔊 Čitam naglas...");
-    };
+      // Event handlers
+      utterance.onstart = () => {
+        setSpeaking(true);
+        toast.info("🔊 Čitam naglas...");
+      };
 
-    utterance.onend = () => {
-      setSpeaking(false);
-    };
+      utterance.onend = () => {
+        setSpeaking(false);
+      };
 
-    utterance.onerror = (error) => {
-      setSpeaking(false);
-      console.error("TTS error:", error);
-      toast.error("Greška pri čitanju 😔");
-    };
+      utterance.onerror = (error) => {
+        setSpeaking(false);
+        console.error("TTS error:", error);
+        toast.error("Greška pri čitanju 😔");
+      };
 
-    window.speechSynthesis.speak(utterance);
-  }, [supported, voices]);
+      window.speechSynthesis.speak(utterance);
+    },
+    [supported, voices],
+  );
 
   const stop = useCallback(() => {
     if (supported) {
@@ -142,8 +149,7 @@ export function ReadButton({ text, className }: ReadButtonProps) {
         </>
       ) : (
         <>
-          <Volume2 className="mr-2 h-4 w-4" />
-          🔊 Pročitaj
+          <Volume2 className="mr-2 h-4 w-4" />🔊 Pročitaj
         </>
       )}
     </Button>

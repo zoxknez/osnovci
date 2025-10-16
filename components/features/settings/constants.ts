@@ -5,9 +5,7 @@ export const THEME_OPTIONS: Array<{
   value: ThemeOption;
   label: string;
   icon: typeof Sun;
-}> = [
-  { value: "light", label: "Svetla", icon: Sun },
-];
+}> = [{ value: "light", label: "Svetla", icon: Sun }];
 
 export const LANGUAGE_OPTIONS: Array<{
   value: LanguageOption;

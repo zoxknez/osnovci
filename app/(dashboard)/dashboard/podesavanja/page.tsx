@@ -26,11 +26,11 @@ import type {
 import { staggerContainer } from "@/lib/animations/variants";
 
 const DEFAULT_PROFILE: ProfileSettings = {
-    name: "Marko Marković",
-    email: "ucenik@demo.rs",
-    phone: "064 123 4567",
-    school: 'OŠ "Vuk Karadžić"',
-    class: "5B",
+  name: "Marko Marković",
+  email: "ucenik@demo.rs",
+  phone: "064 123 4567",
+  school: 'OŠ "Vuk Karadžić"',
+  class: "5B",
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationsSettings = {
@@ -45,9 +45,8 @@ export default function PodjesavanjaPage() {
   const [notifications, setNotifications] = useState<NotificationsSettings>(
     DEFAULT_NOTIFICATIONS,
   );
-  const [profileData, setProfileData] = useState<ProfileSettings>(
-    DEFAULT_PROFILE,
-  );
+  const [profileData, setProfileData] =
+    useState<ProfileSettings>(DEFAULT_PROFILE);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
@@ -60,7 +59,9 @@ export default function PodjesavanjaPage() {
   const handleLanguageChange = async (newLanguage: LanguageOption) => {
     setLanguage(newLanguage);
     await autoSave("language", newLanguage);
-    const label = LANGUAGE_OPTIONS.find((option) => option.value === newLanguage)?.label;
+    const label = LANGUAGE_OPTIONS.find(
+      (option) => option.value === newLanguage,
+    )?.label;
     toast.success("🌍 Jezik sačuvan", {
       description: `Jezik postavljen na: ${label ?? "Nepoznato"}`,
       duration: 2000,
@@ -71,7 +72,9 @@ export default function PodjesavanjaPage() {
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
     await autoSave("notifications", updated);
-    const label = NOTIFICATION_OPTIONS.find((option) => option.key === key)?.label ?? "Notifikacije";
+    const label =
+      NOTIFICATION_OPTIONS.find((option) => option.key === key)?.label ??
+      "Notifikacije";
     toast.success(`🔔 ${updated[key] ? "Uključeno" : "Isključeno"}`, {
       description: label,
       duration: 2000,
@@ -82,7 +85,10 @@ export default function PodjesavanjaPage() {
     setProfileData((previous) => ({ ...previous, [field]: value }));
   };
 
-  const handleProfileSave = async (field: keyof ProfileSettings, value: string) => {
+  const handleProfileSave = async (
+    field: keyof ProfileSettings,
+    value: string,
+  ) => {
     await autoSave(`profile.${field}`, value);
     toast.success("✅ Sačuvano", {
       description: "Podaci ažurirani",

@@ -23,7 +23,10 @@ export function ProfileSection({
   onFieldChange,
   onFieldInput,
 }: ProfileSectionProps) {
-  const studentLabel = useMemo(() => `Učenik, ${profile.class}`, [profile.class]);
+  const studentLabel = useMemo(
+    () => `Učenik, ${profile.class}`,
+    [profile.class],
+  );
 
   return (
     <motion.div variants={staggerItem}>
@@ -54,7 +57,11 @@ export function ProfileSection({
                 {isSavingAvatar ? (
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                   >
                     <Upload className="h-4 w-4" />
                   </motion.div>
@@ -126,16 +133,30 @@ interface AutoSaveInputProps {
   icon?: React.ReactNode;
 }
 
-function AutoSaveInput({ label, value, onChange, onBlur, type = "text", icon }: AutoSaveInputProps) {
+function AutoSaveInput({
+  label,
+  value,
+  onChange,
+  onBlur,
+  type = "text",
+  icon,
+}: AutoSaveInputProps) {
   const inputId = useId();
   return (
     <div className="space-y-2">
-      <label htmlFor={inputId} className="text-sm font-medium text-gray-700 flex items-center gap-2">
+      <label
+        htmlFor={inputId}
+        className="text-sm font-medium text-gray-700 flex items-center gap-2"
+      >
         {label}
         <span className="text-xs text-gray-500">(auto-save)</span>
       </label>
       <div className="relative">
-        {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2">{icon}</span>}
+        {icon && (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2">
+            {icon}
+          </span>
+        )}
         <Input
           id={inputId}
           type={type}

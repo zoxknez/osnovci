@@ -55,4 +55,3 @@ export function createApprovalRequest(
   log.info("Parental approval requested", request);
   return request;
 }
-

@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     });
 
     const completedHomework = homework.filter(
-      (h) => h.status === "DONE" || h.status === "SUBMITTED"
+      (h) => h.status === "DONE" || h.status === "SUBMITTED",
     ).length;
 
     const gradeValues = grades.map((g) => parseInt(g.grade));
@@ -213,7 +213,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Provjeri trenutnu šifru
-    if (!user.password || !(await bcrypt.compare(validatedData.currentPassword, user.password))) {
+    if (
+      !user.password ||
+      !(await bcrypt.compare(validatedData.currentPassword, user.password))
+    ) {
       throw new ValidationError("Trenutna šifra nije ispravna");
     }
 
@@ -232,12 +235,8 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
     });
 
-    return createdResponse(
-      { success: true },
-      "Šifra je uspješno promijenjena"
-    );
+    return createdResponse({ success: true }, "Šifra je uspješno promijenjena");
   } catch (error) {
     return handleAPIError(error);
   }
 }
-

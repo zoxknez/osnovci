@@ -272,13 +272,13 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 className="w-full h-full"
-              >
-                <img
-                  src={capturedImage}
-                  alt="Snimljena fotografija domaćeg zadatka sa AI poboljšanjem"
-                  className="w-full h-full object-contain"
-                />
-              </motion.div>
+                style={{
+                  backgroundImage: `url('${capturedImage}')`,
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                }}
+                aria-label="Snimljena fotografija domaćeg zadatka sa AI poboljšanjem"
+              />
             </div>
           )}
         </div>
@@ -348,11 +348,11 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
               </Button>
             </div>
           ) : (
-            <div
+            <fieldset
               className="flex items-center justify-center gap-4 max-w-2xl mx-auto"
-              role="group"
               aria-label="Akcije za snimljenu fotografiju"
             >
+              <legend className="sr-only">Akcije za snimljenu fotografiju</legend>
               <Button
                 size="lg"
                 variant="outline"
@@ -377,7 +377,7 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
                   </>
                 )}
               </Button>
-            </div>
+            </fieldset>
           )}
         </fieldset>
 

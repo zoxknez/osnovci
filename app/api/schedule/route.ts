@@ -2,7 +2,10 @@ import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth/config";
-import type { CreateScheduleInput, QueryScheduleInput } from "@/lib/api/schemas/schedule";
+import type {
+  CreateScheduleInput,
+  QueryScheduleInput,
+} from "@/lib/api/schemas/schedule";
 import {
   CreateScheduleSchema,
   QueryScheduleSchema,
@@ -122,7 +125,7 @@ export async function GET(request: NextRequest) {
       validatedQuery.page,
       validatedQuery.limit,
       total,
-      `Pronađeno ${total} raspored`
+      `Pronađeno ${total} raspored`,
     );
   } catch (error) {
     return handleAPIError(error);
@@ -205,7 +208,7 @@ export async function POST(request: NextRequest) {
         createdAt: schedule.createdAt,
         updatedAt: schedule.updatedAt,
       },
-      "Raspored je uspješno kreiran"
+      "Raspored je uspješno kreiran",
     );
   } catch (error) {
     return handleAPIError(error);

@@ -63,26 +63,20 @@ type MockHomework = {
   priority?: string;
 };
 
-const authMock =
-  auth as unknown as MockedFunction<() => Promise<MockSession | null>>;
-const rateLimitMock =
-  checkRateLimit as unknown as MockedFunction<typeof checkRateLimit>;
-const prismaUserFindUniqueMock =
-  prisma.user.findUnique as unknown as MockedFunction<
-    typeof prisma.user.findUnique
-  >;
-const prismaHomeworkFindManyMock =
-  prisma.homework.findMany as unknown as MockedFunction<
-    typeof prisma.homework.findMany
-  >;
-const prismaHomeworkCountMock =
-  prisma.homework.count as unknown as MockedFunction<
-    typeof prisma.homework.count
-  >;
-const prismaHomeworkCreateMock =
-  prisma.homework.create as unknown as MockedFunction<
-    typeof prisma.homework.create
-  >;
+const authMock = auth as unknown as MockedFunction<
+  () => Promise<MockSession | null>
+>;
+const rateLimitMock = checkRateLimit as unknown as MockedFunction<
+  typeof checkRateLimit
+>;
+const prismaUserFindUniqueMock = prisma.user
+  .findUnique as unknown as MockedFunction<typeof prisma.user.findUnique>;
+const prismaHomeworkFindManyMock = prisma.homework
+  .findMany as unknown as MockedFunction<typeof prisma.homework.findMany>;
+const prismaHomeworkCountMock = prisma.homework
+  .count as unknown as MockedFunction<typeof prisma.homework.count>;
+const prismaHomeworkCreateMock = prisma.homework
+  .create as unknown as MockedFunction<typeof prisma.homework.create>;
 
 type PrismaUserResult = Awaited<ReturnType<typeof prisma.user.findUnique>>;
 type PrismaHomeworkListResult = Awaited<
@@ -138,12 +132,10 @@ describe("GET /api/homework", () => {
     ];
 
     authMock.mockResolvedValue(mockSession);
-    prismaUserFindUniqueMock.mockResolvedValue(
-      {
-        id: "user-1",
-        student: mockStudent,
-      } as unknown as PrismaUserResult,
-    );
+    prismaUserFindUniqueMock.mockResolvedValue({
+      id: "user-1",
+      student: mockStudent,
+    } as unknown as PrismaUserResult);
     prismaHomeworkFindManyMock.mockResolvedValue(
       mockHomework as unknown as PrismaHomeworkListResult,
     );
@@ -169,12 +161,10 @@ describe("GET /api/homework", () => {
     };
 
     authMock.mockResolvedValue(mockSession);
-    prismaUserFindUniqueMock.mockResolvedValue(
-      {
-        id: "user-1",
-        student: mockStudent,
-      } as unknown as PrismaUserResult,
-    );
+    prismaUserFindUniqueMock.mockResolvedValue({
+      id: "user-1",
+      student: mockStudent,
+    } as unknown as PrismaUserResult);
     prismaHomeworkFindManyMock.mockResolvedValue(
       [] as unknown as PrismaHomeworkListResult,
     );
@@ -204,12 +194,10 @@ describe("GET /api/homework", () => {
     };
 
     authMock.mockResolvedValue(mockSession);
-    prismaUserFindUniqueMock.mockResolvedValue(
-      {
-        id: "user-1",
-        student: mockStudent,
-      } as unknown as PrismaUserResult,
-    );
+    prismaUserFindUniqueMock.mockResolvedValue({
+      id: "user-1",
+      student: mockStudent,
+    } as unknown as PrismaUserResult);
     prismaHomeworkFindManyMock.mockResolvedValue(
       [] as unknown as PrismaHomeworkListResult,
     );
@@ -255,12 +243,10 @@ describe("POST /api/homework", () => {
     };
 
     authMock.mockResolvedValue(mockSession);
-    prismaUserFindUniqueMock.mockResolvedValue(
-      {
-        id: "user-1",
-        student: mockStudent,
-      } as unknown as PrismaUserResult,
-    );
+    prismaUserFindUniqueMock.mockResolvedValue({
+      id: "user-1",
+      student: mockStudent,
+    } as unknown as PrismaUserResult);
     prismaHomeworkCreateMock.mockResolvedValue(
       mockHomework as unknown as PrismaHomeworkCreateResult,
     );
@@ -296,12 +282,10 @@ describe("POST /api/homework", () => {
     };
 
     authMock.mockResolvedValue(mockSession);
-    prismaUserFindUniqueMock.mockResolvedValue(
-      {
-        id: "user-1",
-        student: mockStudent,
-      } as unknown as PrismaUserResult,
-    );
+    prismaUserFindUniqueMock.mockResolvedValue({
+      id: "user-1",
+      student: mockStudent,
+    } as unknown as PrismaUserResult);
 
     const requestBody = {
       // Missing required fields
@@ -330,12 +314,10 @@ describe("POST /api/homework", () => {
     };
 
     authMock.mockResolvedValue(mockSession);
-    prismaUserFindUniqueMock.mockResolvedValue(
-      {
-        id: "user-1",
-        student: mockStudent,
-      } as unknown as PrismaUserResult,
-    );
+    prismaUserFindUniqueMock.mockResolvedValue({
+      id: "user-1",
+      student: mockStudent,
+    } as unknown as PrismaUserResult);
     prismaHomeworkCreateMock.mockResolvedValue(
       {} as unknown as PrismaHomeworkCreateResult,
     );
@@ -364,4 +346,3 @@ describe("POST /api/homework", () => {
     );
   });
 });
-

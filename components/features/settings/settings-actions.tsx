@@ -17,8 +17,12 @@ export function SettingsActions({ onLogout }: SettingsActionsProps) {
           <Save className="h-5 w-5 text-white" />
         </div>
         <div className="flex-1">
-          <div className="font-semibold text-green-900">Auto-save aktiviran</div>
-          <div className="text-sm text-green-700">Sve promene se automatski čuvaju</div>
+          <div className="font-semibold text-green-900">
+            Auto-save aktiviran
+          </div>
+          <div className="text-sm text-green-700">
+            Sve promene se automatski čuvaju
+          </div>
         </div>
       </div>
 

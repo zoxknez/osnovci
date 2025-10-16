@@ -132,14 +132,18 @@ export function PageHeader({
                 transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
                 className="inline-block mb-3 sm:mb-4"
               >
-                <span className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-lg text-white border ${styles.border} shadow-lg hover:bg-white/30 transition-all cursor-default`}>
-                  <motion.span 
+                <span
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-lg text-white border ${styles.border} shadow-lg hover:bg-white/30 transition-all cursor-default`}
+                >
+                  <motion.span
                     className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${styles.dot}`}
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <span className="hidden sm:inline">{badge}</span>
-                  <span className="inline sm:hidden text-xs">{badge?.slice(0, 8)}</span>
+                  <span className="inline sm:hidden text-xs">
+                    {badge?.slice(0, 8)}
+                  </span>
                 </span>
               </motion.div>
             )}
@@ -206,7 +210,9 @@ export function PageHeader({
             ease: "linear",
           }}
         >
-          <div className={`w-full h-full rounded-full bg-gradient-to-br ${styles.accent} blur-lg`} />
+          <div
+            className={`w-full h-full rounded-full bg-gradient-to-br ${styles.accent} blur-lg`}
+          />
         </motion.div>
 
         <motion.div
@@ -221,7 +227,9 @@ export function PageHeader({
             ease: "easeInOut",
           }}
         >
-          <div className={`w-full h-full rounded-full bg-gradient-to-tr ${styles.accent} blur-xl`} />
+          <div
+            className={`w-full h-full rounded-full bg-gradient-to-tr ${styles.accent} blur-xl`}
+          />
         </motion.div>
 
         {/* Decorative SVG pattern */}

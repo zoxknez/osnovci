@@ -33,7 +33,10 @@ export async function GET(_request: NextRequest) {
     });
   } catch (error) {
     log.error("GET /api/notifications failed", { error });
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -49,10 +52,7 @@ export async function PATCH(request: NextRequest) {
     const { notificationIds } = await request.json();
 
     if (!Array.isArray(notificationIds)) {
-      return NextResponse.json(
-        { error: "Invalid data" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
     await prisma.notification.updateMany({
@@ -71,7 +71,9 @@ export async function PATCH(request: NextRequest) {
     });
   } catch (error) {
     log.error("PATCH /api/notifications failed", { error });
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
-

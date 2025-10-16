@@ -2,10 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth/config";
-import {
-  CreateGradeSchema,
-  QueryGradesSchema,
-} from "@/lib/api/schemas/grades";
+import { CreateGradeSchema, QueryGradesSchema } from "@/lib/api/schemas/grades";
 import {
   handleAPIError,
   AuthenticationError,
@@ -122,8 +119,8 @@ export async function GET(request: NextRequest) {
           acc[g.subject.name].push(parseInt(g.grade));
           return acc;
         },
-        {} as Record<string, number[]>
-      )
+        {} as Record<string, number[]>,
+      ),
     ).map(([name, values]) => ({
       subject: name,
       average: values.reduce((a, b) => a + b) / values.length,
@@ -166,7 +163,7 @@ export async function GET(request: NextRequest) {
           pages: Math.ceil(total / validatedQuery.limit),
         },
       },
-      `Pronađeno ${total} ocjena`
+      `Pronađeno ${total} ocjena`,
     );
   } catch (error) {
     return handleAPIError(error);
@@ -246,7 +243,7 @@ export async function POST(request: NextRequest) {
         createdAt: grade.createdAt,
         updatedAt: grade.updatedAt,
       },
-      "Ocjena je uspješno kreirana"
+      "Ocjena je uspješno kreirana",
     );
   } catch (error) {
     return handleAPIError(error);

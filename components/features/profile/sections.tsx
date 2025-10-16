@@ -109,7 +109,11 @@ interface PhysicalSectionProps {
   onChange: ProfileUpdateHandler;
 }
 
-export function PhysicalSection({ profile, isEditing, onChange }: PhysicalSectionProps) {
+export function PhysicalSection({
+  profile,
+  isEditing,
+  onChange,
+}: PhysicalSectionProps) {
   return (
     <motion.div variants={staggerItem}>
       <Card>
@@ -128,7 +132,11 @@ export function PhysicalSection({ profile, isEditing, onChange }: PhysicalSectio
             icon={<Ruler className="h-4 w-4" />}
             onChange={(value) => onChange("height", Number(value))}
             displayContent={
-              <MetricDisplay value={profile.height} unit="cm" accent="text-green-600" />
+              <MetricDisplay
+                value={profile.height}
+                unit="cm"
+                accent="text-green-600"
+              />
             }
           />
 
@@ -140,7 +148,11 @@ export function PhysicalSection({ profile, isEditing, onChange }: PhysicalSectio
             icon={<Weight className="h-4 w-4" />}
             onChange={(value) => onChange("weight", Number(value))}
             displayContent={
-              <MetricDisplay value={profile.weight} unit="kg" accent="text-blue-600" />
+              <MetricDisplay
+                value={profile.weight}
+                unit="kg"
+                accent="text-blue-600"
+              />
             }
           />
 
@@ -165,10 +177,16 @@ export function PhysicalSection({ profile, isEditing, onChange }: PhysicalSectio
             }
           />
 
-          <StaticField label="Naočare" icon={<Eye className="h-4 w-4" />} className="sm:col-span-2">
+          <StaticField
+            label="Naočare"
+            icon={<Eye className="h-4 w-4" />}
+            className="sm:col-span-2"
+          >
             <div
               className={`p-3 rounded-lg text-center font-medium ${
-                profile.hasGlasses ? "bg-blue-100 text-blue-800" : "bg-gray-50 text-gray-600"
+                profile.hasGlasses
+                  ? "bg-blue-100 text-blue-800"
+                  : "bg-gray-50 text-gray-600"
               }`}
             >
               {profile.hasGlasses ? "✓ Nosi naočare" : "Ne nosi naočare"}
@@ -186,7 +204,11 @@ interface HealthSectionProps {
   onChange: ProfileUpdateHandler;
 }
 
-export function HealthSection({ profile, isEditing, onChange }: HealthSectionProps) {
+export function HealthSection({
+  profile,
+  isEditing,
+  onChange,
+}: HealthSectionProps) {
   const handleCommaSeparated = (value: string) =>
     value
       .split(",")
@@ -203,7 +225,10 @@ export function HealthSection({ profile, isEditing, onChange }: HealthSectionPro
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <StaticField label="Krvna grupa" icon={<Droplet className="h-4 w-4" />}>
+          <StaticField
+            label="Krvna grupa"
+            icon={<Droplet className="h-4 w-4" />}
+          >
             {isEditing ? (
               <select
                 value={profile.bloodType}
@@ -229,11 +254,19 @@ export function HealthSection({ profile, isEditing, onChange }: HealthSectionPro
             )}
           </StaticField>
 
-          <StaticField label="Alergije" icon={<AlertCircle className="h-4 w-4" />}>
+          <StaticField
+            label="Alergije"
+            icon={<AlertCircle className="h-4 w-4" />}
+          >
             {isEditing ? (
               <Input
                 value={profile.allergies.join(", ")}
-                onChange={(event) => onChange("allergies", handleCommaSeparated(event.target.value))}
+                onChange={(event) =>
+                  onChange(
+                    "allergies",
+                    handleCommaSeparated(event.target.value),
+                  )
+                }
                 placeholder="Unesite alergije odvojene zarezima"
               />
             ) : profile.allergies.length ? (
@@ -253,11 +286,16 @@ export function HealthSection({ profile, isEditing, onChange }: HealthSectionPro
           </StaticField>
 
           {(isEditing || profile.healthNotes) && (
-            <StaticField label="Zdravstvene napomene" icon={<FileText className="h-4 w-4" />}>
+            <StaticField
+              label="Zdravstvene napomene"
+              icon={<FileText className="h-4 w-4" />}
+            >
               {isEditing ? (
                 <textarea
                   value={profile.healthNotes}
-                  onChange={(event) => onChange("healthNotes", event.target.value)}
+                  onChange={(event) =>
+                    onChange("healthNotes", event.target.value)
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px]"
                   placeholder="Važne napomene o zdravlju deteta"
                 />
@@ -270,19 +308,28 @@ export function HealthSection({ profile, isEditing, onChange }: HealthSectionPro
           )}
 
           {(isEditing || profile.medications.length > 0) && (
-            <StaticField label="Trenutna terapija" icon={<Pill className="h-4 w-4" />}>
+            <StaticField
+              label="Trenutna terapija"
+              icon={<Pill className="h-4 w-4" />}
+            >
               {isEditing ? (
                 <Input
                   value={profile.medications.join(", ")}
                   onChange={(event) =>
-                    onChange("medications", handleCommaSeparated(event.target.value))
+                    onChange(
+                      "medications",
+                      handleCommaSeparated(event.target.value),
+                    )
                   }
                   placeholder="Lekovi odvojeni zarezima (npr. Aspirin, Paracetamol)"
                 />
               ) : profile.medications.length ? (
                 <div className="space-y-2">
                   {profile.medications.map((medication) => (
-                    <div key={medication} className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div
+                      key={medication}
+                      className="p-3 bg-purple-50 border border-purple-200 rounded-lg"
+                    >
                       {medication}
                     </div>
                   ))}
@@ -294,12 +341,18 @@ export function HealthSection({ profile, isEditing, onChange }: HealthSectionPro
           )}
 
           {(isEditing || profile.chronicIllnesses.length > 0) && (
-            <StaticField label="Hronične bolesti" icon={<AlertCircle className="h-4 w-4" />}>
+            <StaticField
+              label="Hronične bolesti"
+              icon={<AlertCircle className="h-4 w-4" />}
+            >
               {isEditing ? (
                 <Input
                   value={profile.chronicIllnesses.join(", ")}
                   onChange={(event) =>
-                    onChange("chronicIllnesses", handleCommaSeparated(event.target.value))
+                    onChange(
+                      "chronicIllnesses",
+                      handleCommaSeparated(event.target.value),
+                    )
                   }
                   placeholder="Hronična stanja odvojena zarezima"
                 />
@@ -316,11 +369,16 @@ export function HealthSection({ profile, isEditing, onChange }: HealthSectionPro
           )}
 
           {(isEditing || profile.specialNeeds) && (
-            <StaticField label="Posebne potrebe" icon={<Users className="h-4 w-4" />}>
+            <StaticField
+              label="Posebne potrebe"
+              icon={<Users className="h-4 w-4" />}
+            >
               {isEditing ? (
                 <textarea
                   value={profile.specialNeeds}
-                  onChange={(event) => onChange("specialNeeds", event.target.value)}
+                  onChange={(event) =>
+                    onChange("specialNeeds", event.target.value)
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px]"
                   placeholder="Dodatne informacije o podršci učeniku"
                 />
@@ -332,12 +390,20 @@ export function HealthSection({ profile, isEditing, onChange }: HealthSectionPro
             </StaticField>
           )}
 
-          <StaticField label="Vakcinacioni karton" icon={<Syringe className="h-4 w-4" />}>
+          <StaticField
+            label="Vakcinacioni karton"
+            icon={<Syringe className="h-4 w-4" />}
+          >
             <div className="grid gap-2 sm:grid-cols-2">
               {profile.vaccinations.map((vaccination) => (
-                <div key={`${vaccination.name}-${vaccination.date}`} className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div
+                  key={`${vaccination.name}-${vaccination.date}`}
+                  className="p-3 bg-green-50 border border-green-200 rounded-lg"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-green-900">{vaccination.name}</span>
+                    <span className="font-medium text-green-900">
+                      {vaccination.name}
+                    </span>
                     {vaccination.booster && (
                       <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">
                         Revakcina
@@ -363,7 +429,11 @@ interface ContactsSectionProps {
   onChange: ProfileUpdateHandler;
 }
 
-export function ContactsSection({ profile, isEditing, onChange }: ContactsSectionProps) {
+export function ContactsSection({
+  profile,
+  isEditing,
+  onChange,
+}: ContactsSectionProps) {
   return (
     <motion.div variants={staggerItem}>
       <Card>
@@ -429,7 +499,11 @@ interface ActivitiesSectionProps {
   onChange: ProfileUpdateHandler;
 }
 
-export function ActivitiesSection({ profile, isEditing, onChange }: ActivitiesSectionProps) {
+export function ActivitiesSection({
+  profile,
+  isEditing,
+  onChange,
+}: ActivitiesSectionProps) {
   return (
     <motion.div variants={staggerItem}>
       <Card>
@@ -462,7 +536,10 @@ export function ActivitiesSection({ profile, isEditing, onChange }: ActivitiesSe
           />
 
           {(isEditing || profile.notes) && (
-            <StaticField label="Napomene" icon={<FileText className="h-4 w-4" />}>
+            <StaticField
+              label="Napomene"
+              icon={<FileText className="h-4 w-4" />}
+            >
               {isEditing ? (
                 <textarea
                   value={profile.notes}
@@ -533,9 +610,7 @@ function InfoField({
       ) : displayContent ? (
         displayContent
       ) : (
-        <div className="p-3 bg-gray-50 rounded-lg">
-          {displayValue ?? value}
-        </div>
+        <div className="p-3 bg-gray-50 rounded-lg">{displayValue ?? value}</div>
       )}
     </div>
   );
@@ -576,7 +651,11 @@ function MetricDisplay({ value, unit, accent }: MetricDisplayProps) {
 }
 
 function EmptyField({ message }: { message: string }) {
-  return <div className="p-3 bg-gray-50 rounded-lg text-gray-600 italic">{message}</div>;
+  return (
+    <div className="p-3 bg-gray-50 rounded-lg text-gray-600 italic">
+      {message}
+    </div>
+  );
 }
 
 interface ContactCardProps {
@@ -662,7 +741,10 @@ function ContactCard({
           <div className="text-gray-800 font-medium">{name}</div>
           <div className="flex items-center gap-2 text-sm">
             <Phone className={`h-4 w-4 ${colors.icon}`} />
-            <a href={`tel:${phone}`} className={`${colors.link} hover:underline font-medium`}>
+            <a
+              href={`tel:${phone}`}
+              className={`${colors.link} hover:underline font-medium`}
+            >
               {phone}
             </a>
           </div>
