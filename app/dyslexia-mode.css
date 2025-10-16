@@ -1,189 +1,297 @@
-/* Dyslexia-Friendly Mode - For 10-15% of children!
- * Mobile-optimized: Large text, high contrast, simple layout
- */
+/* =========================================================
+   Dyslexia-Friendly Mode (improved)
+   - Mobile-first, high-contrast, reduced motion distractions
+   - Works with `.dyslexia-mode` *or* [data-dyslexia="true"]
+   - Keeps your defaults but tones down overuse of !important
+   ========================================================= */
 
-/* OpenDyslexic Font - optimized for dyslexia */
+/* 1) Font: OpenDyslexic (swap); keep Comic Sans as very last fallback */
 @font-face {
   font-family: "OpenDyslexic";
-  src: url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Regular.woff2")
-    format("woff2");
+  src: url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
-
 @font-face {
   font-family: "OpenDyslexic";
-  src: url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Bold.woff2")
-    format("woff2");
+  src: url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
 
-/* Dyslexia Mode Activated */
-.dyslexia-mode {
-  /* Dyslexia-friendly font */
-  font-family: "OpenDyslexic", "Comic Sans MS", cursive !important;
+/* Root scope (class OR data-attr) */
+.dyslexia-mode,
+[data-dyslexia="true"] {
+  /* Tunables via CSS vars */
+  --dysl-fz-mobile: 18px;
+  --dysl-fz-sm: 20px;
+  --dysl-line: 1.8;
+  --dysl-letter: 0.12em;
+  --dysl-word: 0.16em;
 
-  /* Increased spacing */
-  line-height: 1.8 !important;
-  letter-spacing: 0.12em !important;
-  word-spacing: 0.16em !important;
+  --color-text: #000;
+  --color-bg: #fff;
+  --color-primary: #0066cc;
+  --color-link: #0000ee;
+  --color-visited: #551a8b;
+  --color-muted: #333;
 
-  /* Larger base font size (mobile-first!) */
-  font-size: 18px !important;
+  font-family: "OpenDyslexic", system-ui, -apple-system, Segoe UI, Roboto, "Comic Sans MS", cursive !important;
+  font-size: var(--dysl-fz-mobile) !important;
+  line-height: var(--dysl-line) !important;
+  letter-spacing: var(--dysl-letter) !important;
+  word-spacing: var(--dysl-word) !important;
+
+  color: var(--color-text);
+  background-color: var(--color-bg);
+
+  /* Readability helpers */
+  text-align: start;                /* umesto hard left; RTL-safe */
+  text-justify: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-ligatures: none;     /* izbegni ligature */
+  font-variant-numeric: tabular-nums lining-nums;
+  hyphens: none;                    /* bez deljenja reči */
+  overflow-wrap: anywhere;          /* dugačke reči se lome bez lomljenja layouta */
 }
 
 @media (min-width: 640px) {
-  .dyslexia-mode {
-    font-size: 20px !important;
+  .dyslexia-mode,
+  [data-dyslexia="true"] {
+    font-size: var(--dysl-fz-sm) !important;
   }
 }
 
-/* Paragraphs - shorter lines, better readability */
+/* Paragraphs & lists */
 .dyslexia-mode p,
-.dyslexia-mode li {
-  max-width: 65ch !important; /* Optimal line length */
-  margin-bottom: 1rem !important;
-  text-align: left !important; /* Never justify */
+.dyslexia-mode li,
+[data-dyslexia="true"] p,
+[data-dyslexia="true"] li {
+  max-width: 65ch;
+  margin-bottom: 1rem;
 }
 
-/* Headings - stronger visual hierarchy */
-.dyslexia-mode h1 {
-  font-size: 2.5rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 1.5rem !important;
-  line-height: 1.3 !important;
+/* Headings: jasna hijerarhija, bez italika */
+.dyslexia-mode h1,
+[data-dyslexia="true"] h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+.dyslexia-mode h2,
+[data-dyslexia="true"] h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  line-height: 1.3;
+}
+.dyslexia-mode h3,
+[data-dyslexia="true"] h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.3;
 }
 
-.dyslexia-mode h2 {
-  font-size: 2rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 1.25rem !important;
-  line-height: 1.3 !important;
+/* Emphasis: izbegni kurziv (teže čitljiv), koristi blagi underline */
+.dyslexia-mode em, .dyslexia-mode i,
+[data-dyslexia="true"] em, [data-dyslexia="true"] i {
+  font-style: normal !important;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
 }
 
-.dyslexia-mode h3 {
-  font-size: 1.75rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 1rem !important;
-  line-height: 1.3 !important;
-}
-
-/* Buttons - larger touch targets */
+/* Buttons: veliki target; izbegni ALL CAPS (teže čitljivo) */
 .dyslexia-mode button,
-.dyslexia-mode a.button {
-  min-height: 56px !important; /* Large touch target */
-  font-size: 1.125rem !important;
-  padding: 1rem 1.5rem !important;
-  font-weight: 600 !important;
+.dyslexia-mode a.button,
+[data-dyslexia="true"] button,
+[data-dyslexia="true"] a.button {
+  min-height: 56px;
+  font-size: 1.125rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  text-transform: none !important;
+  letter-spacing: 0.04em; /* manje razmaka nego u tekstu */
 }
 
-/* Inputs - easier to read */
+/* Inputs */
 .dyslexia-mode input,
 .dyslexia-mode textarea,
-.dyslexia-mode select {
-  font-size: 1.125rem !important;
-  padding: 1rem !important;
-  line-height: 1.6 !important;
+.dyslexia-mode select,
+[data-dyslexia="true"] input,
+[data-dyslexia="true"] textarea,
+[data-dyslexia="true"] select {
+  font-size: 1.125rem;
+  padding: 1rem;
+  line-height: 1.6;
+}
+.dyslexia-mode ::placeholder,
+[data-dyslexia="true"] ::placeholder {
+  color: #444;
+  opacity: 1;
 }
 
-/* Lists - clear bullets */
-.dyslexia-mode ul,
-.dyslexia-mode ol {
-  padding-left: 2.5rem !important;
+/* Lists */
+.dyslexia-mode ul, .dyslexia-mode ol,
+[data-dyslexia="true"] ul, [data-dyslexia="true"] ol {
+  padding-left: 2.25rem;
+  list-style-position: outside;
+}
+.dyslexia-mode li,
+[data-dyslexia="true"] li {
+  margin-bottom: 0.75rem;
 }
 
-.dyslexia-mode li {
-  margin-bottom: 0.75rem !important;
-}
-
-/* Code/Monospace - use dyslexic font */
+/* Code blocks: bez malih tankih fontova */
 .dyslexia-mode code,
-.dyslexia-mode pre {
-  font-family: "OpenDyslexic", monospace !important;
-  font-size: 1rem !important;
+.dyslexia-mode pre,
+[data-dyslexia="true"] code,
+[data-dyslexia="true"] pre {
+  font-family: "OpenDyslexic", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 1rem;
 }
 
-/* Links - underlined always (clear affordance) */
-.dyslexia-mode a {
-  text-decoration: underline !important;
-  text-decoration-thickness: 2px !important;
-  text-underline-offset: 3px !important;
+/* Links: podvučeno uvek, debeo underline, jasne posete */
+.dyslexia-mode a,
+[data-dyslexia="true"] a {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.dyslexia-mode a:visited,
+[data-dyslexia="true"] a:visited {
+  color: var(--color-visited);
 }
 
-/* Focus - extra visible */
-.dyslexia-mode *:focus-visible {
-  outline: 4px solid #3b82f6 !important;
-  outline-offset: 4px !important;
-  border-radius: 8px !important;
+/* Focus: veoma vidljiv */
+.dyslexia-mode :focus-visible,
+[data-dyslexia="true"] :focus-visible {
+  outline: 4px solid #3b82f6;
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 
-/* Cards - more padding for breathing room */
+/* KARTICE / container-i: više “air” */
 .dyslexia-mode .card,
-.dyslexia-mode [class*="Card"] {
-  padding: 2rem !important;
+.dyslexia-mode [class*="Card"],
+[data-dyslexia="true"] .card,
+[data-dyslexia="true"] [class*="Card"] {
+  padding: 2rem !important; /* zadrži !important da nadjača util klase */
 }
 
-/* Remove animations (can be distracting) */
-.dyslexia-mode * {
+/* Boje & kontrast */
+.dyslexia-mode .text-gray-600,
+.dyslexia-mode .text-gray-500,
+[data-dyslexia="true"] .text-gray-600,
+[data-dyslexia="true"] .text-gray-500 {
+  color: var(--color-muted) !important;
+}
+
+/* Slike: tanki border za razdvajanje */
+.dyslexia-mode img,
+[data-dyslexia="true"] img {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+/* Tabele: jasna struktura */
+.dyslexia-mode table,
+[data-dyslexia="true"] table {
+  border-collapse: separate;
+  border-spacing: 0.5rem;
+}
+.dyslexia-mode th,
+.dyslexia-mode td,
+[data-dyslexia="true"] th,
+[data-dyslexia="true"] td {
+  padding: 1rem;
+  border: 2px solid #d1d5db;
+}
+
+/* Selektovanje teksta: jasna boja */
+.dyslexia-mode ::selection,
+[data-dyslexia="true"] ::selection {
+  background: #fde68a; /* žuta */
+  color: #111827;
+}
+
+/* Animacije/transition – svedi na minimum; poštuj prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .dyslexia-mode *,
+  [data-dyslexia="true"] * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+.dyslexia-mode *,
+[data-dyslexia="true"] * {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
 
-/* High contrast colors */
-.dyslexia-mode {
-  --color-text: #000000;
-  --color-background: #ffffff;
-  --color-primary: #0066cc;
-  --color-link: #0000ee;
-  --color-visited: #551a8b;
-}
-
-.dyslexia-mode .text-gray-600,
-.dyslexia-mode .text-gray-500 {
-  color: #333333 !important; /* Darker gray for better contrast */
-}
-
-/* Images - slight border for clarity */
-.dyslexia-mode img {
-  border: 2px solid #e5e7eb !important;
-  border-radius: 8px !important;
-}
-
-/* Tables - clear structure */
-.dyslexia-mode table {
-  border-collapse: separate !important;
-  border-spacing: 0.5rem !important;
-}
-
-.dyslexia-mode th,
-.dyslexia-mode td {
-  padding: 1rem !important;
-  border: 2px solid #d1d5db !important;
-}
-
-/* Mobile-specific optimizations */
+/* Mobile tweakovi */
 @media (max-width: 640px) {
-  .dyslexia-mode {
-    font-size: 20px !important; /* Even larger on mobile */
+  .dyslexia-mode,
+  [data-dyslexia="true"] {
+    font-size: 20px !important;
   }
-
-  .dyslexia-mode button {
-    min-height: 64px !important; /* Extra large touch target */
-    font-size: 1.25rem !important;
+  .dyslexia-mode button,
+  [data-dyslexia="true"] button {
+    min-height: 64px;
+    font-size: 1.25rem;
   }
-
   .dyslexia-mode input,
-  .dyslexia-mode textarea {
-    font-size: 1.25rem !important;
-    min-height: 56px !important;
+  .dyslexia-mode textarea,
+  [data-dyslexia="true"] input,
+  [data-dyslexia="true"] textarea {
+    font-size: 1.25rem;
+    min-height: 56px;
   }
 }
 
-/* Print - keep dyslexic font */
+/* High-contrast OS preference */
+@media (prefers-contrast: more) {
+  .dyslexia-mode,
+  [data-dyslexia="true"] {
+    --color-text: #000;
+    --color-bg: #fff;
+    --color-link: #0033aa;
+  }
+}
+
+/* Dark mode varijanta (ako koristiš .dark na <html>) */
+.dark .dyslexia-mode,
+.dark [data-dyslexia="true"] {
+  --color-text: #fff;
+  --color-bg: #0b1220;
+  --color-link: #93c5fd;
+  --color-visited: #c4b5fd;
+  --color-muted: #e5e7eb;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  /* obrni border za slike/tabele */
+}
+.dark .dyslexia-mode img,
+.dark [data-dyslexia="true"] img {
+  border-color: #334155;
+}
+.dark .dyslexia-mode th,
+.dark .dyslexia-mode td,
+.dark [data-dyslexia="true"] th,
+.dark [data-dyslexia="true"] td {
+  border-color: #334155;
+}
+
+/* Print: zadrži font, bez animacija */
 @media print {
-  .dyslexia-mode {
-    font-family: "OpenDyslexic", "Comic Sans MS", cursive !important;
+  .dyslexia-mode,
+  [data-dyslexia="true"] {
+    font-family: "OpenDyslexic", system-ui, "Comic Sans MS", cursive !important;
   }
 }

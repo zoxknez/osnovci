@@ -1,56 +1,85 @@
-// Auth Middleware - Štiti protected routes
+// middleware.ts
+// Auth Middleware — štiti sve ne-javne rute (ne samo /dashboard)
 
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 
-// Public routes koje ne zahtevaju autentifikaciju
-const publicRoutes = ["/", "/prijava", "/registracija"];
+const PUBLIC_ROUTES = new Set<string>(["/", "/prijava", "/registracija"]);
+const PUBLIC_API_PREFIXES = ["/api/auth", "/api/health"]; // dozvoli sve ispod ovih
+const LOCALES = ["sr", "en"] as const;
 
-// API routes koje ne zahtevaju auth
-const publicApiRoutes = ["/api/auth", "/api/health"];
+function stripLocale(pathname: string) {
+  // /sr, /en prefiksi — tretiraj kao i bez prefiksa
+  const m = pathname.match(/^\/(sr|en)(\/|$)/);
+  if (m) {
+    const without = pathname.replace(/^\/(sr|en)/, "");
+    return without.length ? without : "/";
+  }
+  return pathname;
+}
+
+function cleanPath(pathname: string) {
+  if (pathname !== "/" && pathname.endsWith("/")) return pathname.slice(0, -1);
+  return pathname;
+}
+
+function startsWithAny(pathname: string, prefixes: string[]) {
+  return prefixes.some((p) => pathname.startsWith(p));
+}
 
 export default auth((req) => {
-  const { pathname } = req.nextUrl;
+  const url = req.nextUrl;
+  const rawPath = url.pathname;
+  const localeStripped = stripLocale(rawPath);
+  const pathname = cleanPath(localeStripped);
+  const method = req.method;
 
-  // Allow public routes
-  if (publicRoutes.includes(pathname)) {
+  const isApi = pathname.startsWith("/api/");
+  const isPublicRoute = PUBLIC_ROUTES.has(pathname);
+  const isPublicApi = startsWithAny(pathname, PUBLIC_API_PREFIXES);
+
+  // Uvek dozvoli HEAD/OPTIONS (npr. CORS preflight)
+  if (method === "HEAD" || method === "OPTIONS") {
     return NextResponse.next();
   }
 
-  // Allow public API routes
-  if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
+  // Public (page) rute
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  // Check if user is authenticated
-  if (!req.auth && pathname.startsWith("/dashboard")) {
-    const url = new URL("/prijava", req.url);
-    url.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(url);
+  // Public API rute (dozvoli sve ispod /api/auth ... /api/health)
+  if (isApi && isPublicApi) {
+    return NextResponse.next();
   }
 
-  // Check if user is authenticated for API routes
-  if (!req.auth && pathname.startsWith("/api/")) {
-    return NextResponse.json(
-      { error: "Unauthorized", message: "Morate biti ulogovani" },
-      { status: 401 },
-    );
+  // API zaštita (ostatak /api/**)
+  if (isApi) {
+    if (!req.auth) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Morate biti ulogovani." },
+        { status: 401 },
+      );
+    }
+    return NextResponse.next();
+  }
+
+  // Page zaštita (sve ne-javne rute)
+  if (!req.auth) {
+    const loginUrl = new URL("/prijava", req.url);
+    // Sačuvaj ceo put + query kao callback (bez duplog enkodiranja)
+    const callback = `${rawPath}${url.search}`;
+    loginUrl.searchParams.set("callbackUrl", callback);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 });
 
+// Matcher — isključi Next statiku i uobičajene asset ekstenzije
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     * - manifest.json
-     * - sw.js (service worker)
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|js)$).*)",
+    // match-uj sve osim…
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json|manifest.webmanifest|sw.js|service-worker.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|mjs|ts|tsx|map|json|txt|xml|woff|woff2|ttf|eot|otf|pdf|mp4|mp3|wav|ogg|wasm)$).*)",
   ],
 };
