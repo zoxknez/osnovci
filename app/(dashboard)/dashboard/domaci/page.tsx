@@ -29,6 +29,7 @@ export default function DomaciPage() {
     "all",
   );
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Nova stanja za API
@@ -148,6 +149,11 @@ export default function DomaciPage() {
   };
 
   const handlePhotoCapture = async (_file: File) => {
+    if (!selectedHomeworkId) {
+      toast.error("Nije odabran zadatak za dodavanje dokaza.");
+      return;
+    }
+
     try {
       // TODO: Upload na API /api/homework/{id}/attachments
       toast.success("📸 Fotografija je snimljena!", {
