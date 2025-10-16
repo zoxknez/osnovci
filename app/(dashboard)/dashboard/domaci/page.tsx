@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/features/page-header";
+import { AddHomeworkModal, HomeworkFormData } from "@/components/modals/add-homework-modal";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +27,7 @@ export default function DomaciPage() {
   );
   const [cameraOpen, setCameraOpen] = useState(false);
   const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   
   // Nova stanja za API
   const [homework, setHomework] = useState<any[]>([]);
@@ -177,6 +179,47 @@ export default function DomaciPage() {
     }
   };
 
+  const handleAddHomework = async (data: HomeworkFormData) => {
+    try {
+      const response = await fetch("/api/homework", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error("Greška pri kreiranju");
+
+      // Osvježi listu
+      setPage(1);
+      
+      const newResponse = await fetch(
+        `/api/homework?page=1&limit=20&sortBy=dueDate&order=asc`,
+        { credentials: "include" }
+      );
+      const newData = await newResponse.json();
+      
+      const mapped = newData.data.map((hw: any) => ({
+        id: hw.id,
+        subject: hw.subject.name,
+        title: hw.title,
+        description: hw.description,
+        dueDate: new Date(hw.dueDate),
+        status: hw.status.toLowerCase(),
+        priority: hw.priority.toLowerCase(),
+        attachments: hw.attachmentsCount,
+        color: hw.subject.color || getRandomColor(),
+      }));
+
+      setHomework(mapped);
+      setTotal(newData.pagination.total);
+    } catch (err) {
+      throw new Error(
+        err instanceof Error ? err.message : "Nepoznata greška"
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto space-y-6">
@@ -204,12 +247,7 @@ export default function DomaciPage() {
             size="lg"
             leftIcon={<Plus className="h-5 w-5" />}
             aria-label="Dodaj novi domaći zadatak"
-            onClick={() => {
-              toast.success("📝 Dodaj novi zadatak", {
-                description: "Popuni podatke o novom domaćem zadatku",
-              });
-              // TODO: Otvori modal za dodavanje
-            }}
+            onClick={() => setShowAddModal(true)}
           >
             Dodaj zadatak
           </Button>
@@ -452,6 +490,13 @@ export default function DomaciPage() {
           onCapture={handlePhotoCapture}
         />
       )}
+
+      {/* Modal */}
+      <AddHomeworkModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddHomework}
+      />
     </div>
   );
 }
