@@ -18,9 +18,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
   PolarAngleAxis,
   PolarGrid,
   PolarRadiusAxis,
@@ -101,8 +98,8 @@ const MOCK_GRADES = [
   },
 ];
 
-// Data for trend chart
-const trendData = [
+// Data for trend chart (TODO: Use in future feature)
+const _trendData = [
   { month: "Sep", average: 4.2 },
   { month: "Okt", average: 4.4 },
   { month: "Nov", average: 4.5 },
@@ -110,15 +107,15 @@ const trendData = [
   { month: "Jan", average: 4.7 },
 ];
 
-// Data for radar chart (skills)
-const radarData = MOCK_GRADES.map((g) => ({
+// Data for radar chart (skills) (TODO: Use in future feature)
+const _radarData = MOCK_GRADES.map((g) => ({
   subject: g.subject.split(" ")[0],
   score: g.average,
   fullMark: 5,
 }));
 
-// Data for bar chart (grade distribution)
-const gradeDistribution = [
+// Data for bar chart (grade distribution) (TODO: Use in future feature)
+const _gradeDistribution = [
   { grade: "5", count: 18 },
   { grade: "4", count: 10 },
   { grade: "3", count: 2 },
@@ -127,12 +124,12 @@ const gradeDistribution = [
 ];
 
 export default function OcenePage() {
-  const [page, setPage] = useState(1);
+  const [page, _setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [grades, setGrades] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
-  const [filterCategory, setFilterCategory] = useState<string | null>(null);
+  const [filterCategory, _setFilterCategory] = useState<string | null>(null);
 
   // Fetch grades sa API-ja
   useEffect(() => {
@@ -426,8 +423,8 @@ export default function OcenePage() {
         animate="visible"
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
       >
-        {subjectGrades.map((sg: any, idx: number) => (
-          <motion.div key={idx} variants={staggerItem}>
+        {subjectGrades.map((sg: any) => (
+          <motion.div key={sg.subject} variants={staggerItem}>
             <Card
               className="border-0 hover:shadow-lg transition-all h-full"
               style={{
@@ -475,7 +472,7 @@ export default function OcenePage() {
                 <div className="mt-4 flex gap-1">
                   {sg.grades.slice(0, 5).map((g: number, i: number) => (
                     <div
-                      key={i}
+                      key={`${sg.subject}-grade-${i}`}
                       className="flex-1 h-6 rounded-md flex items-center justify-center text-xs font-semibold text-white"
                       style={{
                         backgroundColor: sg.color,
@@ -499,9 +496,9 @@ export default function OcenePage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {grades.slice(0, 10).map((grade: any, idx: number) => (
+            {grades.slice(0, 10).map((grade: any) => (
               <div
-                key={idx}
+                key={grade.id}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
               >
                 <div className="flex items-center gap-3">
