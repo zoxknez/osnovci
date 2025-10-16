@@ -239,8 +239,8 @@ export default function DashboardLayout({
           </div>
 
           {/* Brand Section na dnu menija - Sat, Osnovci, Datum */}
-          <div className="mt-auto pt-4 border-t border-gray-200">
-            <div className="flex flex-col items-center justify-center gap-3 px-3 py-4">
+          <div className="mt-auto pt-8 border-t border-gray-200">
+            <div className="flex flex-col items-center justify-center gap-3 px-3 py-6">
               {/* OSNOVCI LOGO - VELIKI I BOLD - PRVI */}
               <h2 className="text-6xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
                 Osnovci
