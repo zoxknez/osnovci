@@ -53,6 +53,54 @@ export function FileUpload({
     [maxSize, accept],
   );
 
+  const uploadFilesSequentially = useCallback(
+    async (uploadFiles: UploadedFile[]) => {
+      for (const uploadFile of uploadFiles) {
+        try {
+          // Update status to uploading
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id ? { ...f, status: "uploading" } : f,
+            ),
+          );
+
+          // Simulate progress (replace with actual upload logic)
+          for (let i = 0; i <= 100; i += 10) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            setFiles((prev) =>
+              prev.map((f) =>
+                f.id === uploadFile.id ? { ...f, progress: i } : f,
+              ),
+            );
+          }
+
+          // Call upload callback
+          await onUpload([uploadFile.file]);
+
+          // Mark as success
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? { ...f, status: "success", progress: 100 }
+                : f,
+            ),
+          );
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Greška pri uploadu";
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? { ...f, status: "error", error: errorMessage }
+                : f,
+            ),
+          );
+          toast.error(`Greška: ${errorMessage}`);
+        }
+      }
+    },
+    [onUpload],
+  );
+
   const processFiles = useCallback(
     async (fileList: FileList) => {
       const newFiles = Array.from(fileList);
@@ -101,52 +149,8 @@ export function FileUpload({
       // Start upload
       uploadFilesSequentially(uploadFiles);
     },
-    [files.length, maxFiles, validateFile, compressImages],
+    [files.length, maxFiles, validateFile, compressImages, uploadFilesSequentially],
   );
-
-  const uploadFilesSequentially = async (uploadFiles: UploadedFile[]) => {
-    for (const uploadFile of uploadFiles) {
-      try {
-        // Update status to uploading
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id ? { ...f, status: "uploading" } : f,
-          ),
-        );
-
-        // Simulate progress (replace with actual upload logic)
-        for (let i = 0; i <= 100; i += 10) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          setFiles((prev) =>
-            prev.map((f) =>
-              f.id === uploadFile.id ? { ...f, progress: i } : f,
-            ),
-          );
-        }
-
-        // Call upload callback
-        await onUpload([uploadFile.file]);
-
-        // Mark as success
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: "success", progress: 100 }
-              : f,
-          ),
-        );
-      } catch (error: any) {
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: "error", error: error.message }
-              : f,
-          ),
-        );
-        toast.error(`Greška: ${error.message}`);
-      }
-    }
-  };
 
   const removeFile = (id: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
@@ -193,6 +197,8 @@ export function FileUpload({
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        role="region"
+        aria-label="Drop zone za upload fajlova"
         className={`relative border-2 border-dashed rounded-xl p-8 transition-all ${
           isDragging
             ? "border-blue-500 bg-blue-50"

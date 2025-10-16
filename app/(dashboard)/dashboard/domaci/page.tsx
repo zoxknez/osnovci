@@ -11,7 +11,7 @@ import {
   Search,
   Loader,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { ModernCamera } from "@/components/features/modern-camera";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,11 @@ export default function DomaciPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
+  const getRandomColor = useCallback(() => {
+    const colors = ["#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b"];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }, []);
+
   // Fetch homework na mount i kada se promijeni stranica
   useEffect(() => {
     const fetchHomework = async () => {
@@ -55,16 +60,16 @@ export default function DomaciPage() {
         const data = await response.json();
         
         // Mapiraj podatke sa API-ja na format koji frontend očekuje
-        const mapped = data.data.map((hw: any) => ({
+        const mapped = data.data.map((hw: Record<string, unknown>) => ({
           id: hw.id,
-          subject: hw.subject.name,
+          subject: (hw.subject as Record<string, unknown>).name,
           title: hw.title,
           description: hw.description,
-          dueDate: new Date(hw.dueDate),
-          status: hw.status.toLowerCase(),
-          priority: hw.priority.toLowerCase(),
+          dueDate: new Date(hw.dueDate as string),
+          status: (hw.status as string).toLowerCase(),
+          priority: (hw.priority as string).toLowerCase(),
           attachments: hw.attachmentsCount,
-          color: hw.subject.color || getRandomColor(),
+          color: (hw.subject as Record<string, unknown>).color || getRandomColor(),
         }));
 
         setHomework(mapped);
@@ -80,12 +85,7 @@ export default function DomaciPage() {
     };
 
     fetchHomework();
-  }, [page]);
-
-  const getRandomColor = () => {
-    const colors = ["#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b"];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
+  }, [page, getRandomColor]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

@@ -1,7 +1,7 @@
 // Modern Background Sync Manager
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { offlineStorage } from "@/lib/db/offline-storage";
 import { useSyncStore } from "@/store";
@@ -32,7 +32,7 @@ export function SyncManager() {
     };
   }, [setOnline]);
 
-  const syncData = async () => {
+  const syncData = useCallback(async () => {
     if (isSyncing) return;
 
     try {
@@ -79,9 +79,9 @@ export function SyncManager() {
     } finally {
       setSyncing(false);
     }
-  };
+  }, [isSyncing, setSyncing, setPendingCount, setLastSync]);
 
-  const processSyncItem = async (item: any) => {
+  const processSyncItem = useCallback(async (item: Record<string, unknown>) => {
     const endpoint = `/api/${item.entity}/sync`;
 
     const response = await fetch(endpoint, {
@@ -98,7 +98,7 @@ export function SyncManager() {
     }
 
     return response.json();
-  };
+  }, []);
 
   // Auto-sync when online
   useEffect(() => {
@@ -118,7 +118,7 @@ export function SyncManager() {
       };
     }
     return undefined;
-  }, [isOnline, isSyncing]);
+  }, [isOnline, isSyncing, syncData]);
 
   return null;
 }

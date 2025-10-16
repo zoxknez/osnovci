@@ -95,6 +95,14 @@ export function VirtualHomeworkList({
         <div
           key={item.id}
           onClick={() => onItemClick?.(item)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onItemClick?.(item);
+            }
+          }}
+          role="button"
+          tabIndex={0}
           className="p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"
         >
           <div className="flex items-start justify-between">
