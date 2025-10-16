@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
       frame-ancestors 'none';
       base-uri 'self';
       form-action 'self';
-      upgrade-insecure-requests;
+      ${process.env.NODE_ENV === "production" ? "upgrade-insecure-requests;" : ""}
     `
       .replace(/\s{2,}/g, " ")
       .trim();
@@ -44,11 +44,15 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: ContentSecurityPolicy,
           },
-          // Strict Transport Security
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains; preload",
-          },
+          // Strict Transport Security - DISABLED for development
+          ...(process.env.NODE_ENV === "production"
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=31536000; includeSubDomains; preload",
+                },
+              ]
+            : []),
           // DNS Prefetch Control
           {
             key: "X-DNS-Prefetch-Control",
@@ -80,7 +84,7 @@ const nextConfig: NextConfig = {
             key: "X-XSS-Protection",
             value: "1; mode=block",
           },
-          // Cross-Origin Policies (relaxed for development & analytics)
+          // Cross-Origin Policies - RELAXED for development
           {
             key: "Cross-Origin-Opener-Policy",
             value: process.env.NODE_ENV === "production" ? "same-origin" : "same-origin-allow-popups",
