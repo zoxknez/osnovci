@@ -25,6 +25,7 @@ export default function DomaciPage() {
   );
   const [cameraOpen, setCameraOpen] = useState(false);
   const [, setSelectedHomeworkId] = useState<number | null>(null);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
   // Mock data
   const homework = [
@@ -156,6 +157,12 @@ export default function DomaciPage() {
             size="lg"
             leftIcon={<Plus className="h-5 w-5" />}
             aria-label="Dodaj novi domaći zadatak"
+            onClick={() => {
+              setShowAddTaskModal(true);
+              toast.success("📝 Dodaj novi zadatak", {
+                description: "Popuni podatke o novom domaćem zadatku",
+              });
+            }}
           >
             Dodaj zadatak
           </Button>
