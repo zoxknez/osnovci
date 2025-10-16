@@ -102,10 +102,10 @@ export default function DashboardLayout({
             <div className="absolute inset-0 rounded-full border-1.5 border-transparent border-t-blue-500 border-r-purple-500 group-hover:animate-spin"></div>
             
             {/* Inner animated hamburger */}
-            <div className="flex flex-col gap-1 sm:gap-1.5">
-              <span className="block h-0.5 sm:h-0.75 w-4 sm:w-5 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
-              <span className="block h-0.5 sm:h-0.75 w-4 sm:w-5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
-              <span className="block h-0.5 sm:h-0.75 w-4 sm:w-5 bg-gradient-to-r from-pink-500 to-blue-600 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
+            <div className="flex flex-col gap-1.5 sm:gap-2">
+              <span className="block h-0.75 sm:h-1 w-5 sm:w-6 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
+              <span className="block h-0.75 sm:h-1 w-5 sm:w-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
+              <span className="block h-0.75 sm:h-1 w-5 sm:w-6 bg-gradient-to-r from-pink-500 to-blue-600 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
             </div>
 
             {/* Pulsing orb indicator */}
