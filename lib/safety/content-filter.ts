@@ -88,11 +88,12 @@ export class AgeFilter {
       };
     }
 
-    // Check za kompleksnost teksta (Flesch Reading Ease)
-    const complexity = AgeFilter.calculateComplexity(content);
+    const normalized = content.trim();
+    const wordCount = normalized ? normalized.split(/\s+/).length : 0;
+    const complexity = AgeFilter.calculateComplexity(normalized);
 
     // Za decu 7-10: jednostavan jezik
-    if (age <= 10 && complexity > 60) {
+    if (age <= 10 && complexity > 85 && wordCount > 80) {
       return {
         appropriate: false,
         reason: "Tekst je previše složen",
@@ -100,7 +101,7 @@ export class AgeFilter {
     }
 
     // Za decu 11-15: umereno složen jezik
-    if (age <= 15 && complexity > 80) {
+    if (age <= 15 && complexity > 95 && wordCount > 120) {
       return {
         appropriate: false,
         reason: "Tekst je previše složen",
