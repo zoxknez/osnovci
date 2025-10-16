@@ -113,7 +113,7 @@ const DAYS = [
 
 export default function RasporedPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"day" | "week">("week");
+  const [viewMode, setViewMode] = useState<"day" | "week">("day");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedDayRef = useRef<HTMLButtonElement>(null);
 
@@ -267,8 +267,8 @@ export default function RasporedPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedDate(day)}
                       className={`
-                        relative p-2 rounded-xl text-center transition-all flex-shrink-0 
-                        w-[72px] sm:w-20 lg:w-auto min-h-[70px] sm:min-h-[70px]
+                        relative p-1.5 rounded-lg text-center transition-all flex-shrink-0 
+                        w-[68px] sm:w-20 lg:w-auto min-h-[60px] sm:min-h-[60px]
                         touch-manipulation group
                         ${
                           selected
@@ -280,14 +280,14 @@ export default function RasporedPage() {
                     >
                       {/* Day label */}
                       <div
-                        className={`text-[10px] sm:text-xs font-semibold mb-0.5 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
+                        className={`text-[9px] sm:text-xs font-semibold mb-0.5 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
                       >
                         {dayKey.short}
                       </div>
 
                       {/* Date number */}
                       <div
-                        className={`text-xl sm:text-2xl font-bold mb-0.5 ${selected ? "text-white" : "text-gray-900"}`}
+                        className={`text-lg sm:text-xl font-bold mb-0.5 ${selected ? "text-white" : "text-gray-900"}`}
                       >
                         {format(day, "d")}
                       </div>
@@ -296,7 +296,7 @@ export default function RasporedPage() {
                       {lessonsCount > 0 && (
                         <div
                           className={`
-                          text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-full inline-block
+                          text-[8px] sm:text-[9px] font-medium px-1 py-0.5 rounded-full inline-block
                           ${
                             selected
                               ? "bg-white/20 text-white"
