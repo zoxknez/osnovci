@@ -139,28 +139,6 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      {/* Osnovci Brand Bar - NOVI - sa satom i logoom */}
-      <div className="sticky top-[calc(3.5rem+56px)] sm:top-[calc(4rem+56px)] z-25 bg-gradient-to-r from-white via-blue-50 to-white border-b border-gray-100 shadow-sm lg:hidden px-3 sm:px-4 py-2.5 sm:py-3">
-        <div className="flex items-center justify-center gap-3 px-3 py-2 rounded-xl bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 border border-blue-200/40">
-          {/* Sat */}
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl">{getTimeEmoji()}</span>
-            <span className="text-lg font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
-          </div>
-          
-          {/* Separator */}
-          <div className="h-6 w-0.5 bg-gradient-to-b from-blue-300 to-purple-300 rounded-full opacity-40"></div>
-          
-          {/* Logo i datum */}
-          <div className="flex flex-col items-center">
-            <h1 className="text-sm font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
-              Osnovci
-            </h1>
-            <p className="text-xs text-gray-500 font-medium">{dayOfWeek} {dayNum}.{month}</p>
-          </div>
-        </div>
-      </div>
-
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <button
@@ -248,6 +226,25 @@ export default function DashboardLayout({
               <LogOut className="h-5 w-5" aria-hidden="true" />
               <span>Odjavi se</span>
             </button>
+          </div>
+
+          {/* Brand Section na dnu menija - Sat, Osnovci, Datum */}
+          <div className="mt-auto pt-6 border-t border-gray-200">
+            <div className="flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-xl bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 border border-blue-200/40">
+              {/* SAT - VELIKI I BOLD */}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl">{getTimeEmoji()}</span>
+                <span className="text-xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
+              </div>
+
+              {/* OSNOVCI LOGO */}
+              <h2 className="text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+                Osnovci
+              </h2>
+
+              {/* DATUM */}
+              <p className="text-xs text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
+            </div>
           </div>
         </nav>
       </div>
