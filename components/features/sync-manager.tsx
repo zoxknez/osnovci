@@ -32,6 +32,25 @@ export function SyncManager() {
     };
   }, [setOnline]);
 
+  const processSyncItem = useCallback(async (item: Record<string, unknown>) => {
+    const endpoint = `/api/${item.entity}/sync`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: item.type,
+        data: item.data,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Sync failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  }, []);
+
   const syncData = useCallback(async () => {
     if (isSyncing) return;
 
@@ -79,26 +98,7 @@ export function SyncManager() {
     } finally {
       setSyncing(false);
     }
-  }, [isSyncing, setSyncing, setPendingCount, setLastSync]);
-
-  const processSyncItem = useCallback(async (item: Record<string, unknown>) => {
-    const endpoint = `/api/${item.entity}/sync`;
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: item.type,
-        data: item.data,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Sync failed: ${response.statusText}`);
-    }
-
-    return response.json();
-  }, []);
+  }, [isSyncing, setSyncing, setPendingCount, setLastSync, processSyncItem]);
 
   // Auto-sync when online
   useEffect(() => {
