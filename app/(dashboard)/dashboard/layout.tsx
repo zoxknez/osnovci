@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
+import { useEffect } from "react";
 
 const navigation = [
   { name: "Danas", href: "/dashboard", icon: Home, emoji: "🏠" },
@@ -48,12 +49,29 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const dateString = currentDate.toLocaleDateString("sr-Latn-RS", {
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-  });
+  
+  // Inovativna formatiranja za decu
+  const dayOfWeek = currentDate.toLocaleDateString("sr-Latn-RS", { weekday: "short" }).toUpperCase();
+  const dayNum = currentDate.getDate();
+  const month = currentDate.toLocaleDateString("sr-Latn-RS", { month: "short" }).toUpperCase();
+  const hours = String(currentDate.getHours()).padStart(2, "0");
+  const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+  
+  // Emoji za vreme
+  const getTimeEmoji = () => {
+    const hour = currentDate.getHours();
+    if (hour >= 6 && hour < 12) return "🌅";
+    if (hour >= 12 && hour < 17) return "☀️";
+    if (hour >= 17 && hour < 21) return "🌆";
+    return "🌙";
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
@@ -94,7 +112,20 @@ export default function DashboardLayout({
           <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent whitespace-nowrap">
             Osnovci
           </h1>
-          <p className="text-xs sm:text-sm text-gray-600 font-medium whitespace-nowrap">{dateString}</p>
+          
+          {/* Inovativni sat i datum */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/50">
+            <span className="text-lg">{getTimeEmoji()}</span>
+            <span className="text-xs font-mono font-bold text-blue-600">{hours}:{minutes}</span>
+            <span className="text-xs text-gray-500">•</span>
+            <span className="text-xs font-semibold text-purple-600">{dayOfWeek} {dayNum}.{month}</span>
+          </div>
+          
+          {/* Mobilni kompaktni prikaz */}
+          <div className="sm:hidden flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/50">
+            <span className="text-base">{getTimeEmoji()}</span>
+            <span className="text-xs font-mono font-bold text-blue-600">{hours}:{minutes}</span>
+          </div>
         </div>
 
         {/* Right: Spacer for balance */}
