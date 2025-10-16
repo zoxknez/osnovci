@@ -1,11 +1,13 @@
-// Theme Provider - Dark Mode Support
+// Theme Provider - Light Mode Only (No Theme Switching)
 "use client";
 
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 
-type ThemeProviderProps = ComponentProps<typeof NextThemesProvider>;
+interface ThemeProviderProps {
+  children: ReactNode;
+}
 
-export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  // Light theme only - no theme provider needed
+  return <>{children}</>;
 }

@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
       script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https:;
-      font-src 'self' data:;
+      font-src 'self' data: https://cdn.jsdelivr.net;
       connect-src 'self' https: wss: https://vitals.vercel-insights.com;
       media-src 'self' blob:;
       worker-src 'self' blob:;

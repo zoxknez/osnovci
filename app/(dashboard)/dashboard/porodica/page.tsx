@@ -18,8 +18,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/features/page-header";
 import {
-  fadeInUp,
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
@@ -96,36 +96,27 @@ export default function PorodicaPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-        initial="initial"
-        animate="animate"
-        variants={fadeInUp}
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            👨‍👩‍👧 Porodica
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Poveži se sa roditeljima i starateljima
-          </p>
-        </div>
-
-        <Button
-          size="lg"
-          leftIcon={<QrCode className="h-5 w-5" />}
-          onClick={() => setShowQR(!showQR)}
-          aria-label={
-            showQR
-              ? "Sakrij QR kod za povezivanje"
-              : "Prikaži QR kod za povezivanje sa roditeljima"
-          }
-          aria-expanded={showQR}
-        >
-          {showQR ? "Sakrij QR" : "Pokaži QR kod"}
-        </Button>
-      </motion.div>
+      {/* Hero Header */}
+      <PageHeader
+        title="👨‍👩‍👧 Porodica"
+        description="Poveži se sa roditeljima i starateljima"
+        variant="pink"
+        action={
+          <Button
+            size="lg"
+            leftIcon={<QrCode className="h-5 w-5" />}
+            onClick={() => setShowQR(!showQR)}
+            aria-label={
+              showQR
+                ? "Sakrij QR kod za povezivanje"
+                : "Prikaži QR kod za povezivanje sa roditeljima"
+            }
+            aria-expanded={showQR}
+          >
+            {showQR ? "Sakrij QR" : "Pokaži QR kod"}
+          </Button>
+        }
+      />
 
       {/* QR Code Section */}
       <AnimatePresence>

@@ -3,17 +3,15 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { staggerItem } from "@/lib/animations/variants";
-import { LANGUAGE_OPTIONS, THEME_OPTIONS } from "./constants";
-import type { LanguageOption, ThemeOption } from "./types";
+import { LANGUAGE_OPTIONS } from "./constants";
+import type { LanguageOption } from "./types";
 
 interface AppearanceSectionProps {
-  theme: ThemeOption;
   language: LanguageOption;
-  onThemeChange: (theme: ThemeOption) => Promise<void>;
   onLanguageChange: (language: LanguageOption) => Promise<void>;
 }
 
-export function AppearanceSection({ theme, language, onThemeChange, onLanguageChange }: AppearanceSectionProps) {
+export function AppearanceSection({ language, onLanguageChange }: AppearanceSectionProps) {
   return (
     <motion.div variants={staggerItem}>
       <Card>
@@ -26,39 +24,6 @@ export function AppearanceSection({ theme, language, onThemeChange, onLanguageCh
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <Label text="Tema" />
-            <div className="grid grid-cols-3 gap-3">
-              {THEME_OPTIONS.map((option) => (
-                <motion.button
-                  key={option.value}
-                  onClick={() => onThemeChange(option.value)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`p-4 rounded-lg border-2 transition-all relative ${
-                    theme === option.value
-                      ? "border-blue-500 bg-blue-50 shadow-md"
-                      : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                  }`}
-                >
-                  {theme === option.value && <SelectionBadge layoutId="theme-indicator" />}
-                  <option.icon
-                    className={`h-6 w-6 mx-auto mb-2 transition-colors ${
-                      theme === option.value ? "text-blue-600" : "text-gray-600"
-                    }`}
-                  />
-                  <div
-                    className={`text-sm font-medium transition-colors ${
-                      theme === option.value ? "text-blue-600" : "text-gray-900"
-                    }`}
-                  >
-                    {option.label}
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
           <div>
             <Label text="Jezik" />
             <div className="grid grid-cols-2 gap-3">

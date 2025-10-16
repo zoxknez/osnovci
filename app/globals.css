@@ -3,43 +3,33 @@
 /* Modern CSS Variables za Osnovci - Mobile First */
 :root {
   --color-primary: 59 130 246; /* Blue 500 */
+  --color-primary-light: 96 165 250; /* Blue 400 */
   --color-secondary: 248 250 252; /* Gray 50 */
   --color-accent: 147 51 234; /* Purple 600 */
+  --color-accent-light: 168 85 247; /* Purple 500 */
   --color-background: 255 255 255;
   --color-foreground: 15 23 42; /* Slate 900 */
+  
+  /* Kid-friendly gradients */
+  --gradient-primary: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(147 51 234) 100%);
+  --gradient-secondary: linear-gradient(135deg, rgb(34 197 94) 0%, rgb(59 130 246) 100%);
+  --gradient-accent: linear-gradient(135deg, rgb(249 115 22) 0%, rgb(239 68 68) 100%);
+  
+  /* Subtle background gradients */
+  --gradient-bg-subtle: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(240, 249, 255, 0.6) 100%);
+  --gradient-bg-light: linear-gradient(135deg, rgba(240, 249, 255, 1) 0%, rgba(240, 245, 255, 1) 100%);
 
   /* Mobile-optimized spacing */
   --spacing-touch-target: 44px; /* Apple HIG minimum */
   --spacing-comfortable: 16px;
   --spacing-compact: 12px;
-}
-
-/* Dark Mode Support */
-.dark {
-  --color-background: 15 23 42; /* Slate 900 */
-  --color-foreground: 248 250 252; /* Gray 50 */
-  --color-primary: 96 165 250; /* Blue 400 - lighter for dark */
-  --color-accent: 168 85 247; /* Purple 500 */
-  --color-secondary: 30 41 59; /* Slate 800 */
-}
-
-.dark ::-webkit-scrollbar-track {
-  background-color: rgb(30 41 59); /* slate-800 */
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background-color: rgb(51 65 85); /* slate-700 */
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(71 85 105); /* slate-600 */
-}
-
-.dark :focus-visible {
-  outline-color: rgb(96 165 250); /* blue-400 for dark mode */
-}
-
-@theme {
+  
+  /* Kid-friendly shadows - More polished */
+  --shadow-sm: 0 2px 8px 0 rgb(59 130 246 / 0.08);
+  --shadow-md: 0 4px 16px 0 rgb(59 130 246 / 0.12);
+  --shadow-lg: 0 8px 24px 0 rgb(59 130 246 / 0.15);
+  --shadow-xl: 0 12px 32px 0 rgb(59 130 246 / 0.18);
+  
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "Courier New", monospace;
 }
@@ -49,7 +39,11 @@
 }
 
 body {
-  background-color: rgb(var(--color-background));
+  background: linear-gradient(135deg, 
+    rgba(240, 249, 255, 1) 0%, 
+    rgba(248, 250, 252, 0.8) 50%,
+    rgba(240, 245, 255, 1) 100%);
+  background-attachment: fixed;
   color: rgb(var(--color-foreground));
   font-feature-settings:
     "rlig" 1,
@@ -126,6 +120,67 @@ body {
 
 .animate-bounce-subtle {
   animation: bounce-subtle 0.3s ease-in-out;
+}
+
+/* Smooth hover effects for cards */
+@keyframes card-hover {
+  0% {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px 0 rgb(59 130 246 / 0.08);
+  }
+  100% {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px 0 rgb(59 130 246 / 0.15);
+  }
+}
+
+/* Glassmorphic background effect */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-smooth-slow {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* List item hover effects */
+.list-item-hover {
+  transition: all 0.2s ease;
+}
+
+.list-item-hover:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  transform: translateX(2px);
+}
+
+/* Table row hover */
+.table-row-hover {
+  transition: all 0.2s ease;
+}
+
+.table-row-hover:hover {
+  background-color: rgba(240, 249, 255, 1);
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+
+/* Badge styles */
+.badge-subtle {
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.badge-subtle:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 /* Focus states za accessibility - Savršeno vidljiv za keyboard users */

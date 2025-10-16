@@ -95,28 +95,28 @@ export function VirtualHomeworkList({
         <div
           key={item.id}
           onClick={() => onItemClick?.(item)}
-          className="p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+          className="p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h4 className="font-semibold text-gray-900 dark:text-white">
+              <h4 className="font-semibold text-gray-900">
                 {item.title}
               </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600">
                 {item.subject}
               </p>
             </div>
             <span
               className={`text-xs px-2 py-1 rounded-full ${
                 item.status === "done"
-                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                  : "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-blue-100 text-blue-700"
               }`}
             >
               {item.status}
             </span>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-xs text-gray-500 mt-2">
             {new Date(item.dueDate).toLocaleDateString("sr-RS")}
           </p>
         </div>

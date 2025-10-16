@@ -1,5 +1,5 @@
 import type { LanguageOption, NotificationKey, ThemeOption } from "./types";
-import { Moon, Smartphone, Sun } from "lucide-react";
+import { Sun } from "lucide-react";
 
 export const THEME_OPTIONS: Array<{
   value: ThemeOption;
@@ -7,8 +7,6 @@ export const THEME_OPTIONS: Array<{
   icon: typeof Sun;
 }> = [
   { value: "light", label: "Svetla", icon: Sun },
-  { value: "dark", label: "Tamna", icon: Moon },
-  { value: "auto", label: "Auto", icon: Smartphone },
 ];
 
 export const LANGUAGE_OPTIONS: Array<{

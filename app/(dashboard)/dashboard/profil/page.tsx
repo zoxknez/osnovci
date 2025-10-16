@@ -4,6 +4,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/features/page-header";
 import { ProfileHeader } from "@/components/features/profile/profile-header";
 import { PrivacyNotice } from "@/components/features/profile/privacy-notice";
 import { LastUpdatedNotice } from "@/components/features/profile/last-updated";
@@ -90,6 +91,14 @@ export default function ProfilPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* PageHeader - Hero sekcija */}
+      <PageHeader
+        title="👤 Moj profil"
+        description="Lični podaci, zdravstvene informacije i sve što trebaju odrasli da znaju o tebi"
+        variant="purple"
+        badge="Privatno"
+      />
+
       <ProfileHeader
         isEditing={isEditing}
         isSaving={isSaving}

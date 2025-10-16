@@ -49,9 +49,9 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
       {/* Mobile header - Enhanced */}
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white/95 backdrop-blur-md px-4 shadow-sm lg:hidden">
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-lg px-4 shadow-sm lg:hidden">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -119,11 +119,11 @@ export default function DashboardLayout({
         aria-label="Navigacioni meni"
         aria-modal="false"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 transform bg-white shadow-xl transition-transform duration-300 ease-in-out lg:hidden",
+          "fixed inset-y-0 left-0 z-50 w-72 transform bg-gradient-to-b from-blue-50/50 to-white/90 backdrop-blur-sm shadow-xl transition-transform duration-300 ease-in-out lg:hidden border-r border-gray-100",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
+        <div className="flex h-16 items-center justify-between border-b border-gray-100 px-6">
           <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Osnovci
           </h1>
@@ -194,7 +194,7 @@ export default function DashboardLayout({
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-100 bg-gradient-to-b from-blue-50/50 to-white px-6 pb-4 backdrop-blur-sm">
           <div className="flex h-16 items-center">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Osnovci
@@ -255,7 +255,7 @@ export default function DashboardLayout({
         <main
           id="main-content"
           tabIndex={-1}
-          className="py-8 px-4 sm:px-6 lg:px-8 focus:outline-none"
+          className="min-h-screen py-6 sm:py-8 px-4 sm:px-6 lg:px-8 lg:py-10 focus:outline-none"
         >
           {children}
         </main>

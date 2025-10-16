@@ -2,8 +2,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/features/page-header";
 import { SettingsHeader } from "@/components/features/settings/settings-header";
 import { ProfileSection } from "@/components/features/settings/profile-section";
 import { AppearanceSection } from "@/components/features/settings/appearance-section";
@@ -21,7 +22,6 @@ import type {
   NotificationKey,
   NotificationsSettings,
   ProfileSettings,
-  ThemeOption,
 } from "@/components/features/settings/types";
 import { staggerContainer } from "@/lib/animations/variants";
 
@@ -40,14 +40,7 @@ const DEFAULT_NOTIFICATIONS: NotificationsSettings = {
   messages: true,
 };
 
-const THEME_LABEL: Record<ThemeOption, string> = {
-  light: "Svetla",
-  dark: "Tamna",
-  auto: "Auto",
-};
-
 export default function PodjesavanjaPage() {
-  const [theme, setTheme] = useState<ThemeOption>("light");
   const [language, setLanguage] = useState<LanguageOption>("sr");
   const [notifications, setNotifications] = useState<NotificationsSettings>(
     DEFAULT_NOTIFICATIONS,
@@ -62,15 +55,6 @@ export default function PodjesavanjaPage() {
   const autoSave: AutoSaveFn = async (setting, value) => {
     console.log(`💾 Auto-saving: ${setting} = ${JSON.stringify(value)}`);
     await new Promise((resolve) => setTimeout(resolve, 100));
-  };
-
-  const handleThemeChange = async (newTheme: ThemeOption) => {
-    setTheme(newTheme);
-    await autoSave("theme", newTheme);
-    toast.success("✨ Tema promenjena", {
-      description: `Tema postavljena na: ${THEME_LABEL[newTheme]}`,
-      duration: 2000,
-    });
   };
 
   const handleLanguageChange = async (newLanguage: LanguageOption) => {
@@ -153,17 +137,16 @@ export default function PodjesavanjaPage() {
     }, 1500);
   };
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [theme]);
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* PageHeader - Hero sekcija */}
+      <PageHeader
+        title="⚙️ Podešavanja"
+        description="Prilagodi aplikaciju sebi - jezik, notifikacije, sigurnost i više"
+        variant="green"
+        badge="Lični prostor"
+      />
+
       <SettingsHeader />
 
       <motion.div
@@ -181,9 +164,7 @@ export default function PodjesavanjaPage() {
         />
 
         <AppearanceSection
-          theme={theme}
           language={language}
-          onThemeChange={handleThemeChange}
           onLanguageChange={handleLanguageChange}
         />
 

@@ -1,7 +1,6 @@
 // Domaći zadaci stranica - lista svih zadataka
 "use client";
 
-import { motion } from "framer-motion";
 import {
   AlertCircle,
   Camera,
@@ -17,6 +16,7 @@ import { ModernCamera } from "@/components/features/modern-camera";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/features/page-header";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -146,28 +146,21 @@ export default function DomaciPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            📚 Domaći zadaci
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Upravljaj svojim zadacima i rokovima
-          </p>
-        </div>
-        <Button
-          size="lg"
-          leftIcon={<Plus className="h-5 w-5" />}
-          aria-label="Dodaj novi domaći zadatak"
-        >
-          Dodaj zadatak
-        </Button>
-      </motion.div>
+      {/* Hero Header */}
+      <PageHeader
+        title="📚 Domaći zadaci"
+        description="Upravljaj svojim zadacima i rokovima"
+        variant="blue"
+        action={
+          <Button
+            size="lg"
+            leftIcon={<Plus className="h-5 w-5" />}
+            aria-label="Dodaj novi domaći zadatak"
+          >
+            Dodaj zadatak
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <Card>
@@ -183,11 +176,11 @@ export default function DomaciPage() {
                 aria-label="Pretraži domaće zadatke po nazivu ili predmetu"
               />
             </div>
-            <div
+            <fieldset
               className="flex gap-2"
-              role="group"
               aria-label="Filteri za zadatke"
             >
+              <legend className="sr-only">Filteri za zadatke</legend>
               <Button
                 variant={filterStatus === "all" ? "default" : "outline"}
                 size="sm"
@@ -215,7 +208,7 @@ export default function DomaciPage() {
               >
                 Urađeni
               </Button>
-            </div>
+            </fieldset>
           </div>
         </CardContent>
       </Card>

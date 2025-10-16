@@ -11,6 +11,44 @@
   );
 }
 
+/* Hero text shadow for better readability */
+.hero-title {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hero-description {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Hero glow effect animation */
+@keyframes hero-glow {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.hero-glow {
+  animation: hero-glow 4s ease-in-out infinite;
+}
+
+/* Rounded corner class za sve divove u page-header */
+.hero-rounded {
+  border-radius: 1.5rem; /* 24px - ista vrednost kao rounded-3xl */
+}
+
+/* Fallback za loading - ensure boja ostane vidljiva */
+.hero-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1.5rem;
+  background: inherit;
+  z-index: -1;
+}
+
 /* === TOUCH OPTIMIZATIONS === */
 @media (hover: none) and (pointer: coarse) {
   /* Na touch devices, povećaj interaktivne elemente */
@@ -313,4 +351,199 @@ html {
     background: rgba(30, 30, 30, 0.95);
     border-top-color: rgba(255, 255, 255, 0.1);
   }
+}
+
+/* === 🎨 KID-FRIENDLY ENHANCEMENTS === */
+
+/* Colorful gradient buttons */
+.btn-gradient-primary {
+  background: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(147 51 234) 100%);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-gradient-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn-gradient-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Success gradient */
+.btn-gradient-success {
+  background: linear-gradient(135deg, rgb(34 197 94) 0%, rgb(74 222 128) 100%);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-gradient-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+}
+
+/* Danger gradient */
+.btn-gradient-danger {
+  background: linear-gradient(135deg, rgb(239 68 68) 0%, rgb(249 115 22) 100%);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-gradient-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Card with glassmorphism */
+.card-glass {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 24px;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.card-glass:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Pulse animation for djecu */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Shine effect */
+@keyframes shine {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shine {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shine 3s infinite;
+}
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(147 51 234) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Kids icon animations */
+.icon-bounce {
+  animation: bounce-kid 1s ease-in-out infinite;
+}
+
+@keyframes bounce-kid {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Smooth color transitions for theme switching */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Wobble animation */
+@keyframes wobble {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-wobble {
+  animation: wobble 0.5s ease-in-out;
+}
+
+/* Pop animation for notifications */
+@keyframes pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pop {
+  animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* === INPUT VISIBILITY === */
+
+/* Ensure all inputs are clearly visible */
+input,
+textarea,
+select {
+  background-color: rgb(255 255 255);
+  color: rgb(15 23 42);
+  border-color: rgb(203 213 225);
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: rgb(107 114 128);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background-color: rgb(248 250 252);
+  border-color: rgb(59 130 246);
 }

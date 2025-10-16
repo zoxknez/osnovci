@@ -63,7 +63,6 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { PWAInstaller } from "@/components/features/pwa-installer";
 import { SkipLink } from "@/components/features/skip-link";
 import { SyncManager } from "@/components/features/sync-manager";
-import { ThemeProvider } from "@/components/theme-provider";
 
 export default function RootLayout({
   children,
@@ -71,35 +70,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="sr" suppressHydrationWarning>
+    <html lang="sr">
       <body
-        className={`${inter.variable} font-sans antialiased bg-gray-50 dark:bg-gray-900`}
+        className={`${inter.variable} font-sans antialiased bg-gray-50 transition-colors duration-300`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ErrorBoundary>
-            {/* Accessibility: Skip Links - WCAG 2.1 AA */}
-            <SkipLink href="#main-content">Preskoči na glavni sadržaj</SkipLink>
+        <ErrorBoundary>
+          {/* Accessibility: Skip Links - WCAG 2.1 AA */}
+          <SkipLink href="#main-content">Preskoči na glavni sadržaj</SkipLink>
 
-            {/* PWA Features */}
-            <PWAInstaller />
-            <SyncManager />
+          {/* PWA Features */}
+          <PWAInstaller />
+          <SyncManager />
 
-            {/* Main Content */}
-            {children}
+          {/* Main Content */}
+          {children}
 
-            {/* Global Notifications */}
-            <Toaster position="top-center" richColors />
+          {/* Global Notifications */}
+          <Toaster position="top-center" richColors />
 
-            {/* Analytics & Performance Monitoring */}
-            <Analytics />
-            <SpeedInsights />
-          </ErrorBoundary>
-        </ThemeProvider>
+          {/* Analytics & Performance Monitoring */}
+          <Analytics />
+          <SpeedInsights />
+        </ErrorBoundary>
       </body>
     </html>
   );

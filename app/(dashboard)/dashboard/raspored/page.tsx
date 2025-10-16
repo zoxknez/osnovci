@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/features/page-header";
 import {
   fadeInUp,
   staggerContainer,
@@ -168,6 +169,14 @@ export default function RasporedPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* PageHeader - Hero sekcija */}
+      <PageHeader
+        title="📅 Raspored časova"
+        description="Pregled svih tvojih časova u nedelji. Organizuj se i nikad ne zakasni!"
+        variant="orange"
+        badge="Aktuelno"
+      />
+
       {/* Header - Mobile optimized */}
       <motion.div
         className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between"

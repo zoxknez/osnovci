@@ -195,7 +195,7 @@ export default function RegistracijaPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card className="shadow-2xl border-2 border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 overflow-hidden">
+          <Card className="shadow-2xl border-2 border-gray-200 backdrop-blur-sm bg-white/90 overflow-hidden">
             {/* Decorative gradient bar */}
             <div className="h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" />
 
@@ -422,7 +422,7 @@ export default function RegistracijaPage() {
                           <div>
                             <label
                               htmlFor="grade-select"
-                              className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                              className="mb-2 block text-sm font-medium text-gray-700"
                             >
                               Razred
                             </label>
@@ -435,7 +435,7 @@ export default function RegistracijaPage() {
                                   grade: Number(e.target.value),
                                 })
                               }
-                              className="flex h-11 w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-2 text-sm transition-all focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-3 focus:ring-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex h-11 w-full rounded-xl border-2 border-gray-200 bg-white text-gray-900 px-4 py-2 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-3 focus:ring-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                               disabled={isLoading}
                             >
                               {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => (
@@ -534,10 +534,10 @@ export default function RegistracijaPage() {
                   {/* Divider */}
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                      <div className="w-full border-t border-gray-300" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">ili</span>
+                      <span className="px-2 bg-white text-gray-500">ili</span>
                     </div>
                   </div>
 

@@ -21,8 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PageHeader } from "@/components/features/page-header";
 import {
-  fadeInUp,
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
@@ -105,48 +105,42 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header sa gamification */}
-      <motion.div
-        initial="initial"
-        animate="animate"
-        variants={fadeInUp}
-        className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Dobar dan, {studentName}! 👋
-          </h1>
-          <p className="text-lg text-gray-700 capitalize">{today}</p>
-        </div>
-
-        {/* Level & XP Card */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl p-4 shadow-lg min-w-[200px]"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              <span className="font-bold text-lg">Level {level}</span>
+      {/* Hero Header sa gamification */}
+      <PageHeader
+        title={`Dobar dan, ${studentName}! 👋`}
+        description={today}
+        variant="gradient"
+        badge="Današnjih napredaka"
+        action={
+          /* Level & XP Card */
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl p-6 shadow-lg min-w-[240px] self-start"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-6 w-6" />
+                <span className="font-bold text-lg">Level {level}</span>
+              </div>
+              <span className="text-sm opacity-90 font-semibold">{xp} XP</span>
             </div>
-            <span className="text-sm opacity-90">{xp} XP</span>
-          </div>
 
-          {/* Progress bar */}
-          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-            <motion.div
-              className="h-full bg-white rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${xpProgress}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-            />
-          </div>
+            {/* Progress bar */}
+            <div className="w-full bg-white/20 rounded-full h-2.5 overflow-hidden mb-2">
+              <motion.div
+                className="h-full bg-white rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${xpProgress}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              />
+            </div>
 
-          <p className="text-xs mt-1 opacity-90">
-            {nextLevelXP - xp} XP do Level {level + 1}
-          </p>
-        </motion.div>
-      </motion.div>
+            <p className="text-xs opacity-90">
+              {nextLevelXP - xp} XP do Level {level + 1}
+            </p>
+          </motion.div>
+        }
+      />
 
       {/* Streak & Motivation Banner */}
       {currentStreak >= 3 && (
@@ -353,6 +347,7 @@ export default function DashboardPage() {
                             ? "bg-gray-300 text-gray-600"
                             : "bg-gray-100 text-gray-700"
                       }`}
+                      role="img"
                       aria-label={`Čas u ${classItem.time.split(" - ")[0]}`}
                     >
                       {classItem.time.split(" - ")[0]}

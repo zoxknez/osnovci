@@ -65,12 +65,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
             {label}
             {required && (
-              <span className="ml-1 text-red-500" aria-label="obavezno">
-                *
+              <span className="ml-1 text-red-500">
+                * <span className="sr-only">obavezno</span>
               </span>
             )}
           </label>
@@ -95,13 +95,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             maxLength={maxLength}
             className={cn(
               // Base styles
-              "flex h-11 w-full rounded-xl border-2 bg-white px-4 py-2 text-sm transition-all duration-200",
-              // Text color - IMPORTANT!
-              "text-gray-900 dark:text-white",
+              "flex h-11 w-full rounded-xl border-2 px-4 py-2 text-sm transition-all duration-200",
+              // Text color
+              "text-gray-900",
               // Placeholder
-              "placeholder:text-gray-400 dark:placeholder:text-gray-500",
-              // Background
-              "dark:bg-gray-800 dark:border-gray-600",
+              "placeholder:text-gray-400",
+              // Background - Subtle glass effect
+              "bg-white/80 backdrop-blur-sm border-gray-200",
 
               // Focus styles
               "focus:outline-none focus:ring-3 focus:ring-offset-1",
@@ -111,10 +111,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 ? "border-red-300 focus:border-red-500 focus:ring-red-500/30"
                 : success
                   ? "border-green-300 focus:border-green-500 focus:ring-green-500/30"
-                  : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/30 dark:focus:border-blue-400",
+                  : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/30",
 
               // Disabled state
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50 dark:disabled:bg-gray-900",
+              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-50",
 
               // Icon padding
               leftIcon && "pl-10",

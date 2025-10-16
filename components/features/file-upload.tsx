@@ -195,8 +195,8 @@ export function FileUpload({
         onDragLeave={handleDragLeave}
         className={`relative border-2 border-dashed rounded-xl p-8 transition-all ${
           isDragging
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-            : "border-gray-300 dark:border-gray-700 hover:border-gray-400"
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-300 hover:border-gray-400"
         }`}
       >
         <input
@@ -217,18 +217,18 @@ export function FileUpload({
               scale: isDragging ? 1.1 : 1,
               rotate: isDragging ? 5 : 0,
             }}
-            className="mb-4 h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center"
+            className="mb-4 h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center"
           >
-            <Upload className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <Upload className="h-8 w-8 text-blue-600" />
           </motion.div>
 
-          <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <p className="text-lg font-semibold text-gray-900 mb-2">
             {isDragging ? "Pusti fajlove ovde" : "Dodaj fajlove"}
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-600">
             Prevuci ili klikni da izabereš
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+          <p className="text-xs text-gray-500 mt-2">
             Max {maxSize}MB • Do {maxFiles} fajlova
           </p>
         </label>
@@ -249,7 +249,7 @@ export function FileUpload({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-white"
               >
                 {/* Icon */}
                 <div className="flex-shrink-0">
@@ -264,16 +264,16 @@ export function FileUpload({
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-medium text-gray-900 truncate">
                     {file.file.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500">
                     {(file.file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
 
                   {/* Progress Bar */}
                   {file.status === "uploading" && (
-                    <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                       <motion.div
                         className="bg-blue-600 h-2 rounded-full"
                         initial={{ width: 0 }}

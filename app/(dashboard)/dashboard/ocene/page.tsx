@@ -32,8 +32,8 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/features/page-header";
 import {
-  fadeInUp,
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
@@ -144,39 +144,32 @@ export default function OcenePage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-        initial="initial"
-        animate="animate"
-        variants={fadeInUp}
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            📊 Ocene & Analitika
-          </h1>
-          <p className="text-gray-600 mt-1">Prati svoj napredak i postignuća</p>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Filter className="h-4 w-4" />}
-            aria-label="Filtriraj ocene po predmetu ili periodu"
-          >
-            Filter
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Download className="h-4 w-4" />}
-            aria-label="Preuzmi izveštaj o ocenama u PDF formatu"
-          >
-            Izvoz
-          </Button>
-        </div>
-      </motion.div>
+      {/* Hero Header */}
+      <PageHeader
+        title="📊 Ocene & Analitika"
+        description="Prati svoj napredak i postignuća"
+        variant="purple"
+        action={
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<Filter className="h-4 w-4" />}
+              aria-label="Filtriraj ocene po predmetu ili periodu"
+            >
+              Filter
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<Download className="h-4 w-4" />}
+              aria-label="Preuzmi izveštaj o ocenama u PDF formatu"
+            >
+              Izvoz
+            </Button>
+          </div>
+        }
+      />
 
       {/* Period Selector */}
       <div className="flex gap-2">
