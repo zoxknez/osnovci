@@ -20,9 +20,10 @@ import { log } from "@/lib/logger";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await context.params;
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -31,7 +32,7 @@ export async function GET(
 
     // Dohvati homework
     const homework = await prisma.homework.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         subject: {
           select: { id: true, name: true, color: true },
@@ -57,7 +58,7 @@ export async function GET(
 
     log.info("Fetched homework", {
       userId: session.user.id,
-      homeworkId: params.id,
+      homeworkId: id,
     });
 
     return successResponse({
@@ -84,9 +85,10 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await context.params;
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -101,7 +103,7 @@ export async function PUT(
 
     // Dohvati homework
     const homework = await prisma.homework.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!homework) {
@@ -119,7 +121,7 @@ export async function PUT(
 
     // Ažuriraj homework
     const updated = await prisma.homework.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(validatedData.title && { title: validatedData.title }),
         ...(validatedData.description && {
@@ -140,7 +142,7 @@ export async function PUT(
 
     log.info("Updated homework", {
       userId: session.user.id,
-      homeworkId: params.id,
+      homeworkId: id,
       fields: Object.keys(validatedData),
     });
 
@@ -166,9 +168,10 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await context.params;
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -177,7 +180,7 @@ export async function DELETE(
 
     // Dohvati homework
     const homework = await prisma.homework.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!homework) {
@@ -195,17 +198,17 @@ export async function DELETE(
 
     // Obriši attachmente prvi
     await prisma.attachment.deleteMany({
-      where: { homeworkId: params.id },
+      where: { homeworkId: id },
     });
 
     // Obriši homework
     await prisma.homework.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     log.info("Deleted homework", {
       userId: session.user.id,
-      homeworkId: params.id,
+      homeworkId: id,
     });
 
     return noContentResponse();
