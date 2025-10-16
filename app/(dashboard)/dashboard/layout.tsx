@@ -141,7 +141,7 @@ export default function DashboardLayout({
                 aria-label={item.name}
                 aria-current={isActive ? "page" : undefined}
               >
-                <span className="text-2xl sm:text-3xl">{item.emoji}</span>
+                <span className="text-3xl sm:text-4xl">{item.emoji}</span>
                 <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">{item.name}</span>
               </Link>
             );
