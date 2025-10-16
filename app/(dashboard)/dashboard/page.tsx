@@ -29,11 +29,6 @@ import {
 
 export default function DashboardPage() {
   // Mock data - ovo će kasnije biti real data iz baze
-  const today = new Date().toLocaleDateString("sr-RS", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
 
   // Gamification data
   const studentName = "Marko"; // TODO: Get from session
@@ -108,7 +103,6 @@ export default function DashboardPage() {
       {/* Hero Header sa gamification */}
       <PageHeader
         title={`Dobar dan, ${studentName}! 👋`}
-        description={today}
         variant="gradient"
         badge="Današnjih napredaka"
         action={

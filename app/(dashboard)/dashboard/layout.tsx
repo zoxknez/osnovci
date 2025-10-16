@@ -47,6 +47,13 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const dateString = currentDate.toLocaleDateString("sr-Latn-RS", {
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
@@ -113,6 +120,11 @@ export default function DashboardLayout({
               </Link>
             );
           })}
+        </div>
+
+        {/* Date/Time indicator on mobile */}
+        <div className="px-3 sm:px-4 py-2 border-t border-gray-100 text-center text-xs text-gray-600 font-medium bg-gradient-to-r from-blue-50/50 to-purple-50/50">
+          {dateString}
         </div>
       </div>
 
