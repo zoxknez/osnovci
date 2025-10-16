@@ -199,13 +199,13 @@ export default function DashboardLayout({
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
                     className={cn(
-                      "group flex items-center gap-x-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
+                      "group flex items-center gap-x-3 rounded-xl px-4 py-4 text-base font-medium transition-all",
                       isActive
                         ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                         : "text-gray-700 hover:bg-gray-100 active:scale-95",
                     )}
                   >
-                    <span className="text-2xl">{item.emoji}</span>
+                    <span className="text-3xl">{item.emoji}</span>
                     <span>{item.name}</span>
                   </Link>
                 </li>
@@ -218,7 +218,7 @@ export default function DashboardLayout({
               href="/dashboard/podesavanja"
               onClick={() => setSidebarOpen(false)}
               aria-label="Idi na podešavanja"
-              className="group flex items-center gap-x-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
+              className="group flex items-center gap-x-3 rounded-xl px-4 py-4 text-base font-medium text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
             >
               <Settings className="h-5 w-5" aria-hidden="true" />
               <span>Podešavanja</span>
@@ -231,9 +231,9 @@ export default function DashboardLayout({
                 /* Logout logic */
               }}
               aria-label="Odjavi se sa naloga"
-              className="w-full group flex items-center gap-x-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 active:scale-95 transition-all mt-1 focus:ring-2 focus:ring-red-500 focus:outline-none"
+              className="w-full group flex items-center gap-x-3 rounded-xl px-4 py-4 text-base font-medium text-red-600 hover:bg-red-50 active:scale-95 transition-all mt-1 focus:ring-2 focus:ring-red-500 focus:outline-none"
             >
-              <LogOut className="h-5 w-5" aria-hidden="true" />
+              <LogOut className="h-6 w-6" aria-hidden="true" />
               <span>Odjavi se</span>
             </button>
           </div>
