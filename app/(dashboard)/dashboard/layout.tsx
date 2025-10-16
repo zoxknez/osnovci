@@ -76,7 +76,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
       {/* Mobile header - Enhanced & optimized for small screens */}
-      <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between gap-3 sm:gap-4 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-white backdrop-blur-lg px-2 sm:px-4 shadow-md lg:hidden">
+      <header className="sticky top-0 z-40 flex h-auto sm:h-16 items-center justify-start gap-2 sm:gap-3 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-white backdrop-blur-lg px-2 sm:px-4 py-3 sm:py-0 shadow-md lg:hidden flex-wrap sm:flex-nowrap">
         {/* Left: Menu Button with animated icon - UOKVIRENO */}
         <button
           type="button"
@@ -107,45 +107,37 @@ export default function DashboardLayout({
           <span className="sr-only">Meni</span>
         </button>
 
-        {/* Center: Spacer */}
-        <div className="flex-1"></div>
-
-        {/* Right: Spacer for balance */}
-        <div className="w-6 sm:w-7 flex-shrink-0"></div>
-      </header>
-
-      {/* Mobile Tab Bar - Colorful tabs with emojis and gradients - ONLY 3 MAIN TABS */}
-      <div className="sticky top-14 sm:top-16 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
-        <div className="grid grid-cols-3">
+        {/* 3 Main Navigation Buttons - Sada u header-u */}
+        <div className="flex gap-1.5 sm:gap-2 flex-1">
           {navigation.slice(0, 3).map((item) => {
             const isActive = pathname === item.href;
-            const tabColors: Record<string, { bg: string; text: string; icon: string }> = {
-              "/dashboard": { bg: "from-blue-500 to-blue-600", text: "text-blue-600", icon: "🏠" },
-              "/dashboard/domaci": { bg: "from-amber-500 to-orange-600", text: "text-amber-600", icon: "📚" },
-              "/dashboard/raspored": { bg: "from-purple-500 to-purple-600", text: "text-purple-600", icon: "📅" },
+            const tabColors: Record<string, { bg: string; text: string }> = {
+              "/dashboard": { bg: "from-blue-500 to-blue-600", text: "text-blue-600" },
+              "/dashboard/domaci": { bg: "from-amber-500 to-orange-600", text: "text-amber-600" },
+              "/dashboard/raspored": { bg: "from-purple-500 to-purple-600", text: "text-purple-600" },
             };
-            const colors = tabColors[item.href] || { bg: "from-gray-500 to-gray-600", text: "text-gray-600", icon: "📌" };
-            
+            const colors = tabColors[item.href] || { bg: "from-gray-500 to-gray-600", text: "text-gray-600" };
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-center gap-1.5 px-2 py-3 transition-all touch-manipulation border-b-2",
+                  "flex items-center justify-center gap-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg transition-all touch-manipulation flex-1 sm:flex-none",
                   isActive
-                    ? `bg-gradient-to-r ${colors.bg} text-white border-b-4 shadow-md`
-                    : "text-gray-600 border-b-2 border-transparent hover:bg-gray-50"
+                    ? `bg-gradient-to-r ${colors.bg} text-white shadow-md font-semibold`
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
                 )}
                 aria-label={item.name}
                 aria-current={isActive ? "page" : undefined}
               >
-                <span className="text-lg">{item.emoji}</span>
-                <span className="text-sm font-semibold truncate">{item.name}</span>
+                <span className="text-base">{item.emoji}</span>
+                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">{item.name}</span>
               </Link>
             );
           })}
         </div>
-      </div>
+      </header>
 
       {/* Osnovci Brand Bar - NOVI - sa satom i logoom */}
       <div className="sticky top-[calc(3.5rem+56px)] sm:top-[calc(4rem+56px)] z-25 bg-gradient-to-r from-white via-blue-50 to-white border-b border-gray-100 shadow-sm lg:hidden px-3 sm:px-4 py-2.5 sm:py-3">
