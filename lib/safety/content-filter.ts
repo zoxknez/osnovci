@@ -88,11 +88,20 @@ export class AgeFilter {
       };
     }
 
+    const trimmed = content.trim();
+    const words = trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
+
+    if (words <= 20) {
+      return {
+        appropriate: true,
+      };
+    }
+
     // Check za kompleksnost teksta (Flesch Reading Ease)
-    const complexity = AgeFilter.calculateComplexity(content);
+    const complexity = AgeFilter.calculateComplexity(trimmed);
 
     // Za decu 7-10: jednostavan jezik
-    if (age <= 10 && complexity > 60) {
+    if (age <= 10 && complexity > 70) {
       return {
         appropriate: false,
         reason: "Tekst je previše složen",
@@ -100,7 +109,7 @@ export class AgeFilter {
     }
 
     // Za decu 11-15: umereno složen jezik
-    if (age <= 15 && complexity > 80) {
+    if (age <= 15 && complexity > 85) {
       return {
         appropriate: false,
         reason: "Tekst je previše složen",
@@ -124,8 +133,7 @@ export class AgeFilter {
     const score =
       206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words);
 
-    // Inverzno: veći score = lakši tekst, mi želimo obrnuto
-    return Math.max(0, Math.min(100, 100 - score));
+    return Math.max(0, Math.min(100, score));
   }
 
   /**
