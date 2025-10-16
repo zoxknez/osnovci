@@ -85,12 +85,11 @@ const limiters = {
 
 // Cleanup every 5 minutes
 if (typeof window === "undefined") {
-  setInterval(
-    () => {
-      Object.values(limiters).forEach((limiter) => limiter.cleanup());
-    },
-    5 * 60 * 1000,
-  );
+  setInterval(() => {
+    Object.values(limiters).forEach((limiter) => {
+      limiter.cleanup();
+    });
+  }, 5 * 60 * 1000);
 }
 
 /**
