@@ -74,7 +74,7 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
+    <div className={cn("min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30", sidebarOpen && "overflow-hidden")}>
       {/* Mobile header - Enhanced & optimized for small screens */}
       <header className="sticky top-0 z-40 flex h-auto sm:h-16 items-center justify-start gap-2 sm:gap-3 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-white backdrop-blur-lg px-2 sm:px-4 py-3 sm:py-0 shadow-md lg:hidden flex-wrap sm:flex-nowrap">
         {/* Left: Menu Button with animated icon - UOKVIRENO */}
