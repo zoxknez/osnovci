@@ -85,7 +85,7 @@ export default function DashboardLayout({
 
       {/* Mobile Tab Bar - Colorful tabs with emojis and gradients - ONLY 3 MAIN TABS */}
       <div className="sticky top-14 sm:top-16 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
-        <div className="flex overflow-x-auto scrollbar-hide">
+        <div className="grid grid-cols-3">
           {navigation.slice(0, 3).map((item) => {
             const isActive = pathname === item.href;
             const tabColors: Record<string, { bg: string; text: string; icon: string }> = {
@@ -100,7 +100,7 @@ export default function DashboardLayout({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex-shrink-0 flex items-center justify-center gap-1.5 px-4 py-3 min-w-fit transition-all touch-manipulation border-b-2",
+                  "flex items-center justify-center gap-1.5 px-2 py-3 transition-all touch-manipulation border-b-2",
                   isActive
                     ? `bg-gradient-to-r ${colors.bg} text-white border-b-4 shadow-md`
                     : "text-gray-600 border-b-2 border-transparent hover:bg-gray-50"
@@ -109,7 +109,7 @@ export default function DashboardLayout({
                 aria-current={isActive ? "page" : undefined}
               >
                 <span className="text-lg">{item.emoji}</span>
-                <span className="text-sm font-semibold">{item.name}</span>
+                <span className="text-sm font-semibold truncate">{item.name}</span>
               </Link>
             );
           })}
