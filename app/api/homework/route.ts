@@ -1,141 +1,211 @@
-// Homework API - CRUD operations
-import { type NextRequest } from "next/server";
-import type { Prisma } from "@prisma/client";
-import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
+import { getServerSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth/config";
+import {
+  CreateHomeworkSchema,
+  QueryHomeworkSchema,
+} from "@/lib/api/schemas/homework";
+import {
+  handleAPIError,
+  AuthenticationError,
+  NotFoundError,
+} from "@/lib/api/handlers/errors";
+import {
+  successResponse,
+  paginatedResponse,
+  createdResponse,
+} from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
-import { withAuthAndRateLimit, getAuthenticatedStudent, sanitizeBody, internalError, badRequest, success } from "@/lib/api/middleware";
-import { notifyHomeworkDue } from "@/lib/notifications/create";
-import { ActivityLogger } from "@/lib/tracking/activity-logger";
 
-// Validation schema
-const createHomeworkSchema = z.object({
-  subjectId: z.string().cuid(),
-  title: z.string().min(1, "Naslov je obavezan").max(200),
-  description: z.string().max(1000).optional(),
-  dueDate: z.string().datetime(),
-  priority: z.enum(["NORMAL", "IMPORTANT", "URGENT"]).default("NORMAL"),
-});
-
-// GET /api/homework - Get all homework for student
-// biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const GET = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
+/**
+ * GET /api/homework
+ * Dohvata sve domaće zadatke sa filtriranjem i paginacijom
+ */
+export async function GET(request: NextRequest) {
   try {
-    // Get student (helper eliminates duplicate query!)
-    const student = await getAuthenticatedStudent(session.user.id);
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new AuthenticationError();
+    }
 
-    // Get query params for filtering and pagination
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const subjectId = searchParams.get("subjectId");
-    const page = Math.max(1, Number(searchParams.get("page")) || 1);
-    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 50));
-    const skip = (page - 1) * limit;
-
-    // Build where clause
-    const where: Prisma.HomeworkWhereInput = {
-      studentId: student.id,
+    // Parse query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const queryData = {
+      page: searchParams.get("page") || "1",
+      limit: searchParams.get("limit") || "10",
+      status: searchParams.get("status") || undefined,
+      priority: searchParams.get("priority") || undefined,
+      sortBy: searchParams.get("sortBy") || "dueDate",
+      order: searchParams.get("order") || "asc",
     };
 
-    if (status) {
-      where.status = status as "ASSIGNED" | "IN_PROGRESS" | "DONE" | "SUBMITTED" | "REVIEWED" | "REVISION";
-    }
+    // Validacija query parametara
+    const validatedQuery = QueryHomeworkSchema.parse(queryData);
 
-    if (subjectId) {
-      where.subjectId = subjectId;
-    }
-
-    // Fetch homework with pagination
-    const [homework, total] = await Promise.all([
-      prisma.homework.findMany({
-        where,
-        include: {
-          subject: true,
-          attachments: {
-            select: {
-              id: true,
-              type: true,
-              fileName: true,
-              thumbnail: true,
-              uploadedAt: true,
-            },
-          },
-        },
-        orderBy: [
-          { status: "asc" }, // Active first
-          { dueDate: "asc" }, // Closest deadline first
-        ],
-        skip,
-        take: limit,
-      }),
-      prisma.homework.count({ where }),
-    ]);
-
-    return success({
-      homework,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasMore: page * limit < total,
-      },
+    // Dohvati korisnika i njegovu djecu
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { students: { select: { id: true } } },
     });
-  } catch (error) {
-    return internalError(error, "Greška pri učitavanju zadataka");
-  }
-});
 
-// POST /api/homework - Create new homework
-// biome-ignore lint: session type from NextAuth, context from Next.js 15
-export const POST = withAuthAndRateLimit(async (request: NextRequest, session: any, _context: any) => {
-  try {
-    // Get student
-    const student = await getAuthenticatedStudent(session.user.id);
-
-    // Validate and sanitize request body
-    const body = await request.json();
-    const sanitized = sanitizeBody(body, ["title", "description"]);
-    const validated = createHomeworkSchema.safeParse(sanitized);
-
-    if (!validated.success) {
-      return badRequest("Nevažeći podaci", validated.error.flatten());
+    if (!user) {
+      throw new NotFoundError("Korisnik");
     }
 
-    const { subjectId, title, description, dueDate, priority } = validated.data;
+    const studentIds = user.students.map((s) => s.id);
+    if (studentIds.length === 0) {
+      // Ako je sam student, koristi njegov ID
+      const student = await prisma.student.findFirst({
+        where: { userId: user.id },
+      });
+      if (student) {
+        studentIds.push(student.id);
+      }
+    }
 
-    // Create homework
+    // Build filter
+    const where: any = {
+      studentId: { in: studentIds },
+    };
+
+    if (validatedQuery.status) {
+      where.status = validatedQuery.status;
+    }
+    if (validatedQuery.priority) {
+      where.priority = validatedQuery.priority;
+    }
+
+    // Dohvati total broj
+    const total = await prisma.homework.count({ where });
+
+    // Dohvati domaće sa paginacijom
+    const homework = await prisma.homework.findMany({
+      where,
+      include: {
+        subject: {
+          select: { id: true, name: true, color: true },
+        },
+        _count: {
+          select: { attachments: true },
+        },
+      },
+      orderBy: {
+        [validatedQuery.sortBy]: validatedQuery.order,
+      },
+      skip: (validatedQuery.page - 1) * validatedQuery.limit,
+      take: validatedQuery.limit,
+    });
+
+    // Format response
+    const formatted = homework.map((hw) => ({
+      id: hw.id,
+      title: hw.title,
+      description: hw.description,
+      subject: hw.subject,
+      dueDate: hw.dueDate,
+      priority: hw.priority,
+      status: hw.status,
+      attachmentsCount: hw._count.attachments,
+      createdAt: hw.createdAt,
+      updatedAt: hw.updatedAt,
+    }));
+
+    log.info("Fetched homework", {
+      userId: session.user.id,
+      count: formatted.length,
+      total,
+    });
+
+    return paginatedResponse(
+      formatted,
+      validatedQuery.page,
+      validatedQuery.limit,
+      total,
+      `Pronađeno ${total} domaćih`
+    );
+  } catch (error) {
+    return handleAPIError(error);
+  }
+}
+
+/**
+ * POST /api/homework
+ * Kreira novi domaći zadatak
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new AuthenticationError();
+    }
+
+    // Parse body
+    const body = await request.json();
+
+    // Validacija
+    const validatedData = CreateHomeworkSchema.parse(body);
+
+    // Provjeri da li subjekt postoji
+    const subject = await prisma.subject.findUnique({
+      where: { id: validatedData.subjectId },
+    });
+
+    if (!subject) {
+      throw new NotFoundError("Predmet");
+    }
+
+    // Dohvati studentov ID
+    const student = await prisma.student.findFirst({
+      where: { userId: session.user.id },
+    });
+
+    if (!student) {
+      throw new NotFoundError("Učenik");
+    }
+
+    // Kreiraj domaći
     const homework = await prisma.homework.create({
       data: {
+        title: validatedData.title,
+        description: validatedData.description,
         studentId: student.id,
-        subjectId,
-        title,
-        description,
-        dueDate: new Date(dueDate),
-        priority,
-        status: "ASSIGNED",
+        subjectId: validatedData.subjectId,
+        dueDate: new Date(validatedData.dueDate),
+        priority: validatedData.priority,
+        status: validatedData.status,
       },
       include: {
-        subject: true,
-        attachments: true,
+        subject: {
+          select: { id: true, name: true, color: true },
+        },
       },
     });
 
-    log.info("Homework created", { homeworkId: homework.id, studentId: student.id });
+    log.info("Created homework", {
+      userId: session.user.id,
+      homeworkId: homework.id,
+      title: homework.title,
+    });
 
-    // Log activity for parents
-    await ActivityLogger.homeworkCreated(student.id, title, request);
-
-    // Create notification if due soon
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (user) {
-      await notifyHomeworkDue(user.id, homework.id, title, new Date(dueDate)).catch((err) => {
-        log.warn("Failed to create homework notification", { error: err });
-      });
-    }
-
-    return success({ message: "Domaći zadatak je kreiran!", homework }, 201);
+    return createdResponse(
+      {
+        id: homework.id,
+        title: homework.title,
+        description: homework.description,
+        subject: homework.subject,
+        dueDate: homework.dueDate,
+        priority: homework.priority,
+        status: homework.status,
+        attachmentsCount: 0,
+        createdAt: homework.createdAt,
+        updatedAt: homework.updatedAt,
+      },
+      "Domaći je uspješno kreiran"
+    );
   } catch (error) {
-    return internalError(error, "Greška pri kreiranju zadatka");
+    return handleAPIError(error);
   }
-});
+}
