@@ -1,7 +1,6 @@
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/auth/config";
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import bcrypt from "bcryptjs";
 import {
   UpdateProfileSchema,
@@ -23,7 +22,7 @@ import { log } from "@/lib/logger";
 export async function GET(request: NextRequest) {
   try {
     // Autentifikacija
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -124,7 +123,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Autentifikacija
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -192,7 +191,7 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Autentifikacija
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }

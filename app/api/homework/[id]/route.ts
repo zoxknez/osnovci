@@ -1,7 +1,6 @@
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/auth/config";
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { UpdateHomeworkSchema } from "@/lib/api/schemas/homework";
 import {
   handleAPIError,
@@ -25,7 +24,7 @@ export async function GET(
 ) {
   try {
     // Autentifikacija
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -89,7 +88,7 @@ export async function PUT(
 ) {
   try {
     // Autentifikacija
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -171,7 +170,7 @@ export async function DELETE(
 ) {
   try {
     // Autentifikacija
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
