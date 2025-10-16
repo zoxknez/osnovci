@@ -30,6 +30,9 @@ export default function DomaciPage() {
   );
   const [cameraOpen, setCameraOpen] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(
+    null,
+  );
 
   // Nova stanja za API
   const [homework, setHomework] = useState<any[]>([]);

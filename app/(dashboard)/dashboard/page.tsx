@@ -100,6 +100,7 @@ export default function DashboardPage() {
       {/* Hero Header sa gamification */}
       <PageHeader
         title={`Dobar dan, ${studentName}! 👋`}
+        description="Tvoj pregled aktivnosti za danas"
         variant="gradient"
         badge="Današnjih napredaka"
         action={
