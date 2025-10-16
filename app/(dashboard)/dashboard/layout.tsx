@@ -239,24 +239,37 @@ export default function DashboardLayout({
           </div>
 
           {/* Brand Section na dnu menija - Sat, Osnovci, Datum */}
-          <div className="mt-auto pt-12 border-t border-gray-200">
-            {/* OSNOVCI LOGO - ODVOJEN NA VRHU */}
-            <div className="flex flex-col items-center justify-center px-3 py-8">
-              <h2 className="text-7xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
-                Osnovci
-              </h2>
+          <div className="mt-auto pt-8 border-t border-gray-200">
+            {/* ANALOGAN SAT */}
+            <div className="flex flex-col items-center justify-center px-3 py-6">
+              <div className="relative w-24 h-24 rounded-full border-4 border-gradient-to-r from-blue-400 to-purple-400 bg-white shadow-lg flex items-center justify-center">
+                {/* Center dot */}
+                <div className="absolute w-2 h-2 bg-gray-800 rounded-full z-10"></div>
+                
+                {/* Hour hand */}
+                <div 
+                  className="absolute w-1 h-6 bg-blue-600 rounded-full origin-bottom"
+                  style={{
+                    transform: `rotate(${(currentDate.getHours() % 12) * 30 + currentDate.getMinutes() * 0.5}deg)`,
+                    bottom: '50%'
+                  }}
+                ></div>
+                
+                {/* Minute hand */}
+                <div 
+                  className="absolute w-0.5 h-8 bg-purple-600 rounded-full origin-bottom"
+                  style={{
+                    transform: `rotate(${currentDate.getMinutes() * 6}deg)`,
+                    bottom: '50%'
+                  }}
+                ></div>
+              </div>
             </div>
 
-            {/* SAT I DATUM - ODVOJENO ISPOD */}
-            <div className="flex flex-col items-center justify-center gap-3 px-3 py-6">
-              {/* SAT - manji ispod */}
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-5xl">{getTimeEmoji()}</span>
-                <span className="text-3xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
-              </div>
-
-              {/* DATUM - mali tekst */}
-              <p className="text-lg text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
+            {/* DATUM - lepo vidljiv */}
+            <div className="flex flex-col items-center justify-center gap-2 px-3 py-4">
+              <p className="text-lg font-semibold text-gray-700">{dayOfWeek}</p>
+              <p className="text-2xl font-bold text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">{dayNum}. {month}</p>
             </div>
           </div>
         </nav>
