@@ -76,7 +76,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
       {/* Mobile header - Enhanced & optimized for small screens */}
-      <header className="sticky top-0 z-40 flex h-16 sm:h-20 items-center justify-between gap-3 sm:gap-4 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-white backdrop-blur-lg px-2 sm:px-4 shadow-md lg:hidden">
+      <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between gap-3 sm:gap-4 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-white backdrop-blur-lg px-2 sm:px-4 shadow-md lg:hidden">
         {/* Left: Menu Button with animated icon - UOKVIRENO */}
         <button
           type="button"
@@ -107,49 +107,15 @@ export default function DashboardLayout({
           <span className="sr-only">Meni</span>
         </button>
 
-        {/* Center: Osnovci Logo & Inovativni Sat - SPOJENI ESTETSKI */}
-        <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 min-w-0">
-          {/* Desktop: Sat na levo, Logo i datum pored njega */}
-          <div className="hidden sm:flex items-center gap-3 px-3 py-2 rounded-2xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-blue-200/40 shadow-sm hover:shadow-md transition-all">
-            {/* Veliki, BOLD sat */}
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl">{getTimeEmoji()}</span>
-              <span className="text-lg sm:text-2xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono tracking-tight">{hours}:{minutes}</span>
-            </div>
-            
-            {/* Separator */}
-            <div className="h-8 w-0.5 bg-gradient-to-b from-blue-300 to-purple-300 rounded-full opacity-50"></div>
-            
-            {/* Logo i datum */}
-            <div className="flex flex-col items-start">
-              <h1 className="text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
-                Osnovci
-              </h1>
-              <p className="text-xs text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
-            </div>
-          </div>
-
-          {/* Mobilni: Sat gore, Logo dole */}
-          <div className="sm:hidden flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-blue-200/40">
-            {/* Veliki sat */}
-            <div className="flex items-center gap-2">
-              <span className="text-3xl">{getTimeEmoji()}</span>
-              <span className="text-2xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono tracking-tight">{hours}:{minutes}</span>
-            </div>
-            
-            {/* Logo i datum */}
-            <h1 className="text-sm font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
-              Osnovci
-            </h1>
-          </div>
-        </div>
+        {/* Center: Spacer */}
+        <div className="flex-1"></div>
 
         {/* Right: Spacer for balance */}
         <div className="w-6 sm:w-7 flex-shrink-0"></div>
       </header>
 
       {/* Mobile Tab Bar - Colorful tabs with emojis and gradients - ONLY 3 MAIN TABS */}
-      <div className="sticky top-16 sm:top-20 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
+      <div className="sticky top-14 sm:top-16 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
         <div className="grid grid-cols-3">
           {navigation.slice(0, 3).map((item) => {
             const isActive = pathname === item.href;
@@ -178,6 +144,28 @@ export default function DashboardLayout({
               </Link>
             );
           })}
+        </div>
+      </div>
+
+      {/* Osnovci Brand Bar - NOVI - sa satom i logoom */}
+      <div className="sticky top-[calc(3.5rem+56px)] sm:top-[calc(4rem+56px)] z-25 bg-gradient-to-r from-white via-blue-50 to-white border-b border-gray-100 shadow-sm lg:hidden px-3 sm:px-4 py-2.5 sm:py-3">
+        <div className="flex items-center justify-center gap-3 px-3 py-2 rounded-xl bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 border border-blue-200/40">
+          {/* Sat */}
+          <div className="flex items-baseline gap-1">
+            <span className="text-xl">{getTimeEmoji()}</span>
+            <span className="text-lg font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
+          </div>
+          
+          {/* Separator */}
+          <div className="h-6 w-0.5 bg-gradient-to-b from-blue-300 to-purple-300 rounded-full opacity-40"></div>
+          
+          {/* Logo i datum */}
+          <div className="flex flex-col items-center">
+            <h1 className="text-sm font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
+              Osnovci
+            </h1>
+            <p className="text-xs text-gray-500 font-medium">{dayOfWeek} {dayNum}.{month}</p>
+          </div>
         </div>
       </div>
 
