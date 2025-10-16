@@ -1,137 +1,213 @@
-// Schedule API - Weekly schedule management
-import { type NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
-import { z } from "zod";
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
+import { getServerSession } from "next-auth";
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth/config";
+import {
+  CreateScheduleSchema,
+  QueryScheduleSchema,
+  DayOfWeek,
+} from "@/lib/api/schemas/schedule";
+import {
+  handleAPIError,
+  AuthenticationError,
+  NotFoundError,
+} from "@/lib/api/handlers/errors";
+import {
+  successResponse,
+  paginatedResponse,
+  createdResponse,
+} from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
 
-const createScheduleSchema = z.object({
-  subjectId: z.string().cuid(),
-  dayOfWeek: z.enum([
-    "MONDAY",
-    "TUESDAY",
-    "WEDNESDAY",
-    "THURSDAY",
-    "FRIDAY",
-    "SATURDAY",
-    "SUNDAY",
-  ]),
-  startTime: z
-    .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format: HH:MM"),
-  endTime: z
-    .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format: HH:MM"),
-  room: z.string().max(50).optional(),
-  notes: z.string().max(200).optional(),
-  isAWeek: z.boolean().default(true),
-  isBWeek: z.boolean().default(true),
-});
-
-// GET /api/schedule - Get student schedule
+/**
+ * GET /api/schedule
+ * Dohvata sve rasporede sa filtriranjem i paginacijom
+ */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { student: true },
-    });
-
-    if (!user?.student) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
-    }
-
-    // Get query params
-    const { searchParams } = new URL(request.url);
-    const dayOfWeek = searchParams.get("dayOfWeek");
-
-    const where: Prisma.ScheduleEntryWhereInput = {
-      studentId: user.student.id,
+    // Parse query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const queryData = {
+      page: searchParams.get("page") || "1",
+      limit: searchParams.get("limit") || "20",
+      dayOfWeek: searchParams.get("dayOfWeek") || undefined,
+      status: searchParams.get("status") || undefined,
+      sortBy: searchParams.get("sortBy") || "dayOfWeek",
+      order: searchParams.get("order") || "asc",
     };
 
-    if (dayOfWeek) {
-      where.dayOfWeek = dayOfWeek as "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+    // Validacija query parametara
+    const validatedQuery = QueryScheduleSchema.parse(queryData);
+
+    // Dohvati korisnika i njegovu djecu
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { students: { select: { id: true } } },
+    });
+
+    if (!user) {
+      throw new NotFoundError("Korisnik");
     }
 
-    const schedule = await prisma.scheduleEntry.findMany({
+    const studentIds = user.students.map((s) => s.id);
+    if (studentIds.length === 0) {
+      // Ako je sam student, koristi njegov ID
+      const student = await prisma.student.findFirst({
+        where: { userId: user.id },
+      });
+      if (student) {
+        studentIds.push(student.id);
+      }
+    }
+
+    // Build filter
+    const where: any = {
+      studentId: { in: studentIds },
+    };
+
+    if (validatedQuery.dayOfWeek) {
+      where.dayOfWeek = validatedQuery.dayOfWeek;
+    }
+    if (validatedQuery.status) {
+      where.status = validatedQuery.status;
+    }
+
+    // Dohvati total broj
+    const total = await prisma.scheduleEntry.count({ where });
+
+    // Dohvati rasporede sa paginacijom
+    const schedules = await prisma.scheduleEntry.findMany({
       where,
       include: {
-        subject: true,
+        subject: {
+          select: { id: true, name: true, color: true, icon: true },
+        },
       },
-      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+      orderBy: {
+        [validatedQuery.sortBy]: validatedQuery.order,
+      },
+      skip: (validatedQuery.page - 1) * validatedQuery.limit,
+      take: validatedQuery.limit,
     });
 
-    return NextResponse.json({
-      success: true,
-      schedule,
-      count: schedule.length,
+    // Format response
+    const formatted = schedules.map((schedule) => ({
+      id: schedule.id,
+      subject: schedule.subject,
+      dayOfWeek: schedule.dayOfWeek,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      classroom: schedule.classroom,
+      teacher: schedule.teacher,
+      notes: schedule.notes,
+      status: schedule.status,
+      createdAt: schedule.createdAt,
+      updatedAt: schedule.updatedAt,
+    }));
+
+    log.info("Fetched schedules", {
+      userId: session.user.id,
+      count: formatted.length,
+      total,
     });
-  } catch (error) {
-    log.error("GET /api/schedule failed", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
+
+    return paginatedResponse(
+      formatted,
+      validatedQuery.page,
+      validatedQuery.limit,
+      total,
+      `Pronađeno ${total} raspored`
     );
+  } catch (error) {
+    return handleAPIError(error);
   }
 }
 
-// POST /api/schedule - Create schedule entry
+/**
+ * POST /api/schedule
+ * Kreira novi raspored
+ */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { student: true },
+    // Parse body
+    const body = await request.json();
+
+    // Validacija
+    const validatedData = CreateScheduleSchema.parse(body);
+
+    // Provjeri da li subjekt postoji
+    const subject = await prisma.subject.findUnique({
+      where: { id: validatedData.subjectId },
     });
 
-    if (!user?.student) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
+    if (!subject) {
+      throw new NotFoundError("Predmet");
     }
 
-    const body = await request.json();
-    const validated = createScheduleSchema.safeParse(body);
+    // Dohvati studentov ID
+    const student = await prisma.student.findFirst({
+      where: { userId: session.user.id },
+    });
 
-    if (!validated.success) {
-      return NextResponse.json(
-        { error: "Validation Error", details: validated.error.flatten() },
-        { status: 400 },
-      );
+    if (!student) {
+      throw new NotFoundError("Učenik");
     }
 
-    const entry = await prisma.scheduleEntry.create({
+    // Kreiraj raspored
+    const schedule = await prisma.scheduleEntry.create({
       data: {
-        studentId: user.student.id,
-        ...validated.data,
+        studentId: student.id,
+        subjectId: validatedData.subjectId,
+        dayOfWeek: validatedData.dayOfWeek as DayOfWeek,
+        startTime: validatedData.startTime,
+        endTime: validatedData.endTime,
+        classroom: validatedData.classroom,
+        teacher: validatedData.teacher,
+        notes: validatedData.notes,
+        status: validatedData.status,
       },
       include: {
-        subject: true,
+        subject: {
+          select: { id: true, name: true, color: true, icon: true },
+        },
       },
     });
 
-    return NextResponse.json(
+    log.info("Created schedule entry", {
+      userId: session.user.id,
+      scheduleId: schedule.id,
+      subject: schedule.subject.name,
+    });
+
+    return createdResponse(
       {
-        success: true,
-        message: "Čas je dodat u raspored!",
-        entry,
+        id: schedule.id,
+        subject: schedule.subject,
+        dayOfWeek: schedule.dayOfWeek,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        classroom: schedule.classroom,
+        teacher: schedule.teacher,
+        notes: schedule.notes,
+        status: schedule.status,
+        createdAt: schedule.createdAt,
+        updatedAt: schedule.updatedAt,
       },
-      { status: 201 },
+      "Raspored je uspješno kreiran"
     );
   } catch (error) {
-    log.error("POST /api/schedule failed", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return handleAPIError(error);
   }
 }
