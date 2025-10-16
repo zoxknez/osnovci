@@ -133,7 +133,7 @@ export default function DashboardLayout({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-center gap-2 px-3 sm:px-4 py-3 sm:py-3.5 rounded-lg transition-all touch-manipulation flex-1 sm:flex-none",
+                  "flex items-center justify-center gap-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg transition-all touch-manipulation flex-1 sm:flex-none",
                   isActive
                     ? `bg-gradient-to-r ${colors.bg} text-white shadow-md font-semibold`
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
