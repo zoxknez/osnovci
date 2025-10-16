@@ -1,197 +1,216 @@
-// Individual Homework API - GET, PATCH, DELETE
-import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
+import { getServerSession } from "next-auth";
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth/config";
+import { UpdateHomeworkSchema } from "@/lib/api/schemas/homework";
+import {
+  handleAPIError,
+  AuthenticationError,
+  NotFoundError,
+} from "@/lib/api/handlers/errors";
+import {
+  successResponse,
+  createdResponse,
+  noContentResponse,
+} from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
 
-const updateHomeworkSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().max(1000).optional(),
-  dueDate: z.string().datetime().optional(),
-  priority: z.enum(["NORMAL", "IMPORTANT", "URGENT"]).optional(),
-  status: z
-    .enum([
-      "ASSIGNED",
-      "IN_PROGRESS",
-      "DONE",
-      "SUBMITTED",
-      "REVIEWED",
-      "REVISION",
-    ])
-    .optional(),
-  notes: z.string().max(500).optional(),
-  reviewNote: z.string().max(500).optional(),
-});
-
-// GET /api/homework/[id] - Get single homework
+/**
+ * GET /api/homework/[id]
+ * Dohvata pojedinačni domaći zadatak
+ */
 export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
-    const { id } = await params;
-
+    // Dohvati homework
     const homework = await prisma.homework.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
-        subject: true,
-        student: {
-          include: {
-            user: {
-              select: { id: true },
-            },
-          },
+        subject: {
+          select: { id: true, name: true, color: true },
         },
-        attachments: true,
+        attachments: {
+          select: { id: true, url: true, fileName: true, createdAt: true },
+        },
       },
     });
 
     if (!homework) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
+      throw new NotFoundError("Domaći zadatak");
     }
 
-    // Check ownership
-    if (homework.student.user.id !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Provjeri da li korisnik može pristupiti
+    const student = await prisma.student.findFirst({
+      where: { userId: session.user.id },
+    });
+
+    if (!student || homework.studentId !== student.id) {
+      throw new AuthenticationError();
     }
 
-    return NextResponse.json({ success: true, homework });
+    log.info("Fetched homework", {
+      userId: session.user.id,
+      homeworkId: params.id,
+    });
+
+    return successResponse({
+      id: homework.id,
+      subject: homework.subject,
+      title: homework.title,
+      description: homework.description,
+      dueDate: homework.dueDate,
+      priority: homework.priority,
+      status: homework.status,
+      attachmentsCount: homework.attachments.length,
+      attachments: homework.attachments,
+      createdAt: homework.createdAt,
+      updatedAt: homework.updatedAt,
+    });
   } catch (error) {
-    log.error("GET /api/homework/[id] failed", { error, homeworkId: (await params).id });
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return handleAPIError(error);
   }
 }
 
-// PATCH /api/homework/[id] - Update homework
-export async function PATCH(
+/**
+ * PUT /api/homework/[id]
+ * Ažurira domaći zadatak
+ */
+export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
-    const { id } = await params;
+    // Parse body
+    const body = await request.json();
 
-    // Check ownership
-    const existing = await prisma.homework.findUnique({
-      where: { id },
+    // Validacija
+    const validatedData = UpdateHomeworkSchema.parse(body);
+
+    // Dohvati homework
+    const homework = await prisma.homework.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!homework) {
+      throw new NotFoundError("Domaći zadatak");
+    }
+
+    // Provjeri da li korisnik može pristupiti
+    const student = await prisma.student.findFirst({
+      where: { userId: session.user.id },
+    });
+
+    if (!student || homework.studentId !== student.id) {
+      throw new AuthenticationError();
+    }
+
+    // Ažuriraj homework
+    const updated = await prisma.homework.update({
+      where: { id: params.id },
+      data: {
+        ...(validatedData.title && { title: validatedData.title }),
+        ...(validatedData.description && {
+          description: validatedData.description,
+        }),
+        ...(validatedData.status && { status: validatedData.status }),
+        ...(validatedData.priority && { priority: validatedData.priority }),
+        ...(validatedData.dueDate && {
+          dueDate: new Date(validatedData.dueDate),
+        }),
+      },
       include: {
-        student: {
-          include: { user: { select: { id: true } } },
+        subject: {
+          select: { id: true, name: true, color: true },
         },
       },
     });
 
-    if (!existing) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
-    }
-
-    if (existing.student.user.id !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // Validate body
-    const body = await request.json();
-    const validated = updateHomeworkSchema.safeParse(body);
-
-    if (!validated.success) {
-      return NextResponse.json(
-        { error: "Validation Error", details: validated.error.flatten() },
-        { status: 400 },
-      );
-    }
-
-    // Update homework
-    const updated = await prisma.homework.update({
-      where: { id },
-      data: {
-        ...validated.data,
-        dueDate: validated.data.dueDate
-          ? new Date(validated.data.dueDate)
-          : undefined,
-        reviewedAt:
-          validated.data.status === "REVIEWED" ? new Date() : undefined,
-      },
-      include: {
-        subject: true,
-        attachments: true,
-      },
+    log.info("Updated homework", {
+      userId: session.user.id,
+      homeworkId: params.id,
+      fields: Object.keys(validatedData),
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Zadatak je ažuriran!",
-      homework: updated,
+    return successResponse({
+      id: updated.id,
+      subject: updated.subject,
+      title: updated.title,
+      description: updated.description,
+      dueDate: updated.dueDate,
+      priority: updated.priority,
+      status: updated.status,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
     });
   } catch (error) {
-    log.error("PATCH /api/homework/[id] failed", { error, homeworkId: (await params).id });
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return handleAPIError(error);
   }
 }
 
-// DELETE /api/homework/[id] - Delete homework
+/**
+ * DELETE /api/homework/[id]
+ * Briše domaći zadatak
+ */
 export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
-    const { id } = await params;
-
-    // Check ownership
-    const existing = await prisma.homework.findUnique({
-      where: { id },
-      include: {
-        student: {
-          include: { user: { select: { id: true } } },
-        },
-      },
+    // Dohvati homework
+    const homework = await prisma.homework.findUnique({
+      where: { id: params.id },
     });
 
-    if (!existing) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
+    if (!homework) {
+      throw new NotFoundError("Domaći zadatak");
     }
 
-    if (existing.student.user.id !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Provjeri da li korisnik može pristupiti
+    const student = await prisma.student.findFirst({
+      where: { userId: session.user.id },
+    });
+
+    if (!student || homework.studentId !== student.id) {
+      throw new AuthenticationError();
     }
 
-    // Delete homework (cascades to attachments)
+    // Obriši attachmente prvi
+    await prisma.attachment.deleteMany({
+      where: { homeworkId: params.id },
+    });
+
+    // Obriši homework
     await prisma.homework.delete({
-      where: { id },
+      where: { id: params.id },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Zadatak je obrisan!",
+    log.info("Deleted homework", {
+      userId: session.user.id,
+      homeworkId: params.id,
     });
+
+    return noContentResponse();
   } catch (error) {
-    log.error("DELETE /api/homework/[id] failed", { error, homeworkId: (await params).id });
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return handleAPIError(error);
   }
 }

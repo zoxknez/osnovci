@@ -9,8 +9,9 @@ import {
   FileText,
   Plus,
   Search,
+  Loader,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ModernCamera } from "@/components/features/modern-camera";
 import { Button } from "@/components/ui/button";
@@ -24,59 +25,70 @@ export default function DomaciPage() {
     "all",
   );
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [, setSelectedHomeworkId] = useState<number | null>(null);
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null);
+  
+  // Nova stanja za API
+  const [homework, setHomework] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  // Mock data
-  const homework = [
-    {
-      id: 1,
-      subject: "Matematika",
-      title: "Zadaci sa strane 45",
-      description: "Uradi zadatke 1-10",
-      dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-      status: "in_progress",
-      priority: "normal",
-      attachments: 2,
-      color: "#3b82f6",
-    },
-    {
-      id: 2,
-      subject: "Srpski",
-      title: "Sastav: Moj omiljeni pisac",
-      description: "Napisi sastav od 200 reči",
-      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      status: "assigned",
-      priority: "important",
-      attachments: 0,
-      color: "#ef4444",
-    },
-    {
-      id: 3,
-      subject: "Engleski",
-      title: "Unit 3 - vežbe",
-      description: "Vocabulary and grammar exercises",
-      dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      status: "done",
-      priority: "normal",
-      attachments: 3,
-      color: "#10b981",
-    },
-    {
-      id: 4,
-      subject: "Fizika",
-      title: "Priprema za kontrolni",
-      description: "Ponovi lekcije 5-8",
-      dueDate: new Date(Date.now() + 0),
-      status: "in_progress",
-      priority: "urgent",
-      attachments: 1,
-      color: "#8b5cf6",
-    },
-  ];
+  // Fetch homework na mount i kada se promijeni stranica
+  useEffect(() => {
+    const fetchHomework = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `/api/homework?page=${page}&limit=20&sortBy=dueDate&order=asc`,
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Greška pri učitavanju domaćih zadataka");
+        }
+
+        const data = await response.json();
+        
+        // Mapiraj podatke sa API-ja na format koji frontend očekuje
+        const mapped = data.data.map((hw: any) => ({
+          id: hw.id,
+          subject: hw.subject.name,
+          title: hw.title,
+          description: hw.description,
+          dueDate: new Date(hw.dueDate),
+          status: hw.status.toLowerCase(),
+          priority: hw.priority.toLowerCase(),
+          attachments: hw.attachmentsCount,
+          color: hw.subject.color || getRandomColor(),
+        }));
+
+        setHomework(mapped);
+        setTotal(data.pagination.total);
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Nepoznata greška";
+        setError(errorMessage);
+        toast.error("Greška pri učitavanju", { description: errorMessage });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHomework();
+  }, [page]);
+
+  const getRandomColor = () => {
+    const colors = ["#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b"];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "done":
+      case "submitted":
         return (
           <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
             <CheckCircle2 className="h-3 w-3" />
@@ -116,33 +128,69 @@ export default function DomaciPage() {
       task.subject.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter =
       filterStatus === "all" ||
-      (filterStatus === "active" && task.status !== "done") ||
-      (filterStatus === "done" && task.status === "done");
+      (filterStatus === "active" && task.status !== "done" && task.status !== "submitted") ||
+      (filterStatus === "done" && (task.status === "done" || task.status === "submitted"));
     return matchesSearch && matchesFilter;
   });
 
-  const handleOpenCamera = (homeworkId: number) => {
+  const handleOpenCamera = (homeworkId: string) => {
     setSelectedHomeworkId(homeworkId);
     setCameraOpen(true);
   };
 
   const handlePhotoCapture = async (_file: File) => {
     try {
-      // TODO: Save to IndexedDB offline-storage
+      // TODO: Upload na API /api/homework/{id}/attachments
       toast.success("📸 Fotografija je snimljena!", {
         description:
           "Biće automatski sinhronizovana kada se povežeš na internet.",
       });
 
-      // Close camera
       setCameraOpen(false);
       setSelectedHomeworkId(null);
-
-      // TODO: Upload to cloud when online
     } catch {
       toast.error("Greška prilikom čuvanja fotografije");
     }
   };
+
+  const handleMarkComplete = async (hwId: string) => {
+    try {
+      const response = await fetch(`/api/homework/${hwId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status: "DONE" }),
+      });
+
+      if (!response.ok) throw new Error("Greška pri ažuriranju");
+
+      // Osvježi listu
+      const hw = homework.find((h) => h.id === hwId);
+      if (hw) {
+        hw.status = "done";
+        setHomework([...homework]);
+      }
+
+      toast.success("✅ Zadatak je označen kao urađen!");
+    } catch (err) {
+      toast.error("Greška pri ažuriranju zadatka");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6">
+        <PageHeader
+          title="📚 Domaći zadaci"
+          description="Upravljaj svojim zadacima i rokovima"
+          variant="blue"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -160,6 +208,7 @@ export default function DomaciPage() {
               toast.success("📝 Dodaj novi zadatak", {
                 description: "Popuni podatke o novom domaćem zadatku",
               });
+              // TODO: Otvori modal za dodavanje
             }}
           >
             Dodaj zadatak
@@ -224,7 +273,7 @@ export default function DomaciPage() {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-blue-600">
-                {homework.filter((h) => h.status !== "done").length}
+                {homework.filter((h) => h.status !== "done" && h.status !== "submitted").length}
               </p>
               <p className="text-sm text-gray-600 mt-1">Aktivni zadaci</p>
             </div>
@@ -234,7 +283,7 @@ export default function DomaciPage() {
           <CardContent className="p-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-green-600">
-                {homework.filter((h) => h.status === "done").length}
+                {homework.filter((h) => h.status === "done" || h.status === "submitted").length}
               </p>
               <p className="text-sm text-gray-600 mt-1">Urađeno</p>
             </div>
@@ -246,7 +295,7 @@ export default function DomaciPage() {
               <p className="text-3xl font-bold text-red-600">
                 {
                   homework.filter(
-                    (h) => h.priority === "urgent" && h.status !== "done",
+                    (h) => h.priority === "urgent" && h.status !== "done" && h.status !== "submitted",
                   ).length
                 }
               </p>
@@ -258,6 +307,13 @@ export default function DomaciPage() {
 
       {/* Homework List */}
       <div className="space-y-4">
+        {error && (
+          <Card className="border-red-300 bg-red-50">
+            <CardContent className="p-6">
+              <p className="text-red-600">{error}</p>
+            </CardContent>
+          </Card>
+        )}
         {filteredHomework.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
@@ -269,7 +325,7 @@ export default function DomaciPage() {
         ) : (
           filteredHomework.map((task) => {
             const isOverdue =
-              task.dueDate < new Date() && task.status !== "done";
+              task.dueDate < new Date() && task.status !== "done" && task.status !== "submitted";
             return (
               <Card
                 key={task.id}
@@ -343,17 +399,13 @@ export default function DomaciPage() {
                       >
                         {task.attachments > 0 ? "Dodaj dokaz" : "Uslikaj dokaz"}
                       </Button>
-                      {task.status !== "done" && (
+                      {task.status !== "done" && task.status !== "submitted" && (
                         <Button
                           size="sm"
                           variant="success"
                           className="flex-1 sm:flex-initial"
                           aria-label={`Označi zadatak ${task.title} kao urađen`}
-                          onClick={() => {
-                            toast.success(`✅ ${task.title} je označen kao urađen!`, {
-                              description: `Odličan posao na ${task.subject}!`,
-                            });
-                          }}
+                          onClick={() => handleMarkComplete(task.id)}
                         >
                           Označi urađeno
                         </Button>
@@ -366,6 +418,29 @@ export default function DomaciPage() {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {total > 20 && (
+        <div className="flex justify-center gap-2 mt-6">
+          <Button
+            variant="outline"
+            disabled={page === 1}
+            onClick={() => setPage(p => p - 1)}
+          >
+            Prethodna
+          </Button>
+          <span className="flex items-center px-4">
+            Stranica {page} od {Math.ceil(total / 20)}
+          </span>
+          <Button
+            variant="outline"
+            disabled={page >= Math.ceil(total / 20)}
+            onClick={() => setPage(p => p + 1)}
+          >
+            Sljedeća
+          </Button>
+        </div>
+      )}
 
       {/* Camera Modal */}
       {cameraOpen && (
