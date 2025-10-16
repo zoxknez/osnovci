@@ -101,6 +101,41 @@ export default function DashboardLayout({
         </div>
       </header>
 
+      {/* Mobile Tab Bar - Colorful tabs with emojis and gradients */}
+      <div className="sticky top-14 sm:top-16 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
+        <div className="flex overflow-x-auto scrollbar-hide">
+          {navigation.slice(0, 5).map((item) => {
+            const isActive = pathname === item.href;
+            const tabColors: Record<string, { bg: string; text: string; icon: string }> = {
+              "/dashboard": { bg: "from-blue-500 to-blue-600", text: "text-blue-600", icon: "🏠" },
+              "/dashboard/domaci": { bg: "from-amber-500 to-orange-600", text: "text-amber-600", icon: "📚" },
+              "/dashboard/raspored": { bg: "from-purple-500 to-purple-600", text: "text-purple-600", icon: "📅" },
+              "/dashboard/ocene": { bg: "from-green-500 to-emerald-600", text: "text-green-600", icon: "📊" },
+              "/dashboard/porodica": { bg: "from-pink-500 to-rose-600", text: "text-pink-600", icon: "👨‍👩‍👧‍👦" },
+            };
+            const colors = tabColors[item.href] || { bg: "from-gray-500 to-gray-600", text: "text-gray-600", icon: "📌" };
+            
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex-shrink-0 flex items-center justify-center gap-1.5 px-4 py-3 min-w-fit transition-all touch-manipulation border-b-2",
+                  isActive
+                    ? `bg-gradient-to-r ${colors.bg} text-white border-b-4 shadow-md`
+                    : "text-gray-600 border-b-2 border-transparent hover:bg-gray-50"
+                )}
+                aria-label={item.name}
+                aria-current={isActive ? "page" : undefined}
+              >
+                <span className="text-lg">{item.emoji}</span>
+                <span className="text-sm font-semibold">{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <button
