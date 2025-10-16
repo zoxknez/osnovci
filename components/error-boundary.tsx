@@ -109,7 +109,9 @@ export class ErrorBoundary extends Component<Props, State> {
                 </Button>
 
                 <Button
-                  onClick={() => (window.location.href = "/")}
+                  onClick={() => {
+                    window.location.href = "/";
+                  }}
                   variant="outline"
                   className="w-full"
                   size="lg"

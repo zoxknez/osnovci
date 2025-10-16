@@ -1,7 +1,8 @@
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth/config";
+import type { CreateScheduleInput, QueryScheduleInput } from "@/lib/api/schemas/schedule";
 import {
   CreateScheduleSchema,
   QueryScheduleSchema,
@@ -13,7 +14,6 @@ import {
   NotFoundError,
 } from "@/lib/api/handlers/errors";
 import {
-  successResponse,
   paginatedResponse,
   createdResponse,
 } from "@/lib/api/handlers/response";
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build filter
-    const where: any = {
+    const where: Record<string, unknown> = {
       studentId: { in: studentIds },
     };
 

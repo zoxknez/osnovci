@@ -61,14 +61,14 @@ export function notFound(message = "Resurs nije pronađen") {
   );
 }
 
-export function badRequest(message: string, details?: any) {
+export function badRequest(message: string, details?: Record<string, unknown>) {
   return NextResponse.json(
     { error: "Bad Request", message, ...(details && { details }) },
     { status: 400 },
   );
 }
 
-export function success(data: any, status = 200) {
+export function success(data: Record<string, unknown>, status = 200) {
   return NextResponse.json({ success: true, ...data }, { status });
 }
 

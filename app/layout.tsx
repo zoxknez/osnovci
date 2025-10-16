@@ -68,13 +68,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="sr">
+      <head>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
+        <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><text y='60' font-size='120'>📚</text></svg>" />
+        <meta name="theme-color" content="#3b82f6" />
+        <meta name="mobile-web-app-capable" content="true" />
+      </head>
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 transition-colors duration-300`}
       >
-        {/* Main Content */}
-        <main id="main-content">
-          {children}
-        </main>
+        <ErrorBoundary>
+          {/* Main Content */}
+          <main id="main-content">
+            {children}
+          </main>
+          
+          {/* Toast Notifications */}
+          <Toaster position="top-center" />
+          
+          {/* Analytics */}
+          <Analytics />
+          <SpeedInsights />
+        </ErrorBoundary>
       </body>
     </html>
   );
