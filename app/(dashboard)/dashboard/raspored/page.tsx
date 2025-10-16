@@ -268,7 +268,7 @@ export default function RasporedPage() {
                       onClick={() => setSelectedDate(day)}
                       className={`
                         relative p-1.5 rounded-lg text-center transition-all flex-shrink-0 
-                        w-[68px] sm:w-20 lg:w-auto min-h-[60px] sm:min-h-[60px]
+                        w-[64px] sm:w-20 lg:w-auto min-h-[60px] sm:min-h-[60px]
                         touch-manipulation group
                         ${
                           selected
