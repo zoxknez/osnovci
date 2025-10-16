@@ -48,14 +48,6 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentDate(new Date());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (sidebarOpen) {

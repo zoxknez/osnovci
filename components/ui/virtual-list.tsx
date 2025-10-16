@@ -93,6 +93,7 @@ export function VirtualHomeworkList({
       className="max-h-[600px]"
       renderItem={(item, _index) => (
         <button
+          type="button"
           key={item.id}
           onClick={() => onItemClick?.(item)}
           className="w-full text-left p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"

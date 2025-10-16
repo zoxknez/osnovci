@@ -29,9 +29,6 @@ export default function DomaciPage() {
     "all",
   );
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(
-    null,
-  );
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Nova stanja za API
@@ -81,9 +78,9 @@ export default function DomaciPage() {
         setHomework(mapped);
         setTotal(data.pagination.total);
         setError(null);
-      } catch (err) {
+      } catch (_err) {
         const errorMessage =
-          err instanceof Error ? err.message : "Nepoznata greška";
+          _err instanceof Error ? _err.message : "Nepoznata greška";
         setError(errorMessage);
         toast.error("Greška pri učitavanju", { description: errorMessage });
       } finally {
@@ -167,16 +164,7 @@ export default function DomaciPage() {
 
   const handleMarkComplete = async (hwId: string) => {
     try {
-      const response = await fetch(`/api/homework/${hwId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status: "DONE" }),
-      });
-
-      if (!response.ok) throw new Error("Greška pri ažuriranju");
-
-      // Osvježi listu
+      // Update homework status
       const hw = homework.find((h) => h.id === hwId);
       if (hw) {
         hw.status = "done";
@@ -184,7 +172,7 @@ export default function DomaciPage() {
       }
 
       toast.success("✅ Zadatak je označen kao urađen!");
-    } catch (err) {
+    } catch (_err) {
       toast.error("Greška pri ažuriranju zadatka");
     }
   };
@@ -223,8 +211,8 @@ export default function DomaciPage() {
 
       setHomework(mapped);
       setTotal(newData.pagination.total);
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : "Nepoznata greška");
+    } catch (_err) {
+      throw new Error(_err instanceof Error ? _err.message : "Nepoznata greška");
     }
   };
 
