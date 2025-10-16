@@ -58,40 +58,51 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
       {/* Mobile header - Enhanced & optimized for small screens */}
-      <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-lg px-3 sm:px-4 shadow-sm lg:hidden">
+      <header className="sticky top-0 z-40 flex h-16 sm:h-20 items-center justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-white via-blue-50/30 to-white backdrop-blur-lg px-3 sm:px-6 shadow-sm lg:hidden">
+        {/* Left: Menu Button with animated icon */}
         <button
           type="button"
           onClick={() => setSidebarOpen(true)}
           aria-label="Otvori navigacioni meni"
           aria-expanded={sidebarOpen}
           aria-controls="mobile-sidebar"
-          className="relative p-2 sm:p-3 text-gray-700 hover:bg-blue-50 rounded-2xl sm:rounded-3xl transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none active:scale-95 touch-manipulation flex-shrink-0 group"
+          className="relative flex-shrink-0 group"
         >
-          {/* Hamburger sa lepšim vizuelom */}
-          <div className="flex flex-col gap-1.5 sm:gap-2 w-6 sm:w-7 h-6 sm:h-7 justify-center">
-            <span className="block h-0.75 sm:h-1 w-full bg-gradient-to-r from-blue-600 to-blue-500 rounded-full transition-all group-hover:shadow-md"></span>
-            <span className="block h-0.75 sm:h-1 w-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all group-hover:shadow-md"></span>
-            <span className="block h-0.75 sm:h-1 w-full bg-gradient-to-r from-purple-600 to-blue-600 rounded-full transition-all group-hover:shadow-md"></span>
+          {/* Animated Menu Icon - dinamičan za decu */}
+          <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+            {/* Outer spinning circle */}
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 border-r-purple-500 group-hover:animate-spin"></div>
+            
+            {/* Inner animated hamburger */}
+            <div className="flex flex-col gap-1.5 sm:gap-2">
+              <span className="block h-0.75 sm:h-1 w-5 sm:w-6 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
+              <span className="block h-0.75 sm:h-1 w-5 sm:w-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
+              <span className="block h-0.75 sm:h-1 w-5 sm:w-6 bg-gradient-to-r from-pink-500 to-blue-600 rounded-full transition-all group-hover:scale-110 group-hover:shadow-md"></span>
+            </div>
+
+            {/* Pulsing orb indicator */}
+            <span className="absolute top-0 right-0 flex h-2.5 w-2.5 sm:h-3 sm:w-3">
+              <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-full w-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg shadow-blue-500/50"></span>
+            </span>
           </div>
-          {/* Badge indicator - animirano */}
-          <span className="absolute top-0 right-0 flex h-3 w-3 sm:h-3.5 sm:w-3.5">
-            <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-full w-full bg-blue-500 shadow-lg shadow-blue-500/50"></span>
-          </span>
           <span className="sr-only">Meni</span>
         </button>
 
-        {/* Centered Logo */}
-        <h1 className="flex-1 text-center text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Osnovci
-        </h1>
+        {/* Center: Osnovci Logo */}
+        <div className="flex-1 flex flex-col items-center justify-center min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent whitespace-nowrap animate-pulse">
+            Osnovci
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-600 font-medium">{dateString}</p>
+        </div>
 
-        {/* Spacer for balance */}
-        <div className="w-10 sm:w-12"></div>
+        {/* Right: Spacer for balance */}
+        <div className="w-8 sm:w-10 flex-shrink-0"></div>
       </header>
 
       {/* Mobile Tab Bar - Colorful tabs with emojis and gradients - ONLY 3 MAIN TABS */}
-      <div className="sticky top-14 sm:top-16 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
+      <div className="sticky top-16 sm:top-20 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
         <div className="grid grid-cols-3">
           {navigation.slice(0, 3).map((item) => {
             const isActive = pathname === item.href;
@@ -120,11 +131,6 @@ export default function DashboardLayout({
               </Link>
             );
           })}
-        </div>
-
-        {/* Date/Time indicator on mobile */}
-        <div className="px-3 sm:px-4 py-2 border-t border-gray-100 text-center text-xs text-gray-600 font-medium bg-gradient-to-r from-blue-50/50 to-purple-50/50">
-          {dateString}
         </div>
       </div>
 
