@@ -28,9 +28,6 @@ export function ProfileHeader({
       variants={fadeInUp}
     >
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-          👤 Profil deteta
-        </h1>
         <p className="text-gray-600 mt-1">
           Kompletan zdravstveni i lični profil
         </p>

@@ -185,9 +185,6 @@ export default function RasporedPage() {
         variants={fadeInUp}
       >
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            📅 Raspored časova
-          </h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1">
             {format(selectedDate, "EEEE, d. MMMM yyyy.", { locale: sr })}
           </p>
@@ -270,8 +267,8 @@ export default function RasporedPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedDate(day)}
                       className={`
-                        relative p-3 rounded-xl text-center transition-all flex-shrink-0 
-                        w-[72px] sm:w-20 lg:w-auto min-h-[88px] sm:min-h-[96px]
+                        relative p-2 rounded-xl text-center transition-all flex-shrink-0 
+                        w-[72px] sm:w-20 lg:w-auto min-h-[70px] sm:min-h-[70px]
                         touch-manipulation group
                         ${
                           selected
@@ -283,14 +280,14 @@ export default function RasporedPage() {
                     >
                       {/* Day label */}
                       <div
-                        className={`text-[11px] sm:text-xs font-semibold mb-1.5 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
+                        className={`text-[10px] sm:text-xs font-semibold mb-0.5 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
                       >
                         {dayKey.short}
                       </div>
 
                       {/* Date number */}
                       <div
-                        className={`text-2xl sm:text-3xl font-bold mb-1.5 ${selected ? "text-white" : "text-gray-900"}`}
+                        className={`text-xl sm:text-2xl font-bold mb-0.5 ${selected ? "text-white" : "text-gray-900"}`}
                       >
                         {format(day, "d")}
                       </div>
@@ -299,7 +296,7 @@ export default function RasporedPage() {
                       {lessonsCount > 0 && (
                         <div
                           className={`
-                          text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full inline-block
+                          text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-full inline-block
                           ${
                             selected
                               ? "bg-white/20 text-white"
