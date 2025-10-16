@@ -242,18 +242,18 @@ export default function DashboardLayout({
           <div className="mt-auto pt-6 border-t border-gray-200">
             <div className="flex flex-col items-center justify-center gap-2 px-3 py-4">
               {/* OSNOVCI LOGO - VELIKI I BOLD - PRVI */}
-              <h2 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
+              <h2 className="text-5xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
                 Osnovci
               </h2>
 
               {/* SAT - manji ispod */}
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl">{getTimeEmoji()}</span>
-                <span className="text-xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-3xl">{getTimeEmoji()}</span>
+                <span className="text-2xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
               </div>
 
               {/* DATUM - mali tekst */}
-              <p className="text-xs text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
+              <p className="text-sm text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
             </div>
           </div>
         </nav>
