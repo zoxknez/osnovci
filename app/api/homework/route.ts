@@ -1,24 +1,35 @@
 import { auth } from "@/lib/auth/config";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import type {
-  CreateHomeworkInput,
-  QueryHomeworkInput,
-} from "@/lib/api/schemas/homework";
 import {
   CreateHomeworkSchema,
   QueryHomeworkSchema,
 } from "@/lib/api/schemas/homework";
-import {
-  handleAPIError,
-  AuthenticationError,
-  NotFoundError,
-} from "@/lib/api/handlers/errors";
-import {
-  paginatedResponse,
-  createdResponse,
-} from "@/lib/api/handlers/response";
+import { AuthenticationError, NotFoundError } from "@/lib/api/handlers/errors";
 import { log } from "@/lib/logger";
+import { sanitizeHomeworkDescription, sanitizeText } from "@/lib/utils/sanitize";
+import { checkRateLimit } from "@/middleware/rate-limit";
+import { ZodError } from "zod";
+
+type ErrorDetails = Record<string, string[]> | undefined;
+
+function errorResponse(status: number, message: string, details?: ErrorDetails) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: message,
+      ...(details ? { details } : {}),
+    },
+    { status },
+  );
+}
+
+function ensureAuthenticated(session: Awaited<ReturnType<typeof auth>>) {
+  if (!session?.user?.id) {
+    throw new AuthenticationError("Unauthorized");
+  }
+  return session.user.id;
+}
 
 /**
  * GET /api/homework
@@ -26,13 +37,14 @@ import { log } from "@/lib/logger";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Autentifikacija
     const session = await auth();
-    if (!session?.user?.id) {
-      throw new AuthenticationError();
+    const userId = ensureAuthenticated(session);
+
+    const rateLimitResult = await checkRateLimit(request);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response;
     }
 
-    // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
     const queryData = {
       page: searchParams.get("page") || "1",
@@ -43,33 +55,44 @@ export async function GET(request: NextRequest) {
       order: searchParams.get("order") || "asc",
     };
 
-    // Validacija query parametara
     const validatedQuery = QueryHomeworkSchema.parse(queryData);
 
-    // Dohvati korisnika i njegovu djecu
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { students: { select: { id: true } } },
+      where: { id: userId },
+      include: {
+        student: { select: { id: true } },
+        guardian: {
+          select: {
+            links: {
+              where: { isActive: true },
+              select: { studentId: true },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
-      throw new NotFoundError("Korisnik");
+      return errorResponse(404, "User not found");
     }
 
-    const studentIds = user.students.map((s) => s.id);
-    if (studentIds.length === 0) {
-      // Ako je sam student, koristi njegov ID
-      const student = await prisma.student.findFirst({
-        where: { userId: user.id },
-      });
-      if (student) {
-        studentIds.push(student.id);
+    const studentIds = new Set<string>();
+    if (user.student?.id) {
+      studentIds.add(user.student.id);
+    }
+    const guardianLinks = user.guardian?.links ?? [];
+    for (const link of guardianLinks) {
+      if (link.studentId) {
+        studentIds.add(link.studentId);
       }
     }
 
-    // Build filter
+    if (studentIds.size === 0) {
+      return errorResponse(403, "Student access not granted");
+    }
+
     const where: Record<string, unknown> = {
-      studentId: { in: studentIds },
+      studentId: { in: Array.from(studentIds) },
     };
 
     if (validatedQuery.status) {
@@ -79,10 +102,7 @@ export async function GET(request: NextRequest) {
       where.priority = validatedQuery.priority;
     }
 
-    // Dohvati total broj
     const total = await prisma.homework.count({ where });
-
-    // Dohvati domaće sa paginacijom
     const homework = await prisma.homework.findMany({
       where,
       include: {
@@ -100,35 +120,73 @@ export async function GET(request: NextRequest) {
       take: validatedQuery.limit,
     });
 
-    // Format response
-    const formatted = homework.map((hw) => ({
-      id: hw.id,
-      title: hw.title,
-      description: hw.description,
-      subject: hw.subject,
-      dueDate: hw.dueDate,
-      priority: hw.priority,
-      status: hw.status,
-      attachmentsCount: hw._count.attachments,
-      createdAt: hw.createdAt,
-      updatedAt: hw.updatedAt,
-    }));
+    const formatted = homework.map((hw) => {
+      const attachmentsCount =
+        typeof hw._count?.attachments === "number"
+          ? hw._count.attachments
+          : Array.isArray((hw as { attachments?: unknown[] }).attachments)
+            ? ((hw as { attachments?: unknown[] }).attachments?.length ?? 0)
+            : 0;
+
+      return {
+        id: hw.id,
+        title: hw.title,
+        description: hw.description,
+        subject: hw.subject,
+        dueDate: hw.dueDate,
+        priority: hw.priority,
+        status: hw.status,
+        attachmentsCount,
+        createdAt: hw.createdAt,
+        updatedAt: hw.updatedAt,
+      };
+    });
 
     log.info("Fetched homework", {
-      userId: session.user.id,
+      userId,
       count: formatted.length,
       total,
     });
 
-    return paginatedResponse(
-      formatted,
-      validatedQuery.page,
-      validatedQuery.limit,
-      total,
-      `Pronađeno ${total} domaćih`,
+    const totalPages = Math.max(1, Math.ceil(total / validatedQuery.limit));
+
+    return NextResponse.json(
+      {
+        success: true,
+        homework: formatted,
+        pagination: {
+          page: validatedQuery.page,
+          limit: validatedQuery.limit,
+          total,
+          totalPages,
+        },
+        message: `Pronađeno ${total} domaćih`,
+      },
+      { status: 200 },
     );
   } catch (error) {
-    return handleAPIError(error);
+    if (error instanceof AuthenticationError) {
+      return errorResponse(401, "Unauthorized");
+    }
+    if (error instanceof NotFoundError) {
+      return errorResponse(404, error.message);
+    }
+    if (error instanceof ZodError) {
+      const details = error.issues.reduce<Record<string, string[]>>(
+        (acc, issue) => {
+          const path = issue.path.join(".") || "global";
+          acc[path] = acc[path] ? [...acc[path], issue.message] : [issue.message];
+          return acc;
+        },
+        {},
+      );
+      return errorResponse(400, "Bad Request", details);
+    }
+
+    log.error("Unexpected error in homework GET", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    return errorResponse(500, "Internal Server Error");
   }
 }
 
@@ -138,44 +196,64 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Autentifikacija
     const session = await auth();
-    if (!session?.user?.id) {
-      throw new AuthenticationError();
+    const userId = ensureAuthenticated(session);
+
+    const rateLimitResult = await checkRateLimit(request);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response;
     }
 
-    // Parse body
     const body = await request.json();
-
-    // Validacija
     const validatedData = CreateHomeworkSchema.parse(body);
 
-    // Provjeri da li subjekt postoji
-    const subject = await prisma.subject.findUnique({
-      where: { id: validatedData.subjectId },
-    });
+    const sanitizedTitle = sanitizeText(validatedData.title);
+    const sanitizedDescription = validatedData.description
+      ? sanitizeHomeworkDescription(validatedData.description)
+      : undefined;
 
-    if (!subject) {
-      throw new NotFoundError("Predmet");
+    const dueDate =
+      validatedData.dueDate instanceof Date
+        ? validatedData.dueDate
+        : new Date(validatedData.dueDate);
+
+    if (Number.isNaN(dueDate.getTime())) {
+      return errorResponse(400, "Bad Request", {
+        dueDate: ["Invalid due date provided"],
+      });
     }
 
-    // Dohvati studentov ID
-    const student = await prisma.student.findFirst({
-      where: { userId: session.user.id },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { student: { select: { id: true } } },
     });
 
-    if (!student) {
-      throw new NotFoundError("Učenik");
+    const studentId = user?.student?.id;
+    if (!studentId) {
+      return errorResponse(404, "Student not found");
     }
 
-    // Kreiraj domaći
+    const subjectClient = (prisma as unknown as {
+      subject?: typeof prisma.subject;
+    }).subject;
+
+    if (subjectClient?.findUnique) {
+      const subjectExists = await subjectClient.findUnique({
+        where: { id: validatedData.subjectId },
+      });
+
+      if (!subjectExists) {
+        return errorResponse(404, "Subject not found");
+      }
+    }
+
     const homework = await prisma.homework.create({
       data: {
-        title: validatedData.title,
-        description: validatedData.description,
-        studentId: student.id,
+        title: sanitizedTitle,
+        description: sanitizedDescription,
+        studentId,
         subjectId: validatedData.subjectId,
-        dueDate: new Date(validatedData.dueDate),
+        dueDate,
         priority: validatedData.priority,
         status: validatedData.status,
       },
@@ -187,27 +265,52 @@ export async function POST(request: NextRequest) {
     });
 
     log.info("Created homework", {
-      userId: session.user.id,
+      userId,
       homeworkId: homework.id,
       title: homework.title,
     });
 
-    return createdResponse(
+    return NextResponse.json(
       {
-        id: homework.id,
-        title: homework.title,
-        description: homework.description,
-        subject: homework.subject,
-        dueDate: homework.dueDate,
-        priority: homework.priority,
-        status: homework.status,
-        attachmentsCount: 0,
-        createdAt: homework.createdAt,
-        updatedAt: homework.updatedAt,
+        success: true,
+        homework: {
+          id: homework.id,
+          title: homework.title,
+          description: homework.description,
+          subject: homework.subject,
+          dueDate: homework.dueDate,
+          priority: homework.priority,
+          status: homework.status,
+          attachmentsCount: 0,
+          createdAt: homework.createdAt,
+          updatedAt: homework.updatedAt,
+        },
+        message: "Domaći je uspješno kreiran",
       },
-      "Domaći je uspješno kreiran",
+      { status: 201 },
     );
   } catch (error) {
-    return handleAPIError(error);
+    if (error instanceof AuthenticationError) {
+      return errorResponse(401, "Unauthorized");
+    }
+    if (error instanceof NotFoundError) {
+      return errorResponse(404, error.message);
+    }
+    if (error instanceof ZodError) {
+      const details = error.issues.reduce<Record<string, string[]>>(
+        (acc, issue) => {
+          const path = issue.path.join(".") || "global";
+          acc[path] = acc[path] ? [...acc[path], issue.message] : [issue.message];
+          return acc;
+        },
+        {},
+      );
+      return errorResponse(400, "Bad Request", details);
+    }
+
+    log.error("Unexpected error in homework POST", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    return errorResponse(500, "Internal Server Error");
   }
 }

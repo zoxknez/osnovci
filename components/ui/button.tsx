@@ -20,7 +20,7 @@ const buttonVariants = cva(
 
         // Outline - Za sekundarne akcije
         outline:
-          "border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 active:scale-95 focus-visible:ring-gray-400",
+          "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 active:scale-95 focus-visible:ring-gray-400",
 
         // Secondary - Za tercijarne akcije
         secondary:
