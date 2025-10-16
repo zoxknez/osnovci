@@ -267,22 +267,28 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
               </div>
             </>
           ) : (
-            <motion.img
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              src={capturedImage}
-              alt="Snimljena fotografija domaćeg zadatka sa AI poboljšanjem"
-              className="w-full h-full object-contain"
-            />
+            <div className="w-full h-full flex items-center justify-center">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="w-full h-full"
+              >
+                <img
+                  src={capturedImage}
+                  alt="Snimljena fotografija domaćeg zadatka sa AI poboljšanjem"
+                  className="w-full h-full object-contain"
+                />
+              </motion.div>
+            </div>
           )}
         </div>
 
         {/* Bottom Controls */}
-        <div
+        <fieldset
           className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/80 to-transparent"
-          role="group"
           aria-label="Kontrole kamere"
         >
+          <legend className="sr-only">Kontrole kamere</legend>
           {!capturedImage ? (
             <div className="flex items-center justify-between max-w-2xl mx-auto">
               {/* Gallery */}
@@ -373,7 +379,7 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
               </Button>
             </div>
           )}
-        </div>
+        </fieldset>
 
         {/* AI Enhancement Badge - Decorative */}
         {!capturedImage && (

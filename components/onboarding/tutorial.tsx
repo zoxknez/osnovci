@@ -11,7 +11,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -86,29 +86,32 @@ export function OnboardingTutorial({
   const step = tutorialSteps[currentStep];
   const isLastStep = currentStep === tutorialSteps.length - 1;
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (isLastStep) {
       onComplete();
     } else {
       setDirection(1);
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prev) => prev + 1);
     }
-  };
+  }, [isLastStep, onComplete]);
 
-  const handlePrev = () => {
-    if (currentStep > 0) {
-      setDirection(-1);
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const handlePrev = useCallback(() => {
+    setCurrentStep((prev) => {
+      if (prev > 0) {
+        setDirection(-1);
+        return prev - 1;
+      }
+      return prev;
+    });
+  }, []);
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     if (onSkip) {
       onSkip();
     } else {
       onComplete();
     }
-  };
+  }, [onSkip, onComplete]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -164,7 +167,7 @@ export function OnboardingTutorial({
               <div className="flex gap-1 mb-2">
                 {tutorialSteps.map((_, index) => (
                   <motion.div
-                    key={index}
+                    key={`step-${index}`}
                     className={`h-1.5 flex-1 rounded-full ${
                       index <= currentStep ? "bg-blue-600" : "bg-gray-200"
                     }`}
