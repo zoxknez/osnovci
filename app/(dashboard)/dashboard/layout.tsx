@@ -58,18 +58,18 @@ export default function DashboardLayout({
           aria-label="Otvori navigacioni meni"
           aria-expanded={sidebarOpen}
           aria-controls="mobile-sidebar"
-          className="relative p-2 sm:p-2.5 text-gray-700 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none active:scale-95 touch-manipulation flex-shrink-0"
+          className="relative p-2 sm:p-3 text-gray-700 hover:bg-blue-50 rounded-2xl sm:rounded-3xl transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none active:scale-95 touch-manipulation flex-shrink-0 group"
         >
-          {/* Hamburger sa boljom vidljivošću */}
-          <div className="flex flex-col gap-1 sm:gap-1.5 w-5 sm:w-6 h-5 sm:h-6 justify-center">
-            <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
-            <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
-            <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
+          {/* Hamburger sa lepšim vizuelom */}
+          <div className="flex flex-col gap-1.5 sm:gap-2 w-6 sm:w-7 h-6 sm:h-7 justify-center">
+            <span className="block h-0.75 sm:h-1 w-full bg-gradient-to-r from-blue-600 to-blue-500 rounded-full transition-all group-hover:shadow-md"></span>
+            <span className="block h-0.75 sm:h-1 w-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all group-hover:shadow-md"></span>
+            <span className="block h-0.75 sm:h-1 w-full bg-gradient-to-r from-purple-600 to-blue-600 rounded-full transition-all group-hover:shadow-md"></span>
           </div>
-          {/* Badge indicator */}
-          <span className="absolute top-0 right-0 flex h-2.5 w-2.5 sm:h-3 sm:w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-full w-full bg-blue-500"></span>
+          {/* Badge indicator - animirano */}
+          <span className="absolute top-0 right-0 flex h-3 w-3 sm:h-3.5 sm:w-3.5">
+            <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-full w-full bg-blue-500 shadow-lg shadow-blue-500/50"></span>
           </span>
           <span className="sr-only">Meni</span>
         </button>
