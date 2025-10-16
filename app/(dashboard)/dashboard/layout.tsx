@@ -52,66 +52,46 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
       {/* Mobile header - Enhanced & optimized for small screens */}
       <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-lg px-3 sm:px-4 shadow-sm lg:hidden">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Otvori navigacioni meni"
-            aria-expanded={sidebarOpen}
-            aria-controls="mobile-sidebar"
-            className="p-2 sm:p-2.5 text-gray-700 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none active:scale-95 touch-manipulation flex-shrink-0"
-          >
-            {/* Hamburger sa boljom vidljivošću */}
-            <div className="flex flex-col gap-1 sm:gap-1.5 w-5 sm:w-6 h-5 sm:h-6 justify-center">
-              <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
-              <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
-              <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
-            </div>
-            <span className="sr-only">Meni</span>
-          </button>
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Otvori navigacioni meni"
+          aria-expanded={sidebarOpen}
+          aria-controls="mobile-sidebar"
+          className="relative p-2 sm:p-2.5 text-gray-700 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none active:scale-95 touch-manipulation flex-shrink-0"
+        >
+          {/* Hamburger sa boljom vidljivošću */}
+          <div className="flex flex-col gap-1 sm:gap-1.5 w-5 sm:w-6 h-5 sm:h-6 justify-center">
+            <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
+            <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
+            <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
+          </div>
+          {/* Badge indicator */}
+          <span className="absolute top-0 right-0 flex h-2.5 w-2.5 sm:h-3 sm:w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-full w-full bg-blue-500"></span>
+          </span>
+          <span className="sr-only">Meni</span>
+        </button>
 
-          <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
-            Osnovci
-          </h1>
-        </div>
+        {/* Centered Logo */}
+        <h1 className="flex-1 text-center text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Osnovci
+        </h1>
 
-        {/* Quick Actions - Mobile optimized shortcuts */}
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          <Link
-            href="/dashboard/domaci"
-            className="p-2 sm:p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
-            aria-label="Domaći zadaci"
-          >
-            <BookOpen className="h-4 sm:h-5 w-4 sm:w-5" />
-          </Link>
-          <Link
-            href="/dashboard/raspored"
-            className="p-2 sm:p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
-            aria-label="Raspored časova"
-          >
-            <Calendar className="h-4 sm:h-5 w-4 sm:w-5" />
-          </Link>
-          <Link
-            href="/dashboard/ocene"
-            className="p-2 sm:p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
-            aria-label="Ocene"
-          >
-            <BarChart3 className="h-4 sm:h-5 w-4 sm:w-5" />
-          </Link>
-        </div>
+        {/* Spacer for balance */}
+        <div className="w-10 sm:w-12"></div>
       </header>
 
-      {/* Mobile Tab Bar - Colorful tabs with emojis and gradients */}
+      {/* Mobile Tab Bar - Colorful tabs with emojis and gradients - ONLY 3 MAIN TABS */}
       <div className="sticky top-14 sm:top-16 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm lg:hidden">
         <div className="flex overflow-x-auto scrollbar-hide">
-          {navigation.slice(0, 5).map((item) => {
+          {navigation.slice(0, 3).map((item) => {
             const isActive = pathname === item.href;
             const tabColors: Record<string, { bg: string; text: string; icon: string }> = {
               "/dashboard": { bg: "from-blue-500 to-blue-600", text: "text-blue-600", icon: "🏠" },
               "/dashboard/domaci": { bg: "from-amber-500 to-orange-600", text: "text-amber-600", icon: "📚" },
               "/dashboard/raspored": { bg: "from-purple-500 to-purple-600", text: "text-purple-600", icon: "📅" },
-              "/dashboard/ocene": { bg: "from-green-500 to-emerald-600", text: "text-green-600", icon: "📊" },
-              "/dashboard/porodica": { bg: "from-pink-500 to-rose-600", text: "text-pink-600", icon: "👨‍👩‍👧‍👦" },
             };
             const colors = tabColors[item.href] || { bg: "from-gray-500 to-gray-600", text: "text-gray-600", icon: "📌" };
             
