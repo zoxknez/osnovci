@@ -37,6 +37,7 @@ import {
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
+import { toast } from "sonner";
 
 // Mock data - TODO: Replace with real API
 const MOCK_GRADES = [
@@ -156,6 +157,11 @@ export default function OcenePage() {
               size="sm"
               leftIcon={<Filter className="h-4 w-4" />}
               aria-label="Filtriraj ocene po predmetu ili periodu"
+              onClick={() => {
+                toast.info("🔍 Filter", {
+                  description: "Otvara opcije za filtriranje ocena po predmetu",
+                });
+              }}
             >
               Filter
             </Button>
@@ -164,6 +170,11 @@ export default function OcenePage() {
               size="sm"
               leftIcon={<Download className="h-4 w-4" />}
               aria-label="Preuzmi izveštaj o ocenama u PDF formatu"
+              onClick={() => {
+                toast.success("📥 Izveštaj se preuzima", {
+                  description: "Tvoj PDF izveštaj se preuzima na računar",
+                });
+              }}
             >
               Izvoz
             </Button>

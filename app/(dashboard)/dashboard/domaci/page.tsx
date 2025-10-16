@@ -351,6 +351,11 @@ export default function DomaciPage() {
                           variant="success"
                           className="flex-1 sm:flex-initial"
                           aria-label={`Označi zadatak ${task.title} kao urađen`}
+                          onClick={() => {
+                            toast.success(`✅ ${task.title} je označen kao urađen!`, {
+                              description: `Odličan posao na ${task.subject}!`,
+                            });
+                          }}
                         >
                           Označi urađeno
                         </Button>
