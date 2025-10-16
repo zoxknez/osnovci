@@ -1,7 +1,9 @@
 // Interactive Onboarding Tutorial - First-time User Experience
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState, useCallback, useRef, useId } from "react";
+import type { ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   BookOpen,
@@ -11,7 +13,6 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -19,8 +20,8 @@ interface TutorialStep {
   id: number;
   title: string;
   description: string;
-  icon: React.ReactNode;
-  emoji: string;
+  icon?: ReactNode;     // sad je opciono i zaista se koristi
+  emoji?: string;       // fallback ako nema ikone
   tip?: string;
 }
 
@@ -49,7 +50,7 @@ const tutorialSteps: TutorialStep[] = [
       "Koristi kameru da uslikaš urađeni zadatak. Slika će biti automatski kompresovana i spremna za slanje.",
     icon: <Camera className="h-12 w-12 text-green-600" />,
     emoji: "📸",
-    tip: "Radi i offline! Sinhronizuje se kada se povezeš na internet.",
+    tip: "Radi i offline! Sinhronizuje se kada se povežeš na internet.",
   },
   {
     id: 4,
@@ -82,9 +83,101 @@ export function OnboardingTutorial({
 }: OnboardingTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
-
+  const prefersReducedMotion = useReducedMotion();
   const step = tutorialSteps[currentStep];
   const isLastStep = currentStep === tutorialSteps.length - 1;
+
+  // a11y (modal)
+  const dialogTitleId = useId();
+  const dialogDescId = useId();
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  // focus trap
+  useEffect(() => {
+    previouslyFocused.current = (document.activeElement as HTMLElement) ?? null;
+
+    const focusable = () => {
+      if (!overlayRef.current) return [] as HTMLElement[];
+      return Array.from(
+        overlayRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
+    };
+
+    // init focus
+    const items = focusable();
+    if (items[0]) items[0].focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const f = focusable();
+      if (f.length === 0) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    // lock scroll
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+      if (previouslyFocused.current) previouslyFocused.current.focus();
+    };
+  }, []);
+
+  // Keyboard navigation (samo unutar modala)
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "ArrowRight" && !isLastStep) {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === "ArrowLeft" && currentStep > 0) {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        handleSkip();
+      } else if (e.key === "Enter" && isLastStep) {
+        e.preventDefault();
+        onComplete();
+      }
+    },
+    [currentStep, isLastStep, onComplete]
+  );
+
+  // Swipe gestures (mobile)
+  const touchStartX = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const THRESHOLD = 60;
+    if (dx > THRESHOLD) {
+      handlePrev();
+    } else if (dx < -THRESHOLD) {
+      handleNext();
+    }
+    touchStartX.current = null;
+  };
 
   const handleNext = useCallback(() => {
     if (isLastStep) {
@@ -106,48 +199,37 @@ export function OnboardingTutorial({
   }, []);
 
   const handleSkip = useCallback(() => {
-    if (onSkip) {
-      onSkip();
-    } else {
-      onComplete();
-    }
+    if (onSkip) onSkip();
+    else onComplete();
   }, [onSkip, onComplete]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" && !isLastStep) {
-        handleNext();
-      } else if (e.key === "ArrowLeft" && currentStep > 0) {
-        handlePrev();
-      } else if (e.key === "Escape") {
-        handleSkip();
-      } else if (e.key === "Enter" && isLastStep) {
-        onComplete();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentStep, isLastStep, handleNext, handlePrev, handleSkip, onComplete]);
-
   const variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
+    enter: (dir: number) => ({
+      x: prefersReducedMotion ? 0 : dir > 0 ? 300 : -300,
       opacity: 0,
     }),
     center: {
       x: 0,
       opacity: 1,
     },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 300 : -300,
+    exit: (dir: number) => ({
+      x: prefersReducedMotion ? 0 : dir < 0 ? 300 : -300,
       opacity: 0,
     }),
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={dialogTitleId}
+      aria-describedby={dialogDescId}
+      onKeyDown={handleKeyDown}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="relative max-w-lg w-full">
         {/* Skip button */}
         <Button
@@ -155,7 +237,7 @@ export function OnboardingTutorial({
           size="icon"
           onClick={handleSkip}
           className="absolute -top-12 right-0 text-white hover:bg-white/10"
-          aria-label="Preskoči tutorial"
+          aria-label="Preskoči tutorijal"
         >
           <X className="h-6 w-6" />
         </Button>
@@ -163,8 +245,8 @@ export function OnboardingTutorial({
         <Card className="shadow-2xl">
           <CardContent className="p-8">
             {/* Progress bar */}
-            <div className="mb-6">
-              <div className="flex gap-1 mb-2">
+            <div className="mb-6" aria-live="polite">
+              <div className="flex gap-1 mb-2" aria-hidden="true">
                 {tutorialSteps.map((_, index) => (
                   <motion.div
                     key={`step-${index}`}
@@ -172,12 +254,15 @@ export function OnboardingTutorial({
                       index <= currentStep ? "bg-blue-600" : "bg-gray-200"
                     }`}
                     initial={{ scaleX: 0 }}
-                    animate={{ scaleX: index <= currentStep ? 1 : 0 }}
-                    transition={{ duration: 0.3 }}
+                    animate={{
+                      scaleX: index <= currentStep ? 1 : 1, // izbegni “skokove” na unmount
+                    }}
+                    style={{ transformOrigin: "left" }}
+                    transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
                   />
                 ))}
               </div>
-              <p className="text-xs text-gray-600 text-center">
+              <p className="text-xs text-gray-600 text-center" id={dialogDescId}>
                 Korak {currentStep + 1} od {tutorialSteps.length}
               </p>
             </div>
@@ -193,26 +278,34 @@ export function OnboardingTutorial({
                   animate="center"
                   exit="exit"
                   transition={{
-                    x: { type: "spring", stiffness: 300, damping: 30 },
-                    opacity: { duration: 0.2 },
+                    x: prefersReducedMotion
+                      ? { duration: 0 }
+                      : { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: prefersReducedMotion ? 0 : 0.2 },
                   }}
                   className="absolute inset-0 flex flex-col items-center text-center"
                 >
-                  {/* Icon */}
+                  {/* Icon / Emoji */}
                   <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
+                    initial={{ scale: prefersReducedMotion ? 1 : 0, rotate: prefersReducedMotion ? 0 : -180 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: 0.2, type: "spring" }}
+                    transition={{ delay: prefersReducedMotion ? 0 : 0.2, type: "spring" }}
                     className="mb-6 h-24 w-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center shadow-lg"
+                    aria-hidden="true"
                   >
-                    <span className="text-6xl">{step.emoji}</span>
+                    {step.icon ? (
+                      step.icon
+                    ) : (
+                      <span className="text-6xl">{step.emoji ?? "✨"}</span>
+                    )}
                   </motion.div>
 
                   {/* Title */}
                   <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
+                    id={dialogTitleId}
+                    initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
+                    transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
                     className="text-2xl font-bold text-gray-900 mb-3"
                   >
                     {step.title}
@@ -220,9 +313,9 @@ export function OnboardingTutorial({
 
                   {/* Description */}
                   <motion.p
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
                     className="text-gray-600 text-lg leading-relaxed mb-4 max-w-md"
                   >
                     {step.description}
@@ -231,14 +324,12 @@ export function OnboardingTutorial({
                   {/* Tip */}
                   {step.tip && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
+                      initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.5 }}
+                      transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
                       className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-md"
                     >
-                      <p className="text-sm text-blue-800 font-medium">
-                        💡 {step.tip}
-                      </p>
+                      <p className="text-sm text-blue-800 font-medium">💡 {step.tip}</p>
                     </motion.div>
                   )}
                 </motion.div>
@@ -252,6 +343,7 @@ export function OnboardingTutorial({
                 onClick={handlePrev}
                 disabled={currentStep === 0}
                 className={currentStep === 0 ? "invisible" : ""}
+                aria-label="Nazad"
               >
                 Nazad
               </Button>
@@ -260,6 +352,7 @@ export function OnboardingTutorial({
                 onClick={handleNext}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 size="lg"
+                aria-label={isLastStep ? "Završi i počni" : "Sledeće"}
               >
                 {isLastStep ? (
                   <>
@@ -277,7 +370,7 @@ export function OnboardingTutorial({
 
             {/* Keyboard hints */}
             <p className="text-xs text-gray-500 text-center mt-4">
-              Koristi tastere ← → za navigaciju, Esc za preskok
+              Koristi tastere ← → za navigaciju, Esc za preskok. Prevuci levo/desno na mobilnom.
             </p>
           </CardContent>
         </Card>
@@ -286,23 +379,42 @@ export function OnboardingTutorial({
   );
 }
 
-// Hook za managing onboarding state
+// Hook za managing onboarding state (stabilno, default = false)
 export function useOnboarding() {
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
+  // init + guard za private mode
   useEffect(() => {
-    // Check if user has completed onboarding
-    const completed = localStorage.getItem("onboarding_completed");
-    setHasCompletedOnboarding(completed === "true");
+    try {
+      const completed = localStorage.getItem("onboarding_completed");
+      setHasCompletedOnboarding(completed === "true");
+    } catch {
+      setHasCompletedOnboarding(false);
+    }
+  }, []);
+
+  // sync kroz tabove/prozore
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "onboarding_completed") {
+        setHasCompletedOnboarding(e.newValue === "true");
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const completeOnboarding = () => {
-    localStorage.setItem("onboarding_completed", "true");
+    try {
+      localStorage.setItem("onboarding_completed", "true");
+    } catch {}
     setHasCompletedOnboarding(true);
   };
 
   const resetOnboarding = () => {
-    localStorage.removeItem("onboarding_completed");
+    try {
+      localStorage.removeItem("onboarding_completed");
+    } catch {}
     setHasCompletedOnboarding(false);
   };
 
