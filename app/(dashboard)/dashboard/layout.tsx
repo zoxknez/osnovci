@@ -90,11 +90,10 @@ export default function DashboardLayout({
         </button>
 
         {/* Center: Osnovci Logo & Date/Time - U JEDNOJ LINIJI */}
-        <div className="flex-1 flex items-center justify-center gap-1 sm:gap-2 min-w-0">
-          <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent whitespace-nowrap animate-pulse">
+        <div className="flex-1 flex items-center justify-center gap-2 sm:gap-3 min-w-0 animate-pulse">
+          <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent whitespace-nowrap">
             Osnovci
           </h1>
-          <span className="text-gray-400">•</span>
           <p className="text-xs sm:text-sm text-gray-600 font-medium whitespace-nowrap">{dateString}</p>
         </div>
 
