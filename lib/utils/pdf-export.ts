@@ -58,14 +58,17 @@ export function exportHomeworkToPDF(
     },
   });
 
-  // Footer
+  // Footer - add to all pages
   const pageCount = (doc as any).internal.getNumberOfPages();
   doc.setFontSize(8);
-  doc.text(
-    `Generisano: ${new Date().toLocaleString("sr-RS")} | Strana 1 od ${pageCount}`,
-    14,
-    doc.internal.pageSize.height - 10,
-  );
+  for (let page = 1; page <= pageCount; page++) {
+    doc.setPage(page);
+    doc.text(
+      `Generisano: ${new Date().toLocaleString("sr-RS")} | Strana ${page} od ${pageCount}`,
+      14,
+      doc.internal.pageSize.height - 10,
+    );
+  }
 
   // Save
   doc.save(`domaci-zadaci-${new Date().toISOString().split("T")[0]}.pdf`);

@@ -26,4 +26,18 @@ describe("cn utility", () => {
     expect(result).toContain("bg-blue-500");
     expect(result).not.toContain("bg-red-500");
   });
+
+  it("should handle object arguments with truthy/falsy keys", () => {
+    const isActive = true;
+    const isDisabled = false;
+    const result = cn("base", {
+      "active-class": isActive,
+      "disabled-class": isDisabled,
+      "visible-class": true,
+    });
+    expect(result).toContain("base");
+    expect(result).toContain("active-class");
+    expect(result).toContain("visible-class");
+    expect(result).not.toContain("disabled-class");
+  });
 });

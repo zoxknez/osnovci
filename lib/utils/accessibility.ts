@@ -149,12 +149,13 @@ export function useKeyboardNavigation(options: {
 
 /**
  * Generiše unique ID za accessibility labels
+ * Uses module-level counter to ensure unique IDs across renders
  */
 let idCounter = 0;
 export function useA11yId(prefix = "a11y"): string {
   if (typeof window === "undefined") return `${prefix}-ssr`;
 
-  // Use useState to ensure consistent ID between server and client
+  // Increment module-level counter for unique IDs
   return `${prefix}-${++idCounter}`;
 }
 

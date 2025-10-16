@@ -123,7 +123,7 @@ osnovci/
 **"Kako da pokrenem aplikaciju?"**
 → `QUICK_START.md` ili root `README.md`
 
-**"Kako da konfigurem environment?"**
+**"Kako da konfigurišem environment?"**
 → `ENV_SETUP.md`
 
 **"Kako da deploy-ujem u produkciju?"**
