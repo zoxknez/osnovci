@@ -123,14 +123,14 @@ export default function PrijavaPage() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
         {/* Logo & Header - Mobile optimized */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-center mb-6 sm:mb-8"
@@ -164,7 +164,7 @@ export default function PrijavaPage() {
 
         {/* Main Card */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 1, scale: 1 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
@@ -261,7 +261,7 @@ export default function PrijavaPage() {
               <AnimatePresence mode="wait">
                 {showDemoAccounts && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
+                    initial={{ opacity: 1, height: "auto" }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
@@ -289,7 +289,7 @@ export default function PrijavaPage() {
                             type="button"
                             onClick={() => handleDemoLogin(account.email, account.password)}
                             disabled={isLoading}
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={{ opacity: 1, x: 0 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.05 }}
                             whileHover={{ scale: 1.02, x: 4 }}
@@ -324,7 +324,7 @@ export default function PrijavaPage() {
 
               {!showDemoAccounts && (
                 <motion.div
-                  initial={{ opacity: 0 }}
+                  initial={{ opacity: 1 }}
                   animate={{ opacity: 1 }}
                   className="text-center"
                 >
@@ -372,7 +372,7 @@ export default function PrijavaPage() {
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           className="mt-6 sm:mt-8 text-center text-xs text-gray-500 leading-relaxed px-4"

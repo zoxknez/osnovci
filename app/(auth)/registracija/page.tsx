@@ -137,14 +137,14 @@ export default function RegistracijaPage() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-2xl relative z-10"
       >
         {/* Logo & Header - Isti stil kao prijava */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-center mb-6 sm:mb-8"
@@ -175,7 +175,7 @@ export default function RegistracijaPage() {
           {/* Progress Indicator */}
           {step === "details" && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 flex items-center justify-center gap-2"
             >
@@ -191,7 +191,7 @@ export default function RegistracijaPage() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 1, scale: 1 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
@@ -587,7 +587,7 @@ export default function RegistracijaPage() {
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           className="mt-6 sm:mt-8 text-center text-xs text-gray-500 leading-relaxed px-4"

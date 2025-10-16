@@ -107,6 +107,24 @@ body {
   }
 }
 
+/* ⚠️ CRITICAL: Framer Motion Fallback - Ensure all motion components are visible without JS */
+/* This fixes the "white screen" issue on slow mobile connections */
+[style*="opacity:0"] {
+  opacity: 1 !important;
+}
+
+[style*="transform:"] {
+  /* Remove initial transform state to show content immediately */
+  transform: none !important;
+}
+
+/* Force visibility for all divs with Framer Motion styles */
+div[style*="opacity"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
 /* Subtle bounce effect for mobile interactions */
 @keyframes bounce-subtle {
   0%,
