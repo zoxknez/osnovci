@@ -141,7 +141,7 @@ export default function DashboardLayout({
                 aria-label={item.name}
                 aria-current={isActive ? "page" : undefined}
               >
-                <span className="text-base">{item.emoji}</span>
+                <span className="text-xl sm:text-2xl">{item.emoji}</span>
                 <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">{item.name}</span>
               </Link>
             );
@@ -248,12 +248,12 @@ export default function DashboardLayout({
 
               {/* SAT - manji ispod */}
               <div className="flex items-baseline gap-1.5">
-                <span className="text-5xl">{getTimeEmoji()}</span>
-                <span className="text-3xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
+                <span className="text-3xl">{getTimeEmoji()}</span>
+                <span className="text-2xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
               </div>
 
               {/* DATUM - mali tekst */}
-              <p className="text-lg text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
+              <p className="text-sm text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
             </div>
           </div>
         </nav>
