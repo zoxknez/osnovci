@@ -239,21 +239,24 @@ export default function DashboardLayout({
           </div>
 
           {/* Brand Section na dnu menija - Sat, Osnovci, Datum */}
-          <div className="mt-auto pt-8 border-t border-gray-200">
-            <div className="flex flex-col items-center justify-center gap-3 px-3 py-6">
-              {/* OSNOVCI LOGO - VELIKI I BOLD - PRVI */}
-              <h2 className="text-6xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
+          <div className="mt-auto pt-12 border-t border-gray-200">
+            {/* OSNOVCI LOGO - ODVOJEN NA VRHU */}
+            <div className="flex flex-col items-center justify-center px-3 py-8">
+              <h2 className="text-7xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent leading-tight">
                 Osnovci
               </h2>
+            </div>
 
+            {/* SAT I DATUM - ODVOJENO ISPOD */}
+            <div className="flex flex-col items-center justify-center gap-3 px-3 py-6">
               {/* SAT - manji ispod */}
               <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl">{getTimeEmoji()}</span>
-                <span className="text-2xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
+                <span className="text-5xl">{getTimeEmoji()}</span>
+                <span className="text-3xl font-black text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-mono">{hours}:{minutes}</span>
               </div>
 
               {/* DATUM - mali tekst */}
-              <p className="text-sm text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
+              <p className="text-lg text-gray-600 font-semibold">{dayOfWeek} {dayNum}.{month}</p>
             </div>
           </div>
         </nav>
