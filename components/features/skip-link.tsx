@@ -3,8 +3,6 @@
 
 "use client";
 
-import { cn } from "@/lib/utils/cn";
-
 interface SkipLinkProps {
   href: string;
   children: React.ReactNode;
@@ -28,48 +26,51 @@ export function SkipLink({ href, children, className }: SkipLinkProps) {
   return (
     <a
       href={href}
-      className={cn(
-        // Default: Skriven (screen reader only)
-        "sr-only",
-
-        // Focus visible: Prikaži na top-left
-        "focus:not-sr-only",
-        "focus:fixed",
-        "focus:top-4",
-        "focus:left-4",
-        "focus:z-50",
-
-        // Styling
-        "focus:inline-flex",
-        "focus:items-center",
-        "focus:gap-2",
-        "focus:px-6",
-        "focus:py-3",
-        "focus:bg-blue-600",
-        "focus:text-white",
-        "focus:rounded-xl",
-        "focus:shadow-2xl",
-        "focus:font-medium",
-        "focus:outline-none",
-        "focus:ring-4",
-        "focus:ring-blue-500/50",
-
-        // Animation
-        "transition-all",
-        "duration-200",
-
-        className,
-      )}
-      onClick={(e) => {
-        e.preventDefault();
-        const target = document.querySelector(href);
-        if (target) {
-          // Focus target element
-          (target as HTMLElement).focus();
-          // Scroll into view
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+      style={{
+        // Koristi CSS umjesto Tailwind da bude 100% siguran
+        position: "fixed",
+        top: "-9999px",
+        left: "-9999px",
+        width: "1px",
+        height: "1px",
+        overflow: "hidden",
+        padding: "0",
+        margin: "0",
+        whiteSpace: "nowrap",
+        border: "0",
       }}
+      onFocus={(e) => {
+        // Prikaži na focus
+        const el = e.currentTarget;
+        el.style.top = "0";
+        el.style.left = "0";
+        el.style.width = "auto";
+        el.style.height = "auto";
+        el.style.padding = "0.75rem";
+        el.style.overflow = "visible";
+        el.style.zIndex = "9999";
+        el.style.display = "inline-flex";
+        el.style.alignItems = "center";
+        el.style.gap = "0.5rem";
+        el.style.backgroundColor = "#2563eb";
+        el.style.color = "white";
+        el.style.borderRadius = "0.5rem";
+        el.style.boxShadow = "0 10px 15px -3px rgba(0, 0, 0, 0.1)";
+        el.style.fontWeight = "500";
+        el.style.outline = "none";
+      }}
+      onBlur={(e) => {
+        // Sakrij nakon blur
+        const el = e.currentTarget;
+        el.style.top = "-9999px";
+        el.style.left = "-9999px";
+        el.style.width = "1px";
+        el.style.height = "1px";
+        el.style.padding = "0";
+        el.style.overflow = "hidden";
+        el.style.display = "block";
+      }}
+      className={className}
     >
       {children}
     </a>

@@ -26,11 +26,11 @@ import type {
 import { staggerContainer } from "@/lib/animations/variants";
 
 const DEFAULT_PROFILE: ProfileSettings = {
-  name: "Marko Marković",
-  email: "ucenik@demo.rs",
-  phone: "064 123 4567",
-  school: 'OŠ "Vuk Karadžić"',
-  class: "5B",
+    name: "Marko Marković",
+    email: "ucenik@demo.rs",
+    phone: "064 123 4567",
+    school: 'OŠ "Vuk Karadžić"',
+    class: "5B",
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationsSettings = {

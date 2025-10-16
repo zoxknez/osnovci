@@ -252,13 +252,12 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <div className="lg:pl-72">
-        <main
-          id="main-content"
+        <div
           tabIndex={-1}
           className="min-h-screen py-4 px-3 sm:py-8 sm:px-6 lg:px-8 lg:py-10 focus:outline-none"
         >
           {children}
-        </main>
+        </div>
       </div>
     </div>
   );

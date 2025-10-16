@@ -60,9 +60,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { PWAInstaller } from "@/components/features/pwa-installer";
-import { SkipLink } from "@/components/features/skip-link";
-import { SyncManager } from "@/components/features/sync-manager";
 
 export default function RootLayout({
   children,
@@ -74,24 +71,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 transition-colors duration-300`}
       >
-        <ErrorBoundary>
-          {/* Accessibility: Skip Links - WCAG 2.1 AA */}
-          <SkipLink href="#main-content">Preskoči na glavni sadržaj</SkipLink>
-
-          {/* PWA Features */}
-          <PWAInstaller />
-          <SyncManager />
-
-          {/* Main Content */}
+        {/* Main Content */}
+        <main id="main-content">
           {children}
-
-          {/* Global Notifications */}
-          <Toaster position="top-center" richColors />
-
-          {/* Analytics & Performance Monitoring */}
-          <Analytics />
-          <SpeedInsights />
-        </ErrorBoundary>
+        </main>
       </body>
     </html>
   );
