@@ -280,14 +280,14 @@ export default function RasporedPage() {
                     >
                       {/* Day label */}
                       <div
-                        className={`text-[9px] sm:text-xs font-semibold mb-0.5 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
+                        className={`text-[10px] sm:text-sm font-semibold mb-1 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
                       >
                         {dayKey.short}
                       </div>
 
                       {/* Date number */}
                       <div
-                        className={`text-lg sm:text-xl font-bold mb-0.5 ${selected ? "text-white" : "text-gray-900"}`}
+                        className={`text-xl sm:text-2xl font-bold mb-1 ${selected ? "text-white" : "text-gray-900"}`}
                       >
                         {format(day, "d")}
                       </div>
@@ -296,7 +296,7 @@ export default function RasporedPage() {
                       {lessonsCount > 0 && (
                         <div
                           className={`
-                          text-[8px] sm:text-[9px] font-medium px-1 py-0.5 rounded-full inline-block
+                          text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full inline-block
                           ${
                             selected
                               ? "bg-white/20 text-white"
