@@ -1,111 +1,243 @@
-// Profile API - Student profile management
-import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
+import { getServerSession } from "next-auth";
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth/config";
+import bcrypt from "bcryptjs";
+import {
+  UpdateProfileSchema,
+  ChangePasswordSchema,
+} from "@/lib/api/schemas/profile";
+import {
+  handleAPIError,
+  AuthenticationError,
+  NotFoundError,
+  ValidationError,
+} from "@/lib/api/handlers/errors";
+import { successResponse, createdResponse } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
 
-const updateProfileSchema = z.object({
-  name: z.string().min(2).max(100).optional(),
-  school: z.string().min(1).max(200).optional(),
-  grade: z.number().min(1).max(8).optional(),
-  class: z.string().min(1).max(10).optional(),
-  avatar: z.string().url().optional(),
-  birthDate: z.string().datetime().optional(),
-  jmbg: z.string().length(13).optional(),
-  address: z.string().max(200).optional(),
-  height: z.number().positive().optional(),
-  weight: z.number().positive().optional(),
-  clothingSize: z.string().max(10).optional(),
-  hasGlasses: z.boolean().optional(),
-  bloodType: z
-    .enum(["A_POSITIVE", "A_NEGATIVE", "B_POSITIVE", "B_NEGATIVE", "AB_POSITIVE", "AB_NEGATIVE", "O_POSITIVE", "O_NEGATIVE", "UNKNOWN"])
-    .optional(),
-  allergies: z.string().max(1000).optional(),
-  chronicIllnesses: z.string().max(1000).optional(),
-  medications: z.string().max(1000).optional(),
-  healthNotes: z.string().max(1000).optional(),
-  specialNeeds: z.string().max(1000).optional(),
-});
-
-// GET /api/profile - Get current user profile
-export async function GET(_request: NextRequest) {
+/**
+ * GET /api/profile
+ * Dohvata profil sa statistikom
+ */
+export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
+    // Dohvati korisnika
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        student: true,
-        guardian: true,
+        students: {
+          select: { id: true, name: true, school: true, grade: true },
+        },
       },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
+      throw new NotFoundError("Korisnik");
     }
 
-    return NextResponse.json({
-      success: true,
-      user,
+    // Ako je student, dohvati njegov profil
+    let studentData = user.students[0];
+    const queryStudentId = request.nextUrl.searchParams.get("studentId");
+
+    if (queryStudentId && user.students.length > 1) {
+      studentData = user.students.find((s) => s.id === queryStudentId);
+      if (!studentData) {
+        throw new NotFoundError("Učenik");
+      }
+    }
+
+    // Dohvati statistiku
+    const homework = await prisma.homework.findMany({
+      where: { studentId: studentData.id },
+    });
+
+    const grades = await prisma.grade.findMany({
+      where: { studentId: studentData.id },
+    });
+
+    const schedules = await prisma.scheduleEntry.findMany({
+      where: { studentId: studentData.id },
+    });
+
+    const completedHomework = homework.filter(
+      (h) => h.status === "DONE" || h.status === "SUBMITTED"
+    ).length;
+
+    const gradeValues = grades.map((g) => parseInt(g.grade));
+    const averageGrade =
+      gradeValues.length > 0
+        ? gradeValues.reduce((a, b) => a + b) / gradeValues.length
+        : 0;
+
+    const profileData = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      dateOfBirth: user.dateOfBirth,
+      gender: user.gender,
+      school: studentData?.school,
+      grade: studentData?.grade,
+      bio: user.bio,
+      role: user.role,
+      xp: user.xp || 0,
+      level: Math.floor((user.xp || 0) / 1000) + 1,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    const stats = {
+      totalHomework: homework.length,
+      completedHomework: completedHomework,
+      averageGrade: Math.round(averageGrade * 100) / 100,
+      totalClasses: schedules.length,
+      attendanceRate: 95, // TODO: Implementiraj praćenje prisustva
+      xpThisMonth: user.xp || 0, // TODO: Implementiraj praćenje XP po mjesecu
+      achievements: [], // TODO: Implementiraj achievement sistem
+    };
+
+    log.info("Fetched profile", {
+      userId: session.user.id,
+      studentId: studentData.id,
+    });
+
+    return successResponse({
+      profile: profileData,
+      stats,
     });
   } catch (error) {
-    log.error("GET /api/profile failed", { error });
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleAPIError(error);
   }
 }
 
-// PATCH /api/profile - Update profile
-export async function PATCH(request: NextRequest) {
+/**
+ * PUT /api/profile
+ * Ažurira profil korisnika
+ */
+export async function PUT(request: NextRequest) {
   try {
-    const session = await auth();
-
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
+    // Parse body
     const body = await request.json();
-    const validated = updateProfileSchema.safeParse(body);
 
-    if (!validated.success) {
-      return NextResponse.json(
-        { error: "Validation Error", details: validated.error.flatten() },
-        { status: 400 },
-      );
-    }
+    // Validacija
+    const validatedData = UpdateProfileSchema.parse(body);
 
-    // Update student profile
-    const user = await prisma.user.findUnique({
+    // Ažuriraj korisnika
+    const updated = await prisma.user.update({
       where: { id: session.user.id },
-      include: { student: true },
-    });
-
-    if (!user?.student) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
-    }
-
-    const updated = await prisma.student.update({
-      where: { id: user.student.id },
       data: {
-        ...validated.data,
-        birthDate: validated.data.birthDate
-          ? new Date(validated.data.birthDate)
-          : undefined,
+        ...(validatedData.name && { name: validatedData.name }),
+        ...(validatedData.avatar && { avatar: validatedData.avatar }),
+        ...(validatedData.dateOfBirth && {
+          dateOfBirth: new Date(validatedData.dateOfBirth),
+        }),
+        ...(validatedData.gender && { gender: validatedData.gender }),
+        ...(validatedData.bio && { bio: validatedData.bio }),
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Profil je ažuriran!",
-      profile: updated,
+    // Ako je student i ima podatke za studenta
+    if (validatedData.school || validatedData.grade) {
+      const student = await prisma.student.findFirst({
+        where: { userId: session.user.id },
+      });
+
+      if (student) {
+        await prisma.student.update({
+          where: { id: student.id },
+          data: {
+            ...(validatedData.school && { school: validatedData.school }),
+            ...(validatedData.grade && { grade: validatedData.grade }),
+          },
+        });
+      }
+    }
+
+    log.info("Updated profile", {
+      userId: session.user.id,
+      fields: Object.keys(validatedData),
+    });
+
+    return successResponse({
+      id: updated.id,
+      name: updated.name,
+      email: updated.email,
+      avatar: updated.avatar,
+      dateOfBirth: updated.dateOfBirth,
+      gender: updated.gender,
+      bio: updated.bio,
     });
   } catch (error) {
-    log.error("PATCH /api/profile failed", { error });
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleAPIError(error);
+  }
+}
+
+/**
+ * POST /api/profile
+ * Mijenja šifru korisnika
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Autentifikacija
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new AuthenticationError();
+    }
+
+    // Parse body
+    const body = await request.json();
+
+    // Validacija
+    const validatedData = ChangePasswordSchema.parse(body);
+
+    // Dohvati korisnika
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!user) {
+      throw new NotFoundError("Korisnik");
+    }
+
+    // Provjeri trenutnu šifru
+    if (!user.password || !(await bcrypt.compare(validatedData.currentPassword, user.password))) {
+      throw new ValidationError("Trenutna šifra nije ispravna");
+    }
+
+    // Hash novu šifru
+    const hashedPassword = await bcrypt.hash(validatedData.newPassword, 10);
+
+    // Ažuriraj šifru
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    log.info("Changed password", {
+      userId: session.user.id,
+    });
+
+    return createdResponse(
+      { success: true },
+      "Šifra je uspješno promijenjena"
+    );
+  } catch (error) {
+    return handleAPIError(error);
   }
 }
 
