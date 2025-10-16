@@ -247,8 +247,8 @@ export default function DashboardLayout({
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-100 bg-gradient-to-b from-blue-50/50 to-white px-6 pb-4 backdrop-blur-sm">
-          <div className="flex h-16 items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <div className="flex h-16 items-center justify-center">
+            <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Osnovci
             </h1>
           </div>
