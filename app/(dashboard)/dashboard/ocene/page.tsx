@@ -34,94 +34,9 @@ import { PageHeader } from "@/components/features/page-header";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 import { toast } from "sonner";
 
-// Mock data - TODO: Replace with real API
-const MOCK_GRADES = [
-  {
-    subject: "Matematika",
-    color: "#3b82f6",
-    icon: "📐",
-    grades: [5, 4, 5, 5, 4],
-    average: 4.6,
-    trend: "up",
-    lastGrade: 5,
-    totalGrades: 5,
-  },
-  {
-    subject: "Srpski jezik",
-    color: "#ef4444",
-    icon: "📖",
-    grades: [5, 5, 4, 5, 5],
-    average: 4.8,
-    trend: "up",
-    lastGrade: 5,
-    totalGrades: 5,
-  },
-  {
-    subject: "Engleski jezik",
-    color: "#10b981",
-    icon: "🇬🇧",
-    grades: [5, 5, 5, 4, 5],
-    average: 4.8,
-    trend: "down",
-    lastGrade: 4,
-    totalGrades: 5,
-  },
-  {
-    subject: "Fizika",
-    color: "#6366f1",
-    icon: "⚛️",
-    grades: [4, 4, 5, 4, 5],
-    average: 4.4,
-    trend: "up",
-    lastGrade: 5,
-    totalGrades: 5,
-  },
-  {
-    subject: "Hemija",
-    color: "#ec4899",
-    icon: "🧪",
-    grades: [5, 4, 4, 5, 5],
-    average: 4.6,
-    trend: "stable",
-    lastGrade: 5,
-    totalGrades: 5,
-  },
-  {
-    subject: "Istorija",
-    color: "#8b5cf6",
-    icon: "🏛️",
-    grades: [5, 5, 5, 5, 4],
-    average: 4.8,
-    trend: "down",
-    lastGrade: 4,
-    totalGrades: 5,
-  },
-];
-
-// Data for trend chart (TODO: Use in future feature)
-const _trendData = [
-  { month: "Sep", average: 4.2 },
-  { month: "Okt", average: 4.4 },
-  { month: "Nov", average: 4.5 },
-  { month: "Dec", average: 4.6 },
-  { month: "Jan", average: 4.7 },
-];
-
-// Data for radar chart (skills) (TODO: Use in future feature)
-const _radarData = MOCK_GRADES.map((g) => ({
-  subject: g.subject.split(" ")[0],
-  score: g.average,
-  fullMark: 5,
-}));
-
-// Data for bar chart (grade distribution) (TODO: Use in future feature)
-const _gradeDistribution = [
-  { grade: "5", count: 18 },
-  { grade: "4", count: 10 },
-  { grade: "3", count: 2 },
-  { grade: "2", count: 0 },
-  { grade: "1", count: 0 },
-];
+// TODO: Data for trend chart - implement in future feature
+// TODO: Data for radar chart (skills) - implement in future feature
+// TODO: Data for bar chart (grade distribution) - implement in future feature
 
 export default function OcenePage() {
   const [page, _setPage] = useState(1);

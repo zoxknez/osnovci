@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { createAndSendVerificationEmail } from "@/lib/auth/email-verification";
 
 const registerSchema = z
   .object({
@@ -100,6 +101,41 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // 🎯 NOVO - Pošalji email verifikaciju ako je email dostupan
+    let emailVerificationSent = false;
+    if (email) {
+      try {
+        const emailResult = await createAndSendVerificationEmail(email, name);
+        emailVerificationSent = emailResult.success;
+
+        if (!emailResult.success) {
+          log.warn("Failed to send verification email", {
+            email,
+          });
+        }
+      } catch (emailError) {
+        log.error("Error sending verification email", { emailError });
+      }
+    }
+
+    // 🎯 NOVO - Vrati success sa redirect na verify-pending ako je email
+    if (email && emailVerificationSent) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Nalog uspešno kreiran! Proveri email za verifikaciju.",
+          email,
+          needsVerification: true,
+          user: {
+            id: user.id,
+            role: user.role,
+          },
+        },
+        { status: 201 },
+      );
+    }
+
+    // Ako nema email-a ili verifikacija nije poslana
     return NextResponse.json(
       {
         success: true,

@@ -1,10 +1,6 @@
 import { auth } from "@/lib/auth/config";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import type {
-  CreateHomeworkInput,
-  QueryHomeworkInput,
-} from "@/lib/api/schemas/homework";
 import {
   CreateHomeworkSchema,
   QueryHomeworkSchema,
@@ -46,25 +42,39 @@ export async function GET(request: NextRequest) {
     // Validacija query parametara
     const validatedQuery = QueryHomeworkSchema.parse(queryData);
 
-    // Dohvati korisnika i njegovu djecu
+    // Dohvati korisnika
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { students: { select: { id: true } } },
+      include: {
+        student: true,
+        guardian: {
+          include: {
+            links: {
+              where: { isActive: true },
+              include: { student: { select: { id: true } } },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
       throw new NotFoundError("Korisnik");
     }
 
-    const studentIds = user.students.map((s) => s.id);
-    if (studentIds.length === 0) {
-      // Ako je sam student, koristi njegov ID
-      const student = await prisma.student.findFirst({
-        where: { userId: user.id },
+    // Prikupi student IDs
+    const studentIds: string[] = [];
+    if (user.student) {
+      studentIds.push(user.student.id);
+    }
+    if (user.guardian?.links) {
+      user.guardian.links.forEach((link) => {
+        studentIds.push(link.student.id);
       });
-      if (student) {
-        studentIds.push(student.id);
-      }
+    }
+
+    if (studentIds.length === 0) {
+      throw new NotFoundError("Nema dostupnih učenika");
     }
 
     // Build filter

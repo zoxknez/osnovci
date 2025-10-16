@@ -6,7 +6,6 @@ import { auth } from "@/lib/auth/config";
 
 const PUBLIC_ROUTES = new Set<string>(["/", "/prijava", "/registracija"]);
 const PUBLIC_API_PREFIXES = ["/api/auth", "/api/health"]; // dozvoli sve ispod ovih
-const LOCALES = ["sr", "en"] as const;
 
 function stripLocale(pathname: string) {
   // /sr, /en prefiksi — tretiraj kao i bez prefiksa

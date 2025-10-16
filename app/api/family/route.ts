@@ -19,7 +19,6 @@ import {
   noContentResponse,
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
-import crypto from "crypto";
 
 /**
  * GET /api/family
@@ -57,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build filter
-    const where: any = {
+    const where: Record<string, unknown> = {
       OR: [{ userId: user.id }, { guardianId: user.id }],
     };
 
@@ -69,14 +68,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Dohvati total broj
-    const total = await prisma.familyLink.count({ where });
+    const total = await prisma.link.count({ where });
 
     // Dohvati članove
-    const links = await prisma.familyLink.findMany({
+    const links = await prisma.link.findMany({
       where,
       include: {
         guardian: {
-          select: { id: true, name: true, email: true },
+          include: {
+            user: {
+              select: { email: true },
+            },
+          },
         },
         student: {
           select: { id: true, name: true },
@@ -93,13 +96,12 @@ export async function GET(request: NextRequest) {
     const formatted = links.map((link) => ({
       id: link.id,
       name: link.guardian.name,
-      email: link.guardian.email,
-      relation: link.relation,
-      role: link.role,
-      status: link.status,
+      email: link.guardian.user.email,
+      linkCode: link.linkCode,
+      isActive: link.isActive,
       permissions: link.permissions,
       linkedAt: link.createdAt,
-      lastAccess: link.lastAccess,
+      expiresAt: link.expiresAt,
     }));
 
     log.info("Fetched family members", {
@@ -148,22 +150,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Provjeri da li je taj email već povezan
-    const existingLink = await prisma.familyLink.findFirst({
+    const existingLink = await prisma.link.findFirst({
       where: {
         studentId: student.id,
         guardian: {
-          email: validatedData.email,
+          user: {
+            email: validatedData.email,
+          },
         },
       },
     });
 
-    if (existingLink && existingLink.status !== "REVOKED") {
+    if (existingLink?.isActive) {
       throw new ConflictError("Ovaj email je već povezan sa ovim djetetom");
     }
-
-    // Generiši verification token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 sata
 
     // Dohvati ili kreiraj guardiana
     let guardian = await prisma.user.findUnique({
@@ -171,49 +171,79 @@ export async function POST(request: NextRequest) {
     });
 
     if (!guardian) {
-      // Kreiraj novog guardiana sa temp imenom
-      guardian = await prisma.user.create({
+      // Kreiraj novog User-a
+      const newUser = await prisma.user.create({
         data: {
           email: validatedData.email,
+          role: "GUARDIAN",
+        },
+      });
+
+      // Kreiraj Guardian profil
+      await prisma.guardian.create({
+        data: {
+          userId: newUser.id,
           name: validatedData.email.split("@")[0],
-          role: "PARENT",
+        },
+      });
+
+      guardian = newUser;
+    }
+
+    // Ako Guardian ne postoji na user.guardian, kreiraj ga
+    let guardianProfile = await prisma.guardian.findUnique({
+      where: { userId: guardian.id },
+    });
+
+    if (!guardianProfile) {
+      guardianProfile = await prisma.guardian.create({
+        data: {
+          userId: guardian.id,
+          name: guardian.email?.split("@")[0] || "Guardian",
         },
       });
     }
 
-    // Kreiraj family link
-    const familyLink = await prisma.familyLink.create({
+    // Generiši link code (6 cifre)
+    const linkCode = Math.random().toString().substring(2, 8);
+
+    // Kreiraj link
+    const newLink = await prisma.link.create({
       data: {
         studentId: student.id,
-        guardianId: guardian.id,
-        relation: validatedData.relation,
-        permissions: validatedData.permissions,
-        verificationToken,
-        tokenExpiry,
-        status: "PENDING",
+        guardianId: guardianProfile.id,
+        linkCode,
+        isActive: true,
+        permissions: validatedData.permissions || {},
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dana
       },
       include: {
-        guardian: { select: { id: true, name: true, email: true } },
+        guardian: {
+          include: {
+            user: {
+              select: { email: true },
+            },
+          },
+        },
       },
     });
 
     log.info("Initiated family link", {
       userId: session.user.id,
-      linkId: familyLink.id,
+      linkId: newLink.id,
       guardianEmail: validatedData.email,
     });
 
-    // TODO: Pošalji email sa verification linkom
-    // await sendVerificationEmail(validatedData.email, verificationToken);
+    // TODO: Pošalji email sa link kodom
+    // await sendVerificationEmail(validatedData.email, newLink.linkCode);
 
     return createdResponse(
       {
-        id: familyLink.id,
-        name: familyLink.guardian.name,
-        email: familyLink.guardian.email,
-        relation: familyLink.relation,
-        status: familyLink.status,
-        permissions: familyLink.permissions,
+        id: newLink.id,
+        name: newLink.guardian.name,
+        email: newLink.guardian.user.email,
+        linkCode: newLink.linkCode,
+        permissions: newLink.permissions,
       },
       "Poziv je poslana na email",
     );
@@ -240,29 +270,35 @@ export async function PUT(request: NextRequest) {
     // Validacija
     const validatedData = UpdatePermissionsSchema.parse(body);
 
-    // Dohvati family link
-    const familyLink = await prisma.familyLink.findUnique({
+    // Dohvati link
+    const link = await prisma.link.findUnique({
       where: { id: validatedData.guardianId },
       include: { student: { select: { userId: true } } },
     });
 
-    if (!familyLink) {
+    if (!link) {
       throw new NotFoundError("Poziv");
     }
 
     // Provjeri da li je autentifikovani korisnik vlasnik dijeta
-    if (familyLink.student.userId !== session.user.id) {
+    if (link.student.userId !== session.user.id) {
       throw new AuthenticationError();
     }
 
     // Ažuriraj dozvole
-    const updated = await prisma.familyLink.update({
+    const updated = await prisma.link.update({
       where: { id: validatedData.guardianId },
       data: {
         permissions: validatedData.permissions,
       },
       include: {
-        guardian: { select: { id: true, name: true, email: true } },
+        guardian: {
+          include: {
+            user: {
+              select: { email: true },
+            },
+          },
+        },
       },
     });
 
@@ -275,7 +311,7 @@ export async function PUT(request: NextRequest) {
     return successResponse({
       id: updated.id,
       name: updated.guardian.name,
-      email: updated.guardian.email,
+      email: updated.guardian.user.email,
       permissions: updated.permissions,
     });
   } catch (error) {
@@ -301,25 +337,25 @@ export async function DELETE(request: NextRequest) {
       throw new Error("Link ID je obavezan");
     }
 
-    // Dohvati family link
-    const familyLink = await prisma.familyLink.findUnique({
+    // Dohvati link
+    const link = await prisma.link.findUnique({
       where: { id: linkId },
       include: { student: { select: { userId: true } } },
     });
 
-    if (!familyLink) {
+    if (!link) {
       throw new NotFoundError("Poziv");
     }
 
     // Provjeri da li je autentifikovani korisnik vlasnik dijeta
-    if (familyLink.student.userId !== session.user.id) {
+    if (link.student.userId !== session.user.id) {
       throw new AuthenticationError();
     }
 
-    // Označi kao REVOKED umjesto brisanja
-    await prisma.familyLink.update({
+    // Deaktiviraj link umjesto brisanja
+    await prisma.link.update({
       where: { id: linkId },
-      data: { status: "REVOKED" },
+      data: { isActive: false },
     });
 
     log.info("Revoked family link", {

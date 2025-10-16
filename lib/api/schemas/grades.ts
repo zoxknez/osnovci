@@ -72,7 +72,7 @@ export type GradeResponse = z.infer<typeof GradeResponseSchema>;
 export const GradeStatsSchema = z.object({
   average: z.number().min(1).max(5),
   total: z.number().int(),
-  byCategory: z.record(z.number()),
+  byCategory: z.record(z.string(), z.number()),
   bySubject: z.array(
     z.object({
       subject: z.string(),

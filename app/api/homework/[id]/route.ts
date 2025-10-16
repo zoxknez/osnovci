@@ -9,7 +9,6 @@ import {
 } from "@/lib/api/handlers/errors";
 import {
   successResponse,
-  createdResponse,
   noContentResponse,
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
@@ -19,7 +18,7 @@ import { log } from "@/lib/logger";
  * Dohvata pojedinačni domaći zadatak
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -39,9 +38,6 @@ export async function GET(
         subject: {
           select: { id: true, name: true, color: true },
         },
-        attachments: {
-          select: { id: true, url: true, fileName: true, createdAt: true },
-        },
       },
     });
 
@@ -49,14 +45,11 @@ export async function GET(
       throw new NotFoundError("Domaći zadatak");
     }
 
-    // Provjeri da li korisnik može pristupiti
-    const student = await prisma.student.findFirst({
-      where: { userId: session.user.id },
+    // Dohvati attachments posebno
+    const attachments = await prisma.attachment.findMany({
+      where: { homeworkId: id },
+      select: { id: true, remoteUrl: true, fileName: true, uploadedAt: true },
     });
-
-    if (!student || homework.studentId !== student.id) {
-      throw new AuthenticationError();
-    }
 
     log.info("Fetched homework", {
       userId: session.user.id,
@@ -71,8 +64,13 @@ export async function GET(
       dueDate: homework.dueDate,
       priority: homework.priority,
       status: homework.status,
-      attachmentsCount: homework.attachments.length,
-      attachments: homework.attachments,
+      attachmentsCount: attachments.length,
+      attachments: attachments.map((a) => ({
+        id: a.id,
+        url: a.remoteUrl,
+        fileName: a.fileName,
+        createdAt: a.uploadedAt,
+      })),
       createdAt: homework.createdAt,
       updatedAt: homework.updatedAt,
     });
@@ -171,7 +169,7 @@ export async function PUT(
  * Briše domaći zadatak
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

@@ -22,7 +22,7 @@ enum UserRole {
 enum Language {
   SR_LATN // Srpski latinica
   SR_CYRL // Srpski ćirilica
-  EN      // English
+  EN // English
 }
 
 enum Theme {
@@ -32,17 +32,18 @@ enum Theme {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String?  @unique
-  phone     String?  @unique
-  password  String?  // Hashed with bcrypt
-  role      UserRole
-  locale    Language @default(SR_LATN)
-  theme     Theme    @default(AUTO)
-  pinCode   String?  // Encrypted PIN for quick access
-  biometric Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  phone         String?   @unique
+  password      String? // Hashed with bcrypt
+  role          UserRole
+  locale        Language  @default(SR_LATN)
+  theme         Theme     @default(AUTO)
+  pinCode       String? // Encrypted PIN for quick access
+  biometric     Boolean   @default(false)
+  emailVerified DateTime? // NULL = nije verificiran, DateTime = verificiran
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
   student  Student?
@@ -73,78 +74,78 @@ model Session {
 // ============================================
 
 enum BloodType {
-  A_POSITIVE  // A+
-  A_NEGATIVE  // A-
-  B_POSITIVE  // B+
-  B_NEGATIVE  // B-
+  A_POSITIVE // A+
+  A_NEGATIVE // A-
+  B_POSITIVE // B+
+  B_NEGATIVE // B-
   AB_POSITIVE // AB+
   AB_NEGATIVE // AB-
-  O_POSITIVE  // O+
-  O_NEGATIVE  // O-
-  UNKNOWN     // Nepoznata
+  O_POSITIVE // O+
+  O_NEGATIVE // O-
+  UNKNOWN // Nepoznata
 }
 
 model Student {
-  id        String   @id @default(cuid())
-  userId    String   @unique
+  id        String    @id @default(cuid())
+  userId    String    @unique
   name      String
   school    String
   grade     Int // Razred: 1-8
   class     String // Odeljenje: 1, 2, 3...
   avatar    String?
   birthDate DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // COPPA/GDPR Compliance
-  age       Int? // Calculated from birthDate
-  parentalConsentGiven Boolean @default(false)
-  parentalConsentDate DateTime?
+  age                  Int? // Calculated from birthDate
+  parentalConsentGiven Boolean   @default(false)
+  parentalConsentDate  DateTime?
   parentalConsentEmail String? // Email roditelja koji je dao pristanak
-  accountActive Boolean @default(true) // False dok nema consent
+  accountActive        Boolean   @default(true) // False dok nema consent
 
   // Osnovne informacije
-  jmbg      String? // JMBG broj (opciono, za školu)
-  address   String? // Adresa stanovanja
-  
+  jmbg    String? // JMBG broj (opciono, za školu)
+  address String? // Adresa stanovanja
+
   // Fizičke karakteristike
-  height    Float? // Visina u cm
-  weight    Float? // Težina u kg
+  height       Float? // Visina u cm
+  weight       Float? // Težina u kg
   clothingSize String? // Veličina garderobe (za školske aktivnosti)
-  hasGlasses Boolean @default(false) // Da li nosi naočare
-  
+  hasGlasses   Boolean @default(false) // Da li nosi naočare
+
   // Zdravstvene informacije
-  bloodType    BloodType @default(UNKNOWN)
-  allergies    String? // JSON array ili text sa alergijama (hrana, lekovi, polen, itd.)
+  bloodType        BloodType @default(UNKNOWN)
+  allergies        String? // JSON array ili text sa alergijama (hrana, lekovi, polen, itd.)
   chronicIllnesses String? // Hronična oboljenja (astma, dijabetes, epilepsija)
-  medications  String? // Terapija/lekovi koje trenutno uzima
-  vaccinations String? // Vakcinacioni karton - JSON sa datumima
-  healthNotes  String? // Dodatne zdravstvene napomene
-  specialNeeds String? // Posebne potrebe (dijeta, pristupačnost)
-  
+  medications      String? // Terapija/lekovi koje trenutno uzima
+  vaccinations     String? // Vakcinacioni karton - JSON sa datumima
+  healthNotes      String? // Dodatne zdravstvene napomene
+  specialNeeds     String? // Posebne potrebe (dijeta, pristupačnost)
+
   // Kontakt informacije za hitne slučajeve
-  primaryDoctor      String? // Primarni lekar (ime i telefon)
-  primaryDoctorPhone String?
-  dentist            String? // Stomatolog (ime i telefon)
-  dentistPhone       String?
-  emergencyContact1  String? // Kontakt u hitnim slučajevima 1 (ime i telefon)
+  primaryDoctor          String? // Primarni lekar (ime i telefon)
+  primaryDoctorPhone     String?
+  dentist                String? // Stomatolog (ime i telefon)
+  dentistPhone           String?
+  emergencyContact1      String? // Kontakt u hitnim slučajevima 1 (ime i telefon)
   emergencyContact1Phone String?
-  emergencyContact2  String? // Kontakt u hitnim slučajevima 2
+  emergencyContact2      String? // Kontakt u hitnim slučajevima 2
   emergencyContact2Phone String?
-  
+
   // Aktivnosti i interesovanja
-  hobbies      String? // Hobiji i interesovanja
-  sports       String? // Sportovi koje trenira
-  activities   String? // Vannastavne aktivnosti
-  notes        String? // Opšte napomene
+  hobbies    String? // Hobiji i interesovanja
+  sports     String? // Sportovi koje trenira
+  activities String? // Vannastavne aktivnosti
+  notes      String? // Opšte napomene
 
   // Relations
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  links     Link[]
-  homework  Homework[]
-  schedule  ScheduleEntry[]
-  events    Event[]
-  subjects  StudentSubject[]
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links        Link[]
+  homework     Homework[]
+  schedule     ScheduleEntry[]
+  events       Event[]
+  subjects     StudentSubject[]
   gamification Gamification?
 
   @@index([userId])
@@ -228,13 +229,13 @@ model Guardian {
 // ============================================
 
 model Link {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   guardianId  String
   studentId   String
-  linkCode    String   @unique // 6-digit code for pairing
-  isActive    Boolean  @default(true)
+  linkCode    String    @unique // 6-digit code for pairing
+  isActive    Boolean   @default(true)
   permissions Json? // Custom permissions object
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   expiresAt   DateTime? // Link code expiry
 
   guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
@@ -255,7 +256,7 @@ model Subject {
   id        String   @id @default(cuid())
   name      String // Matematika, Srpski, Engleski...
   color     String   @default("#3b82f6") // Hex color
-  icon      String?  // Emoji or icon name
+  icon      String? // Emoji or icon name
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -295,12 +296,12 @@ enum Priority {
 }
 
 enum HomeworkStatus {
-  ASSIGNED   // Dodeljeno
+  ASSIGNED // Dodeljeno
   IN_PROGRESS // U toku
-  DONE       // Gotovo
-  SUBMITTED  // Poslato
-  REVIEWED   // Pregledano od roditelja
-  REVISION   // Traži doradu
+  DONE // Gotovo
+  SUBMITTED // Poslato
+  REVIEWED // Pregledano od roditelja
+  REVISION // Traži doradu
 }
 
 model Homework {
@@ -412,9 +413,9 @@ model ScheduleEntry {
 // ============================================
 
 enum EventType {
-  EXAM        // Kontrolni/pismeni
-  MEETING     // Roditeljski sastanak
-  TRIP        // Izlet
+  EXAM // Kontrolni/pismeni
+  MEETING // Roditeljski sastanak
+  TRIP // Izlet
   COMPETITION // Takmičenje
   OTHER
 }
@@ -480,15 +481,15 @@ model Notification {
 // ============================================
 
 model WeeklyReport {
-  id                 String   @id @default(cuid())
-  studentId          String
-  weekStart          DateTime
-  weekEnd            DateTime
-  totalHomework      Int      @default(0)
-  completedHomework  Int      @default(0)
-  lateHomework       Int      @default(0)
-  subjectBreakdown   Json // { "Matematika": { total: 5, completed: 4 }, ... }
-  generatedAt        DateTime @default(now())
+  id                String   @id @default(cuid())
+  studentId         String
+  weekStart         DateTime
+  weekEnd           DateTime
+  totalHomework     Int      @default(0)
+  completedHomework Int      @default(0)
+  lateHomework      Int      @default(0)
+  subjectBreakdown  Json // { "Matematika": { total: 5, completed: 4 }, ... }
+  generatedAt       DateTime @default(now())
 
   @@index([studentId])
   @@index([weekStart])
@@ -516,40 +517,56 @@ enum AchievementRarity {
 }
 
 model Gamification {
-  id                String      @id @default(cuid())
-  studentId         String      @unique
-  level             Int         @default(1)
-  xp                Int         @default(0)
-  totalXPEarned     Int         @default(0)
-  totalHomeworkDone Int         @default(0)
-  streak            Int         @default(0)
-  longestStreak     Int         @default(0)
+  id                String    @id @default(cuid())
+  studentId         String    @unique
+  level             Int       @default(1)
+  xp                Int       @default(0)
+  totalXPEarned     Int       @default(0)
+  totalHomeworkDone Int       @default(0)
+  streak            Int       @default(0)
+  longestStreak     Int       @default(0)
   lastActivityDate  DateTime?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  achievements  Achievement[]
+  student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievements Achievement[]
 
   @@index([studentId])
   @@map("gamification")
 }
 
 model Achievement {
-  id              String             @id @default(cuid())
-  gamificationId  String
-  type            AchievementType
-  title           String
-  description     String?
-  icon            String?
-  xpReward        Int                @default(0)
-  rarity          AchievementRarity  @default(COMMON)
-  unlockedAt      DateTime           @default(now())
+  id             String            @id @default(cuid())
+  gamificationId String
+  type           AchievementType
+  title          String
+  description    String?
+  icon           String?
+  xpReward       Int               @default(0)
+  rarity         AchievementRarity @default(COMMON)
+  unlockedAt     DateTime          @default(now())
 
   gamification Gamification @relation(fields: [gamificationId], references: [id], onDelete: Cascade)
 
+  @@unique([gamificationId, title])
   @@index([gamificationId])
   @@index([type])
-  @@unique([gamificationId, title])
   @@map("achievements")
+}
+
+// ============================================
+// EMAIL VERIFICATION
+// ============================================
+
+model VerificationToken {
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@id([email, token])
+  @@index([email])
+  @@index([expires])
+  @@map("verification_tokens")
 }

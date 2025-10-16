@@ -58,7 +58,7 @@ async function main() {
   // 3) Kreiraj 20 demo učenika
   const students: Array<{
     id: string;
-    email: string;
+    email: string | null;
     student: { id: string; name: string } | null;
   }> = [];
 
@@ -123,12 +123,17 @@ async function main() {
     throw new Error("Nisu pravilno kreirani demo student/roditelj zapisi.");
   }
 
+  // Sada sigurno znamo da su ovo dostupne vrijednosti
+  const demoStudentId = demoStudentUser.student.id;
+  const demoGuardianId = demoGuardianUser.guardian.id;
+
   // Link parent ↔ student
   await prisma.link.create({
     data: {
-      studentId: demoStudentUser.student.id,
-      guardianId: demoGuardianUser.guardian.id,
-      // relation: "PARENT", // ako imate enum/dodatno polje
+      studentId: demoStudentId,
+      guardianId: demoGuardianId,
+      linkCode: "DEMO01", // Demo link code
+      isActive: true,
     },
   });
 
@@ -154,7 +159,7 @@ async function main() {
   // 6) Poveži SVE predmete sa GLAVNIM demo učenikom
   await prisma.studentSubject.createMany({
     data: subjects.map((s) => ({
-      studentId: demoStudentUser.student!.id,
+      studentId: demoStudentId,
       subjectId: s.id,
     })),
   });
@@ -171,7 +176,7 @@ async function main() {
     data: [
       {
         subjectId: subjects[0].id, // Matematika
-        studentId: demoStudentUser.student!.id,
+        studentId: demoStudentId,
         title: "Zadaci sa strane 45",
         description: "Uradi zadatke 1-10 iz udžbenika",
         dueDate: tomorrow,
@@ -180,7 +185,7 @@ async function main() {
       },
       {
         subjectId: subjects[1].id, // Srpski
-        studentId: demoStudentUser.student!.id,
+        studentId: demoStudentId,
         title: "Sastav: Moj omiljeni pisac",
         description: "Napiši sastav od 200 reči o omiljenom piscu",
         dueDate: in3days,
@@ -189,7 +194,7 @@ async function main() {
       },
       {
         subjectId: subjects[2].id, // Engleski
-        studentId: demoStudentUser.student!.id,
+        studentId: demoStudentId,
         title: "Unit 3 - vežbe",
         description: "Vocabulary and grammar exercises",
         dueDate: today,
@@ -198,7 +203,7 @@ async function main() {
       },
       {
         subjectId: subjects[3].id, // Fizika
-        studentId: demoStudentUser.student!.id,
+        studentId: demoStudentId,
         title: "Priprema za kontrolni",
         description: "Ponovi lekcije 5-8 o sili i kretanju",
         dueDate: tomorrow,
@@ -207,7 +212,7 @@ async function main() {
       },
       {
         subjectId: subjects[5].id, // Biologija
-        studentId: demoStudentUser.student!.id,
+        studentId: demoStudentId,
         title: "Istraživački rad",
         description: "Napravi herbarium sa 5 različitih lišća",
         dueDate: in3days,
@@ -216,7 +221,7 @@ async function main() {
       },
       {
         subjectId: subjects[6].id, // Istorija
-        studentId: demoStudentUser.student!.id,
+        studentId: demoStudentId,
         title: "Čitanje o srednjem veku",
         description: "Pročitaj poglavlje 4 i odgovori na pitanja",
         dueDate: tomorrow,
@@ -231,39 +236,39 @@ async function main() {
   await prisma.scheduleEntry.createMany({
     data: [
       // PONEDELJAK
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[0].id, dayOfWeek: "MONDAY",    startTime: "08:00", endTime: "08:45" }, // Matematika
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[1].id, dayOfWeek: "MONDAY",    startTime: "08:50", endTime: "09:35" }, // Srpski
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[2].id, dayOfWeek: "MONDAY",    startTime: "09:55", endTime: "10:40" }, // Engleski
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[8].id, dayOfWeek: "MONDAY",    startTime: "10:45", endTime: "11:30" }, // Fizičko
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[6].id, dayOfWeek: "MONDAY",    startTime: "11:35", endTime: "12:20" }, // Istorija
+      { studentId: demoStudentId, subjectId: subjects[0].id, dayOfWeek: "MONDAY",    startTime: "08:00", endTime: "08:45" }, // Matematika
+      { studentId: demoStudentId, subjectId: subjects[1].id, dayOfWeek: "MONDAY",    startTime: "08:50", endTime: "09:35" }, // Srpski
+      { studentId: demoStudentId, subjectId: subjects[2].id, dayOfWeek: "MONDAY",    startTime: "09:55", endTime: "10:40" }, // Engleski
+      { studentId: demoStudentId, subjectId: subjects[8].id, dayOfWeek: "MONDAY",    startTime: "10:45", endTime: "11:30" }, // Fizičko
+      { studentId: demoStudentId, subjectId: subjects[6].id, dayOfWeek: "MONDAY",    startTime: "11:35", endTime: "12:20" }, // Istorija
 
       // UTORAK
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[0].id, dayOfWeek: "TUESDAY",   startTime: "08:00", endTime: "08:45" }, // Matematika
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[3].id, dayOfWeek: "TUESDAY",   startTime: "08:50", endTime: "09:35" }, // Fizika
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[5].id, dayOfWeek: "TUESDAY",   startTime: "09:55", endTime: "10:40" }, // Biologija
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[7].id, dayOfWeek: "TUESDAY",   startTime: "10:45", endTime: "11:30" }, // Geografija
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[10].id, dayOfWeek: "TUESDAY",  startTime: "11:35", endTime: "12:20" }, // Muzičko
+      { studentId: demoStudentId, subjectId: subjects[0].id, dayOfWeek: "TUESDAY",   startTime: "08:00", endTime: "08:45" }, // Matematika
+      { studentId: demoStudentId, subjectId: subjects[3].id, dayOfWeek: "TUESDAY",   startTime: "08:50", endTime: "09:35" }, // Fizika
+      { studentId: demoStudentId, subjectId: subjects[5].id, dayOfWeek: "TUESDAY",   startTime: "09:55", endTime: "10:40" }, // Biologija
+      { studentId: demoStudentId, subjectId: subjects[7].id, dayOfWeek: "TUESDAY",   startTime: "10:45", endTime: "11:30" }, // Geografija
+      { studentId: demoStudentId, subjectId: subjects[10].id, dayOfWeek: "TUESDAY",  startTime: "11:35", endTime: "12:20" }, // Muzičko
 
       // SREDA
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[1].id, dayOfWeek: "WEDNESDAY", startTime: "08:00", endTime: "08:45" }, // Srpski
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[2].id, dayOfWeek: "WEDNESDAY", startTime: "08:50", endTime: "09:35" }, // Engleski
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[4].id, dayOfWeek: "WEDNESDAY", startTime: "09:55", endTime: "10:40" }, // Hemija
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[9].id, dayOfWeek: "WEDNESDAY", startTime: "10:45", endTime: "11:30" }, // Informatika
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[11].id, dayOfWeek: "WEDNESDAY",startTime: "11:35", endTime: "12:20" }, // Likovno
+      { studentId: demoStudentId, subjectId: subjects[1].id, dayOfWeek: "WEDNESDAY", startTime: "08:00", endTime: "08:45" }, // Srpski
+      { studentId: demoStudentId, subjectId: subjects[2].id, dayOfWeek: "WEDNESDAY", startTime: "08:50", endTime: "09:35" }, // Engleski
+      { studentId: demoStudentId, subjectId: subjects[4].id, dayOfWeek: "WEDNESDAY", startTime: "09:55", endTime: "10:40" }, // Hemija
+      { studentId: demoStudentId, subjectId: subjects[9].id, dayOfWeek: "WEDNESDAY", startTime: "10:45", endTime: "11:30" }, // Informatika
+      { studentId: demoStudentId, subjectId: subjects[11].id, dayOfWeek: "WEDNESDAY",startTime: "11:35", endTime: "12:20" }, // Likovno
 
       // ČETVRTAK
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[0].id, dayOfWeek: "THURSDAY",  startTime: "08:00", endTime: "08:45" }, // Matematika
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[3].id, dayOfWeek: "THURSDAY",  startTime: "08:50", endTime: "09:35" }, // Fizika
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[6].id, dayOfWeek: "THURSDAY",  startTime: "09:55", endTime: "10:40" }, // Istorija
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[7].id, dayOfWeek: "THURSDAY",  startTime: "10:45", endTime: "11:30" }, // Geografija
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[8].id, dayOfWeek: "THURSDAY",  startTime: "11:35", endTime: "12:20" }, // Fizičko
+      { studentId: demoStudentId, subjectId: subjects[0].id, dayOfWeek: "THURSDAY",  startTime: "08:00", endTime: "08:45" }, // Matematika
+      { studentId: demoStudentId, subjectId: subjects[3].id, dayOfWeek: "THURSDAY",  startTime: "08:50", endTime: "09:35" }, // Fizika
+      { studentId: demoStudentId, subjectId: subjects[6].id, dayOfWeek: "THURSDAY",  startTime: "09:55", endTime: "10:40" }, // Istorija
+      { studentId: demoStudentId, subjectId: subjects[7].id, dayOfWeek: "THURSDAY",  startTime: "10:45", endTime: "11:30" }, // Geografija
+      { studentId: demoStudentId, subjectId: subjects[8].id, dayOfWeek: "THURSDAY",  startTime: "11:35", endTime: "12:20" }, // Fizičko
 
       // PETAK
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[1].id, dayOfWeek: "FRIDAY",    startTime: "08:00", endTime: "08:45" }, // Srpski
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[2].id, dayOfWeek: "FRIDAY",    startTime: "08:50", endTime: "09:35" }, // Engleski
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[5].id, dayOfWeek: "FRIDAY",    startTime: "09:55", endTime: "10:40" }, // Biologija
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[4].id, dayOfWeek: "FRIDAY",    startTime: "10:45", endTime: "11:30" }, // Hemija
-      { studentId: demoStudentUser.student!.id, subjectId: subjects[9].id, dayOfWeek: "FRIDAY",    startTime: "11:35", endTime: "12:20" }, // Informatika
+      { studentId: demoStudentId, subjectId: subjects[1].id, dayOfWeek: "FRIDAY",    startTime: "08:00", endTime: "08:45" }, // Srpski
+      { studentId: demoStudentId, subjectId: subjects[2].id, dayOfWeek: "FRIDAY",    startTime: "08:50", endTime: "09:35" }, // Engleski
+      { studentId: demoStudentId, subjectId: subjects[5].id, dayOfWeek: "FRIDAY",    startTime: "09:55", endTime: "10:40" }, // Biologija
+      { studentId: demoStudentId, subjectId: subjects[4].id, dayOfWeek: "FRIDAY",    startTime: "10:45", endTime: "11:30" }, // Hemija
+      { studentId: demoStudentId, subjectId: subjects[9].id, dayOfWeek: "FRIDAY",    startTime: "11:35", endTime: "12:20" }, // Informatika
     ],
   });
   console.log("✅ Kompletan nedeljni raspored kreiran (25 časova)");
