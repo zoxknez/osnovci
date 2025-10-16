@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   // Performance Optimization
   reactStrictMode: true,
 
+  // Allow mobile dev access from local network
+  ...(process.env.NODE_ENV === "development" && {
+    allowedDevOrigins: ["192.168.1.101", "localhost", "127.0.0.1"],
+  }),
+
   // Image Optimization
   images: {
     formats: ["image/webp", "image/avif"],
