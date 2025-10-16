@@ -119,9 +119,9 @@ export function PageHeader({
         }}
       />
 
-      {/* Content container */}
-      <div className="relative px-4 py-12 sm:px-8 sm:py-14 md:py-16 lg:px-10 lg:py-18">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-8">
+      {/* Content container - Mobile optimized */}
+      <div className="relative px-3 py-8 sm:px-8 sm:py-14 md:py-16 lg:px-10 lg:py-18">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-8">
           {/* Text content */}
           <div className="flex-1 min-w-0">
             {/* Badge */}
@@ -130,25 +130,26 @@ export function PageHeader({
                 initial={{ opacity: 0, scale: 0.8, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-                className="inline-block mb-4"
+                className="inline-block mb-3 sm:mb-4"
               >
-                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-lg text-white border ${styles.border} shadow-lg hover:bg-white/30 transition-all cursor-default`}>
+                <span className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-lg text-white border ${styles.border} shadow-lg hover:bg-white/30 transition-all cursor-default`}>
                   <motion.span 
-                    className={`h-2.5 w-2.5 rounded-full ${styles.dot}`}
+                    className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${styles.dot}`}
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
-                  {badge}
+                  <span className="hidden sm:inline">{badge}</span>
+                  <span className="inline sm:hidden text-xs">{badge?.slice(0, 8)}</span>
                 </span>
               </motion.div>
             )}
 
-            {/* Title */}
+            {/* Title - Mobile optimized typography */}
             <motion.h1
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.15, type: "spring", stiffness: 100 }}
-              className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-4 leading-tight"
+              className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-2 sm:mb-4 leading-tight"
               style={{
                 textShadow: `
                   0 2px 4px rgba(0, 0, 0, 0.1),
@@ -160,12 +161,12 @@ export function PageHeader({
               {title}
             </motion.h1>
 
-            {/* Description */}
+            {/* Description - Mobile optimized */}
             <motion.p
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-              className="text-lg sm:text-xl text-white/95 max-w-2xl leading-relaxed font-medium"
+              className="text-sm sm:text-lg md:text-xl text-white/95 max-w-2xl leading-snug sm:leading-relaxed font-medium"
               style={{
                 textShadow: `
                   0 1px 2px rgba(0, 0, 0, 0.1),

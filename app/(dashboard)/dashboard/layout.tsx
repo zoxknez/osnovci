@@ -50,19 +50,19 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30">
-      {/* Mobile header - Enhanced */}
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-lg px-4 shadow-sm lg:hidden">
-        <div className="flex items-center gap-3">
+      {/* Mobile header - Enhanced & optimized for small screens */}
+      <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between border-b border-gray-100 bg-white/80 backdrop-blur-lg px-3 sm:px-4 shadow-sm lg:hidden">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
             aria-label="Otvori navigacioni meni"
             aria-expanded={sidebarOpen}
             aria-controls="mobile-sidebar"
-            className="p-2.5 text-gray-700 hover:bg-gray-100 rounded-xl transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none active:scale-95 touch-manipulation"
+            className="p-2 sm:p-2.5 text-gray-700 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none active:scale-95 touch-manipulation flex-shrink-0"
           >
             {/* Hamburger sa boljom vidljivošću */}
-            <div className="flex flex-col gap-1.5 w-6 h-6 justify-center">
+            <div className="flex flex-col gap-1 sm:gap-1.5 w-5 sm:w-6 h-5 sm:h-6 justify-center">
               <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
               <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
               <span className="block h-0.5 w-full bg-gray-800 rounded-full"></span>
@@ -70,33 +70,33 @@ export default function DashboardLayout({
             <span className="sr-only">Meni</span>
           </button>
 
-          <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
             Osnovci
           </h1>
         </div>
 
-        {/* Quick Actions - Mobile shortcuts */}
-        <div className="flex items-center gap-2">
+        {/* Quick Actions - Mobile optimized shortcuts */}
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           <Link
             href="/dashboard/domaci"
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
+            className="p-2 sm:p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
             aria-label="Domaći zadaci"
           >
-            <BookOpen className="h-5 w-5" />
+            <BookOpen className="h-4 sm:h-5 w-4 sm:w-5" />
           </Link>
           <Link
             href="/dashboard/raspored"
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
+            className="p-2 sm:p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
             aria-label="Raspored časova"
           >
-            <Calendar className="h-5 w-5" />
+            <Calendar className="h-4 sm:h-5 w-4 sm:w-5" />
           </Link>
           <Link
             href="/dashboard/ocene"
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
+            className="p-2 sm:p-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all active:scale-95 touch-manipulation"
             aria-label="Ocene"
           >
-            <BarChart3 className="h-5 w-5" />
+            <BarChart3 className="h-4 sm:h-5 w-4 sm:w-5" />
           </Link>
         </div>
       </header>
@@ -255,7 +255,7 @@ export default function DashboardLayout({
         <main
           id="main-content"
           tabIndex={-1}
-          className="min-h-screen py-6 sm:py-8 px-4 sm:px-6 lg:px-8 lg:py-10 focus:outline-none"
+          className="min-h-screen py-4 px-3 sm:py-8 sm:px-6 lg:px-8 lg:py-10 focus:outline-none"
         >
           {children}
         </main>

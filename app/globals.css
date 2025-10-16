@@ -291,3 +291,44 @@ body {
     page-break-before: always;
   }
 }
+
+/* === MOBILE-SPECIFIC OPTIMIZATIONS === */
+
+/* Better touch targets on very small screens */
+@media (max-width: 380px) {
+  button,
+  a[role="button"],
+  input,
+  select,
+  textarea {
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  /* Reduce padding on extra small devices */
+  .px-4 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+  }
+}
+
+/* Optimize for low-end devices - reduce animations */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+}
