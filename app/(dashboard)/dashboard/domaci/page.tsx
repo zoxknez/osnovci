@@ -152,7 +152,13 @@ export default function DomaciPage() {
 
   const handlePhotoCapture = async (_file: File) => {
     try {
-      // TODO: Upload na API /api/homework/{id}/attachments
+      // TODO: Upload na API /api/homework/{selectedHomeworkId}/attachments
+      if (selectedHomeworkId) {
+        console.log("Uploading photo for homework:", selectedHomeworkId);
+        // TODO: Implement actual upload
+        // await uploadHomeworkAttachment(selectedHomeworkId, file);
+      }
+
       toast.success("📸 Fotografija je snimljena!", {
         description:
           "Biće automatski sinhronizovana kada se povežeš na internet.",
