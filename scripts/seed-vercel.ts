@@ -39,6 +39,7 @@ async function main() {
             name: `Demo Učenik ${i}`,
             grade: Math.floor(Math.random() * 4) + 5, // 5-8
             class: ["A", "B", "V"][Math.floor(Math.random() * 3)],
+            school: "Demo Osnovna Škola",
           },
         },
       },
