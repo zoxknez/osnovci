@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-// Bundle Analyzer
-const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  enabled: process.env.ANALYZE === "true",
-});
+// Bundle Analyzer (optional, only for development)
+let withBundleAnalyzer: (config: NextConfig) => NextConfig;
+try {
+  withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: process.env.ANALYZE === "true",
+  });
+} catch {
+  // Bundle analyzer not installed, use identity function
+  withBundleAnalyzer = (config) => config;
+}
 
 const nextConfig: NextConfig = {
   // Performance Optimization
