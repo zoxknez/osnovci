@@ -85,9 +85,95 @@ async function main() {
       } else {
         console.log(`⏭️  ${user.email} već ima zadatke`);
       }
+
+      // Dodaj raspored (schedule entries)
+      const hasSchedule = await prisma.scheduleEntry.findFirst({
+        where: { studentId: user.student.id },
+      });
+
+      if (!hasSchedule && mathSubject && serbianSubject) {
+        const schedule = [
+          {
+            dayOfWeek: "MONDAY" as const,
+            startTime: "08:00",
+            endTime: "08:45",
+            room: "Učionica 12",
+          },
+          {
+            dayOfWeek: "MONDAY" as const,
+            startTime: "09:00",
+            endTime: "09:45",
+            room: "Učionica 5",
+          },
+          {
+            dayOfWeek: "TUESDAY" as const,
+            startTime: "08:00",
+            endTime: "08:45",
+            room: "Učionica 12",
+          },
+        ];
+
+        await prisma.scheduleEntry.create({
+          data: {
+            ...schedule[0],
+            studentId: user.student.id,
+            subjectId: mathSubject.id,
+          },
+        });
+
+        await prisma.scheduleEntry.create({
+          data: {
+            ...schedule[1],
+            studentId: user.student.id,
+            subjectId: serbianSubject.id,
+          },
+        });
+
+        await prisma.scheduleEntry.create({
+          data: {
+            ...schedule[2],
+            studentId: user.student.id,
+            subjectId: mathSubject.id,
+          },
+        });
+      }
+
+      // Dodaj ocene (grades)
+      const hasGrades = await prisma.grade.findFirst({
+        where: { studentId: user.student.id },
+      });
+
+      if (!hasGrades && mathSubject && serbianSubject) {
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+        await prisma.grade.create({
+          data: {
+            studentId: user.student.id,
+            subjectId: mathSubject.id,
+            grade: "5",
+            category: "Kontrolni",
+            description: "Jednačine i nejednačine",
+            date: lastMonth,
+            weight: 2,
+          },
+        });
+
+        await prisma.grade.create({
+          data: {
+            studentId: user.student.id,
+            subjectId: serbianSubject.id,
+            grade: "4",
+            category: "Usmeno",
+            description: "Lektira - analiza",
+            date: new Date(),
+            weight: 1,
+          },
+        });
+      }
     }
 
-    console.log("\n🎉 Homework dodat!");
+    console.log("\n🎉 Svi podaci dodati!");
     return;
   }
 
@@ -199,7 +285,68 @@ async function main() {
       });
     }
 
-    console.log(`✅ Created demo${i}@osnovci.rs with homework`);
+    // Dodaj raspored (schedule)
+    if (mathSubject && serbianSubject) {
+      await prisma.scheduleEntry.createMany({
+        data: [
+          {
+            studentId: user.student!.id,
+            subjectId: mathSubject.id,
+            dayOfWeek: "MONDAY" as const,
+            startTime: "08:00",
+            endTime: "08:45",
+            room: "Učionica 12",
+          },
+          {
+            studentId: user.student!.id,
+            subjectId: serbianSubject.id,
+            dayOfWeek: "MONDAY" as const,
+            startTime: "09:00",
+            endTime: "09:45",
+            room: "Učionica 5",
+          },
+          {
+            studentId: user.student!.id,
+            subjectId: mathSubject.id,
+            dayOfWeek: "TUESDAY" as const,
+            startTime: "08:00",
+            endTime: "08:45",
+            room: "Učionica 12",
+          },
+        ],
+      });
+    }
+
+    // Dodaj ocene (grades)
+    if (mathSubject && serbianSubject) {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+      await prisma.grade.createMany({
+        data: [
+          {
+            studentId: user.student!.id,
+            subjectId: mathSubject.id,
+            grade: "5",
+            category: "Kontrolni",
+            description: "Jednačine i nejednačine",
+            date: lastMonth,
+            weight: 2,
+          },
+          {
+            studentId: user.student!.id,
+            subjectId: serbianSubject.id,
+            grade: "4",
+            category: "Usmeno",
+            description: "Lektira - analiza",
+            date: new Date(),
+            weight: 1,
+          },
+        ],
+      });
+    }
+
+    console.log(`✅ Created demo${i}@osnovci.rs with all data`);
   }
 
   console.log("\n🎉 Seeding complete!");
