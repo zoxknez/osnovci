@@ -43,4 +43,11 @@ next-env.d.ts
 # uploads (user-generated content)
 /public/uploads/
 
+# database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+/backups/
+
 .vercel
