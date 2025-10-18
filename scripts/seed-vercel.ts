@@ -43,6 +43,9 @@ async function main() {
           },
         },
       },
+      include: {
+        student: true,
+      },
     });
 
     // Dodaj par predmeta
