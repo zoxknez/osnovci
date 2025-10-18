@@ -83,7 +83,13 @@
     "workbox-strategies": "^7.3.0",
     "workbox-window": "^7.3.0",
     "zod": "^4.1.12",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/nodemailer": "^7.0.2",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
@@ -92,12 +98,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^20",
-    "@types/nodemailer": "^7.0.2",
-    "@types/qrcode": "^1.5.5",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/ui": "^3.2.4",
     "jsdom": "^27.0.0",
