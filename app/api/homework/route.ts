@@ -84,7 +84,10 @@ export async function GET(request: NextRequest) {
     };
 
     if (validatedQuery.status) {
-      where.status = validatedQuery.status;
+      // Ako je array, koristi 'in' operator
+      where.status = Array.isArray(validatedQuery.status)
+        ? { in: validatedQuery.status }
+        : validatedQuery.status;
     }
     if (validatedQuery.priority) {
       where.priority = validatedQuery.priority;

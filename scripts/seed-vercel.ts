@@ -159,15 +159,15 @@ async function main() {
         title: "Domaći iz Matematike - Jednačine",
         description: "Reši zadatke 1-15 iz udžbenika",
         dueDate: tomorrow,
-        priority: "IMPORTANT",
-        status: "ASSIGNED",
+        priority: "IMPORTANT" as const,
+        status: "ASSIGNED" as const,
       },
       {
         title: "Čitanje lektire - Srpski jezik",
         description: "Pročitaj prvo poglavlje",
         dueDate: nextWeek,
-        priority: "NORMAL",
-        status: "ASSIGNED",
+        priority: "NORMAL" as const,
+        status: "ASSIGNED" as const,
       },
     ];
 

@@ -45,7 +45,15 @@ export type UpdateHomeworkInput = z.infer<typeof UpdateHomeworkSchema>;
 export const QueryHomeworkSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  status: HomeworkStatus.optional(),
+  status: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      // Ako je comma-separated, podeli i validiraj svaki
+      return val.split(",").map((s) => s.trim());
+    })
+    .optional(),
   priority: HomeworkPriority.optional(),
   sortBy: z.enum(["createdAt", "dueDate", "priority"]).default("dueDate"),
   order: z.enum(["asc", "desc"]).default("asc"),
