@@ -40,5 +40,13 @@
     ".next/types/**/*.ts",
     "types/**/*.d.ts"
   ],
-  "exclude": ["node_modules", "public"]
+  "exclude": [
+    "node_modules",
+    "public",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "__tests__",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
 }
