@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sanitizePlainText, sanitizeRichText } from "@/lib/security/sanitize";
 
 // Homework status enum
 export const HomeworkStatus = z.enum([
@@ -13,15 +14,17 @@ export type HomeworkStatus = z.infer<typeof HomeworkStatus>;
 export const HomeworkPriority = z.enum(["NORMAL", "IMPORTANT", "URGENT"]);
 export type HomeworkPriority = z.infer<typeof HomeworkPriority>;
 
-// Create homework schema
+// Create homework schema (with sanitization)
 export const CreateHomeworkSchema = z.object({
   title: z
     .string()
     .min(3, "Naslov mora biti najmanje 3 karaktera")
-    .max(255, "Naslov može biti najviše 255 karaktera"),
+    .max(255, "Naslov može biti najviše 255 karaktera")
+    .transform(sanitizePlainText), // Sanitize title (no HTML)
   description: z
     .string()
     .max(2000, "Opis može biti najviše 2000 karaktera")
+    .transform(sanitizeRichText) // Sanitize description (allow safe HTML)
     .optional(),
   subjectId: z.string().uuid("Predmet je obavezan"),
   dueDate: z

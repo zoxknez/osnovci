@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sanitizeRichText } from "@/lib/security/sanitize";
 
 // Grade type enum (marking scale 1-5)
 export const GradeValue = z.enum(["1", "2", "3", "4", "5"]);
@@ -21,7 +22,7 @@ export type GradeCategory = z.infer<typeof GradeCategory>;
 export const Period = z.enum(["MONTH", "SEMESTER", "YEAR"]);
 export type Period = z.infer<typeof Period>;
 
-// Create grade schema (za nastavnike)
+// Create grade schema (za nastavnike) - with sanitization
 export const CreateGradeSchema = z.object({
   subjectId: z.string().uuid("Predmet je obavezan"),
   grade: GradeValue,
@@ -29,6 +30,7 @@ export const CreateGradeSchema = z.object({
   description: z
     .string()
     .max(500, "Opis može biti najviše 500 karaktera")
+    .transform(sanitizeRichText) // Sanitize description
     .optional(),
   date: z.string().datetime("Datum mora biti validan").optional(),
   weight: z.number().min(1).max(5).default(1),

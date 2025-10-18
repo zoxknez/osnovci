@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sanitizePlainText, sanitizeRichText } from "@/lib/security/sanitize";
 
 // Gender enum
 export const Gender = z.enum(["MALE", "FEMALE", "OTHER"]);
@@ -11,12 +12,13 @@ export const GetProfileSchema = z.object({
 
 export type GetProfileInput = z.infer<typeof GetProfileSchema>;
 
-// Update profile schema
+// Update profile schema - with sanitization
 export const UpdateProfileSchema = z.object({
   name: z
     .string()
     .min(2, "Ime mora biti najmanje 2 karaktera")
     .max(255, "Ime može biti najviše 255 karaktera")
+    .transform(sanitizePlainText) // Sanitize name
     .optional(),
   dateOfBirth: z.string().datetime().optional(),
   gender: Gender.optional(),
@@ -25,6 +27,7 @@ export const UpdateProfileSchema = z.object({
     .string()
     .min(1, "Naziv škole je obavezan")
     .max(255, "Naziv škole može biti najviše 255 karaktera")
+    .transform(sanitizePlainText) // Sanitize school name
     .optional(),
   grade: z
     .number()
@@ -32,7 +35,11 @@ export const UpdateProfileSchema = z.object({
     .min(1, "Razred mora biti između 1 i 8")
     .max(8, "Razred mora biti između 1 i 8")
     .optional(),
-  bio: z.string().max(500, "Opis može biti najviše 500 karaktera").optional(),
+  bio: z
+    .string()
+    .max(500, "Opis može biti najviše 500 karaktera")
+    .transform(sanitizeRichText) // Sanitize bio (allow safe HTML)
+    .optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;

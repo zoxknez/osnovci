@@ -2,7 +2,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { MockedFunction } from "vitest";
 import { NextRequest } from "next/server";
-import { GET, POST } from "@/app/api/homework/route";
+
+// Set environment variables BEFORE any imports
+process.env.NEXTAUTH_SECRET = "test-secret-for-csrf";
 
 // Mock dependencies
 vi.mock("@/lib/auth/config", () => ({
@@ -35,9 +37,14 @@ vi.mock("@/middleware/rate-limit", () => ({
   checkRateLimit: vi.fn(async () => ({ success: true })),
 }));
 
+vi.mock("@/lib/security/csrf", () => ({
+  csrfMiddleware: vi.fn(async (req) => ({ valid: true })),
+}));
+
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { checkRateLimit } from "@/middleware/rate-limit";
+import { GET, POST } from "@/app/api/homework/route";
 
 type MockSession = {
   user: {
@@ -86,11 +93,6 @@ type PrismaHomeworkCreateResult = Awaited<
   ReturnType<typeof prisma.homework.create>
 >;
 
-type RouteContext = { params: Promise<Record<string, string>> };
-const createContext = (): RouteContext => ({
-  params: Promise.resolve({} as Record<string, string>),
-});
-
 describe("GET /api/homework", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -101,7 +103,7 @@ describe("GET /api/homework", () => {
     authMock.mockResolvedValue(null);
 
     const request = new NextRequest("http://localhost:3000/api/homework");
-    const response = await GET(request, createContext());
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(401);
@@ -142,7 +144,7 @@ describe("GET /api/homework", () => {
     prismaHomeworkCountMock.mockResolvedValue(1);
 
     const request = new NextRequest("http://localhost:3000/api/homework");
-    const response = await GET(request, createContext());
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -173,7 +175,7 @@ describe("GET /api/homework", () => {
     const request = new NextRequest(
       "http://localhost:3000/api/homework?status=DONE",
     );
-    await GET(request, createContext());
+    await GET(request);
 
     expect(prismaHomeworkFindManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -206,7 +208,7 @@ describe("GET /api/homework", () => {
     const request = new NextRequest(
       "http://localhost:3000/api/homework?page=2&limit=20",
     );
-    const response = await GET(request, createContext());
+    const response = await GET(request);
     const data = await response.json();
 
     expect(data.pagination.page).toBe(2);
@@ -264,7 +266,7 @@ describe("POST /api/homework", () => {
       body: JSON.stringify(requestBody),
     });
 
-    const response = await POST(request, createContext());
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(201);
@@ -297,7 +299,7 @@ describe("POST /api/homework", () => {
       body: JSON.stringify(requestBody),
     });
 
-    const response = await POST(request, createContext());
+    const response = await POST(request);
     const data = await response.json();
 
     expect(response.status).toBe(400);
@@ -335,7 +337,7 @@ describe("POST /api/homework", () => {
       body: JSON.stringify(requestBody),
     });
 
-    await POST(request, createContext());
+    await POST(request);
 
     expect(prismaHomeworkCreateMock).toHaveBeenCalledWith(
       expect.objectContaining({

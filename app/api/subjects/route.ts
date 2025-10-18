@@ -1,14 +1,16 @@
-// Subjects API - Subject management
+// Subjects API - Subject management (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
+import { safeStringSchema } from "@/lib/security/validators";
 
 const createSubjectSchema = z.object({
-  name: z.string().min(1).max(100),
+  name: safeStringSchema.min(1).max(100),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color"),
-  icon: z.string().optional(),
+  icon: safeStringSchema.max(50).optional(),
 });
 
 // GET /api/subjects - Get all subjects
@@ -43,6 +45,15 @@ export async function GET(_request: NextRequest) {
 // POST /api/subjects - Create new subject
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "Forbidden", message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {

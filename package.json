@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "postinstall": "prisma generate",
     "lint": "biome check",
@@ -12,14 +13,23 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:seed:master": "tsx prisma/master-seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
     "db:reset:demo": "prisma db push --force-reset && npm run db:seed:demo",
+    "db:reset:master": "prisma db push --force-reset && npm run db:seed:master",
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "backup": "tsx scripts/backup-database.ts",
+    "backup:list": "tsx scripts/backup-database.ts list",
+    "backup:restore": "tsx scripts/backup-database.ts restore",
+    "backup:cloud": "tsx scripts/backup-to-cloud.ts",
+    "lighthouse": "tsx scripts/lighthouse-audit.ts",
+    "lighthouse:ci": "lhci autorun",
+    "perf:test": "tsx scripts/performance-test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -28,8 +38,13 @@
     "@auth/prisma-adapter": "^2.11.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.17.1",
+    "@sentry/nextjs": "^10.20.0",
     "@tailwindcss/postcss": "^4.1.14",
+    "@tanstack/react-query": "^5.90.5",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-virtual": "^3.13.12",
+    "@upstash/ratelimit": "^2.0.6",
+    "@upstash/redis": "^1.35.6",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "bcryptjs": "^3.0.2",
@@ -72,6 +87,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@lhci/cli": "^0.15.1",
+    "@next/bundle-analyzer": "^15.5.6",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -84,6 +101,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/ui": "^3.2.4",
     "jsdom": "^27.0.0",
+    "lighthouse": "^13.0.0",
     "tsx": "^4.20.6",
     "typescript": "^5",
     "vitest": "^3.2.4"

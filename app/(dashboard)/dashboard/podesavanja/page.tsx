@@ -1,9 +1,10 @@
-// Podešavanja - Ultra-Modern Settings Page with Instant Feedback
+// Podešavanja - Ultra-Modern Settings Page with Instant Auto-Save
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Loader } from "lucide-react";
 import { PageHeader } from "@/components/features/page-header";
 import { SettingsHeader } from "@/components/features/settings/settings-header";
 import { ProfileSection } from "@/components/features/settings/profile-section";
@@ -12,10 +13,6 @@ import { NotificationsSection } from "@/components/features/settings/notificatio
 import { SecuritySection } from "@/components/features/settings/security-section";
 import { SettingsActions } from "@/components/features/settings/settings-actions";
 import { AppInfoCard } from "@/components/features/settings/app-info-card";
-import {
-  LANGUAGE_OPTIONS,
-  NOTIFICATION_OPTIONS,
-} from "@/components/features/settings/constants";
 import type {
   AutoSaveFn,
   LanguageOption,
@@ -26,11 +23,11 @@ import type {
 import { staggerContainer } from "@/lib/animations/variants";
 
 const DEFAULT_PROFILE: ProfileSettings = {
-  name: "Marko Marković",
-  email: "ucenik@demo.rs",
-  phone: "064 123 4567",
-  school: 'OŠ "Vuk Karadžić"',
-  class: "5B",
+  name: "",
+  email: "",
+  phone: "",
+  school: "",
+  class: "",
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationsSettings = {
@@ -41,6 +38,7 @@ const DEFAULT_NOTIFICATIONS: NotificationsSettings = {
 };
 
 export default function PodjesavanjaPage() {
+  const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<LanguageOption>("sr");
   const [notifications, setNotifications] = useState<NotificationsSettings>(
     DEFAULT_NOTIFICATIONS,
@@ -50,35 +48,89 @@ export default function PodjesavanjaPage() {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  
+  // Debounce timer za input polja
+  const saveTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  const autoSave: AutoSaveFn = async (setting, value) => {
-    console.log(`💾 Auto-saving: ${setting} = ${JSON.stringify(value)}`);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  };
+  // Učitaj podatke sa API-ja
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/profile", {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setProfileData({
+            name: data.profile.name || "",
+            email: data.profile.email || "",
+            phone: "", // TODO: Add phone to API
+            school: data.profile.school || "",
+            class: "", // TODO: Add class to API
+          });
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-save funkcija sa API integracijom
+  const autoSave: AutoSaveFn = useCallback(async (setting, value) => {
+    try {
+      // Sačuvaj u localStorage kao backup
+      localStorage.setItem(`setting_${setting}`, JSON.stringify(value));
+      
+      // Za profile podatke koristi /api/profile
+      if (setting.startsWith("profile.")) {
+        const field = setting.replace("profile.", "");
+        await fetch("/api/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ [field]: value }),
+        });
+      }
+      
+      // Za ostala podešavanja (jezik, notifikacije, itd.)
+      // TODO: Implementirati /api/settings endpoint
+      console.log(`✅ Auto-saved: ${setting}`);
+    } catch (error) {
+      console.error(`❌ Failed to auto-save ${setting}:`, error);
+      toast.error("Greška pri čuvanju", {
+        description: "Promena nije sačuvana",
+        duration: 2000,
+      });
+    }
+  }, []);
 
   const handleLanguageChange = async (newLanguage: LanguageOption) => {
     setLanguage(newLanguage);
     await autoSave("language", newLanguage);
-    const label = LANGUAGE_OPTIONS.find(
-      (option) => option.value === newLanguage,
-    )?.label;
-    toast.success("🌍 Jezik sačuvan", {
-      description: `Jezik postavljen na: ${label ?? "Nepoznato"}`,
-      duration: 2000,
-    });
+    // Diskretan toast - brzo nestaje
+    toast.success("🌍 Sačuvano", { duration: 1000 });
   };
 
   const handleNotificationToggle = async (key: NotificationKey) => {
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
     await autoSave("notifications", updated);
-    const label =
-      NOTIFICATION_OPTIONS.find((option) => option.key === key)?.label ??
-      "Notifikacije";
-    toast.success(`🔔 ${updated[key] ? "Uključeno" : "Isključeno"}`, {
-      description: label,
-      duration: 2000,
-    });
+    // Bez toast-a - instant feedback je već u UI switch komponenti
   };
 
   const handleProfileInput = (field: keyof ProfileSettings, value: string) => {
@@ -89,11 +141,16 @@ export default function PodjesavanjaPage() {
     field: keyof ProfileSettings,
     value: string,
   ) => {
-    await autoSave(`profile.${field}`, value);
-    toast.success("✅ Sačuvano", {
-      description: "Podaci ažurirani",
-      duration: 1500,
-    });
+    // Debounce - čeka 800ms pre slanja na API
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    
+    saveTimerRef.current = setTimeout(async () => {
+      await autoSave(`profile.${field}`, value);
+      // Mini diskretan toast
+      toast.success("✓", { duration: 800 });
+    }, 800);
   };
 
   const handleAvatarUpload = async () => {
@@ -110,20 +167,15 @@ export default function PodjesavanjaPage() {
     const next = !biometricEnabled;
     setBiometricEnabled(next);
     await autoSave("biometric", next);
-    toast.success(next ? "✅ Aktivirano" : "❌ Deaktivirano", {
-      description: `Biometrijska autentifikacija ${next ? "uključena" : "isključena"}`,
-      duration: 2000,
-    });
+    // Mini toast samo za sigurnosne opcije
+    toast.success(next ? "✓ Uključeno" : "✓ Isključeno", { duration: 1000 });
   };
 
   const handleTwoFactorToggle = async () => {
     const next = !twoFactorEnabled;
     setTwoFactorEnabled(next);
     await autoSave("twoFactor", next);
-    toast.success(next ? "✅ Aktivirano" : "❌ Deaktivirano", {
-      description: `Dvostruka verifikacija ${next ? "uključena" : "isključena"}`,
-      duration: 2000,
-    });
+    toast.success(next ? "✓ Uključeno" : "✓ Isključeno", { duration: 1000 });
   };
 
   const handlePasswordChange = () => {
@@ -143,14 +195,30 @@ export default function PodjesavanjaPage() {
     }, 1500);
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <PageHeader
+          title="⚙️ Podešavanja"
+          description="Prilagodi aplikaciju sebi - jezik, notifikacije, sigurnost i više"
+          variant="green"
+          badge="Lični prostor"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-green-600" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* PageHeader - Hero sekcija */}
       <PageHeader
         title="⚙️ Podešavanja"
-        description="Prilagodi aplikaciju sebi - jezik, notifikacije, sigurnost i više"
+        description="Sve promene se automatski čuvaju ✨"
         variant="green"
-        badge="Lični prostor"
+        badge="Auto-save"
       />
 
       <SettingsHeader />

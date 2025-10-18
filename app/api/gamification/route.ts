@@ -1,4 +1,4 @@
-// Gamification API - XP, Levels, Achievements
+// Gamification API - XP, Levels, Achievements (Security Enhanced!)
 import type { Prisma } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
@@ -16,6 +16,7 @@ import {
   getXPForNextLevel,
   trackHomeworkCompletion,
 } from "@/lib/gamification/xp-system";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 const GAMIFICATION_INCLUDE = {
   achievements: {
@@ -80,6 +81,15 @@ export const GET = withAuthAndRateLimit(
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "Forbidden", message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
     const session = await (await import("@/lib/auth/config")).auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

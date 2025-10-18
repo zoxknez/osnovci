@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Loader,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useGrades } from "@/lib/hooks/use-react-query";
 import {
   Bar,
   BarChart,
@@ -33,6 +34,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/features/page-header";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 import { toast } from "sonner";
+import {
+  FilterGradesModal,
+  type GradeFilters,
+} from "@/components/modals/filter-grades-modal";
+import { exportGradesToPDF } from "@/lib/utils/pdf-export";
 
 // TODO: Data for trend chart - implement in future feature
 // TODO: Data for radar chart (skills) - implement in future feature
@@ -40,52 +46,28 @@ import { toast } from "sonner";
 
 export default function OcenePage() {
   const [page, _setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [grades, setGrades] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
-  const [filterCategory, _setFilterCategory] = useState<string | null>(null);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filters, setFilters] = useState<GradeFilters>({});
 
-  // Fetch grades sa API-ja
-  useEffect(() => {
-    const fetchGrades = async () => {
-      try {
-        setLoading(true);
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: "50",
-          sortBy: "date",
-          order: "desc",
-        });
+  // React Query hook - automatic caching and refetching
+  const { data: gradesData, isLoading: loading, error: queryError } = useGrades({
+    page,
+    limit: 50,
+    sortBy: "date",
+    order: "desc",
+    subjectId: filters.subjectId,
+    category: filters.category,
+    period: filters.period,
+  });
 
-        if (filterCategory && filterCategory !== "all") {
-          params.append("category", filterCategory);
-        }
+  // Show error toast if query fails
+  if (queryError) {
+    toast.error("Greška pri učitavanju ocjena", { description: queryError.message });
+  }
 
-        const response = await fetch(`/api/grades?${params.toString()}`, {
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error("Greška pri učitavanju ocjena");
-        }
-
-        const data = await response.json();
-        setGrades(data.data);
-        setStats(data.data.stats);
-        setError(null);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Nepoznata greška";
-        setError(errorMessage);
-        toast.error("Greška pri učitavanju", { description: errorMessage });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGrades();
-  }, [page, filterCategory]);
+  const grades = gradesData?.data || [];
+  const stats = gradesData?.stats || null;
+  const error = queryError ? queryError.message : null;
 
   // Organizuj grade po subjektu za prikaz
   const gradesBySubject = grades.reduce((acc: any, grade: any) => {
@@ -161,23 +143,46 @@ export default function OcenePage() {
             <Button
               variant="outline"
               leftIcon={<Filter className="h-5 w-5" />}
-              onClick={() => {
-                toast.info("Filter opcije", {
-                  description: "Filtriranje po kategoriji je dostupno",
-                });
-              }}
+              onClick={() => setShowFilterModal(true)}
             >
               Filter
             </Button>
             <Button
               leftIcon={<Download className="h-5 w-5" />}
               onClick={() => {
-                toast.success("📥 Izvoz", {
-                  description: "PDF je generisan i preuzet",
-                });
+                try {
+                  if (grades.length === 0) {
+                    toast.error("Nema ocena za izvoz");
+                    return;
+                  }
+
+                  // Transform grades to expected format for PDF export
+                  const gradesForPDF = grades.map((g: any) => ({
+                    subject: g.subject,
+                    grade: g.grade,
+                    category: g.category,
+                    description: g.description,
+                    date: g.date,
+                  }));
+
+                  const fileName = exportGradesToPDF(
+                    gradesForPDF,
+                    stats as any, // stats is already checked for null above via disabled prop
+                    "Učenik", // TODO: Get student name from session
+                  );
+
+                  toast.success("📥 PDF Izvoz", {
+                    description: `${fileName} je preuzet`,
+                    duration: 3000,
+                  });
+                } catch (error) {
+                  console.error("PDF export error:", error);
+                  toast.error("Greška pri kreiranju PDF-a");
+                }
               }}
+              disabled={grades.length === 0 || !stats}
             >
-              Izvoz
+              Izvoz PDF
             </Button>
           </div>
         }
@@ -444,6 +449,14 @@ export default function OcenePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Filter Modal */}
+      <FilterGradesModal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApply={(newFilters) => setFilters(newFilters)}
+        currentFilters={filters}
+      />
     </div>
   );
 }

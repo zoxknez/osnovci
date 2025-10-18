@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth/config";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { CreateGradeSchema, QueryGradesSchema } from "@/lib/api/schemas/grades";
 import {
@@ -12,6 +12,7 @@ import {
   createdResponse,
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
  * GET /api/grades
@@ -105,37 +106,57 @@ export async function GET(request: NextRequest) {
       take: validatedQuery.limit,
     });
 
-    // Kalkuliši statistiku
-    const allGrades = await prisma.grade.findMany({
+    // Kalkuliši statistiku (grade je String pa moramo da konvertujemo)
+    // Dohvati sve ocene za statistiku
+    const allGradesForStats = await prisma.grade.findMany({
       where,
-      include: { subject: { select: { name: true } } },
+      select: {
+        grade: true,
+        category: true,
+        subjectId: true,
+      },
     });
 
-    const gradeValues = allGrades.map((g) => parseInt(g.grade));
-    const average =
-      gradeValues.length > 0
-        ? gradeValues.reduce((a, b) => a + b) / gradeValues.length
-        : 0;
+    // 1. Average - konvertuj string u broj
+    const gradeValues = allGradesForStats
+      .map((g) => parseFloat(g.grade))
+      .filter((n) => !Number.isNaN(n));
+    const average = gradeValues.length > 0 
+      ? gradeValues.reduce((a, b) => a + b, 0) / gradeValues.length 
+      : 0;
 
+    // 2. Count by category
     const byCategory: Record<string, number> = {};
-    allGrades.forEach((g) => {
-      byCategory[g.category] = (byCategory[g.category] || 0) + 1;
+    allGradesForStats.forEach((grade) => {
+      byCategory[grade.category] = (byCategory[grade.category] || 0) + 1;
     });
 
-    const bySubject = Object.entries(
-      allGrades.reduce(
-        (acc, g) => {
-          if (!acc[g.subject.name]) {
-            acc[g.subject.name] = [];
-          }
-          acc[g.subject.name].push(parseInt(g.grade));
-          return acc;
-        },
-        {} as Record<string, number[]>,
-      ),
-    ).map(([name, values]) => ({
-      subject: name,
-      average: values.reduce((a, b) => a + b) / values.length,
+    // 3. Average by subject
+    const subjectGrades: Record<string, number[]> = {};
+    allGradesForStats.forEach((grade) => {
+      if (!subjectGrades[grade.subjectId]) {
+        subjectGrades[grade.subjectId] = [];
+      }
+      const numValue = parseFloat(grade.grade);
+      if (!Number.isNaN(numValue)) {
+        subjectGrades[grade.subjectId].push(numValue);
+      }
+    });
+
+    // Get subject names
+    const subjectIds = Object.keys(subjectGrades);
+    const subjects = await prisma.subject.findMany({
+      where: { id: { in: subjectIds } },
+      select: { id: true, name: true },
+    });
+
+    const subjectMap = new Map(subjects.map((s) => [s.id, s.name]));
+
+    const bySubject = Object.entries(subjectGrades).map(([subjectId, values]) => ({
+      subject: subjectMap.get(subjectId) || 'Unknown',
+      average: values.length > 0 
+        ? values.reduce((a, b) => a + b, 0) / values.length 
+        : 0,
       count: values.length,
     }));
 
@@ -188,6 +209,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {

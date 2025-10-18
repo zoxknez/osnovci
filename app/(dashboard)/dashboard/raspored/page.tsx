@@ -4,9 +4,10 @@
 import { addDays, format, isSameDay, startOfWeek } from "date-fns";
 import { sr } from "date-fns/locale";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, BookOpen, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { Bell, BookOpen, ChevronLeft, ChevronRight, Clock, Loader } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/features/page-header";
@@ -15,91 +16,19 @@ import {
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
+import { useSchedule } from "@/lib/hooks/use-react-query";
 
-// Mock data - TODO: Replace with real API call
-const MOCK_SCHEDULE = [
-  {
-    id: "1",
-    dayOfWeek: "MONDAY",
-    startTime: "08:00",
-    endTime: "08:45",
-    subject: { name: "Matematika", color: "#3b82f6", icon: "📐" },
-    classroom: "Učionica 12",
-    teacher: "Prof. Jovanović",
-  },
-  {
-    id: "2",
-    dayOfWeek: "MONDAY",
-    startTime: "08:50",
-    endTime: "09:35",
-    subject: { name: "Srpski jezik", color: "#ef4444", icon: "📖" },
-    classroom: "Učionica 8",
-    teacher: "Prof. Petrović",
-  },
-  {
-    id: "3",
-    dayOfWeek: "MONDAY",
-    startTime: "09:40",
-    endTime: "10:25",
-    subject: { name: "Engleski jezik", color: "#10b981", icon: "🇬🇧" },
-    classroom: "Učionica 15",
-    teacher: "Prof. Smith",
-  },
-  {
-    id: "4",
-    dayOfWeek: "MONDAY",
-    startTime: "10:45",
-    endTime: "11:30",
-    subject: { name: "Fizičko vaspitanje", color: "#f59e0b", icon: "⚽" },
-    classroom: "Sala",
-    teacher: "Prof. Đorđević",
-  },
-  {
-    id: "5",
-    dayOfWeek: "TUESDAY",
-    startTime: "08:00",
-    endTime: "08:45",
-    subject: { name: "Istorija", color: "#8b5cf6", icon: "🏛️" },
-    classroom: "Učionica 10",
-    teacher: "Prof. Nikolić",
-  },
-  {
-    id: "6",
-    dayOfWeek: "TUESDAY",
-    startTime: "08:50",
-    endTime: "09:35",
-    subject: { name: "Geografija", color: "#06b6d4", icon: "🌍" },
-    classroom: "Učionica 11",
-    teacher: "Prof. Todorović",
-  },
-  {
-    id: "7",
-    dayOfWeek: "WEDNESDAY",
-    startTime: "08:00",
-    endTime: "08:45",
-    subject: { name: "Biologija", color: "#22c55e", icon: "🔬" },
-    classroom: "Laboratorija",
-    teacher: "Prof. Stanković",
-  },
-  {
-    id: "8",
-    dayOfWeek: "THURSDAY",
-    startTime: "08:00",
-    endTime: "08:45",
-    subject: { name: "Fizika", color: "#6366f1", icon: "⚛️" },
-    classroom: "Učionica 14",
-    teacher: "Prof. Milošević",
-  },
-  {
-    id: "9",
-    dayOfWeek: "FRIDAY",
-    startTime: "08:00",
-    endTime: "08:45",
-    subject: { name: "Hemija", color: "#ec4899", icon: "🧪" },
-    classroom: "Laboratorija",
-    teacher: "Prof. Popović",
-  },
-];
+interface ScheduleEntry {
+  id: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  subject: { id: string; name: string; color: string; icon: string | null };
+  classroom: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const DAYS = [
   { key: "MONDAY", label: "Ponedeljak", short: "Pon" },
@@ -117,6 +46,18 @@ export default function RasporedPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedDayRef = useRef<HTMLButtonElement>(null);
 
+  // React Query hook - automatic caching and refetching
+  const { data: scheduleData, isLoading: loading, error } = useSchedule({
+    limit: 100,
+  });
+
+  // Show error toast if query fails
+  if (error) {
+    toast.error("Greška pri učitavanju rasporeda");
+  }
+
+  const schedule = scheduleData?.data || [];
+
   // Get current week start
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday
 
@@ -131,7 +72,7 @@ export default function RasporedPage() {
   const currentDayKey = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1].key;
 
   // Check if lesson is happening now
-  const isLessonActive = (lesson: (typeof MOCK_SCHEDULE)[0]) => {
+  const isLessonActive = (lesson: ScheduleEntry) => {
     if (lesson.dayOfWeek !== currentDayKey) return false;
     return currentTime >= lesson.startTime && currentTime <= lesson.endTime;
   };
@@ -139,7 +80,7 @@ export default function RasporedPage() {
   // Get lessons for selected day
   const selectedDayKey =
     DAYS[selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1].key;
-  const dayLessons = MOCK_SCHEDULE.filter(
+  const dayLessons = schedule.filter(
     (l) => l.dayOfWeek === selectedDayKey,
   );
 
@@ -149,9 +90,9 @@ export default function RasporedPage() {
       day: day.key,
       label: day.label,
       short: day.short,
-      lessons: MOCK_SCHEDULE.filter((l) => l.dayOfWeek === day.key),
+      lessons: schedule.filter((l) => l.dayOfWeek === day.key),
     }));
-  }, []);
+  }, [schedule]);
 
   const isToday = (date: Date) => isSameDay(date, now);
 
@@ -166,6 +107,22 @@ export default function RasporedPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6">
+        <PageHeader
+          title="📅 Raspored časova"
+          description="Pregled svih tvojih časova u nedelji. Organizuj se i nikad ne zakasni!"
+          variant="orange"
+          badge="Aktuelno"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-orange-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -253,7 +210,7 @@ export default function RasporedPage() {
                 {weekDays.map((day) => {
                   const dayKey =
                     DAYS[day.getDay() === 0 ? 6 : day.getDay() - 1];
-                  const lessonsCount = MOCK_SCHEDULE.filter(
+                  const lessonsCount = schedule.filter(
                     (l) => l.dayOfWeek === dayKey.key,
                   ).length;
                   const selected = isSameDay(day, selectedDate);
@@ -422,9 +379,11 @@ export default function RasporedPage() {
                               <div className="flex items-start justify-between gap-4">
                                 <div>
                                   <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-2xl">
-                                      {lesson.subject.icon}
-                                    </span>
+                                    {lesson.subject.icon && (
+                                      <span className="text-2xl">
+                                        {lesson.subject.icon}
+                                      </span>
+                                    )}
                                     <h3 className="text-xl font-bold text-gray-900">
                                       {lesson.subject.name}
                                     </h3>
@@ -432,12 +391,14 @@ export default function RasporedPage() {
                                   <div className="space-y-1 text-sm text-gray-600">
                                     <div className="flex items-center gap-2">
                                       <BookOpen className="h-4 w-4" />
-                                      {lesson.classroom}
+                                      {lesson.classroom || "Učionica nije određena"}
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <Clock className="h-4 w-4" />
-                                      {lesson.teacher}
-                                    </div>
+                                    {lesson.notes && (
+                                      <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        {lesson.notes}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
 
@@ -507,9 +468,11 @@ export default function RasporedPage() {
                             }}
                           >
                             <div className="flex items-center gap-3">
-                              <span className="text-2xl">
-                                {lesson.subject.icon}
-                              </span>
+                              {lesson.subject.icon && (
+                                <span className="text-2xl">
+                                  {lesson.subject.icon}
+                                </span>
+                              )}
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-900">
                                   {lesson.subject.name}

@@ -19,6 +19,7 @@ import {
   noContentResponse,
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
  * GET /api/family
@@ -128,6 +129,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -258,6 +265,12 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -325,6 +338,12 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {

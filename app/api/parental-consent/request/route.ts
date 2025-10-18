@@ -1,8 +1,10 @@
-// Parental Consent API - COPPA/GDPR Compliance
+// Parental Consent API - COPPA/GDPR Compliance (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
+import { idSchema, emailSchema } from "@/lib/security/validators";
 
 /**
  * POST /api/parental-consent/request
@@ -10,7 +12,20 @@ import { log } from "@/lib/logger";
  */
 export async function POST(request: NextRequest) {
   try {
-    const { studentId, guardianEmail } = await request.json();
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "Forbidden", message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.json();
+    
+    // Enhanced validation
+    const studentId = idSchema.parse(body.studentId);
+    const guardianEmail = emailSchema.parse(body.guardianEmail);
 
     if (!studentId || !guardianEmail) {
       return NextResponse.json(

@@ -12,6 +12,8 @@ import {
   noContentResponse,
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
+import { idSchema } from "@/lib/security/validators";
 
 /**
  * GET /api/homework/[id]
@@ -88,6 +90,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -96,6 +104,9 @@ export async function PUT(
 
     // Await params (Next.js 15)
     const { id } = await params;
+    
+    // Validate ID format
+    idSchema.parse(id);
 
     // Parse body
     const body = await request.json();
@@ -169,10 +180,16 @@ export async function PUT(
  * Briše domaći zadatak
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -181,6 +198,9 @@ export async function DELETE(
 
     // Await params (Next.js 15)
     const { id } = await params;
+    
+    // Validate ID format
+    idSchema.parse(id);
 
     // Dohvati homework
     const homework = await prisma.homework.findUnique({

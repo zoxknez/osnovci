@@ -1,4 +1,4 @@
-// Registracija API - kreiranje novog korisnika
+// Registracija API - kreiranje novog korisnika (Security Enhanced!)
 
 import bcrypt from "bcryptjs";
 import { type NextRequest, NextResponse } from "next/server";
@@ -6,18 +6,20 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createAndSendVerificationEmail } from "@/lib/auth/email-verification";
+import { csrfMiddleware } from "@/lib/security/csrf";
+import { emailSchema, phoneSchema, nameSchema, passwordSchema, safeStringSchema } from "@/lib/security/validators";
 
 const registerSchema = z
   .object({
-    email: z.string().email().optional(),
-    phone: z.string().optional(),
-    password: z.string().min(6, "Lozinka mora imati najmanje 6 karaktera"),
+    email: emailSchema.optional(),
+    phone: phoneSchema.optional(),
+    password: passwordSchema, // Enhanced password validation
     role: z.enum(["STUDENT", "GUARDIAN"]),
-    name: z.string().min(2, "Ime mora imati najmanje 2 karaktera"),
+    name: nameSchema,
     // Za učenike
-    school: z.string().optional(),
-    grade: z.number().min(1).max(8).optional(),
-    class: z.string().optional(),
+    school: safeStringSchema.max(200).optional(),
+    grade: z.number().int().min(1).max(8).optional(),
+    class: safeStringSchema.max(10).optional(),
   })
   .refine((data) => data.email || data.phone, {
     message: "Mora postojati email ili telefon",
@@ -25,6 +27,15 @@ const registerSchema = z
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection (important for public registration!)
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "Forbidden", message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
     const body = await request.json();
     const validated = registerSchema.safeParse(body);
 

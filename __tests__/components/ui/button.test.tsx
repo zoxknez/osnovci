@@ -37,7 +37,7 @@ describe("Button Component", () => {
   it("should apply variant classes", () => {
     const { container } = render(<Button variant="outline">Outline</Button>);
     const button = container.querySelector("button");
-    expect(button).toHaveClass("border");
+    expect(button).toHaveClass("border-2");
   });
 
   it("should render with icon", () => {

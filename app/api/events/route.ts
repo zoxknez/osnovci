@@ -1,10 +1,12 @@
-// Events API - Exams, meetings, trips, competitions
+// Events API - Exams, meetings, trips, competitions (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
+import { handleAPIError, AuthenticationError } from "@/lib/api/handlers/errors";
 
 const createEventSchema = z.object({
   type: z.enum(["EXAM", "MEETING", "TRIP", "COMPETITION", "OTHER"]),
@@ -87,10 +89,16 @@ export async function GET(request: NextRequest) {
 // POST /api/events - Create new event
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      throw new AuthenticationError();
     }
 
     const user = await prisma.user.findUnique({

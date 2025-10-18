@@ -1,4 +1,4 @@
-// Upload API - File uploads (Images, PDFs, etc) - Mobile Optimized!
+// Upload API - File uploads (Images, PDFs, etc) - Mobile Optimized + Security Enhanced!
 import { type NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -8,24 +8,23 @@ import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { ActivityLogger } from "@/lib/tracking/activity-logger";
 import { checkImageSafety } from "@/lib/safety/image-safety";
+import { csrfMiddleware } from "@/lib/security/csrf";
+import { validateFileUpload, sanitizeFileName, basicMalwareScan } from "@/lib/security/file-upload";
+import { idSchema } from "@/lib/security/validators";
 
-// Max file size: 5MB
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-// Allowed file types
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "application/pdf",
-  "video/mp4",
-  "video/quicktime",
-];
+// Note: File size and type validation now handled by lib/security/file-upload.ts
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "Forbidden", message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -64,23 +63,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
+    // Validate homework ID format
+    try {
+      idSchema.parse(homeworkId);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid homework ID format" },
+        { status: 400 },
+      );
+    }
+
+    // ENHANCED FILE VALIDATION - Security checks
+    const fileValidation = await validateFileUpload(file);
+    if (!fileValidation.valid) {
+      log.warn("File validation failed", {
+        error: fileValidation.error,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      });
       return NextResponse.json(
         {
-          error: "File too large",
-          message: `Fajl je prevelik. Maksimum je 5MB. (Trenutno: ${(file.size / 1024 / 1024).toFixed(2)}MB)`,
+          error: "File validation failed",
+          message: fileValidation.error,
         },
         { status: 400 },
       );
     }
 
-    // Validate file type
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Get file buffer for further processing
+    const bytes = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(bytes);
+
+    // MALWARE SCAN - Basic heuristics
+    const malwareScan = basicMalwareScan(uint8Array);
+    if (!malwareScan.safe) {
+      log.error("Malware detected in upload", {
+        fileName: file.name,
+        reason: malwareScan.reason,
+        studentId: user.student.id,
+      });
       return NextResponse.json(
         {
-          error: "Invalid file type",
-          message: `Tip fajla nije dozvoljen. Dozvoljeno: slike, PDF, video. (Trenutno: ${file.type})`,
+          error: "Security threat detected",
+          message: "Fajl sadrži sumnjiv sadržaj i ne može biti upload-ovan",
         },
         { status: 400 },
       );
@@ -99,16 +125,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
+    // Convert to buffer
     let buffer: Buffer = Buffer.from(bytes);
 
-    // Generate unique filename
+    // Generate unique filename - SANITIZED
     const timestamp = Date.now();
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const fileName = `${timestamp}-${sanitizedName.replace(/\.[^.]+$/, ".jpg")}`; // Always JPEG
-    const thumbnailName = `${timestamp}-thumb-${sanitizedName.replace(/\.[^.]+$/, ".jpg")}`;
+    const safeName = sanitizeFileName(file.name);
+    const fileName = `${timestamp}-${safeName.replace(/\.[^.]+$/, ".jpg")}`; // Always JPEG
+    const thumbnailName = `${timestamp}-thumb-${safeName.replace(/\.[^.]+$/, ".jpg")}`;
 
+    // Log file hash (for duplicate detection & security)
+    log.info("File upload validated", {
+      hash: fileValidation.hash,
+      fileName: safeName,
+      originalSize: file.size,
+      sanitizedName: fileName,
+    });
     // Create uploads directories
     const uploadsDir = join(process.cwd(), "public", "uploads");
     const thumbnailsDir = join(uploadsDir, "thumbnails");

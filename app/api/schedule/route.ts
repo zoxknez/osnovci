@@ -1,14 +1,10 @@
 import { auth } from "@/lib/auth/config";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import type {
-  CreateScheduleInput,
-  QueryScheduleInput,
-} from "@/lib/api/schemas/schedule";
 import {
   CreateScheduleSchema,
   QueryScheduleSchema,
-  DayOfWeek,
+  type DayOfWeek,
 } from "@/lib/api/schemas/schedule";
 import {
   handleAPIError,
@@ -20,6 +16,7 @@ import {
   createdResponse,
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
  * GET /api/schedule
@@ -47,19 +44,25 @@ export async function GET(request: NextRequest) {
     // Validacija query parametara
     const validatedQuery = QueryScheduleSchema.parse(queryData);
 
-    // Dohvati korisnika i njegovu djecu
+    // Dohvati korisnika i njegove učenike
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { students: { select: { id: true } } },
+      include: { student: { select: { id: true } } },
     });
 
     if (!user) {
       throw new NotFoundError("Korisnik");
     }
 
-    const studentIds = user.students.map((s) => s.id);
+    const studentIds: string[] = [];
+    
+    // Ako je sam student
+    if (user.student) {
+      studentIds.push(user.student.id);
+    }
+    
+    // Ako nema student direktno, traži
     if (studentIds.length === 0) {
-      // Ako je sam student, koristi njegov ID
       const student = await prisma.student.findFirst({
         where: { userId: user.id },
       });
@@ -105,10 +108,8 @@ export async function GET(request: NextRequest) {
       dayOfWeek: schedule.dayOfWeek,
       startTime: schedule.startTime,
       endTime: schedule.endTime,
-      classroom: schedule.classroom,
-      teacher: schedule.teacher,
+      classroom: schedule.room,
       notes: schedule.notes,
-      status: schedule.status,
       createdAt: schedule.createdAt,
       updatedAt: schedule.updatedAt,
     }));
@@ -137,6 +138,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {
@@ -175,10 +182,8 @@ export async function POST(request: NextRequest) {
         dayOfWeek: validatedData.dayOfWeek as DayOfWeek,
         startTime: validatedData.startTime,
         endTime: validatedData.endTime,
-        classroom: validatedData.classroom,
-        teacher: validatedData.teacher,
+        room: validatedData.classroom,
         notes: validatedData.notes,
-        status: validatedData.status,
       },
       include: {
         subject: {
@@ -200,10 +205,8 @@ export async function POST(request: NextRequest) {
         dayOfWeek: schedule.dayOfWeek,
         startTime: schedule.startTime,
         endTime: schedule.endTime,
-        classroom: schedule.classroom,
-        teacher: schedule.teacher,
+        classroom: schedule.room,
         notes: schedule.notes,
-        status: schedule.status,
         createdAt: schedule.createdAt,
         updatedAt: schedule.updatedAt,
       },

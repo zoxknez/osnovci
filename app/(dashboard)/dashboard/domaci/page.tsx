@@ -10,8 +10,11 @@ import {
   Plus,
   Search,
   Loader,
+  RefreshCw,
+  WifiOff,
+  Wifi,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { ModernCamera } from "@/components/features/modern-camera";
 import { Button } from "@/components/ui/button";
@@ -20,8 +23,10 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/features/page-header";
 import {
   AddHomeworkModal,
-  HomeworkFormData,
+  type HomeworkFormData,
 } from "@/components/modals/add-homework-modal";
+import { useOfflineHomework } from "@/hooks/use-offline-homework";
+import { useSyncStore } from "@/store";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,12 +39,22 @@ export default function DomaciPage() {
     null,
   );
 
-  // Nova stanja za API
+  // API state
   const [homework, setHomework] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+  // Offline sync
+  const {
+    offlineItems,
+    saveOffline,
+    syncOfflineItems,
+    hasOfflineItems,
+    unsyncedCount,
+  } = useOfflineHomework();
+  const { isOnline, isSyncing } = useSyncStore();
 
   const getRandomColor = useCallback(() => {
     const colors = ["#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b"];
@@ -131,10 +146,31 @@ export default function DomaciPage() {
     return `Za ${diff} dana`;
   };
 
-  const filteredHomework = homework.filter((task) => {
+  // Kombiniuj online i offline zadatke
+  const allHomework = useMemo(() => {
+    // Mapiraj offline items u isti format kao API data
+    const offlineMapped = offlineItems.map((item) => ({
+      id: item.id,
+      subject: item.subjectId, // TODO: Resolve subject name
+      title: item.title,
+      description: item.description,
+      dueDate: item.dueDate,
+      status: item.status.toLowerCase(),
+      priority: item.priority.toLowerCase(),
+      attachments: 0,
+      color: getRandomColor(),
+      isOffline: true,
+      synced: item.synced,
+    }));
+
+    return [...homework, ...offlineMapped];
+  }, [homework, offlineItems, getRandomColor]);
+
+  const filteredHomework = allHomework.filter((task) => {
+    const subjectName = typeof task.subject === "string" ? task.subject : task.subject?.name || "";
     const matchesSearch =
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.subject.toLowerCase().includes(searchQuery.toLowerCase());
+      subjectName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter =
       filterStatus === "all" ||
       (filterStatus === "active" &&
@@ -188,6 +224,23 @@ export default function DomaciPage() {
 
   const handleAddHomework = async (data: HomeworkFormData) => {
     try {
+      // Ako nema interneta, sačuvaj offline
+      if (!isOnline) {
+        await saveOffline({
+          title: data.title,
+          subjectId: data.subjectId,
+          description: data.description,
+          dueDate: new Date(data.dueDate),
+          priority: data.priority,
+          status: "ASSIGNED",
+        });
+        toast.success("💾 Sačuvano offline", {
+          description: "Zadatak će biti sinhronizovan kada se povežeš na internet",
+        });
+        return;
+      }
+
+      // Pokušaj online
       const response = await fetch("/api/homework", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -195,7 +248,21 @@ export default function DomaciPage() {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("Greška pri kreiranju");
+      if (!response.ok) {
+        // Ako API ne uspije, sačuvaj offline kao fallback
+        await saveOffline({
+          title: data.title,
+          subjectId: data.subjectId,
+          description: data.description,
+          dueDate: new Date(data.dueDate),
+          priority: data.priority,
+          status: "ASSIGNED",
+        });
+        toast.warning("⚠️ Sačuvano offline", {
+          description: "API nije dostupan - zadatak će biti sinhronizovan kasnije",
+        });
+        return;
+      }
 
       // Osvježi listu
       setPage(1);
@@ -220,6 +287,8 @@ export default function DomaciPage() {
 
       setHomework(mapped);
       setTotal(newData.pagination.total);
+      
+      toast.success("✅ Zadatak kreiran");
     } catch (_err) {
       throw new Error(_err instanceof Error ? _err.message : "Nepoznata greška");
     }
@@ -245,17 +314,62 @@ export default function DomaciPage() {
       {/* Hero Header */}
       <PageHeader
         title="📚 Domaći zadaci"
-        description="Upravljaj svojim zadacima i rokovima"
+        description={
+          isOnline
+            ? "Upravljaj svojim zadacima i rokovima"
+            : "Offline režim - promene će biti sinhronizovane"
+        }
         variant="blue"
         action={
-          <Button
-            size="lg"
-            leftIcon={<Plus className="h-5 w-5" />}
-            aria-label="Dodaj novi domaći zadatak"
-            onClick={() => setShowAddModal(true)}
-          >
-            Dodaj zadatak
-          </Button>
+          <div className="flex gap-2 items-center flex-wrap">
+            {/* Online/Offline status */}
+            <div
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+                isOnline
+                  ? "bg-green-100 text-green-700"
+                  : "bg-amber-100 text-amber-700"
+              }`}
+            >
+              {isOnline ? (
+                <>
+                  <Wifi className="h-4 w-4" />
+                  Online
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-4 w-4" />
+                  Offline
+                </>
+              )}
+            </div>
+
+            {/* Sync button */}
+            {hasOfflineItems && isOnline && (
+              <Button
+                variant="outline"
+                size="lg"
+                leftIcon={
+                  <RefreshCw
+                    className={`h-5 w-5 ${isSyncing ? "animate-spin" : ""}`}
+                  />
+                }
+                onClick={syncOfflineItems}
+                disabled={isSyncing}
+              >
+                Sinhronizuj ({unsyncedCount})
+              </Button>
+            )}
+
+            {/* Add task button */}
+            <Button
+              size="lg"
+              leftIcon={<Plus className="h-5 w-5" />}
+              aria-label="Dodaj novi domaći zadatak"
+              onClick={() => setShowAddModal(true)}
+            >
+              Dodaj zadatak
+            </Button>
+          </div>
         }
       />
 
@@ -314,12 +428,17 @@ export default function DomaciPage() {
             <div className="text-center">
               <p className="text-3xl font-bold text-blue-600">
                 {
-                  homework.filter(
+                  allHomework.filter(
                     (h) => h.status !== "done" && h.status !== "submitted",
                   ).length
                 }
               </p>
               <p className="text-sm text-gray-600 mt-1">Aktivni zadaci</p>
+              {unsyncedCount > 0 && (
+                <p className="text-xs text-amber-600 mt-1">
+                  ({unsyncedCount} offline)
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -328,7 +447,7 @@ export default function DomaciPage() {
             <div className="text-center">
               <p className="text-3xl font-bold text-green-600">
                 {
-                  homework.filter(
+                  allHomework.filter(
                     (h) => h.status === "done" || h.status === "submitted",
                   ).length
                 }
@@ -342,7 +461,7 @@ export default function DomaciPage() {
             <div className="text-center">
               <p className="text-3xl font-bold text-red-600">
                 {
-                  homework.filter(
+                  allHomework.filter(
                     (h) =>
                       h.priority === "urgent" &&
                       h.status !== "done" &&
@@ -398,11 +517,19 @@ export default function DomaciPage() {
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {task.title}
-                            </h3>
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {task.title}
+                              </h3>
+                              {task.isOffline && !task.synced && (
+                                <span className="inline-flex items-center gap-1 text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                                  <WifiOff className="h-3 w-3" />
+                                  Offline
+                                </span>
+                              )}
+                            </div>
                             <p className="text-sm text-gray-600">
-                              {task.subject}
+                              {typeof task.subject === "string" ? task.subject : task.subject?.name || "Predmet"}
                             </p>
                           </div>
                           {task.priority === "urgent" && !isOverdue && (

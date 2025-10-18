@@ -1,4 +1,4 @@
-// Child Approval API - Step 2 of Stranger Danger Protection
+// Child Approval API - Step 2 of Stranger Danger Protection (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
 import {
   childApproves,
@@ -10,6 +10,7 @@ import {
   success,
   internalError,
 } from "@/lib/api/middleware";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
  * POST /api/link/child-approve
@@ -19,6 +20,15 @@ import {
 export const POST = withAuthAndRateLimit(
   async (request: NextRequest, session: any, _context: any) => {
     try {
+      // CSRF Protection
+      const csrfResult = await csrfMiddleware(request);
+      if (!csrfResult.valid) {
+        return NextResponse.json(
+          { error: "Forbidden", message: csrfResult.error },
+          { status: 403 },
+        );
+      }
+
       const student = await getAuthenticatedStudent(session.user.id);
       const { linkCode, approved, guardianEmail } = await request.json();
 

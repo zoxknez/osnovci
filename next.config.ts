@@ -1,4 +1,10 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
+
+// Bundle Analyzer
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
   // Performance Optimization
@@ -154,8 +160,34 @@ const nextConfig: NextConfig = {
   // Experimental features
   experimental: {
     // Optimize package imports
-    optimizePackageImports: ["lucide-react", "recharts", "framer-motion"],
+    optimizePackageImports: ["lucide-react", "recharts", "framer-motion", "date-fns", "react-hook-form"],
+  },
+  
+  // Reduce build output
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
   },
 };
 
-export default nextConfig;
+// Wrap with Sentry for error tracking
+export default withSentryConfig(
+  withBundleAnalyzer(nextConfig),
+  {
+    // Sentry Webpack Plugin Options
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+
+    // Only upload source maps in production
+    silent: process.env.NODE_ENV !== "production",
+
+    // Upload source maps
+    widenClientFileUpload: true,
+
+    // Disable telemetry
+    telemetry: false,
+  },
+);

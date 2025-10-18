@@ -1,7 +1,8 @@
-// Parental Consent Verification
+// Parental Consent Verification (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
  * POST /api/parental-consent/verify
@@ -9,6 +10,15 @@ import { log } from "@/lib/logger";
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "Forbidden", message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
     const { verificationCode } = await request.json();
 
     if (!verificationCode) {

@@ -146,6 +146,7 @@ model Student {
   schedule     ScheduleEntry[]
   events       Event[]
   subjects     StudentSubject[]
+  grades       Grade[]
   gamification Gamification?
 
   @@index([userId])
@@ -264,8 +265,35 @@ model Subject {
   students StudentSubject[]
   homework Homework[]
   schedule ScheduleEntry[]
+  grades   Grade[]
 
   @@map("subjects")
+}
+
+// ============================================
+// GRADES (Ocene)
+// ============================================
+
+model Grade {
+  id          String   @id @default(cuid())
+  studentId   String
+  subjectId   String
+  grade       String // 1-5 ili A-F
+  category    String // Kontrolni, Usmeno, Domaći, Pismeni
+  description String?
+  date        DateTime @default(now())
+  weight      Int      @default(1) // Ponder ocene (1-3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([subjectId])
+  @@index([date])
+  @@map("grades")
 }
 
 // Many-to-many: Student can have custom subjects

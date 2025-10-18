@@ -15,6 +15,7 @@ import {
   createdResponse,
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
  * GET /api/homework
@@ -148,6 +149,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+    }
+
     // Autentifikacija
     const session = await auth();
     if (!session?.user?.id) {

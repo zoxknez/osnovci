@@ -7,12 +7,13 @@ import {
   Copy,
   Eye,
   Link as LinkIcon,
+  Loader,
   QrCode,
   Shield,
   Trash2,
   UserPlus,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import QRCodeSVG from "react-qr-code";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,32 +22,14 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/features/page-header";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 
-// Mock data - TODO: Replace with real API
-const MOCK_FAMILY = [
-  {
-    id: "1",
-    name: "Ana Marković",
-    role: "GUARDIAN",
-    relation: "Majka",
-    avatar: null,
-    permissions: [
-      "view_grades",
-      "view_homework",
-      "view_schedule",
-      "notifications",
-    ],
-    linkedAt: new Date("2024-09-01"),
-  },
-  {
-    id: "2",
-    name: "Petar Marković",
-    role: "GUARDIAN",
-    relation: "Otac",
-    avatar: null,
-    permissions: ["view_grades", "view_homework", "view_schedule"],
-    linkedAt: new Date("2024-09-01"),
-  },
-];
+interface FamilyMember {
+  id: string;
+  name: string;
+  role: string;
+  relation: string;
+  permissions: string[];
+  linkedAt: Date;
+}
 
 const PERMISSION_OPTIONS = [
   { key: "view_grades", label: "Pregled ocena", icon: "📊" },
@@ -58,17 +41,70 @@ const PERMISSION_OPTIONS = [
 ];
 
 export default function PorodicaPage() {
+  const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState(false);
-  const [linkCode, setLinkCode] = useState("DEMO123");
+  const [linkCode, setLinkCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [manualCode, setManualCode] = useState("");
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
 
-  // Generate random 6-digit code
-  const generateCode = () => {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setLinkCode(code);
-    toast.success("🎉 Novi kod generisan!");
-  };
+  // Fetch family members
+  useEffect(() => {
+    const fetchFamily = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/family", {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFamilyMembers(data.family || []);
+        } else {
+          toast.error("Greška pri učitavanju porodice");
+        }
+      } catch (error) {
+        console.error("Error fetching family:", error);
+        toast.error("Greška pri učitavanju porodice");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFamily();
+  }, []);
+
+  // Generate link code via API
+  const generateCode = useCallback(async () => {
+    try {
+      const response = await fetch("/api/link/initiate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({}),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLinkCode(data.linkCode || "");
+        toast.success("🎉 Novi kod generisan!");
+      } else {
+        toast.error("Greška pri generisanju koda");
+      }
+    } catch (error) {
+      console.error("Error generating code:", error);
+      toast.error("Greška pri generisanju koda");
+    }
+  }, []);
+
+  // Auto-generate code when QR is shown
+  useEffect(() => {
+    if (showQR && !linkCode) {
+      generateCode();
+    }
+  }, [showQR, linkCode, generateCode]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(linkCode);
@@ -77,19 +113,77 @@ export default function PorodicaPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleManualLink = () => {
+  const handleManualLink = async () => {
     if (manualCode.length !== 6) {
       toast.error("Kod mora imati 6 karaktera");
       return;
     }
-    toast.success("✅ Povezano!");
-    setManualCode("");
+
+    try {
+      const response = await fetch("/api/link/child-approve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ linkCode: manualCode }),
+      });
+
+      if (response.ok) {
+        toast.success("✅ Povezano!");
+        setManualCode("");
+        // Refresh family list
+        const familyRes = await fetch("/api/family", {
+          credentials: "include",
+        });
+        if (familyRes.ok) {
+          const data = await familyRes.json();
+          setFamilyMembers(data.family || []);
+        }
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Greška pri povezivanju");
+      }
+    } catch (error) {
+      console.error("Error linking:", error);
+      toast.error("Greška pri povezivanju");
+    }
   };
 
-  const handleRemoveLink = (_id: string, name: string) => {
-    // TODO: Implement real removal
-    toast.success(`🗑️ ${name} je uklonjen/a iz porodice`);
+  const handleRemoveLink = async (id: string, name: string) => {
+    try {
+      const response = await fetch(`/api/family/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        toast.success(`🗑️ ${name} je uklonjen/a iz porodice`);
+        // Refresh family list
+        setFamilyMembers(familyMembers.filter((m) => m.id !== id));
+      } else {
+        toast.error("Greška pri uklanjanju");
+      }
+    } catch (error) {
+      console.error("Error removing link:", error);
+      toast.error("Greška pri uklanjanju");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6">
+        <PageHeader
+          title="👨‍👩‍👧 Porodica"
+          description="Poveži se sa roditeljima i starateljima"
+          variant="pink"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-pink-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -289,16 +383,25 @@ export default function PorodicaPage() {
       {/* Family Members List */}
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Povezani članovi ({MOCK_FAMILY.length})
+          Povezani članovi ({familyMembers.length})
         </h2>
 
-        <motion.div
-          className="grid gap-4 sm:grid-cols-2"
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-        >
-          {MOCK_FAMILY.map((member) => (
+        {familyMembers.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-gray-500">
+                Još nema povezanih članova porodice
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <motion.div
+            className="grid gap-4 sm:grid-cols-2"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {familyMembers.map((member) => (
             <motion.div key={member.id} variants={staggerItem}>
               <Card className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
@@ -357,15 +460,17 @@ export default function PorodicaPage() {
 
                       {/* Linked Date */}
                       <div className="mt-3 text-xs text-gray-500">
-                        Povezano: {member.linkedAt.toLocaleDateString("sr-RS")}
+                        Povezano:{" "}
+                        {new Date(member.linkedAt).toLocaleDateString("sr-RS")}
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
-          ))}
-        </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
 
       {/* Permissions Management */}

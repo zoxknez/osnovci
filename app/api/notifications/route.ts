@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 // GET /api/notifications - Get user notifications
 export async function GET(_request: NextRequest) {
@@ -43,6 +44,15 @@ export async function GET(_request: NextRequest) {
 // PATCH /api/notifications/mark-read - Mark notification as read
 export async function PATCH(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { error: "Forbidden", message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {

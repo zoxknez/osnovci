@@ -1,288 +1,177 @@
-// PDF Export Utilities - Za izvještaje i raspored
-"use client";
-
+// PDF Export Utility - Generate PDF reports for grades
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-/**
- * Export Homework List to PDF
- */
-export function exportHomeworkToPDF(
-  homework: Array<{
-    title: string;
+interface GradeData {
+  subject: { name: string; color: string };
+  grade: string;
+  category: string;
+  description: string | null;
+  date: string | Date;
+}
+
+interface GradeStats {
+  average: number;
+  total: number;
+  byCategory: Record<string, number>;
+  bySubject: Array<{
     subject: string;
-    dueDate: Date;
-    status: string;
-    priority: string;
-  }>,
-  studentName: string,
+    average: number;
+    count: number;
+  }>;
+}
+
+export function exportGradesToPDF(
+  grades: GradeData[],
+  stats: GradeStats,
+  studentName: string = "Učenik",
 ) {
-  const doc = new jsPDF();
+  // Kreiraj PDF dokument (A4, portrait)
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
 
-  // Title
-  doc.setFontSize(20);
+  // ========================================
+  // HEADER - Logo i naziv aplikacije
+  // ========================================
+  doc.setFillColor(59, 130, 246); // Blue-500
+  doc.rect(0, 0, 210, 30, "F");
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
   doc.setFont("helvetica", "bold");
-  doc.text("Domaći Zadaci - Izveštaj", 14, 20);
+  doc.text("Osnovci", 105, 15, { align: "center" });
 
-  // Student info
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.text(`Učenik: ${studentName}`, 14, 30);
-  doc.text(`Datum: ${new Date().toLocaleDateString("sr-RS")}`, 14, 37);
+  doc.text("Izvještaj o ocjenama", 105, 23, { align: "center" });
 
-  // Table
+  // ========================================
+  // INFO SEKCIJA
+  // ========================================
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+
+  const currentDate = new Date().toLocaleDateString("sr-RS", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  doc.text(`Učenik: ${studentName}`, 20, 40);
+  doc.text(`Datum: ${currentDate}`, 20, 46);
+
+  // ========================================
+  // STATISTIKA
+  // ========================================
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Opšta statistika", 20, 56);
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+
+  // Statistika u tabeli
   autoTable(doc, {
-    head: [["Predmet", "Zadatak", "Rok", "Status", "Prioritet"]],
-    body: homework.map((hw) => [
-      hw.subject,
-      hw.title,
-      new Date(hw.dueDate).toLocaleDateString("sr-RS"),
-      hw.status === "done" ? "Urađeno" : "Aktivno",
-      hw.priority === "urgent"
-        ? "Hitno"
-        : hw.priority === "important"
-          ? "Važno"
-          : "Normalno",
+    startY: 60,
+    head: [["Metrika", "Vrednost"]],
+    body: [
+      ["Opšti prosjek", stats.average.toFixed(2)],
+      ["Ukupno ocjena", stats.total.toString()],
+      [
+        "Najbolji predmet",
+        stats.bySubject.length > 0
+          ? stats.bySubject.reduce((max, s) =>
+              s.average > max.average ? s : max,
+            ).subject
+          : "N/A",
+      ],
+    ],
+    theme: "grid",
+    headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+    margin: { left: 20, right: 20 },
+  });
+
+  // ========================================
+  // PROSJECI PO PREDMETU
+  // ========================================
+  const currentY = (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 90;
+  const nextY = currentY + 10;
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Prosjeci po predmetu", 20, nextY);
+
+  autoTable(doc, {
+    startY: nextY + 5,
+    head: [["Predmet", "Prosjek", "Broj ocjena"]],
+    body: stats.bySubject.map((s) => [
+      s.subject,
+      s.average.toFixed(2),
+      s.count.toString(),
     ]),
-    startY: 45,
-    styles: {
-      font: "helvetica",
-      fontSize: 10,
-    },
-    headStyles: {
-      fillColor: [59, 130, 246], // Blue
-      fontStyle: "bold",
-    },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252], // Light gray
+    theme: "striped",
+    headStyles: { fillColor: [139, 92, 246], textColor: 255 }, // Purple
+    margin: { left: 20, right: 20 },
+  });
+
+  // ========================================
+  // SVE OCENE - Detaljna tabela
+  // ========================================
+  const gradesY = (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 150;
+  const gradesStartY = gradesY + 10;
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Sve ocene", 20, gradesStartY);
+
+  autoTable(doc, {
+    startY: gradesStartY + 5,
+    head: [["Predmet", "Ocena", "Kategorija", "Datum", "Opis"]],
+    body: grades.map((g) => [
+      g.subject.name,
+      g.grade,
+      g.category,
+      new Date(g.date).toLocaleDateString("sr-RS"),
+      g.description || "-",
+    ]),
+    theme: "grid",
+    headStyles: { fillColor: [139, 92, 246], textColor: 255 },
+    margin: { left: 20, right: 20 },
+    columnStyles: {
+      0: { cellWidth: 40 }, // Subject
+      1: { cellWidth: 20, halign: "center" }, // Grade
+      2: { cellWidth: 30 }, // Category
+      3: { cellWidth: 25 }, // Date
+      4: { cellWidth: "auto" }, // Description
     },
   });
 
-  // Footer - add to all pages
-  const pageCount = (doc as any).internal.getNumberOfPages();
-  doc.setFontSize(8);
-  for (let page = 1; page <= pageCount; page++) {
-    doc.setPage(page);
+  // ========================================
+  // FOOTER
+  // ========================================
+  const pageCount = doc.internal.pages.length - 1;
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
     doc.text(
-      `Generisano: ${new Date().toLocaleString("sr-RS")} | Strana ${page} od ${pageCount}`,
-      14,
-      doc.internal.pageSize.height - 10,
+      `Stranica ${i} od ${pageCount}`,
+      105,
+      290,
+      { align: "center" },
     );
+    doc.text("Generisano: Osnovci App", 20, 290);
   }
 
-  // Save
-  doc.save(`domaci-zadaci-${new Date().toISOString().split("T")[0]}.pdf`);
-}
+  // ========================================
+  // DOWNLOAD
+  // ========================================
+  const fileName = `ocene_${studentName.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+  doc.save(fileName);
 
-/**
- * Export Weekly Schedule to PDF
- */
-export function exportScheduleToPDF(
-  schedule: Array<{
-    dayOfWeek: string;
-    subject: string;
-    startTime: string;
-    endTime: string;
-    room?: string;
-  }>,
-  studentName: string,
-  weekNumber: number,
-) {
-  const doc = new jsPDF();
-
-  // Title
-  doc.setFontSize(20);
-  doc.setFont("helvetica", "bold");
-  doc.text("Nedeljni Raspored Časova", 14, 20);
-
-  // Info
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Učenik: ${studentName}`, 14, 30);
-  doc.text(`Nedelja: ${weekNumber}`, 14, 37);
-
-  // Group by day
-  const days = ["Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"];
-  const groupedSchedule = days.map((day) => ({
-    day,
-    classes: schedule.filter((s) => s.dayOfWeek === day),
-  }));
-
-  let currentY = 45;
-
-  groupedSchedule.forEach((daySchedule) => {
-    if (daySchedule.classes.length === 0) return;
-
-    // Day header
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(daySchedule.day, 14, currentY);
-    currentY += 7;
-
-    // Classes table
-    autoTable(doc, {
-      head: [["Vreme", "Predmet", "Učionica"]],
-      body: daySchedule.classes.map((c) => [
-        `${c.startTime} - ${c.endTime}`,
-        c.subject,
-        c.room || "-",
-      ]),
-      startY: currentY,
-      styles: {
-        fontSize: 10,
-      },
-      headStyles: {
-        fillColor: [147, 51, 234], // Purple
-      },
-      margin: { left: 20 },
-    });
-
-    currentY = (doc as any).lastAutoTable.finalY + 10;
-  });
-
-  // Footer
-  doc.setFontSize(8);
-  doc.text(
-    `Generisano: ${new Date().toLocaleString("sr-RS")}`,
-    14,
-    doc.internal.pageSize.height - 10,
-  );
-
-  doc.save(`raspored-nedelja-${weekNumber}.pdf`);
-}
-
-/**
- * Export Weekly Report to PDF
- */
-export function exportWeeklyReportToPDF(
-  report: {
-    weekStart: Date;
-    weekEnd: Date;
-    totalHomework: number;
-    completedHomework: number;
-    lateHomework: number;
-    subjectBreakdown: Record<string, { total: number; completed: number }>;
-  },
-  studentName: string,
-) {
-  const doc = new jsPDF();
-
-  // Title
-  doc.setFontSize(20);
-  doc.setFont("helvetica", "bold");
-  doc.text("Nedeljni Izveštaj", 14, 20);
-
-  // Period
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Učenik: ${studentName}`, 14, 30);
-  doc.text(
-    `Period: ${new Date(report.weekStart).toLocaleDateString("sr-RS")} - ${new Date(report.weekEnd).toLocaleDateString("sr-RS")}`,
-    14,
-    37,
-  );
-
-  // Summary
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Pregled", 14, 50);
-
-  const completionRate = (
-    (report.completedHomework / report.totalHomework) *
-    100
-  ).toFixed(1);
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Ukupno zadataka: ${report.totalHomework}`, 14, 60);
-  doc.text(
-    `Završeno: ${report.completedHomework} (${completionRate}%)`,
-    14,
-    67,
-  );
-  doc.text(`Kasni: ${report.lateHomework}`, 14, 74);
-
-  // Subject breakdown
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Po Predmetima", 14, 90);
-
-  autoTable(doc, {
-    head: [["Predmet", "Ukupno", "Završeno", "Procenat"]],
-    body: Object.entries(report.subjectBreakdown).map(([subject, data]) => [
-      subject,
-      data.total.toString(),
-      data.completed.toString(),
-      `${((data.completed / data.total) * 100).toFixed(1)}%`,
-    ]),
-    startY: 95,
-    styles: {
-      fontSize: 10,
-    },
-    headStyles: {
-      fillColor: [34, 197, 94], // Green
-    },
-  });
-
-  // Footer
-  doc.setFontSize(8);
-  doc.text(
-    `Generisano: ${new Date().toLocaleString("sr-RS")}`,
-    14,
-    doc.internal.pageSize.height - 10,
-  );
-
-  doc.save(
-    `nedeljni-izvestaj-${new Date(report.weekStart).toISOString().split("T")[0]}.pdf`,
-  );
-}
-
-/**
- * Export Student Profile to PDF
- */
-export function exportProfileToPDF(profile: {
-  name: string;
-  school: string;
-  grade: number;
-  class: string;
-  email?: string;
-  phone?: string;
-}) {
-  const doc = new jsPDF();
-
-  // Title
-  doc.setFontSize(20);
-  doc.setFont("helvetica", "bold");
-  doc.text("Profil Učenika", 14, 20);
-
-  // Profile info
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  let y = 35;
-
-  doc.text(`Ime i prezime: ${profile.name}`, 14, y);
-  y += 10;
-  doc.text(`Škola: ${profile.school}`, 14, y);
-  y += 10;
-  doc.text(`Razred: ${profile.grade}. ${profile.class}`, 14, y);
-
-  if (profile.email) {
-    y += 10;
-    doc.text(`Email: ${profile.email}`, 14, y);
-  }
-
-  if (profile.phone) {
-    y += 10;
-    doc.text(`Telefon: ${profile.phone}`, 14, y);
-  }
-
-  // Footer
-  doc.setFontSize(8);
-  doc.text(
-    `Generisano: ${new Date().toLocaleString("sr-RS")}`,
-    14,
-    doc.internal.pageSize.height - 10,
-  );
-
-  doc.save(`profil-${profile.name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+  return fileName;
 }

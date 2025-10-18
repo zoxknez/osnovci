@@ -60,6 +60,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { Providers } from "./providers";
 
 export default function RootLayout({
   children,
@@ -83,17 +84,19 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 transition-colors duration-300`}
       >
-        <ErrorBoundary>
-          {/* Main Content */}
-          <main id="main-content">{children}</main>
+        <Providers>
+          <ErrorBoundary>
+            {/* Main Content */}
+            <main id="main-content">{children}</main>
 
-          {/* Toast Notifications */}
-          <Toaster position="top-center" />
+            {/* Toast Notifications */}
+            <Toaster position="top-center" />
 
-          {/* Analytics */}
-          <Analytics />
-          <SpeedInsights />
-        </ErrorBoundary>
+            {/* Analytics */}
+            <Analytics />
+            <SpeedInsights />
+          </ErrorBoundary>
+        </Providers>
       </body>
     </html>
   );

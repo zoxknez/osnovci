@@ -1,4 +1,4 @@
-// app/api/auth/verify-email/route.ts
+// app/api/auth/verify-email/route.ts (Security Enhanced!)
 /**
  * Email Verification Endpoint
  * 
@@ -19,6 +19,8 @@ import {
   resendVerificationEmail,
 } from '@/lib/auth/email-verification';
 import { log } from '@/lib/logger';
+import { csrfMiddleware } from '@/lib/security/csrf';
+import { emailSchema } from '@/lib/security/validators';
 
 /**
  * GET /api/auth/verify-email?token=XXX
@@ -74,11 +76,20 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfResult = await csrfMiddleware(request);
+    if (!csrfResult.valid) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden', message: csrfResult.error },
+        { status: 403 },
+      );
+    }
+
     // 1. Validiraj request body
     const body = await request.json();
     
     const schema = z.object({
-      email: z.string().email('Invalid email address'),
+      email: emailSchema, // Use enhanced email validation
     });
     
     const validated = schema.safeParse(body);

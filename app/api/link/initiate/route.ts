@@ -1,4 +1,4 @@
-// Link Initiation API - Step 1 of Stranger Danger Protection
+// Link Initiation API - Step 1 of Stranger Danger Protection (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
@@ -8,6 +8,7 @@ import {
   success,
   internalError,
 } from "@/lib/api/middleware";
+import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
  * POST /api/link/initiate
@@ -17,6 +18,15 @@ import {
 export const POST = withAuthAndRateLimit(
   async (request: NextRequest, session: any, _context: any) => {
     try {
+      // CSRF Protection
+      const csrfResult = await csrfMiddleware(request);
+      if (!csrfResult.valid) {
+        return NextResponse.json(
+          { error: "Forbidden", message: csrfResult.error },
+          { status: 403 },
+        );
+      }
+
       const { studentQRData } = await request.json(); // QR contains studentId
 
       if (!studentQRData) {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sanitizePlainText, sanitizeRichText } from "@/lib/security/sanitize";
 
 // Days of week enum
 export const DayOfWeek = z.enum([
@@ -24,7 +25,7 @@ const timeFormat = z
     "Vrijeme mora biti u formatu HH:MM",
   );
 
-// Create schedule entry schema
+// Create schedule entry schema - with sanitization
 export const CreateScheduleSchema = z.object({
   subjectId: z.string().uuid("Predmet je obavezan"),
   dayOfWeek: DayOfWeek,
@@ -33,15 +34,18 @@ export const CreateScheduleSchema = z.object({
   classroom: z
     .string()
     .min(1, "Učionica je obavezna")
-    .max(100, "Učionica može biti najviše 100 karaktera"),
+    .max(100, "Učionica može biti najviše 100 karaktera")
+    .transform(sanitizePlainText), // Sanitize classroom name
   teacher: z
     .string()
     .min(1, "Nastavnik je obavezan")
     .max(255, "Nastavnik može biti najviše 255 karaktera")
+    .transform(sanitizePlainText) // Sanitize teacher name
     .optional(),
   notes: z
     .string()
     .max(1000, "Napomene mogu biti najviše 1000 karaktera")
+    .transform(sanitizeRichText) // Sanitize notes (allow safe HTML)
     .optional(),
   status: ScheduleStatus.default("SCHEDULED"),
 });

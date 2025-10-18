@@ -54,7 +54,8 @@ describe("AgeFilter", () => {
     });
 
     it("should accept content for users 7-15", () => {
-      const result = AgeFilter.isAppropriate("Jednostavan tekst", 10);
+      // Koristi dovoljno dug i jednostavan tekst
+      const result = AgeFilter.isAppropriate("Ovo je jednostavan i lak tekst za decu. On je napisan kratkim recima.", 10);
       expect(result.appropriate).toBe(true);
     });
 

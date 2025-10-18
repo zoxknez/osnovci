@@ -1,7 +1,15 @@
 // Rate Limiting Middleware - Zaštita od abuse
 // Kritično za security!
+// Uses Upstash Redis for production, falls back to in-memory for development
 
 import { NextRequest, NextResponse } from "next/server";
+import {
+  authRateLimit,
+  strictRateLimit,
+  uploadRateLimit,
+  apiRateLimit,
+  isRedisConfigured,
+} from "@/lib/upstash";
 
 /**
  * In-memory rate limiter (za development)
@@ -113,10 +121,62 @@ function getIdentifier(request: NextRequest): string {
 
 /**
  * Rate limit middleware
+ * Uses Upstash Redis if configured, fallback to in-memory
  */
 export function rateLimit(limiter: keyof typeof limiters = "api") {
   return async (request: NextRequest) => {
     const identifier = getIdentifier(request);
+
+    // Try Upstash Redis first (production)
+    if (isRedisConfigured()) {
+      const upstashLimiter =
+        limiter === "auth"
+          ? authRateLimit
+          : limiter === "strict"
+            ? strictRateLimit
+            : limiter === "upload"
+              ? uploadRateLimit
+              : apiRateLimit;
+
+      if (upstashLimiter) {
+        try {
+          const { success, limit: maxRequests, remaining, reset } = await upstashLimiter.limit(identifier);
+
+          if (!success) {
+            return NextResponse.json(
+              {
+                error: "Too Many Requests",
+                message: "Previše zahteva. Pokušaj ponovo kasnije.",
+                retryAfter: Math.ceil((reset - Date.now()) / 1000),
+              },
+              {
+                status: 429,
+                headers: {
+                  "Retry-After": String(Math.ceil((reset - Date.now()) / 1000)),
+                  "X-RateLimit-Limit": String(maxRequests),
+                  "X-RateLimit-Remaining": String(remaining),
+                  "X-RateLimit-Reset": String(reset),
+                },
+              },
+            );
+          }
+
+          // Add rate limit headers to response
+          return NextResponse.next({
+            headers: {
+              "X-RateLimit-Limit": String(maxRequests),
+              "X-RateLimit-Remaining": String(remaining),
+              "X-RateLimit-Reset": String(reset),
+            },
+          });
+        } catch (error) {
+          console.error("Redis rate limit error, falling back to in-memory:", error);
+          // Fall through to in-memory limiter
+        }
+      }
+    }
+
+    // Fallback to in-memory limiter (development)
     const limit = limiters[limiter];
     const result = limit.check(identifier);
 
@@ -154,14 +214,57 @@ export function rateLimit(limiter: keyof typeof limiters = "api") {
 
 /**
  * Rate limit helper za API routes
+ * Uses Upstash Redis if configured, fallback to in-memory
  */
 export async function checkRateLimit(
   request: Request,
   limiter: keyof typeof limiters = "api",
 ): Promise<{ success: true } | { success: false; response: Response }> {
-  // Convert Request to NextRequest
   const nextRequest = new NextRequest(request);
   const identifier = getIdentifier(nextRequest);
+
+  // Try Upstash Redis first (production)
+  if (isRedisConfigured()) {
+    const upstashLimiter =
+      limiter === "auth"
+        ? authRateLimit
+        : limiter === "strict"
+          ? strictRateLimit
+          : limiter === "upload"
+            ? uploadRateLimit
+            : apiRateLimit;
+
+    if (upstashLimiter) {
+      try {
+        const { success } = await upstashLimiter.limit(identifier);
+        
+        if (!success) {
+          return {
+            success: false,
+            response: new Response(
+              JSON.stringify({
+                error: "Too Many Requests",
+                message: "Previše zahteva. Pokušaj ponovo kasnije.",
+              }),
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+            ),
+          };
+        }
+
+        return { success: true };
+      } catch (error) {
+        console.error("Redis rate limit error, falling back to in-memory:", error);
+        // Fall through to in-memory limiter
+      }
+    }
+  }
+
+  // Fallback to in-memory limiter (development)
   const limit = limiters[limiter];
   const result = limit.check(identifier);
 
