@@ -13,7 +13,7 @@ const createSubjectSchema = z.object({
   icon: safeStringSchema.max(50).optional(),
 });
 
-// GET /api/subjects - Get all subjects
+// GET /api/subjects - Get subjects for current student
 export async function GET(_request: NextRequest) {
   try {
     const session = await auth();
@@ -22,11 +22,34 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const subjects = await prisma.subject.findMany({
+    // Dohvati korisnika
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { student: true },
+    });
+
+    if (!user?.student) {
+      return NextResponse.json({
+        success: true,
+        subjects: [],
+        count: 0,
+      });
+    }
+
+    // Dohvati subjects za ovog studenta
+    const studentSubjects = await prisma.studentSubject.findMany({
+      where: { studentId: user.student.id },
+      include: {
+        subject: true,
+      },
       orderBy: {
-        name: "asc",
+        subject: {
+          name: "asc",
+        },
       },
     });
+
+    const subjects = studentSubjects.map((ss) => ss.subject);
 
     return NextResponse.json({
       success: true,
