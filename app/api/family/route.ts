@@ -50,16 +50,31 @@ export async function GET(request: NextRequest) {
     // Dohvati korisnika
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
+      include: {
+        student: true,
+        guardian: true,
+      },
     });
 
     if (!user) {
       throw new NotFoundError("Korisnik");
     }
 
-    // Build filter
-    const where: Record<string, unknown> = {
-      OR: [{ userId: user.id }, { guardianId: user.id }],
-    };
+    // Ako nema ni student ni guardian, vrati praznu listu
+    if (!user.student && !user.guardian) {
+      return paginatedResponse([], 1, validatedQuery.limit, 0, "Nema članova porodice");
+    }
+
+    // Build filter based on role
+    const where: Record<string, unknown> = {};
+
+    if (user.student) {
+      // Student vidi svoje roditelje/čuvare
+      where.studentId = user.student.id;
+    } else if (user.guardian) {
+      // Guardian vidi svoju decu
+      where.guardianId = user.guardian.id;
+    }
 
     if (validatedQuery.status) {
       where.status = validatedQuery.status;
@@ -96,8 +111,9 @@ export async function GET(request: NextRequest) {
     // Format response
     const formatted = links.map((link) => ({
       id: link.id,
-      name: link.guardian.name,
-      email: link.guardian.user.email,
+      name: link.guardian?.name || link.guardian?.user?.email?.split("@")[0] || "Guardian",
+      email: link.guardian?.user?.email || "",
+      studentName: link.student?.name || "",
       linkCode: link.linkCode,
       isActive: link.isActive,
       permissions: link.permissions,
