@@ -47,18 +47,32 @@ async function main() {
 
     // Dodaj par predmeta
     const subjects = [
-      "Matematika",
-      "Srpski jezik",
-      "Engleski jezik",
-      "Biologija",
-      "Istorija",
+      { name: "Matematika", color: "#3b82f6" },
+      { name: "Srpski jezik", color: "#ef4444" },
+      { name: "Engleski jezik", color: "#10b981" },
+      { name: "Biologija", color: "#f59e0b" },
+      { name: "Istorija", color: "#8b5cf6" },
     ];
 
-    for (const subjectName of subjects) {
-      await prisma.subject.create({
+    for (const subject of subjects) {
+      // Kreiraj Subject ako ne postoji
+      const existingSubject = await prisma.subject.findFirst({
+        where: { name: subject.name },
+      });
+
+      const subjectId =
+        existingSubject?.id ||
+        (
+          await prisma.subject.create({
+            data: subject,
+          })
+        ).id;
+
+      // Poveži sa studentom
+      await prisma.studentSubject.create({
         data: {
-          name: subjectName,
           studentId: user.student!.id,
+          subjectId,
         },
       });
     }
