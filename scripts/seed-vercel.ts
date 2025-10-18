@@ -12,17 +12,84 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding Vercel database...");
 
-  // Proveri da li već postoje demo korisnici
-  const existingDemo = await prisma.user.findFirst({
-    where: { email: "demo1@osnovci.rs" },
+  const hashedPassword = await bcrypt.hash("demo123", 10);
+
+  // Proveri da li demo korisnici već postoje
+  const existingUsers = await prisma.user.findMany({
+    where: {
+      email: {
+        startsWith: "demo",
+        endsWith: "@osnovci.rs",
+      },
+    },
+    include: {
+      student: true,
+    },
   });
 
-  if (existingDemo) {
-    console.log("✅ Demo korisnici već postoje!");
+  if (existingUsers.length > 0) {
+    console.log(`📦 Postojeći demo korisnici: ${existingUsers.length}`);
+    console.log("➕ Dodajem domaće zadatke...");
+
+    // Dodaj homework postojećim korisnicima
+    for (const user of existingUsers) {
+      if (!user.student) continue;
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+
+      const mathSubject = await prisma.subject.findFirst({
+        where: { name: "Matematika" },
+      });
+      const serbianSubject = await prisma.subject.findFirst({
+        where: { name: "Srpski jezik" },
+      });
+
+      // Proveri da li već ima homework
+      const existingHomework = await prisma.homework.findFirst({
+        where: { studentId: user.student.id },
+      });
+
+      if (!existingHomework) {
+        if (mathSubject) {
+          await prisma.homework.create({
+            data: {
+              title: "Domaći iz Matematike - Jednačine",
+              description: "Reši zadatke 1-15 iz udžbenika",
+              dueDate: tomorrow,
+              priority: "IMPORTANT",
+              status: "ASSIGNED",
+              studentId: user.student.id,
+              subjectId: mathSubject.id,
+            },
+          });
+        }
+
+        if (serbianSubject) {
+          await prisma.homework.create({
+            data: {
+              title: "Čitanje lektire - Srpski jezik",
+              description: "Pročitaj prvo poglavlje",
+              dueDate: nextWeek,
+              priority: "NORMAL",
+              status: "ASSIGNED",
+              studentId: user.student.id,
+              subjectId: serbianSubject.id,
+            },
+          });
+        }
+        console.log(`✅ Dodati zadaci za ${user.email}`);
+      } else {
+        console.log(`⏭️  ${user.email} već ima zadatke`);
+      }
+    }
+
+    console.log("\n🎉 Homework dodat!");
     return;
   }
-
-  const hashedPassword = await bcrypt.hash("demo123", 10);
 
   // Kreiraj 20 demo učenika
   for (let i = 1; i <= 20; i++) {
@@ -80,7 +147,59 @@ async function main() {
       });
     }
 
-    console.log(`✅ Created demo${i}@osnovci.rs`);
+    // Dodaj nekoliko demo domaćih zadataka
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    const homework = [
+      {
+        title: "Domaći iz Matematike - Jednačine",
+        description: "Reši zadatke 1-15 iz udžbenika",
+        dueDate: tomorrow,
+        priority: "IMPORTANT",
+        status: "ASSIGNED",
+      },
+      {
+        title: "Čitanje lektire - Srpski jezik",
+        description: "Pročitaj prvo poglavlje",
+        dueDate: nextWeek,
+        priority: "NORMAL",
+        status: "ASSIGNED",
+      },
+    ];
+
+    // Dohvati subject ID za Matematiku i Srpski
+    const mathSubject = await prisma.subject.findFirst({
+      where: { name: "Matematika" },
+    });
+    const serbianSubject = await prisma.subject.findFirst({
+      where: { name: "Srpski jezik" },
+    });
+
+    if (mathSubject) {
+      await prisma.homework.create({
+        data: {
+          ...homework[0],
+          studentId: user.student!.id,
+          subjectId: mathSubject.id,
+        },
+      });
+    }
+
+    if (serbianSubject) {
+      await prisma.homework.create({
+        data: {
+          ...homework[1],
+          studentId: user.student!.id,
+          subjectId: serbianSubject.id,
+        },
+      });
+    }
+
+    console.log(`✅ Created demo${i}@osnovci.rs with homework`);
   }
 
   console.log("\n🎉 Seeding complete!");
