@@ -34,21 +34,32 @@ const nextConfig: NextConfig = {
 
   // Headers - Security & Performance
   async headers() {
-    // Content Security Policy
-    const ContentSecurityPolicy = `
-      default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
-      style-src 'self' 'unsafe-inline';
-      img-src 'self' blob: data: https:;
-      font-src 'self' data: https://cdn.jsdelivr.net;
-      connect-src 'self' https: wss: https://vitals.vercel-insights.com;
-      media-src 'self' blob:;
-      worker-src 'self' blob:;
-      frame-ancestors 'none';
-      base-uri 'self';
-      form-action 'self';
-      ${process.env.NODE_ENV === "production" ? "upgrade-insecure-requests;" : ""}
-    `
+    // Content Security Policy - Relaxed for development, strict for production
+    const ContentSecurityPolicy = (process.env.NODE_ENV === "production"
+      ? `
+        default-src 'self';
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' blob: data: https:;
+        font-src 'self' data: https://cdn.jsdelivr.net;
+        connect-src 'self' https: wss: https://vitals.vercel-insights.com;
+        media-src 'self' blob:;
+        worker-src 'self' blob:;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+        upgrade-insecure-requests;
+      `
+      : `
+        default-src 'self' 'unsafe-inline' 'unsafe-eval';
+        script-src 'self' 'unsafe-eval' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' blob: data: https: http:;
+        font-src 'self' data: https: http:;
+        connect-src 'self' https: http: ws: wss:;
+        media-src 'self' blob:;
+        worker-src 'self' blob:;
+      `)
       .replace(/\s{2,}/g, " ")
       .trim();
 
