@@ -3,6 +3,14 @@
 **Moderna PWA aplikacija** za praćenje školskih obaveza, domaćih zadataka, rasporeda i analitike.  
 Dizajnirana sa ljubavlju za decu i roditelje. 💙
 
+**📚 Dokumentacija:**
+- [Struktura projekta](docs/PROJECT_STRUCTURE.md) - Kompletna organizacija fajlova i foldera
+- [Deployment Guide](docs/DEPLOY.md) - Detaljno uputstvo za deployment
+- [Quick Start Deployment](docs/QUICK_START_DEPLOYMENT.md) - Brzi start za deployment
+- [Vercel Environment Setup](docs/VERCEL_ENV_SETUP.md) - Podešavanje environment varijabli
+- [Demo Mode](docs/DEMO_MODE.md) - Demo režim za testiranje
+- [Testing Checklist](docs/TESTING_CHECKLIST.md) - Checklist za testiranje
+
 ---
 
 ## ✨ Features
