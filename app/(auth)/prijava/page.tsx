@@ -18,41 +18,32 @@ import {
 import { Input } from "@/components/ui/input";
 
 const DEMO_ACCOUNTS = [
-  {
-    name: "Demo Učenik 1",
-    email: "demo1@osnovci.rs",
-    password: "demo123",
-    desc: "5-8 razred - Demo nalog",
-  },
-  {
-    name: "Demo Učenik 2",
-    email: "demo2@osnovci.rs",
-    password: "demo123",
-    desc: "5-8 razred - Demo nalog",
-  },
-  {
-    name: "Demo Učenik 3",
-    email: "demo3@osnovci.rs",
-    password: "demo123",
-    desc: "5-8 razred - Demo nalog",
-  },
-  {
-    name: "Demo Učenik 4",
-    email: "demo4@osnovci.rs",
-    password: "demo123",
-    desc: "5-8 razred - Demo nalog",
-  },
-  {
-    name: "Demo Učenik 5",
-    email: "demo5@osnovci.rs",
-    password: "demo123",
-    desc: "5-8 razred - Demo nalog",
-  },
+  { name: "Demo Učenik 1", email: "demo1@osnovci.rs", password: "demo123", desc: "5-A razred" },
+  { name: "Demo Učenik 2", email: "demo2@osnovci.rs", password: "demo123", desc: "5-B razred" },
+  { name: "Demo Učenik 3", email: "demo3@osnovci.rs", password: "demo123", desc: "6-A razred" },
+  { name: "Demo Učenik 4", email: "demo4@osnovci.rs", password: "demo123", desc: "6-B razred" },
+  { name: "Demo Učenik 5", email: "demo5@osnovci.rs", password: "demo123", desc: "7-A razred" },
+  { name: "Demo Učenik 6", email: "demo6@osnovci.rs", password: "demo123", desc: "7-B razred" },
+  { name: "Demo Učenik 7", email: "demo7@osnovci.rs", password: "demo123", desc: "8-A razred" },
+  { name: "Demo Učenik 8", email: "demo8@osnovci.rs", password: "demo123", desc: "8-B razred" },
+  { name: "Demo Učenik 9", email: "demo9@osnovci.rs", password: "demo123", desc: "5-A razred" },
+  { name: "Demo Učenik 10", email: "demo10@osnovci.rs", password: "demo123", desc: "5-B razred" },
+  { name: "Demo Učenik 11", email: "demo11@osnovci.rs", password: "demo123", desc: "6-A razred" },
+  { name: "Demo Učenik 12", email: "demo12@osnovci.rs", password: "demo123", desc: "6-B razred" },
+  { name: "Demo Učenik 13", email: "demo13@osnovci.rs", password: "demo123", desc: "7-A razred" },
+  { name: "Demo Učenik 14", email: "demo14@osnovci.rs", password: "demo123", desc: "7-B razred" },
+  { name: "Demo Učenik 15", email: "demo15@osnovci.rs", password: "demo123", desc: "8-A razred" },
+  { name: "Demo Učenik 16", email: "demo16@osnovci.rs", password: "demo123", desc: "8-B razred" },
+  { name: "Demo Učenik 17", email: "demo17@osnovci.rs", password: "demo123", desc: "5-A razred" },
+  { name: "Demo Učenik 18", email: "demo18@osnovci.rs", password: "demo123", desc: "5-B razred" },
+  { name: "Demo Učenik 19", email: "demo19@osnovci.rs", password: "demo123", desc: "6-A razred" },
+  { name: "Demo Učenik 20", email: "demo20@osnovci.rs", password: "demo123", desc: "6-B razred" },
 ];
 
 export default function PrijavaPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showDemoAccounts, setShowDemoAccounts] = useState(true); // Pokazuj odmah demo naloge
+  const [showManualLogin, setShowManualLogin] = useState(false); // Sakrivena obična prijava
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     email: "",
@@ -223,6 +214,151 @@ export default function PrijavaPage() {
             </CardHeader>
 
             <CardContent className="px-5 sm:px-6">
+              {/* Prvo prikaži DEMO ACCOUNTS kao glavni način pristupa */}
+              <AnimatePresence mode="wait">
+                {showDemoAccounts && (
+                  <motion.div
+                    initial={{ opacity: 1, height: "auto" }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-5 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200 space-y-2.5">
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <p className="text-xs sm:text-sm font-bold text-blue-900 flex items-center gap-1.5 sm:gap-2">
+                          <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="hidden sm:inline">Izaberi Demo Nalog - Brza Prijava</span>
+                          <span className="sm:hidden">Demo Nalozi (20)</span>
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setShowDemoAccounts(false)}
+                          className="text-gray-500 hover:text-gray-700 p-1 touch-manipulation"
+                          aria-label="Zatvori demo naloge"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                      </div>
+                      {/* Mobile: scroll lista */}
+                      <div className="sm:hidden max-h-[320px] overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
+                        {DEMO_ACCOUNTS.map((account, idx) => (
+                          <motion.button
+                            key={account.email}
+                            type="button"
+                            onClick={() =>
+                              handleDemoLogin(account.email, account.password)
+                            }
+                            disabled={isLoading}
+                            initial={{ opacity: 1, x: 0 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.02 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="w-full p-2.5 bg-white rounded-xl border-2 border-blue-100 active:border-blue-400 active:shadow-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 text-xs truncate">
+                                  {account.name}
+                                </p>
+                                <p className="text-[10px] text-gray-600 truncate">
+                                  {account.email}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <span className="text-[10px] font-medium text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+                                  {account.desc}
+                                </span>
+                                <span className="text-blue-600 text-sm">→</span>
+                              </div>
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                      {/* Desktop: grid sa 2 kolone */}
+                      <div className="hidden sm:grid grid-cols-2 gap-2 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
+                        {DEMO_ACCOUNTS.map((account, idx) => (
+                          <motion.button
+                            key={account.email}
+                            type="button"
+                            onClick={() =>
+                              handleDemoLogin(account.email, account.password)
+                            }
+                            disabled={isLoading}
+                            initial={{ opacity: 1, x: 0 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.03 }}
+                            whileHover={{ scale: 1.02, x: 2 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="p-3 bg-white rounded-xl border-2 border-blue-100 hover:border-blue-400 hover:shadow-lg transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-bold text-gray-900 text-sm truncate flex-1">
+                                  {account.name}
+                                </p>
+                                <motion.span
+                                  className="text-blue-600 text-sm flex-shrink-0"
+                                  animate={{ x: [0, 3, 0] }}
+                                  transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                  }}
+                                >
+                                  →
+                                </motion.span>
+                              </div>
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs text-gray-600 truncate flex-1">
+                                  {account.email}
+                                </p>
+                                <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded flex-shrink-0">
+                                  {account.desc}
+                                </span>
+                              </div>
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                      {/* Hint tekst za scroll na mobile */}
+                      <p className="text-[10px] sm:text-xs text-center text-blue-700 mt-2 sm:hidden">
+                        ⬇️ Scroll za više demo naloga ⬇️
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {!showDemoAccounts && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowDemoAccounts(true)}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1.5 mx-auto hover:gap-2 transition-all touch-manipulation"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                    Prikaži demo naloge
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Separator */}
+              <div className="relative my-5 sm:my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-4 text-gray-500 font-medium">
+                    ili koristi postojeći nalog
+                  </span>
+                </div>
+              </div>
+
+              {/* Manual Login Form - sada sekundarno */}
               <form
                 onSubmit={handleSubmit}
                 className="space-y-4 sm:space-y-5"
@@ -286,109 +422,6 @@ export default function PrijavaPage() {
                   )}
                 </Button>
               </form>
-
-              {/* Separator */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-gray-500 font-medium">
-                    ili probaj demo
-                  </span>
-                </div>
-              </div>
-
-              {/* Demo Accounts Panel - Poboljšan dizajn */}
-              <AnimatePresence mode="wait">
-                {showDemoAccounts && (
-                  <motion.div
-                    initial={{ opacity: 1, height: "auto" }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200 space-y-2.5">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-bold text-blue-900 flex items-center gap-2">
-                          <Sparkles className="h-4 w-4" />
-                          Demo Nalozi - Klikni za pristup
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setShowDemoAccounts(false)}
-                          className="text-gray-500 hover:text-gray-700"
-                          aria-label="Zatvori demo naloge"
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="grid gap-2">
-                        {DEMO_ACCOUNTS.map((account, idx) => (
-                          <motion.button
-                            key={account.email}
-                            type="button"
-                            onClick={() =>
-                              handleDemoLogin(account.email, account.password)
-                            }
-                            disabled={isLoading}
-                            initial={{ opacity: 1, x: 0 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            whileHover={{ scale: 1.02, x: 4 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full p-3.5 bg-white rounded-xl border-2 border-blue-100 hover:border-blue-400 hover:shadow-lg transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-gray-900 text-sm truncate">
-                                  {account.name}
-                                </p>
-                                <p className="text-xs text-gray-600 truncate">
-                                  {account.email}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-lg">
-                                  {account.desc}
-                                </span>
-                                <motion.span
-                                  className="text-blue-600"
-                                  animate={{ x: [0, 4, 0] }}
-                                  transition={{
-                                    duration: 1.5,
-                                    repeat: Infinity,
-                                  }}
-                                >
-                                  →
-                                </motion.span>
-                              </div>
-                            </div>
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {!showDemoAccounts && (
-                <motion.div
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setShowDemoAccounts(true)}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1.5 mx-auto hover:gap-2 transition-all"
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                    Prikaži demo naloge
-                  </button>
-                </motion.div>
-              )}
 
               {/* Sign up link */}
               <div className="text-center mt-5 sm:mt-6">
