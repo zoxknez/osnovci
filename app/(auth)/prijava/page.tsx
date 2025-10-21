@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LogIn, Shield, Sparkles } from "lucide-react";
+import { LogIn, Shield } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
@@ -16,29 +16,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
-const DEMO_ACCOUNTS = [
-  { name: "Demo Učenik 1", email: "demo1@osnovci.rs", password: "demo123", desc: "5-A razred" },
-  { name: "Demo Učenik 2", email: "demo2@osnovci.rs", password: "demo123", desc: "5-B razred" },
-  { name: "Demo Učenik 3", email: "demo3@osnovci.rs", password: "demo123", desc: "6-A razred" },
-  { name: "Demo Učenik 4", email: "demo4@osnovci.rs", password: "demo123", desc: "6-B razred" },
-  { name: "Demo Učenik 5", email: "demo5@osnovci.rs", password: "demo123", desc: "7-A razred" },
-  { name: "Demo Učenik 6", email: "demo6@osnovci.rs", password: "demo123", desc: "7-B razred" },
-  { name: "Demo Učenik 7", email: "demo7@osnovci.rs", password: "demo123", desc: "8-A razred" },
-  { name: "Demo Učenik 8", email: "demo8@osnovci.rs", password: "demo123", desc: "8-B razred" },
-  { name: "Demo Učenik 9", email: "demo9@osnovci.rs", password: "demo123", desc: "5-A razred" },
-  { name: "Demo Učenik 10", email: "demo10@osnovci.rs", password: "demo123", desc: "5-B razred" },
-  { name: "Demo Učenik 11", email: "demo11@osnovci.rs", password: "demo123", desc: "6-A razred" },
-  { name: "Demo Učenik 12", email: "demo12@osnovci.rs", password: "demo123", desc: "6-B razred" },
-  { name: "Demo Učenik 13", email: "demo13@osnovci.rs", password: "demo123", desc: "7-A razred" },
-  { name: "Demo Učenik 14", email: "demo14@osnovci.rs", password: "demo123", desc: "7-B razred" },
-  { name: "Demo Učenik 15", email: "demo15@osnovci.rs", password: "demo123", desc: "8-A razred" },
-  { name: "Demo Učenik 16", email: "demo16@osnovci.rs", password: "demo123", desc: "8-B razred" },
-  { name: "Demo Učenik 17", email: "demo17@osnovci.rs", password: "demo123", desc: "5-A razred" },
-  { name: "Demo Učenik 18", email: "demo18@osnovci.rs", password: "demo123", desc: "5-B razred" },
-  { name: "Demo Učenik 19", email: "demo19@osnovci.rs", password: "demo123", desc: "6-A razred" },
-  { name: "Demo Učenik 20", email: "demo20@osnovci.rs", password: "demo123", desc: "6-B razred" },
-];
 
 export default function PrijavaPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -83,42 +60,6 @@ export default function PrijavaPage() {
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Greška pri prijavljivanju");
-      setIsLoading(false);
-    }
-  };
-
-  // Quick login sa nasumičnim demo nalogom
-  const handleDemoLogin = async () => {
-    // Izaberi nasumični demo nalog
-    const randomAccount = DEMO_ACCOUNTS[Math.floor(Math.random() * DEMO_ACCOUNTS.length)];
-    
-    setIsLoading(true);
-
-    try {
-      const result = await signIn("credentials", {
-        email: randomAccount.email,
-        password: randomAccount.password,
-        redirect: false,
-        callbackUrl: "/dashboard",
-      });
-
-      if (result?.error) {
-        toast.error("Greška pri demo prijavi");
-        setIsLoading(false);
-        return;
-      }
-
-      // Uspešan login
-      toast.success(`🎉 Demo režim aktivan!`);
-
-      // Čekaj malo da se session refresh-uje
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Force redirect
-      window.location.href = "/dashboard";
-    } catch (error) {
-      console.error("Demo login error:", error);
-      toast.error("Greška pri demo prijavi");
       setIsLoading(false);
     }
   };
@@ -214,56 +155,6 @@ export default function PrijavaPage() {
             </CardHeader>
 
             <CardContent className="px-5 sm:px-6">
-              {/* VELIKO DEMO LOGIN DUGME */}
-              <motion.div
-                initial={{ opacity: 1, scale: 1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mb-6"
-              >
-                <Button
-                  type="button"
-                  onClick={handleDemoLogin}
-                  disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 text-white text-xl sm:text-2xl font-extrabold shadow-2xl hover:shadow-3xl transition-all py-6 sm:py-8 rounded-2xl relative overflow-hidden group"
-                  size="lg"
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"
-                    animate={{
-                      scale: [1, 1.2, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  />
-                  {!isLoading && (
-                    <>
-                      <Sparkles className="mr-3 h-7 w-7 sm:h-8 sm:w-8 animate-pulse" />
-                      <span className="relative z-10">Demo Login</span>
-                      <Sparkles className="ml-3 h-7 w-7 sm:h-8 sm:w-8 animate-pulse" />
-                    </>
-                  )}
-                </Button>
-                <p className="text-center text-xs sm:text-sm text-gray-600 mt-3 font-medium">
-                  🎮 Klikni za instant pristup demo aplikaciji
-                </p>
-              </motion.div>
-
-              {/* Separator */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-gray-500 font-medium">
-                    ili koristi postojeći nalog
-                  </span>
-                </div>
-              </div>
-
-              {/* Manual Login Form */}
               <form
                 onSubmit={handleSubmit}
                 className="space-y-4 sm:space-y-5"
@@ -347,7 +238,7 @@ export default function PrijavaPage() {
                     <span className="font-medium">Sigurno</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                    <Sparkles className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                    <span className="text-purple-600 flex-shrink-0 text-lg">✨</span>
                     <span className="font-medium">Bez reklama</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">

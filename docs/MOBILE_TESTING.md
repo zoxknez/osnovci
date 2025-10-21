@@ -328,7 +328,7 @@ export const log = {
 ```bash
 # Console log u komponenti
 console.log("ENV:", process.env.NODE_ENV);
-console.log("DEMO_MODE:", process.env.NEXT_PUBLIC_DEMO_MODE);
+console.log("APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
 ```
 
 ### Monitor Network Requests

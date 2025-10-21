@@ -15,7 +15,6 @@ import {
 import { successResponse, createdResponse } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
-import { getAuthSession } from "@/lib/auth/demo-mode";
 
 /**
  * GET /api/profile
@@ -24,7 +23,7 @@ import { getAuthSession } from "@/lib/auth/demo-mode";
 export async function GET(request: NextRequest) {
   try {
     // Autentifikacija (with demo mode support)
-    const session = await getAuthSession(auth);
+    const session = await auth();
     console.log('🔍 Session received:', JSON.stringify(session?.user, null, 2));
     
     if (!session?.user?.id) {
@@ -190,7 +189,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Autentifikacija (with demo mode support)
-    const session = await getAuthSession(auth);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -276,7 +275,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Autentifikacija (with demo mode support)
-    const session = await getAuthSession(auth);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }

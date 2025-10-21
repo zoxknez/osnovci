@@ -4,7 +4,6 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import sharp from "sharp";
 import { auth } from "@/lib/auth/config";
-import { getAuthSession } from "@/lib/auth/demo-mode";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { ActivityLogger } from "@/lib/tracking/activity-logger";
@@ -46,7 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await getAuthSession(auth);
+    const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json(

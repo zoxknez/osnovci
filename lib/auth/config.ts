@@ -63,37 +63,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { email, phone, password } = validated.data;
         const loginEmail = email || phone || "";
 
-        // 🎮 DEMO MODE: Bypass database for demo accounts
-        const isDemoMode = process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-        const isDemoEmail = loginEmail.startsWith("demo") && loginEmail.endsWith("@osnovci.rs");
-        
-        if (isDemoMode && isDemoEmail && password === "demo123") {
-          // Extract demo number from email (demo1, demo2, etc.)
-          const demoNumber = loginEmail.match(/demo(\d+)/)?.[1] || "1";
-          
-          return {
-            id: `demo-user-${demoNumber}`,
-            email: loginEmail,
-            role: "STUDENT",
-            locale: "sr_RS",
-            theme: "light",
-            student: {
-              id: `demo-student-${demoNumber}`,
-              userId: `demo-user-${demoNumber}`,
-              className: "5-B",
-              schoolYear: "2024/2025",
-              grade: 5,
-              points: 1200,
-              level: 12,
-              achievements: [],
-              parentalConsentGiven: true,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            guardian: null,
-          };
-        }
-
         // Check if account is locked
         const lockStatus = await isAccountLocked(loginEmail);
         if (lockStatus.locked) {

@@ -63,11 +63,10 @@ Ovi fajlovi **moraju** ostati u root direktorijumu jer alati automatski traže o
 
 #### `docs/` - Dokumentacija 📚
 - **COMMIT_MESSAGE.md** - Git commit guidelines
-- **DEMO_MODE.md** - Demo mode dokumentacija
 - **DEPLOY.md** - Deployment guide
 - **QUICK_START_DEPLOYMENT.md** - Quick start za deployment
 - **TESTING_CHECKLIST.md** - Testing checklist
-- **VERCEL_ENV_SETUP.md** - Vercel environment setup guide
+- **MOBILE_TESTING.md** - Mobile testing guide
 - **PROJECT_STRUCTURE.md** - Ovaj dokument
 
 #### `config/` - Test i build konfiguracije
@@ -174,10 +173,6 @@ npm run perf:test        # Performance testing
 
 ### Required for Production (Vercel)
 ```env
-# Demo Mode - Enables login without database
-DEMO_MODE="true"
-NEXT_PUBLIC_DEMO_MODE="true"
-
 # Database
 DATABASE_URL="postgresql://user:pass@host:5432/db"
 POSTGRES_URL="postgres://user:pass@host:5432/db"

@@ -17,7 +17,6 @@ import {
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from "@/lib/security/rate-limit";
-import { getAuthSession } from "@/lib/auth/demo-mode";
 
 /**
  * GET /api/homework
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Autentifikacija (with demo mode support)
-    const session = await getAuthSession(auth);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -205,7 +204,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Autentifikacija (with demo mode support)
-    const session = await getAuthSession(auth);
+    const session = await auth();
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }

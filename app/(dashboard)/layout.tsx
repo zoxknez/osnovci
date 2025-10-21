@@ -10,14 +10,6 @@ export default async function DashboardGroupLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 🎮 DEMO MODE - Skip auth checks
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true" || process.env.NODE_ENV === "development";
-  
-  if (isDemoMode) {
-    // Demo mode - skip all auth checks and render directly
-    return <>{children}</>;
-  }
-
   // 🔒 AUTH PROTECTION - Check if user is authenticated
   const session = await auth();
 

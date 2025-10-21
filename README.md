@@ -7,8 +7,6 @@ Dizajnirana sa ljubavlju za decu i roditelje. 💙
 - [Struktura projekta](docs/PROJECT_STRUCTURE.md) - Kompletna organizacija fajlova i foldera
 - [Deployment Guide](docs/DEPLOY.md) - Detaljno uputstvo za deployment
 - [Quick Start Deployment](docs/QUICK_START_DEPLOYMENT.md) - Brzi start za deployment
-- [Vercel Environment Setup](docs/VERCEL_ENV_SETUP.md) - Podešavanje environment varijabli
-- [Demo Mode](docs/DEMO_MODE.md) - Demo režim za testiranje
 - [Testing Checklist](docs/TESTING_CHECKLIST.md) - Checklist za testiranje
 
 ---
@@ -277,19 +275,12 @@ osnovci/
 
 ## 🔐 Authentication
 
-### Demo Accounts
-
-Aplikacija dolazi sa demo nalogom za testiranje:
-
-**Email:** demo@osnovci.rs  
-**Lozinka:** demo123
-
 ### Login Flow
 
 1. Korisnik ulazi email/telefon i lozinku
 2. NextAuth vrši autentifikaciju
 3. Middleware proverava protected routes
-4. Redirect na `/dashboard` ako je uspeš
+4. Redirect na `/dashboard` ako je uspešno
 
 ### Biometric Auth
 
