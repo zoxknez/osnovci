@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { apiPost } from '@/lib/utils/api';
 
 export default function VerifyPendingPage() {
   const [isResending, setIsResending] = useState(false);
@@ -24,19 +25,9 @@ export default function VerifyPendingPage() {
     setResendStatus('idle');
 
     try {
-      const response = await fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (response.ok) {
-        setResendStatus('success');
-        setResendMessage('✅ Email je ponovo poslat! Provjeri svoju poštu.');
-      } else {
-        setResendStatus('error');
-        setResendMessage('❌ Greška pri slanju emaila. Pokušaj ponovo.');
-      }
+      await apiPost('/api/auth/verify-email', { email });
+      setResendStatus('success');
+      setResendMessage('✅ Email je ponovo poslat! Provjeri svoju poštu.');
     } catch (error) {
       // Obrada greške pri slanju
       setResendStatus('error');

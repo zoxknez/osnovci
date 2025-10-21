@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
+import { getAuthSession } from "@/lib/auth/demo-mode";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
@@ -21,7 +22,7 @@ const createEventSchema = z.object({
 // GET /api/events - Get all events
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getAuthSession(auth);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    const session = await auth();
+    const session = await getAuthSession(auth);
 
     if (!session?.user?.id) {
       throw new AuthenticationError();

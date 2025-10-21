@@ -73,7 +73,7 @@ export const QueryFamilySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: LinkStatus.optional(),
   role: GuardianRole.optional(),
-  sortBy: z.enum(["name", "linkedAt", "status"]).default("linkedAt"),
+  sortBy: z.enum(["linkCode", "createdAt", "isActive"]).default("createdAt"),
   order: z.enum(["asc", "desc"]).default("desc"),
 });
 

@@ -17,6 +17,7 @@ import {
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { ModernCamera } from "@/components/features/modern-camera";
+import { HomeworkCelebration } from "@/components/features/homework-celebration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export default function DomaciPage() {
   const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(
     null,
   );
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // API state
   const [homework, setHomework] = useState<any[]>([]);
@@ -80,9 +82,10 @@ export default function DomaciPage() {
         const data = await response.json();
 
         // Mapiraj podatke sa API-ja na format koji frontend očekuje
-        const mapped = data.data.map((hw: Record<string, unknown>) => ({
+        const homeworkData = Array.isArray(data.data) ? data.data : [];
+        const mapped = homeworkData.map((hw: Record<string, unknown>) => ({
           id: hw.id,
-          subject: (hw.subject as Record<string, unknown>).name,
+          subject: (hw.subject as Record<string, unknown>)?.name || "Nepoznat predmet",
           title: hw.title,
           description: hw.description,
           dueDate: new Date(hw.dueDate as string),
@@ -90,11 +93,11 @@ export default function DomaciPage() {
           priority: (hw.priority as string).toLowerCase(),
           attachments: hw.attachmentsCount,
           color:
-            (hw.subject as Record<string, unknown>).color || getRandomColor(),
+            (hw.subject as Record<string, unknown>)?.color || getRandomColor(),
         }));
 
         setHomework(mapped);
-        setTotal(data.pagination.total);
+        setTotal(data.pagination?.total || 0);
         setError(null);
       } catch (_err) {
         const errorMessage =
@@ -186,23 +189,38 @@ export default function DomaciPage() {
     setCameraOpen(true);
   };
 
-  const handlePhotoCapture = async (_file: File) => {
+  const handlePhotoCapture = async (file: File) => {
     try {
-      // TODO: Upload na API /api/homework/{selectedHomeworkId}/attachments
-      if (selectedHomeworkId) {
-        console.log("Uploading photo for homework:", selectedHomeworkId);
-        // TODO: Implement actual upload
-        // await uploadHomeworkAttachment(selectedHomeworkId, file);
+      if (!selectedHomeworkId) {
+        toast.error("Greška - Nije odabran zadatak");
+        return;
       }
 
-      toast.success("📸 Fotografija je snimljena!", {
-        description:
-          "Biće automatski sinhronizovana kada se povežeš na internet.",
+      // Upload to API
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(
+        `/api/homework/${selectedHomeworkId}/attachments`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      toast.success("📸 Fotografija je uspešno sačuvana!", {
+        description: "Prilog je dodat domaćem zadatku.",
       });
 
       setCameraOpen(false);
       setSelectedHomeworkId(null);
-    } catch {
+    } catch (error) {
+      console.error("Error uploading photo:", error);
       toast.error("Greška prilikom čuvanja fotografije");
     }
   };
@@ -215,6 +233,9 @@ export default function DomaciPage() {
         hw.status = "done";
         setHomework([...homework]);
       }
+
+      // Show celebration animation
+      setShowCelebration(true);
 
       toast.success("✅ Zadatak je označen kao urađen!");
     } catch (_err) {
@@ -633,6 +654,13 @@ export default function DomaciPage() {
           onCapture={handlePhotoCapture}
         />
       )}
+
+      {/* Celebration Animation */}
+      <HomeworkCelebration
+        show={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+        message="🎉 Odličan posao!"
+      />
 
       {/* Modal */}
       <AddHomeworkModal

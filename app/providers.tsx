@@ -7,7 +7,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme-provider";
+import { CsrfProvider } from "@/lib/security/csrf-provider";
 
 /**
  * Create QueryClient with default options
@@ -60,7 +61,12 @@ function getQueryClient() {
 /**
  * App Providers Component
  */
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+}: {
+  children: React.ReactNode;
+  nonce?: string;
+}) {
   // NOTE: Avoid useState when initializing the query client if you don't
   // have a suspense boundary between this and the code that may
   // suspend because React will throw away the client on the initial
@@ -69,13 +75,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange={false}
-      >
-        {children}
+      <ThemeProvider>
+        <CsrfProvider>{children}</CsrfProvider>
       </ThemeProvider>
 
       {/* React Query Devtools - Only in development */}

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface AddHomeworkModalProps {
   isOpen: boolean;
@@ -33,6 +34,14 @@ export function AddHomeworkModal({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Focus trap for accessibility
+  const modalRef = useFocusTrap({
+    active: isOpen,
+    onClose,
+    autoFocus: true,
+    restoreFocus: true,
+  });
 
   const [formData, setFormData] = useState<HomeworkFormData>({
     title: "",
@@ -155,12 +164,16 @@ export function AddHomeworkModal({
             onClick={onClose}
           >
             <Card
+              ref={modalRef}
               className="w-full max-w-md bg-white shadow-xl"
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 id="modal-title" className="text-xl font-bold text-gray-900">
                   📝 Dodaj novi zadatak
                 </h2>
                 <button

@@ -1,4 +1,5 @@
 // Dashboard "Danas" ekran - glavni pregled (Performance Optimized!)
+// Fixed: Ensure homework is always an array to prevent .filter() errors
 "use client";
 
 import { motion } from "framer-motion";
@@ -56,22 +57,48 @@ export default function DashboardPage() {
   // Combine loading states
   const loading = profileLoading || homeworkLoading || scheduleLoading;
 
+  // Extract data immediately with safe defaults (before any returns)
+  // Ensure homework is ALWAYS an array, even if API returns unexpected structure
+  const homework = Array.isArray(homeworkData?.data) ? homeworkData.data : [];
+  const todayClasses = Array.isArray(scheduleData?.data) ? scheduleData.data : [];
+
+  // Debug logging
+  console.log('🔍 Dashboard Data Check:', {
+    homeworkData,
+    homework: homework,
+    isArray: Array.isArray(homework),
+    length: homework.length
+  });
+
+  // Gamification data - safely access profile data
+  const studentName = profileData?.profile?.name?.split(" ")[0] || "Učeniče";
+  const xp = profileData?.profile?.xp || 0;
+  const level = profileData?.profile?.level || 1;
+  const nextLevelXP = level * 1000; // XP needed for next level
+  const xpProgress = (xp / nextLevelXP) * 100;
+  const currentStreak = 5; // TODO: Dohvati iz gamification API-ja
+
   // Show error toast if any query fails
   if (profileError) toast.error("Greška pri učitavanju profila");
   if (homeworkError) toast.error("Greška pri učitavanju domaćih zadataka");
   if (scheduleError) toast.error("Greška pri učitavanju rasporeda");
 
-  // Extract data
-  const homework = homeworkData?.data || [];
-  const todayClasses = scheduleData?.data || [];
-
-  // Gamification data
-  const studentName = profileData?.profile.name?.split(" ")[0] || "Učeniče";
-  const xp = profileData?.profile.xp || 0;
-  const level = profileData?.profile.level || 1;
-  const nextLevelXP = level * 1000; // XP needed for next level
-  const xpProgress = (xp / nextLevelXP) * 100;
-  const currentStreak = 5; // TODO: Dohvati iz gamification API-ja
+  // Show loading state early (after extracting data with safe defaults)
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-8">
+        <PageHeader
+          title="Dobar dan! 👋"
+          description="Tvoj pregled aktivnosti za danas"
+          variant="gradient"
+          badge="Današnjih napredaka"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </div>
+    );
+  }
 
   // Helper function to determine class status
   const getClassStatus = (startTime: string, endTime: string) => {
@@ -99,24 +126,38 @@ export default function DashboardPage() {
     return `Za ${diff} dana`;
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto space-y-8">
-        <PageHeader
-          title="Dobar dan! 👋"
-          description="Tvoj pregled aktivnosti za danas"
-          variant="gradient"
-          badge="Današnjih napredaka"
-        />
-        <div className="flex items-center justify-center py-12">
-          <Loader className="h-8 w-8 animate-spin text-blue-600" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      {/* 🎮 Demo Mode Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-green-500 via-teal-500 to-blue-500 text-white rounded-2xl p-6 shadow-xl border-2 border-white/20"
+      >
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm">
+              <Zap className="h-8 w-8" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold mb-1">🎮 Demo Mode Aktivan</h2>
+              <p className="text-white/90 text-sm">
+                Istraži sve funkcionalnosti bez potrebe za registracijom! Podaci su simulirani.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-white/20 hover:bg-white/30 text-white border-white/40"
+            >
+              📚 Dokumentacija
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Hero Header sa gamification */}
       <PageHeader
         title={`Dobar dan, ${studentName}! 👋`}
@@ -275,7 +316,7 @@ export default function DashboardPage() {
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", delay: 0.4 }}
                     >
-                      {profileData?.stats.completedHomework || 0}
+                      {profileData?.stats?.completedHomework || 0}
                     </motion.p>
                   <motion.p
                     initial={{ opacity: 0 }}

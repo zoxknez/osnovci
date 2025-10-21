@@ -13,22 +13,9 @@ import {
   TrendingUp,
   Loader,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useGrades } from "@/lib/hooks/use-react-query";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/features/page-header";
@@ -39,6 +26,37 @@ import {
   type GradeFilters,
 } from "@/components/modals/filter-grades-modal";
 import { exportGradesToPDF } from "@/lib/utils/pdf-export";
+
+// Lazy load charts - reducira initial bundle za ~200KB
+const GradeDistributionChart = dynamic(
+  () =>
+    import("@/components/features/charts/grade-charts").then(
+      (mod) => mod.GradeDistributionChart
+    ),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-[300px]">
+        <Loader className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const SubjectRadarChart = dynamic(
+  () =>
+    import("@/components/features/charts/grade-charts").then(
+      (mod) => mod.SubjectRadarChart
+    ),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-[300px]">
+        <Loader className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 // TODO: Data for trend chart - implement in future feature
 // TODO: Data for radar chart (skills) - implement in future feature
@@ -65,7 +83,7 @@ export default function OcenePage() {
     toast.error("Greška pri učitavanju ocjena", { description: queryError.message });
   }
 
-  const grades = gradesData?.data || [];
+  const grades = Array.isArray(gradesData?.data) ? gradesData.data : [];
   const stats = gradesData?.stats || null;
   const error = queryError ? queryError.message : null;
 
@@ -296,15 +314,12 @@ export default function OcenePage() {
               <CardTitle>Prosjeci po predmetu</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis domain={[0, 5]} />
-                  <Tooltip />
-                  <Bar dataKey="average" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
+              <GradeDistributionChart
+                data={chartData.map((item: any) => ({
+                  name: item.name,
+                  count: item.average,
+                }))}
+              />
             </CardContent>
           </Card>
         </motion.div>
@@ -316,21 +331,12 @@ export default function OcenePage() {
               <CardTitle>Radar analiza</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart data={radarData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="name" />
-                  <PolarRadiusAxis angle={90} domain={[0, 5]} />
-                  <Radar
-                    name="Prosjek"
-                    dataKey="value"
-                    stroke="#3b82f6"
-                    fill="#3b82f6"
-                    fillOpacity={0.6}
-                  />
-                  <Tooltip />
-                </RadarChart>
-              </ResponsiveContainer>
+              <SubjectRadarChart
+                data={radarData.map((item: any) => ({
+                  subject: item.name,
+                  average: item.value,
+                }))}
+              />
             </CardContent>
           </Card>
         </motion.div>

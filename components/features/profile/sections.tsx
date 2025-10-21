@@ -57,8 +57,16 @@ export function BasicInfoSection({
 
           <InfoField
             label="Datum rođenja"
-            value={new Date(profile.birthDate).toISOString().split("T")[0]}
-            displayValue={`${new Date(profile.birthDate).toLocaleDateString("sr-RS")} (${calculateAge(profile.birthDate)} godina)`}
+            value={
+              profile.birthDate && !isNaN(new Date(profile.birthDate).getTime())
+                ? new Date(profile.birthDate).toISOString().split("T")[0]
+                : ""
+            }
+            displayValue={
+              profile.birthDate && !isNaN(new Date(profile.birthDate).getTime())
+                ? `${new Date(profile.birthDate).toLocaleDateString("sr-RS")} (${calculateAge(profile.birthDate)} godina)`
+                : "Nije postavljeno"
+            }
             type="date"
             isEditing={isEditing}
             onChange={(value) => onChange("birthDate", value)}

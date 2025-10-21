@@ -4,7 +4,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { LogIn, Shield, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -52,7 +51,6 @@ const DEMO_ACCOUNTS = [
 ];
 
 export default function PrijavaPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showDemoAccounts, setShowDemoAccounts] = useState(true); // Pokazuj odmah demo naloge
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -75,18 +73,27 @@ export default function PrijavaPage() {
         email: formData.email,
         password: formData.password,
         redirect: false,
+        callbackUrl: "/dashboard",
       });
 
       if (result?.error) {
         toast.error("Pogrešan email ili lozinka");
-      } else {
-        toast.success("Dobrodošli nazad! 🎉");
-        router.push("/dashboard");
-        router.refresh();
+        setIsLoading(false);
+        return;
       }
-    } catch {
+
+      // Uspešan login - prikaži success toast
+      toast.success("Dobrodošli nazad! 🎉");
+
+      // Čekaj malo da se session refresh-uje
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Force redirect sa window.location za potpuni page refresh
+      // Ovo osigurava da se session pravilno učita na server-u
+      window.location.href = "/dashboard";
+    } catch (error) {
+      console.error("Login error:", error);
       toast.error("Greška pri prijavljivanju");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -101,18 +108,26 @@ export default function PrijavaPage() {
         email,
         password,
         redirect: false,
+        callbackUrl: "/dashboard",
       });
 
       if (result?.error) {
         toast.error("Greška pri demo prijavi");
-      } else {
-        toast.success(`🎉 Ulogovan kao ${email.split("@")[0]}!`);
-        router.push("/dashboard");
-        router.refresh();
+        setIsLoading(false);
+        return;
       }
-    } catch {
+
+      // Uspešan login
+      toast.success(`🎉 Ulogovan kao ${email.split("@")[0]}!`);
+
+      // Čekaj malo da se session refresh-uje
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Force redirect
+      window.location.href = "/dashboard";
+    } catch (error) {
+      console.error("Demo login error:", error);
       toast.error("Greška pri demo prijavi");
-    } finally {
       setIsLoading(false);
     }
   };

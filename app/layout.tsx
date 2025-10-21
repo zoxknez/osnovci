@@ -61,14 +61,18 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Providers } from "./providers";
+import { getNonce } from "@/lib/security/csp";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get CSP nonce from middleware
+  const nonce = await getNonce();
+
   return (
-    <html lang="sr">
+    <html lang="sr" data-scroll-behavior="smooth">
       <head>
         <link
           rel="icon"
@@ -84,7 +88,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 transition-colors duration-300`}
       >
-        <Providers>
+        <Providers nonce={nonce}>
           <ErrorBoundary>
             {/* Main Content */}
             <main id="main-content">{children}</main>

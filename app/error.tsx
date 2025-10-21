@@ -23,14 +23,12 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <html lang="sr">
-      <body>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-md w-full text-center space-y-6"
-          >
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full text-center space-y-6"
+      >
             {/* Emoji animacija */}
             <motion.div
               animate={{
@@ -112,7 +110,5 @@ export default function ErrorPage({
             </div>
           </motion.div>
         </div>
-      </body>
-    </html>
   );
 }

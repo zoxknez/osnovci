@@ -13,6 +13,7 @@ import {
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
+import { getAuthSession } from "@/lib/auth/demo-mode";
 
 /**
  * GET /api/grades
@@ -20,8 +21,8 @@ import { csrfMiddleware } from "@/lib/security/csrf";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -215,8 +216,8 @@ export async function POST(request: NextRequest) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }

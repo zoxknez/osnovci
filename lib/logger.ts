@@ -1,4 +1,4 @@
-// Structured Logging sa Pino
+// Structured Logging sa Pino (Next.js 15 compatible)
 import pino from "pino";
 
 // Create logger instance
@@ -7,17 +7,10 @@ export const logger = pino({
     process.env.LOG_LEVEL ||
     (process.env.NODE_ENV === "production" ? "info" : "debug"),
 
-  // Pretty print u development modu
-  ...(process.env.NODE_ENV === "development" && {
-    transport: {
-      target: "pino-pretty",
-      options: {
-        colorize: true,
-        translateTime: "HH:MM:ss Z",
-        ignore: "pid,hostname",
-      },
-    },
-  }),
+  // Simplified browser-safe logging (no pino-pretty to avoid thread-stream issues)
+  browser: {
+    asObject: true,
+  },
 
   // Production logging format
   ...(process.env.NODE_ENV === "production" && {

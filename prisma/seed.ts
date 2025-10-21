@@ -88,6 +88,7 @@ async function main() {
   // 4) Kreiraj GLAVNI demo par: ucenik + roditelj + link
   const demoStudentUser = await prisma.user.create({
     data: {
+      id: "demo-student-id", // Fixed ID for demo mode
       email: "ucenik@demo.rs",
       phone: "0640000000",
       password: hashedPassword,
@@ -106,6 +107,7 @@ async function main() {
 
   const demoGuardianUser = await prisma.user.create({
     data: {
+      id: "demo-guardian-id", // Fixed ID for demo mode
       email: "roditelj@demo.rs",
       phone: "0650000000",
       password: hashedPassword,

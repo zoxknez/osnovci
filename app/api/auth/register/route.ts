@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createAndSendVerificationEmail } from "@/lib/auth/email-verification";
 import { csrfMiddleware } from "@/lib/security/csrf";
+import { rateLimit, RateLimitPresets, addRateLimitHeaders } from "@/lib/security/rate-limit";
 import { emailSchema, phoneSchema, nameSchema, passwordSchema, safeStringSchema } from "@/lib/security/validators";
 
 const registerSchema = z
@@ -27,6 +28,25 @@ const registerSchema = z
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate Limiting - Strict (10 requests per minute)
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.strict,
+      prefix: "register",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+      
+      return NextResponse.json(
+        { 
+          error: "Too Many Requests", 
+          message: "Previše pokušaja registracije. Pokušaj ponovo za par minuta." 
+        },
+        { status: 429, headers },
+      );
+    }
+
     // CSRF Protection (important for public registration!)
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {

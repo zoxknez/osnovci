@@ -22,6 +22,7 @@ import type {
 } from "@/components/features/profile/types";
 import { calculateAge } from "@/components/features/profile/utils";
 import { staggerContainer } from "@/lib/animations/variants";
+import { apiGet, apiPatch } from "@/lib/utils/api";
 
 // Default values za prazne fieldove
 const DEFAULT_PROFILE: ProfileData = {
@@ -67,23 +68,19 @@ export default function ProfilPage() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/profile", {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Map API data to profile format
-          // TODO: API treba da vrati sve profile fieldove, ne samo osnovne
+        const data = await apiGet("/api/profile", { showErrorToast: false });
+        
+        // Map API data to profile format
+        if (data && data.profile) {
           setProfile({
             ...DEFAULT_PROFILE,
             name: data.profile.name || "",
             school: data.profile.school || "",
             grade: data.profile.grade || 1,
-            // ... ostali fieldovi će biti default dok ne dodate u API
+            class: data.profile.class || "",
+            birthDate: data.profile.birthDate || null,
+            address: data.profile.address || "",
           });
-        } else {
-          toast.error("Greška pri učitavanju profila");
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -107,23 +104,11 @@ export default function ProfilPage() {
     setIsSaving(true);
 
     try {
-      const response = await fetch("/api/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          name: profile.name,
-          school: profile.school,
-          grade: profile.grade,
-          // TODO: Dodaj ostala polja kada API podržava
-        }),
+      await apiPatch("/api/profile", {
+        name: profile.name,
+        school: profile.school,
+        grade: profile.grade,
       });
-
-      if (!response.ok) {
-        throw new Error("Greška pri čuvanju profila");
-      }
 
       toast.success("✅ Profil sačuvan!", {
         description: "Sve promene su uspešno sačuvane.",
@@ -132,7 +117,7 @@ export default function ProfilPage() {
       setIsEditing(false);
     } catch (error) {
       console.error(error);
-      toast.error("Greška prilikom čuvanja profila");
+      // Toast already shown by apiPatch
     } finally {
       setIsSaving(false);
     }

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -174,6 +174,8 @@ model ParentalConsent {
   @@index([studentId])
   @@index([verificationCode])
   @@index([guardianEmail])
+  @@index([verified, expiresAt]) // Za cleanup expired unverified consents
+  @@index([studentId, verified]) // Za student consent check
   @@map("parental_consents")
 }
 
@@ -206,6 +208,8 @@ model ActivityLog {
   @@index([studentId])
   @@index([studentId, createdAt])
   @@index([type])
+  @@index([type, createdAt]) // Za filtering by type with date sort
+  @@index([studentId, type, createdAt]) // Za student activity timeline filtering
   @@map("activity_logs")
 }
 
@@ -246,6 +250,8 @@ model Link {
   @@index([linkCode])
   @@index([guardianId])
   @@index([studentId])
+  @@index([linkCode, expiresAt]) // Za active link code validation
+  @@index([guardianId, studentId, isActive]) // Za active links filter
   @@map("links")
 }
 
@@ -293,6 +299,9 @@ model Grade {
   @@index([studentId])
   @@index([subjectId])
   @@index([date])
+  @@index([studentId, subjectId, date]) // Za prikaz ocena po predmetu i datumu
+  @@index([studentId, date]) // Za timeline prikaz
+  @@index([category, studentId]) // Za filtriranje po kategoriji
   @@map("grades")
 }
 
@@ -360,6 +369,8 @@ model Homework {
   @@index([studentId, status])
   @@index([studentId, dueDate, status])
   @@index([status, dueDate])
+  @@index([studentId, priority, dueDate]) // Za prioritizovan prikaz
+  @@index([priority, status, dueDate]) // Za globalni "sve urgentne" query
   @@map("homework")
 }
 
@@ -393,6 +404,8 @@ model Attachment {
   homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
 
   @@index([homeworkId])
+  @@index([type, uploadedAt]) // Za filtering by type with date sort
+  @@index([homeworkId, syncedAt]) // Za sync status check
   @@map("attachments")
 }
 
@@ -469,6 +482,8 @@ model Event {
   // Compound indexes
   @@index([studentId, dateTime])
   @@index([studentId, type, dateTime])
+  @@index([type, dateTime]) // Za globalni event calendar
+  @@index([dateTime, type]) // Za upcoming events by type
   @@map("events")
 }
 
@@ -501,6 +516,8 @@ model Notification {
   // Compound indexes
   @@index([userId, isRead])
   @@index([userId, createdAt])
+  @@index([userId, isRead, createdAt]) // Za unread notifications timeline
+  @@index([type, userId]) // Za notification filtering by type
   @@map("notifications")
 }
 
@@ -521,6 +538,8 @@ model WeeklyReport {
 
   @@index([studentId])
   @@index([weekStart])
+  @@index([studentId, weekStart]) // Za student weekly reports
+  @@index([weekStart, weekEnd]) // Za date range queries
   @@map("weekly_reports")
 }
 
@@ -561,6 +580,8 @@ model Gamification {
   achievements Achievement[]
 
   @@index([studentId])
+  @@index([level]) // Za leaderboard queries
+  @@index([xp, level]) // Za ranking i level progression
   @@map("gamification")
 }
 
@@ -580,6 +601,8 @@ model Achievement {
   @@unique([gamificationId, title])
   @@index([gamificationId])
   @@index([type])
+  @@index([gamificationId, type]) // Za filtering achievements by type
+  @@index([rarity, unlockedAt]) // Za sorting by rarity and date
   @@map("achievements")
 }
 

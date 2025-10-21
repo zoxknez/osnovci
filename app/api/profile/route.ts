@@ -15,6 +15,7 @@ import {
 import { successResponse, createdResponse } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
+import { getAuthSession } from "@/lib/auth/demo-mode";
 
 /**
  * GET /api/profile
@@ -22,11 +23,35 @@ import { csrfMiddleware } from "@/lib/security/csrf";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
+    console.log('🔍 Session received:', JSON.stringify(session?.user, null, 2));
+    
     if (!session?.user?.id) {
+      console.log('❌ No session or user ID!');
       throw new AuthenticationError();
     }
+
+    console.log('✅ Session valid, querying user with ID:', session.user.id);
+
+    // ULTRA DEBUG: Prvo pokušaj jednostavan query bez includes
+    console.log('🔎 Step 1: Trying simple findUnique...');
+    const simpleUser = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    });
+    console.log('🔎 Simple result:', simpleUser ? `FOUND: ${simpleUser.email}` : 'NULL');
+
+    // ULTRA DEBUG: Svi useri u bazi
+    console.log('🔎 Step 2: Getting ALL users...');
+    const allUsers = await prisma.user.findMany({ take: 5 });
+    console.log('🔎 All users:', allUsers.map(u => ({ id: u.id, email: u.email })));
+
+    // ULTRA DEBUG: Probaj findFirst umesto findUnique
+    console.log('🔎 Step 3: Trying findFirst...');
+    const firstUser = await prisma.user.findFirst({
+      where: { id: session.user.id }
+    });
+    console.log('🔎 FindFirst result:', firstUser ? `FOUND: ${firstUser.email}` : 'NULL');
 
     // Dohvati korisnika
     const user = await prisma.user.findUnique({
@@ -48,7 +73,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    console.log('📊 Prisma result:', user ? `Found user: ${user.email}` : 'User is NULL');
+
     if (!user) {
+      console.log('❌ User not found in database for ID:', session.user.id);
       throw new NotFoundError("Korisnik");
     }
 
@@ -161,8 +189,8 @@ export async function PUT(request: NextRequest) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -247,8 +275,8 @@ export async function POST(request: NextRequest) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }

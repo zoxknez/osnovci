@@ -56,7 +56,7 @@ export default function RasporedPage() {
     toast.error("Greška pri učitavanju rasporeda");
   }
 
-  const schedule = scheduleData?.data || [];
+  const schedule = Array.isArray(scheduleData?.data) ? scheduleData.data : [];
 
   // Get current week start
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday

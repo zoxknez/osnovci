@@ -10,6 +10,19 @@ import {
   isAccountLocked,
 } from "@/lib/auth/account-lockout";
 
+// ✅ Validate NEXTAUTH_SECRET exists
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    "NEXTAUTH_SECRET is not defined! Please add it to your .env file. Generate one with: openssl rand -base64 32",
+  );
+}
+
+if (process.env.NEXTAUTH_SECRET.length < 32) {
+  throw new Error(
+    "NEXTAUTH_SECRET must be at least 32 characters long for security!",
+  );
+}
+
 const loginSchema = z
   .object({
     email: z.string().optional(),
@@ -51,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const loginEmail = email || phone || "";
 
         // Check if account is locked
-        const lockStatus = isAccountLocked(loginEmail);
+        const lockStatus = await isAccountLocked(loginEmail);
         if (lockStatus.locked) {
           // Return null but with message (NextAuth will show error)
           throw new Error(lockStatus.message || "Account locked");

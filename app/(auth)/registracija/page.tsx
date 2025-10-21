@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { apiPost } from "@/lib/utils/api";
 
 type Step = "role" | "details";
 type Role = "STUDENT" | "GUARDIAN";
@@ -73,34 +74,23 @@ export default function RegistracijaPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          role,
-          name: formData.name,
-          email: formData.email || undefined,
-          phone: formData.phone || undefined,
-          password: formData.password,
-          ...(role === "STUDENT" && {
-            school: formData.school,
-            grade: formData.grade,
-            class: formData.class,
-          }),
+      await apiPost("/api/auth/register", {
+        role,
+        name: formData.name,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        password: formData.password,
+        ...(role === "STUDENT" && {
+          school: formData.school,
+          grade: formData.grade,
+          class: formData.class,
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.error(data.error || "Greška pri registraciji");
-        return;
-      }
-
       toast.success("Nalog uspešno kreiran! 🎉");
       router.push("/prijava");
-    } catch {
-      toast.error("Greška pri registraciji");
+    } catch (error) {
+      // Toast already shown by apiPost
     } finally {
       setIsLoading(false);
     }

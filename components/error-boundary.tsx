@@ -3,6 +3,7 @@
 
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import { Component, type ReactNode } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -35,11 +36,17 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("❌ ErrorBoundary caught error:", error, errorInfo);
 
-    // Log to error tracking service (e.g., Sentry)
-    if (process.env.NODE_ENV === "production") {
-      // TODO: Send to Sentry
-      // Sentry.captureException(error, { extra: errorInfo });
-    }
+    // Capture to Sentry
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+      tags: {
+        errorBoundary: "root",
+      },
+    });
 
     this.setState({
       error,

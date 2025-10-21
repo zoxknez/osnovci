@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth/config";
+import { getAuthSession } from "@/lib/auth/demo-mode";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import {
@@ -27,8 +28,8 @@ import { csrfMiddleware } from "@/lib/security/csrf";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get("limit") || "20",
       status: searchParams.get("status") || undefined,
       role: searchParams.get("role") || undefined,
-      sortBy: searchParams.get("sortBy") || "linkedAt",
+      sortBy: searchParams.get("sortBy") || "createdAt",
       order: searchParams.get("order") || "desc",
     };
 
@@ -151,8 +152,8 @@ export async function POST(request: NextRequest) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -287,8 +288,8 @@ export async function PUT(request: NextRequest) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -360,8 +361,8 @@ export async function DELETE(request: NextRequest) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }

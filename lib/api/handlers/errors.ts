@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { log } from "@/lib/logger";
+import * as Sentry from "@sentry/nextjs";
 
 // Custom API Error class
 export class APIError extends Error {
@@ -94,6 +95,20 @@ export function formatErrorResponse(error: unknown) {
 // Handle API errors globally
 export function handleAPIError(error: unknown) {
   const formatted = formatErrorResponse(error);
+
+  // Capture to Sentry for monitoring (only server errors)
+  if (formatted.statusCode >= 500) {
+    Sentry.captureException(error, {
+      tags: {
+        errorType: "api_error",
+        statusCode: formatted.statusCode,
+      },
+      extra: {
+        message: formatted.message,
+        errors: formatted.errors,
+      },
+    });
+  }
 
   log.error("API Error", {
     statusCode: formatted.statusCode,

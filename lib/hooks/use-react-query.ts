@@ -7,6 +7,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Homework, Grade, Subject } from "@prisma/client";
 
 /**
+ * Get CSRF headers (imported dynamically to avoid circular dependency)
+ */
+function getCsrfHeaders(): Record<string, string> {
+  // Access CSRF token from context or sessionStorage
+  if (typeof window !== "undefined") {
+    const token = window.sessionStorage.getItem("csrf-token");
+    const secret = window.sessionStorage.getItem("csrf-secret");
+    if (token && secret) {
+      return {
+        "x-csrf-token": token,
+        "x-csrf-secret": secret,
+      };
+    }
+  }
+  return {};
+}
+
+/**
  * Query Keys - centralizovano za lakše invalidation
  */
 export const queryKeys = {
@@ -23,20 +41,63 @@ export const queryKeys = {
  * Generic fetch helper
  */
 async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
+  const csrfHeaders = getCsrfHeaders();
+
   const res = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...csrfHeaders, // Add CSRF headers for POST/PUT/DELETE
       ...options?.headers,
     },
   });
 
   if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "API request failed");
+    // Create error with status code
+    const errorData = await res.json().catch(() => ({ message: "API request failed" }));
+    const error: any = new Error(errorData.message || "API request failed");
+    error.status = res.status;
+    error.statusText = res.statusText;
+
+    // Handle auth errors - redirect to login
+    if (res.status === 401 || res.status === 403) {
+      if (typeof window !== "undefined") {
+        window.location.href = `/prijava?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+      }
+    }
+
+    throw error;
   }
 
   return res.json();
+}
+
+/**
+ * Custom retry logic for queries
+ * Don't retry on auth errors (401/403)
+ */
+function customRetry(failureCount: number, error: any): boolean {
+  // Never retry auth errors
+  if (error?.status === 401 || error?.status === 403) {
+    return false;
+  }
+
+  // Don't retry client errors (4xx except auth)
+  if (error?.status >= 400 && error?.status < 500) {
+    return false;
+  }
+
+  // Retry server errors (5xx) up to 2 times
+  if (error?.status >= 500 && failureCount < 2) {
+    return true;
+  }
+
+  // Retry network errors up to 2 times
+  if (!error?.status && failureCount < 2) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -73,8 +134,11 @@ export function useHomework(params?: {
   return useQuery({
     queryKey: [...queryKeys.homework, params],
     queryFn: () => fetchApi<HomeworkResponse>(url),
+    retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 5, // 5 min
+    gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
     refetchOnWindowFocus: true,
+    refetchOnMount: false, // Don't refetch if data is fresh
   });
 }
 
@@ -189,7 +253,11 @@ export function useGrades(params?: {
   return useQuery({
     queryKey: [...queryKeys.grades, params],
     queryFn: () => fetchApi<GradesResponse>(url),
+    retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 10, // 10 min (grades change less frequently)
+    gcTime: 1000 * 60 * 30, // Cache for 30 minutes (was cacheTime)
+    refetchOnMount: false, // Don't refetch if data is fresh
+    refetchOnReconnect: true, // Refetch when back online
   });
 }
 
@@ -270,6 +338,7 @@ export function useProfile() {
   return useQuery({
     queryKey: queryKeys.profile,
     queryFn: () => fetchApi<ProfileResponse>("/api/profile"),
+    retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 10, // 10 min
   });
 }

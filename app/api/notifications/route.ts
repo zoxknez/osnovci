@@ -1,6 +1,7 @@
 // Notifications API - User notifications
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
+import { getAuthSession } from "@/lib/auth/demo-mode";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
@@ -8,7 +9,7 @@ import { csrfMiddleware } from "@/lib/security/csrf";
 // GET /api/notifications - Get user notifications
 export async function GET(_request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getAuthSession(auth);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -53,7 +54,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const session = await auth();
+    const session = await getAuthSession(auth);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

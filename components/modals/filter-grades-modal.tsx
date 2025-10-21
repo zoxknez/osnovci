@@ -6,6 +6,7 @@ import { X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface FilterGradesModalProps {
   isOpen: boolean;
@@ -46,6 +47,14 @@ export function FilterGradesModal({
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState<GradeFilters>(currentFilters);
+
+  // Focus trap for accessibility
+  const modalRef = useFocusTrap({
+    active: isOpen,
+    onClose,
+    autoFocus: true,
+    restoreFocus: true,
+  });
 
   // Fetch subjects on mount
   useEffect(() => {
@@ -112,12 +121,18 @@ export function FilterGradesModal({
           transition={{ type: "spring", damping: 20 }}
           className="relative w-full max-w-md"
         >
-          <Card className="p-6 shadow-2xl">
+          <Card
+            ref={modalRef}
+            className="p-6 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="filter-modal-title"
+          >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Filter className="h-6 w-6 text-purple-600" />
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 id="filter-modal-title" className="text-2xl font-bold text-gray-900">
                   Filteri za ocene
                 </h2>
               </div>

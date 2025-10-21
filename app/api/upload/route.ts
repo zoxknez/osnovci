@@ -4,11 +4,13 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import sharp from "sharp";
 import { auth } from "@/lib/auth/config";
+import { getAuthSession } from "@/lib/auth/demo-mode";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { ActivityLogger } from "@/lib/tracking/activity-logger";
 import { checkImageSafety } from "@/lib/safety/image-safety";
 import { csrfMiddleware } from "@/lib/security/csrf";
+import { rateLimit, RateLimitPresets, addRateLimitHeaders } from "@/lib/security/rate-limit";
 import { validateFileUpload, sanitizeFileName, basicMalwareScan } from "@/lib/security/file-upload";
 import { idSchema } from "@/lib/security/validators";
 
@@ -16,6 +18,25 @@ import { idSchema } from "@/lib/security/validators";
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate Limiting - Upload preset (5 uploads per 5 minutes)
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.upload,
+      prefix: "upload",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+      
+      return NextResponse.json(
+        { 
+          error: "Too Many Requests", 
+          message: "Previše upload-a. Pokušaj ponovo za par minuta." 
+        },
+        { status: 429, headers },
+      );
+    }
+
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
@@ -25,7 +46,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await auth();
+    const session = await getAuthSession(auth);
 
     if (!session?.user?.id) {
       return NextResponse.json(

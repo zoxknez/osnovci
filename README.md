@@ -25,14 +25,21 @@ Dizajnirana sa ljubavlju za decu i roditelje. 💙
 - 🔄 **Auto Sync** - Automatska sinhronizacija
 
 ### 🛡️ Security & Performance
-- ✅ TypeScript Strict Mode
-- ✅ Content Security Policy (CSP)
-- ✅ Auth Middleware za protected routes
-- ✅ Rate Limiting
-- ✅ Input Validation sa Zod
-- ✅ Image Compression (50-70% redukcija)
-- ✅ Error Boundaries
-- ✅ Structured Logging
+- ✅ **CSRF Protection** - Token-based security on all mutations
+- ✅ **Rate Limiting** - Upstash Redis sliding window (prevents brute-force)
+- ✅ **Content Security Policy** - Nonce-based CSP (XSS protection)
+- ✅ **Account Lockout** - 5 failed attempts = 15 min lockout (persistent)
+- ✅ **COPPA Compliance** - Parental consent enforcement for children
+- ✅ **TypeScript Strict Mode** - Full type safety
+- ✅ **Input Validation** - Zod schemas on all inputs
+- ✅ **Database Security** - Prisma parameterized queries (SQL injection proof)
+- ✅ **Error Tracking** - Sentry integration for production monitoring
+- ✅ **Error Boundaries** - Graceful error handling (Camera, Upload, PWA)
+- ✅ **Image Compression** - 50-70% size reduction
+- ✅ **Database Optimization** - 20+ compound indexes for fast queries
+- ✅ **Connection Pool** - Optimized Prisma pool (20 connections)
+- ✅ **Smart Retry Logic** - React Query custom retry strategy
+- ✅ **Structured Logging** - Winston-based logging system
 
 ---
 
@@ -45,14 +52,16 @@ Dizajnirana sa ljubavlju za decu i roditelje. 💙
 - **Styling:** Tailwind CSS 4.1
 
 ### Database & Auth
-- **ORM:** Prisma 6.17
-- **Database:** PostgreSQL
-- **Auth:** NextAuth v5
-- **Password:** bcryptjs
+- **ORM:** Prisma 6.17 (20+ optimized compound indexes)
+- **Database:** PostgreSQL / SQLite (development)
+- **Auth:** NextAuth v5 (credentials provider)
+- **Password:** bcryptjs (10 rounds)
+- **Redis:** Upstash Redis (rate limiting & account lockout)
 
 ### State & Data
-- **State Management:** Zustand 5.0
-- **Forms:** React Hook Form + Zod
+- **State Management:** Zustand 5.0 (with persistence)
+- **Server State:** TanStack Query (React Query) - smart caching & retry
+- **Forms:** React Hook Form + Zod validation
 - **Date:** date-fns 4.1
 
 ### UI & Animations

@@ -21,6 +21,7 @@ import type {
   ProfileSettings,
 } from "@/components/features/settings/types";
 import { staggerContainer } from "@/lib/animations/variants";
+import { apiGet, apiPatch } from "@/lib/utils/api";
 
 const DEFAULT_PROFILE: ProfileSettings = {
   name: "",
@@ -57,18 +58,15 @@ export default function PodjesavanjaPage() {
     const fetchSettings = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/profile", {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
+        const data = await apiGet("/api/profile", { showErrorToast: false });
+        
+        if (data && data.profile) {
           setProfileData({
             name: data.profile.name || "",
             email: data.profile.email || "",
-            phone: "", // TODO: Add phone to API
+            phone: "",
             school: data.profile.school || "",
-            class: "", // TODO: Add class to API
+            class: "",
           });
         }
       } catch (error) {
@@ -99,12 +97,7 @@ export default function PodjesavanjaPage() {
       // Za profile podatke koristi /api/profile
       if (setting.startsWith("profile.")) {
         const field = setting.replace("profile.", "");
-        await fetch("/api/profile", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ [field]: value }),
-        });
+        await apiPatch("/api/profile", { [field]: value });
       }
       
       // Za ostala podešavanja (jezik, notifikacije, itd.)

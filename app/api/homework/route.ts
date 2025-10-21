@@ -16,6 +16,8 @@ import {
 } from "@/lib/api/handlers/response";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
+import { rateLimit, RateLimitPresets, addRateLimitHeaders } from "@/lib/security/rate-limit";
+import { getAuthSession } from "@/lib/auth/demo-mode";
 
 /**
  * GET /api/homework
@@ -23,8 +25,30 @@ import { csrfMiddleware } from "@/lib/security/csrf";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Autentifikacija
-    const session = await auth();
+    // Rate Limiting - Relaxed (100 requests per minute for read operations)
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.relaxed,
+      prefix: "homework:read",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: "Too Many Requests", 
+          message: "Previše zahteva. Pokušaj ponovo za par minuta." 
+        }),
+        { 
+          status: 429, 
+          headers: { ...Object.fromEntries(headers), "Content-Type": "application/json" } 
+        },
+      );
+    }
+
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }
@@ -152,14 +176,36 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate Limiting - Moderate (30 requests per minute for write operations)
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.moderate,
+      prefix: "homework:write",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: "Too Many Requests", 
+          message: "Previše zahteva. Pokušaj ponovo za par minuta." 
+        }),
+        { 
+          status: 429, 
+          headers: { ...Object.fromEntries(headers), "Content-Type": "application/json" } 
+        },
+      );
+    }
+
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
       return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
     }
 
-    // Autentifikacija
-    const session = await auth();
+    // Autentifikacija (with demo mode support)
+    const session = await getAuthSession(auth);
     if (!session?.user?.id) {
       throw new AuthenticationError();
     }

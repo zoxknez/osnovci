@@ -3,14 +3,41 @@
 // Production-ready sa connection pooling i optimizacijama
 
 import { PrismaClient } from "@prisma/client";
+import { configurePrismaLogging } from "./query-monitor";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 /**
+ * Build optimized DATABASE_URL with connection pooling parameters
+ */
+function getDatabaseUrl(): string {
+  const baseUrl = process.env.DATABASE_URL;
+
+  if (!baseUrl) {
+    throw new Error("DATABASE_URL is not defined in environment variables");
+  }
+
+  // If URL already has query params, return as-is
+  if (baseUrl.includes("?")) {
+    return baseUrl;
+  }
+
+  // Add connection pooling parameters for PostgreSQL
+  const poolParams = new URLSearchParams({
+    connection_limit: "20", // Max connections (default: 10)
+    pool_timeout: "20", // Pool timeout in seconds
+    connect_timeout: "10", // Connection timeout in seconds
+    // pgbouncer: "true", // Uncomment if using PgBouncer
+  });
+
+  return `${baseUrl}?${poolParams.toString()}`;
+}
+
+/**
  * Prisma Client Configuration
- * - Connection pooling (default: 10 connections)
+ * - Connection pooling (20 connections)
  * - Query logging in development
  * - Performance optimizations
  */
@@ -21,11 +48,11 @@ export const prisma =
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
         : ["error"],
-    
+
     // Connection pool configuration
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: getDatabaseUrl(),
       },
     },
 
@@ -37,6 +64,9 @@ export const prisma =
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
+// Configure query logging for performance monitoring
+configurePrismaLogging(prisma);
 
 // Note: Graceful shutdown handlers removed for Edge Runtime compatibility
 // Prisma will handle disconnection automatically on process termination

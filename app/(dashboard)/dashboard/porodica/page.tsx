@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/features/page-header";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
+import { apiGet, apiPost, apiDelete } from "@/lib/utils/api";
 
 interface FamilyMember {
   id: string;
@@ -53,16 +54,8 @@ export default function PorodicaPage() {
     const fetchFamily = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/family", {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setFamilyMembers(data.family || []);
-        } else {
-          toast.error("Greška pri učitavanju porodice");
-        }
+        const data = await apiGet("/api/family", { showErrorToast: false });
+        setFamilyMembers(data.family || []);
       } catch (error) {
         console.error("Error fetching family:", error);
         toast.error("Greška pri učitavanju porodice");
@@ -77,22 +70,9 @@ export default function PorodicaPage() {
   // Generate link code via API
   const generateCode = useCallback(async () => {
     try {
-      const response = await fetch("/api/link/initiate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({}),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setLinkCode(data.linkCode || "");
-        toast.success("🎉 Novi kod generisan!");
-      } else {
-        toast.error("Greška pri generisanju koda");
-      }
+      const data = await apiPost("/api/link/initiate", {});
+      setLinkCode(data.linkCode || "");
+      toast.success("🎉 Novi kod generisan!");
     } catch (error) {
       console.error("Error generating code:", error);
       toast.error("Greška pri generisanju koda");
@@ -120,53 +100,28 @@ export default function PorodicaPage() {
     }
 
     try {
-      const response = await fetch("/api/link/child-approve", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ linkCode: manualCode }),
-      });
-
-      if (response.ok) {
-        toast.success("✅ Povezano!");
-        setManualCode("");
-        // Refresh family list
-        const familyRes = await fetch("/api/family", {
-          credentials: "include",
-        });
-        if (familyRes.ok) {
-          const data = await familyRes.json();
-          setFamilyMembers(data.family || []);
-        }
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Greška pri povezivanju");
-      }
+      await apiPost("/api/link/child-approve", { linkCode: manualCode });
+      toast.success("✅ Povezano!");
+      setManualCode("");
+      
+      // Refresh family list
+      const data = await apiGet("/api/family", { showErrorToast: false });
+      setFamilyMembers(data.family || []);
     } catch (error) {
       console.error("Error linking:", error);
-      toast.error("Greška pri povezivanju");
+      // Toast already shown by apiPost
     }
   };
 
   const handleRemoveLink = async (id: string, name: string) => {
     try {
-      const response = await fetch(`/api/family/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        toast.success(`🗑️ ${name} je uklonjen/a iz porodice`);
-        // Refresh family list
-        setFamilyMembers(familyMembers.filter((m) => m.id !== id));
-      } else {
-        toast.error("Greška pri uklanjanju");
-      }
+      await apiDelete(`/api/family/${id}`);
+      toast.success(`🗑️ ${name} je uklonjen/a iz porodice`);
+      // Refresh family list
+      setFamilyMembers(familyMembers.filter((m) => m.id !== id));
     } catch (error) {
       console.error("Error removing link:", error);
-      toast.error("Greška pri uklanjanju");
+      // Toast already shown by apiDelete
     }
   };
 
