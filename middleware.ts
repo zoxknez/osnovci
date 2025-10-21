@@ -8,17 +8,23 @@ import { generateNonce, buildCSP } from "@/lib/security/csp";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 🎮 DEMO MODE: Auto-redirect to dashboard
-  // Skip auth pages and redirect to demo dashboard
-  const authPages = ["/prijava", "/registracija", "/consent-required", "/verify-pending", "/account-inactive"];
-  const isAuthPage = authPages.some(page => pathname.startsWith(page));
+  // 🎮 DEMO MODE: Allow auth pages (no redirect)
+  // In production, you'd add proper auth logic here
+  const publicPages = [
+    "/prijava", 
+    "/registracija", 
+    "/consent-required", 
+    "/verify-pending", 
+    "/account-inactive"
+  ];
+  const isPublicPage = publicPages.some(page => pathname.startsWith(page));
   
-  if (isAuthPage) {
-    // Redirect auth pages to dashboard (demo mode)
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Skip security headers for public pages
+  if (isPublicPage) {
+    return NextResponse.next();
   }
 
-  // Landing page -> Dashboard redirect (but not if already on dashboard!)
+  // Landing page -> Dashboard redirect
   if (pathname === "/" || pathname === "") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
