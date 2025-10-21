@@ -43,8 +43,8 @@
   "exclude": [
     "node_modules",
     "public",
-    "vitest.config.ts",
-    "vitest.setup.ts",
+    "config/vitest.config.ts",
+    "config/vitest.setup.ts",
     "__tests__",
     "**/*.test.ts",
     "**/*.test.tsx"
