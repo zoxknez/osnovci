@@ -17,7 +17,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createNotification } from "@/lib/notifications/create";
-import { checkAchievements } from "./xp-system";
+import { checkAchievements } from "./achievements";
 
 // ============================================
 // XP REWARDS (Enhanced)
@@ -488,6 +488,3 @@ export async function resetPeriodicXP() {
     log.error("Failed to reset periodic XP", error);
   }
 }
-
-// Export for next part...
-export { checkAchievements, trackHomeworkCompletion } from "./achievements";
