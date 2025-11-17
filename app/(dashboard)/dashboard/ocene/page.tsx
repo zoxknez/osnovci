@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { log } from "@/lib/logger";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/features/page-header";
 import {
@@ -217,7 +218,7 @@ export default function OcenePage() {
                     duration: 3000,
                   });
                 } catch (error) {
-                  console.error("PDF export error:", error);
+                  log.error("PDF export failed", error);
                   toast.error("Greška pri kreiranju PDF-a");
                 }
               }}

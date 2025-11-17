@@ -6,6 +6,7 @@
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { log } from "@/lib/logger";
 
 export default function ErrorPage({
   error,
@@ -16,7 +17,10 @@ export default function ErrorPage({
 }) {
   useEffect(() => {
     // Log error to monitoring service (Sentry)
-    console.error("Global error:", error);
+    log.error("Global error boundary triggered", error, {
+      digest: error.digest,
+      message: error.message,
+    });
 
     // Send to Sentry for tracking
     if (typeof window !== "undefined") {

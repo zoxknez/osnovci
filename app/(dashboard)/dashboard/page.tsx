@@ -2,6 +2,7 @@
 // Fixed: Ensure homework is always an array to prevent .filter() errors
 "use client";
 
+import { log } from "@/lib/logger";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -81,11 +82,10 @@ export default function DashboardPage() {
     : [];
 
   // Debug logging
-  console.log("🔍 Dashboard Data Check:", {
-    homeworkData,
-    homework: homework,
+  log.info("Dashboard data loaded", {
+    homeworkCount: homework.length,
     isArray: Array.isArray(homework),
-    length: homework.length,
+    hasSchedule: todayClasses.length > 0,
   });
 
   // Gamification data - safely access profile data

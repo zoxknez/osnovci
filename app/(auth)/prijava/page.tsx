@@ -7,6 +7,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { log } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -58,8 +59,9 @@ export default function PrijavaPage() {
       // Ovo osigurava da se session pravilno učita na server-u
       window.location.href = "/dashboard";
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Greška pri prijavljivanju");
+      log.error("Login failed", error, { email: formData.email });
+      toast.error("Došlo je do greške. Pokušajte ponovo.");
+    } finally {
       setIsLoading(false);
     }
   };

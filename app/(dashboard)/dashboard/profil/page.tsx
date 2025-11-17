@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/features/page-header";
 import { LastUpdatedNotice } from "@/components/features/profile/last-updated";
 import { PrivacyNotice } from "@/components/features/profile/privacy-notice";
 import { ProfileHeader } from "@/components/features/profile/profile-header";
+import { log } from "@/lib/logger";
 import {
   ActivitiesSection,
   BasicInfoSection,
@@ -83,7 +84,7 @@ export default function ProfilPage() {
           });
         }
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        log.error("Failed to fetch profile", error);
         toast.error("Greška pri učitavanju profila");
       } finally {
         setLoading(false);
@@ -116,7 +117,7 @@ export default function ProfilPage() {
 
       setIsEditing(false);
     } catch (error) {
-      console.error(error);
+      log.error("Profile update failed", error);
       // Toast already shown by apiPatch
     } finally {
       setIsSaving(false);

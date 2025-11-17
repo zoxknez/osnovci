@@ -9,6 +9,7 @@ type RouteContext = {
 };
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 // Max file size: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -136,7 +137,8 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error("Error uploading attachment:", error);
+    const { id: homeworkId } = await context.params;
+    log.error("Failed to upload attachment", error, { homeworkId });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -218,10 +220,11 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: attachments,
+      attachments,
     });
   } catch (error) {
-    console.error("Error fetching attachments:", error);
+    const { id: homeworkId } = await context.params;
+    log.error("Failed to fetch attachments", error, { homeworkId });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -293,7 +296,7 @@ export async function DELETE(
       try {
         await fs.unlink(filepath);
       } catch (err) {
-        console.warn("Failed to delete file:", err);
+        log.warn("Failed to delete local file", { error: err, path: filepath });
         // Continue anyway - file might not exist
       }
     }
@@ -308,7 +311,8 @@ export async function DELETE(
       message: "Attachment deleted",
     });
   } catch (error) {
-    console.error("Error deleting attachment:", error);
+    const { id: attachmentId } = await context.params;
+    log.error("Failed to delete attachment", error, { attachmentId });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

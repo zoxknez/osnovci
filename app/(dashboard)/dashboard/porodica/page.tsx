@@ -1,6 +1,7 @@
 // Porodica - Family Linking with QR Codes
 "use client";
 
+import { log } from "@/lib/logger";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
@@ -49,35 +50,36 @@ export default function PorodicaPage() {
   const [manualCode, setManualCode] = useState("");
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
 
-  // Fetch family members
-  useEffect(() => {
-    const fetchFamily = async () => {
-      try {
-        setLoading(true);
-        const data = await apiGet("/api/family", { showErrorToast: false });
-        setFamilyMembers(data.family || []);
-      } catch (error) {
-        console.error("Error fetching family:", error);
-        toast.error("Greška pri učitavanju porodice");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFamily();
+  // Fetch family members (extracted to be reusable)
+  const fetchFamily = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await apiGet("/api/family", { showErrorToast: false });
+      setFamilyMembers(data.family || []);
+    } catch (error) {
+      log.error("Failed to fetch family", error);
+      toast.error("Greška pri učitavanju porodice");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchFamily();
+  }, [fetchFamily]);
 
   // Generate link code via API
   const generateCode = useCallback(async () => {
     try {
       const data = await apiPost("/api/link/initiate", {});
-      setLinkCode(data.linkCode || "");
-      toast.success("🎉 Novi kod generisan!");
+      setLinkCode(data.code);
+      fetchFamily();
     } catch (error) {
-      console.error("Error generating code:", error);
-      toast.error("Greška pri generisanju koda");
+      log.error("Failed to generate link code", error);
+      alert("Greška pri generisanju koda");
     }
-  }, []);
+  }, [fetchFamily]);
 
   // Auto-generate code when QR is shown
   useEffect(() => {
@@ -108,7 +110,7 @@ export default function PorodicaPage() {
       const data = await apiGet("/api/family", { showErrorToast: false });
       setFamilyMembers(data.family || []);
     } catch (error) {
-      console.error("Error linking:", error);
+      log.error("Failed to link child", error, { linkCode: manualCode });
       // Toast already shown by apiPost
     }
   };
@@ -120,7 +122,7 @@ export default function PorodicaPage() {
       // Refresh family list
       setFamilyMembers(familyMembers.filter((m) => m.id !== id));
     } catch (error) {
-      console.error("Error removing link:", error);
+      log.error("Failed to remove family link", error, { linkId: id, name });
       // Toast already shown by apiDelete
     }
   };
