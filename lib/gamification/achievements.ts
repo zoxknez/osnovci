@@ -13,7 +13,7 @@ import type { AchievementRarity, AchievementType } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createNotification } from "@/lib/notifications/create";
-import { addXP } from "./xp-system-v2";
+import { addXPCore } from "./xp-core";
 
 // ============================================
 // ACHIEVEMENT DEFINITIONS
@@ -622,7 +622,7 @@ export async function checkAchievements(
 
         if (gamif) {
           // Add XP reward
-          await addXP(
+          await addXPCore(
             gamif.studentId,
             milestone.xp,
             `Achievement: ${milestone.title}`,
@@ -710,7 +710,7 @@ export async function trackHomeworkCompletion(
     });
 
     // Add XP with bonuses
-    await addXP(studentId, 10, "Homework completed", {
+    await addXPCore(studentId, 10, "Homework completed", {
       ...(metadata.isWeekend !== undefined && { isWeekend: metadata.isWeekend }),
       ...(metadata.isNight !== undefined && { isNight: metadata.isNight }),
       ...(metadata.isMorning !== undefined && { isMorning: metadata.isMorning }),
