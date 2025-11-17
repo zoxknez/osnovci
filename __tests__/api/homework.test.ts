@@ -1,7 +1,8 @@
 // API Tests - Homework Routes
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { MockedFunction } from "vitest";
+
 import { NextRequest } from "next/server";
+import type { MockedFunction } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Set environment variables BEFORE any imports
 process.env.NEXTAUTH_SECRET = "test-secret-for-csrf";
@@ -38,13 +39,13 @@ vi.mock("@/middleware/rate-limit", () => ({
 }));
 
 vi.mock("@/lib/security/csrf", () => ({
-  csrfMiddleware: vi.fn(async (req) => ({ valid: true })),
+  csrfMiddleware: vi.fn(async (_req) => ({ valid: true })),
 }));
 
+import { GET, POST } from "@/app/api/homework/route";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { checkRateLimit } from "@/middleware/rate-limit";
-import { GET, POST } from "@/app/api/homework/route";
 
 type MockSession = {
   user: {

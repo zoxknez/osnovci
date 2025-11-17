@@ -35,12 +35,16 @@ function getLuminance(color: string): number {
   const rgb = hexToRgb(color);
   if (!rgb) return 0;
 
-  const [r, g, b] = [rgb.r, rgb.g, rgb.b].map((val) => {
+  const values = [rgb.r, rgb.g, rgb.b].map((val) => {
     const channel = val / 255;
     return channel <= 0.03928
       ? channel / 12.92
       : ((channel + 0.055) / 1.055) ** 2.4;
   });
+
+  const r = values[0] ?? 0;
+  const g = values[1] ?? 0;
+  const b = values[2] ?? 0;
 
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
@@ -50,13 +54,19 @@ function getLuminance(color: string): number {
  */
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : null;
+  if (!result) return null;
+  
+  const r = result[1];
+  const g = result[2];
+  const b = result[3];
+  
+  if (!r || !g || !b) return null;
+  
+  return {
+    r: parseInt(r, 16),
+    g: parseInt(g, 16),
+    b: parseInt(b, 16),
+  };
 }
 
 /**

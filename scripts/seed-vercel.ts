@@ -113,29 +113,39 @@ async function main() {
           },
         ];
 
-        await prisma.scheduleEntry.create({
-          data: {
-            ...schedule[0],
-            studentId: user.student.id,
-            subjectId: mathSubject.id,
-          },
-        });
+        const scheduleEntry0 = schedule[0];
+        const scheduleEntry1 = schedule[1];
+        const scheduleEntry2 = schedule[2];
 
-        await prisma.scheduleEntry.create({
-          data: {
-            ...schedule[1],
-            studentId: user.student.id,
-            subjectId: serbianSubject.id,
-          },
-        });
+        if (scheduleEntry0) {
+          await prisma.scheduleEntry.create({
+            data: {
+              ...scheduleEntry0,
+              studentId: user.student.id,
+              subjectId: mathSubject.id,
+            },
+          });
+        }
 
-        await prisma.scheduleEntry.create({
-          data: {
-            ...schedule[2],
-            studentId: user.student.id,
-            subjectId: mathSubject.id,
-          },
-        });
+        if (scheduleEntry1) {
+          await prisma.scheduleEntry.create({
+            data: {
+              ...scheduleEntry1,
+              studentId: user.student.id,
+              subjectId: serbianSubject.id,
+            },
+          });
+        }
+
+        if (scheduleEntry2) {
+          await prisma.scheduleEntry.create({
+            data: {
+              ...scheduleEntry2,
+              studentId: user.student.id,
+              subjectId: mathSubject.id,
+            },
+          });
+        }
       }
 
       // Dodaj ocene (grades)
@@ -181,6 +191,9 @@ async function main() {
   for (let i = 1; i <= 20; i++) {
     console.log(`Creating demo${i}@osnovci.rs...`);
 
+    const classOptions = ["A", "B", "V"];
+    const randomClass = classOptions[Math.floor(Math.random() * 3)] ?? "A";
+
     const user = await prisma.user.create({
       data: {
         email: `demo${i}@osnovci.rs`,
@@ -191,7 +204,7 @@ async function main() {
           create: {
             name: `Demo Učenik ${i}`,
             grade: Math.floor(Math.random() * 4) + 5, // 5-8
-            class: ["A", "B", "V"][Math.floor(Math.random() * 3)],
+            class: randomClass,
             school: "Demo Osnovna Škola",
           },
         },
@@ -225,12 +238,15 @@ async function main() {
         ).id;
 
       // Poveži sa studentom
-      await prisma.studentSubject.create({
-        data: {
-          studentId: user.student!.id,
-          subjectId,
-        },
-      });
+      const studentId = user.student?.id;
+      if (studentId) {
+        await prisma.studentSubject.create({
+          data: {
+            studentId,
+            subjectId,
+          },
+        });
+      }
     }
 
     // Dodaj nekoliko demo domaćih zadataka
@@ -265,32 +281,35 @@ async function main() {
       where: { name: "Srpski jezik" },
     });
 
-    if (mathSubject) {
+    const homework0 = homework[0];
+    const homework1 = homework[1];
+
+    if (mathSubject && user.student?.id && homework0) {
       await prisma.homework.create({
         data: {
-          ...homework[0],
-          studentId: user.student!.id,
+          ...homework0,
+          studentId: user.student.id,
           subjectId: mathSubject.id,
         },
       });
     }
 
-    if (serbianSubject) {
+    if (serbianSubject && user.student?.id && homework1) {
       await prisma.homework.create({
         data: {
-          ...homework[1],
-          studentId: user.student!.id,
+          ...homework1,
+          studentId: user.student.id,
           subjectId: serbianSubject.id,
         },
       });
     }
 
     // Dodaj raspored (schedule)
-    if (mathSubject && serbianSubject) {
+    if (mathSubject && serbianSubject && user.student?.id) {
       await prisma.scheduleEntry.createMany({
         data: [
           {
-            studentId: user.student!.id,
+            studentId: user.student.id,
             subjectId: mathSubject.id,
             dayOfWeek: "MONDAY" as const,
             startTime: "08:00",
@@ -298,7 +317,7 @@ async function main() {
             room: "Učionica 12",
           },
           {
-            studentId: user.student!.id,
+            studentId: user.student.id,
             subjectId: serbianSubject.id,
             dayOfWeek: "MONDAY" as const,
             startTime: "09:00",
@@ -306,7 +325,7 @@ async function main() {
             room: "Učionica 5",
           },
           {
-            studentId: user.student!.id,
+            studentId: user.student.id,
             subjectId: mathSubject.id,
             dayOfWeek: "TUESDAY" as const,
             startTime: "08:00",
@@ -318,14 +337,14 @@ async function main() {
     }
 
     // Dodaj ocene (grades)
-    if (mathSubject && serbianSubject) {
+    if (mathSubject && serbianSubject && user.student?.id) {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
 
       await prisma.grade.createMany({
         data: [
           {
-            studentId: user.student!.id,
+            studentId: user.student.id,
             subjectId: mathSubject.id,
             grade: "5",
             category: "Kontrolni",
@@ -334,7 +353,7 @@ async function main() {
             weight: 2,
           },
           {
-            studentId: user.student!.id,
+            studentId: user.student.id,
             subjectId: serbianSubject.id,
             grade: "4",
             category: "Usmeno",
@@ -363,4 +382,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

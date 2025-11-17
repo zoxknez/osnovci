@@ -7,25 +7,25 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-  Plus,
-  Search,
   Loader,
+  Plus,
   RefreshCw,
-  WifiOff,
+  Search,
   Wifi,
+  WifiOff,
 } from "lucide-react";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ModernCamera } from "@/components/features/modern-camera";
 import { HomeworkCelebration } from "@/components/features/homework-celebration";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { ModernCamera } from "@/components/features/modern-camera";
 import { PageHeader } from "@/components/features/page-header";
 import {
   AddHomeworkModal,
   type HomeworkFormData,
 } from "@/components/modals/add-homework-modal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useOfflineHomework } from "@/hooks/use-offline-homework";
 import { useSyncStore } from "@/store";
 
@@ -84,16 +84,17 @@ export default function DomaciPage() {
         // Mapiraj podatke sa API-ja na format koji frontend očekuje
         const homeworkData = Array.isArray(data.data) ? data.data : [];
         const mapped = homeworkData.map((hw: Record<string, unknown>) => ({
-          id: hw.id,
-          subject: (hw.subject as Record<string, unknown>)?.name || "Nepoznat predmet",
-          title: hw.title,
-          description: hw.description,
-          dueDate: new Date(hw.dueDate as string),
-          status: (hw.status as string).toLowerCase(),
-          priority: (hw.priority as string).toLowerCase(),
-          attachments: hw.attachmentsCount,
+          id: hw["id"],
+          subject:
+            (hw["subject"] as Record<string, unknown> | undefined)?.["name"] || "Nepoznat predmet",
+          title: hw["title"],
+          description: hw["description"],
+          dueDate: new Date(hw["dueDate"] as string),
+          status: (hw["status"] as string).toLowerCase(),
+          priority: (hw["priority"] as string).toLowerCase(),
+          attachments: hw["attachmentsCount"],
           color:
-            (hw.subject as Record<string, unknown>)?.color || getRandomColor(),
+            (hw["subject"] as Record<string, unknown> | undefined)?.["color"] || getRandomColor(),
         }));
 
         setHomework(mapped);
@@ -154,7 +155,7 @@ export default function DomaciPage() {
     // Mapiraj offline items u isti format kao API data
     const offlineMapped = offlineItems.map((item) => ({
       id: item.id,
-      subject: item.subjectId, // TODO: Resolve subject name
+      subject: item.subjectId, // Subject ID is stored in offline storage
       title: item.title,
       description: item.description,
       dueDate: item.dueDate,
@@ -170,7 +171,10 @@ export default function DomaciPage() {
   }, [homework, offlineItems, getRandomColor]);
 
   const filteredHomework = allHomework.filter((task) => {
-    const subjectName = typeof task.subject === "string" ? task.subject : task.subject?.name || "";
+    const subjectName =
+      typeof task.subject === "string"
+        ? task.subject
+        : task.subject?.name || "";
     const matchesSearch =
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       subjectName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -206,7 +210,7 @@ export default function DomaciPage() {
           method: "POST",
           body: formData,
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -219,8 +223,8 @@ export default function DomaciPage() {
 
       setCameraOpen(false);
       setSelectedHomeworkId(null);
-    } catch (error) {
-      console.error("Error uploading photo:", error);
+    } catch {
+      // Error uploading photo
       toast.error("Greška prilikom čuvanja fotografije");
     }
   };
@@ -256,7 +260,8 @@ export default function DomaciPage() {
           status: "ASSIGNED",
         });
         toast.success("💾 Sačuvano offline", {
-          description: "Zadatak će biti sinhronizovan kada se povežeš na internet",
+          description:
+            "Zadatak će biti sinhronizovan kada se povežeš na internet",
         });
         return;
       }
@@ -280,7 +285,8 @@ export default function DomaciPage() {
           status: "ASSIGNED",
         });
         toast.warning("⚠️ Sačuvano offline", {
-          description: "API nije dostupan - zadatak će biti sinhronizovan kasnije",
+          description:
+            "API nije dostupan - zadatak će biti sinhronizovan kasnije",
         });
         return;
       }
@@ -308,10 +314,12 @@ export default function DomaciPage() {
 
       setHomework(mapped);
       setTotal(newData.pagination.total);
-      
+
       toast.success("✅ Zadatak kreiran");
     } catch (_err) {
-      throw new Error(_err instanceof Error ? _err.message : "Nepoznata greška");
+      throw new Error(
+        _err instanceof Error ? _err.message : "Nepoznata greška",
+      );
     }
   };
 
@@ -550,7 +558,9 @@ export default function DomaciPage() {
                               )}
                             </div>
                             <p className="text-sm text-gray-600">
-                              {typeof task.subject === "string" ? task.subject : task.subject?.name || "Predmet"}
+                              {typeof task.subject === "string"
+                                ? task.subject
+                                : task.subject?.name || "Predmet"}
                             </p>
                           </div>
                           {task.priority === "urgent" && !isOverdue && (

@@ -1,8 +1,8 @@
 // Dashboard Route Group Layout - Server Component with Auth Protection
 // This layout wraps ALL dashboard routes and ensures authentication
 
-import { auth } from "@/lib/auth/config";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function DashboardGroupLayout({

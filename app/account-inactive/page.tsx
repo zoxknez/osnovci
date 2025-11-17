@@ -1,7 +1,7 @@
 // Account Inactive Page
 "use client";
 
-import { XCircle, Home, Mail } from "lucide-react";
+import { Home, Mail, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,8 +43,9 @@ export default function AccountInactivePage() {
           <div className="space-y-3">
             <Button
               onClick={() => {
-                // TODO: Contact support
-                window.location.href = "mailto:podrska@osnovci.rs?subject=Neaktivan nalog";
+                // Open email client to contact support
+                window.location.href =
+                  "mailto:podrska@osnovci.rs?subject=Neaktivan nalog&body=Pozdrav, moj nalog je neaktivan i trebam pomoć. Hvala!";
               }}
               className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
               size="lg"

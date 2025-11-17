@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
-import Link from 'next/link';
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 export default function VerifyErrorPage() {
   return (
@@ -14,41 +14,41 @@ export default function VerifyErrorPage() {
 
 function VerifyErrorContent() {
   const searchParams = useSearchParams();
-  const reason = searchParams.get('reason') || 'Unknown error';
+  const reason = searchParams.get("reason") || "Unknown error";
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<
-    'idle' | 'success' | 'error'
-  >('idle');
+    "idle" | "success" | "error"
+  >("idle");
   const [resendError, setResendError] = useState<string | null>(null);
 
   const handleResend = async () => {
     setIsResending(true);
-    setResendStatus('idle');
+    setResendStatus("idle");
     setResendError(null);
 
     try {
-      const email = prompt('Unesi tvoj email:');
+      const email = prompt("Unesi tvoj email:");
       if (!email) {
         setIsResending(false);
         return;
       }
 
-      const response = await fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       if (response.ok) {
-        setResendStatus('success');
+        setResendStatus("success");
       } else {
         const data = await response.json();
-        setResendError(data.error || 'Unknown error');
-        setResendStatus('error');
+        setResendError(data.error || "Unknown error");
+        setResendStatus("error");
       }
     } catch (error) {
-      setResendError(error instanceof Error ? error.message : 'Unknown error');
-      setResendStatus('error');
+      setResendError(error instanceof Error ? error.message : "Unknown error");
+      setResendStatus("error");
     } finally {
       setIsResending(false);
     }
@@ -56,14 +56,14 @@ function VerifyErrorContent() {
 
   const getErrorMessage = (reason: string) => {
     switch (reason) {
-      case 'no_token':
-        return 'Nedostaje verification token. Molimo klikni na link iz email-a.';
-      case 'Invalid verification token':
-        return 'Verification token je nevalidan. Molimo zatraži novi email.';
-      case 'Verification token has expired':
-        return 'Verification token je istekao. Molimo zatraži novi email.';
-      case 'User not found':
-        return 'Korisnik nije pronađen. Molimo registriraj se ponovo.';
+      case "no_token":
+        return "Nedostaje verification token. Molimo klikni na link iz email-a.";
+      case "Invalid verification token":
+        return "Verification token je nevalidan. Molimo zatraži novi email.";
+      case "Verification token has expired":
+        return "Verification token je istekao. Molimo zatraži novi email.";
+      case "User not found":
+        return "Korisnik nije pronađen. Molimo registriraj se ponovo.";
       default:
         return reason;
     }
@@ -99,15 +99,15 @@ function VerifyErrorContent() {
         <p className="text-gray-600 mb-6">{getErrorMessage(reason)}</p>
 
         {/* Resend Status */}
-        {resendStatus === 'success' && (
+        {resendStatus === "success" && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
             ✅ Novi verification email je poslan! Provjeri tvoj inbox.
           </div>
         )}
 
-        {resendStatus === 'error' && (
+        {resendStatus === "error" && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            ❌ Greška: {resendError || 'Pokušaj ponovo.'}
+            ❌ Greška: {resendError || "Pokušaj ponovo."}
           </div>
         )}
 
@@ -119,7 +119,7 @@ function VerifyErrorContent() {
             disabled={isResending}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50"
           >
-            {isResending ? '⏳ Slanjem...' : '📧 Zatraži Novi Email'}
+            {isResending ? "⏳ Slanjem..." : "📧 Zatraži Novi Email"}
           </button>
 
           <Link

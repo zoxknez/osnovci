@@ -32,8 +32,9 @@ export function useFocusTrap({
       const focusableElements = container.querySelectorAll<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
-      if (focusableElements.length > 0) {
-        focusableElements[0].focus();
+      const firstFocusable = focusableElements[0];
+      if (firstFocusable) {
+        firstFocusable.focus();
       }
     }
 
@@ -58,15 +59,15 @@ export function useFocusTrap({
 
       if (e.shiftKey) {
         // Shift + Tab
-        if (document.activeElement === firstElement) {
+        if (firstElement && document.activeElement === firstElement) {
           e.preventDefault();
-          lastElement.focus();
+          lastElement?.focus();
         }
       } else {
         // Tab
-        if (document.activeElement === lastElement) {
+        if (lastElement && document.activeElement === lastElement) {
           e.preventDefault();
-          firstElement.focus();
+          firstElement?.focus();
         }
       }
     };

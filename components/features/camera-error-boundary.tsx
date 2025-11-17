@@ -55,7 +55,7 @@ export class CameraErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: undefined });
+    this.setState({ hasError: false, error: null as unknown as Error });
   };
 
   handleClose = () => {

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface AddHomeworkModalProps {
@@ -66,7 +66,7 @@ export function AddHomeworkModal({
 
         const data = await response.json();
         setSubjects(data.data || []);
-      } catch (err) {
+      } catch (_err) {
         toast.error("Greška", {
           description: "Nije moguće učitati predmete",
         });
@@ -82,17 +82,17 @@ export function AddHomeworkModal({
     const newErrors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = "Naslov je obavezan";
+      newErrors["title"] = "Naslov je obavezan";
     } else if (formData.title.length < 3) {
-      newErrors.title = "Naslov mora biti najmanje 3 karaktera";
+      newErrors["title"] = "Naslov mora biti najmanje 3 karaktera";
     }
 
     if (!formData.subjectId) {
-      newErrors.subjectId = "Predmet je obavezan";
+      newErrors["subjectId"] = "Predmet je obavezan";
     }
 
     if (!formData.dueDate) {
-      newErrors.dueDate = "Rok je obavezan";
+      newErrors["dueDate"] = "Rok je obavezan";
     }
 
     setErrors(newErrors);
@@ -173,7 +173,10 @@ export function AddHomeworkModal({
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 id="modal-title" className="text-xl font-bold text-gray-900">
+                <h2
+                  id="modal-title"
+                  className="text-xl font-bold text-gray-900"
+                >
                   📝 Dodaj novi zadatak
                 </h2>
                 <button
@@ -198,12 +201,12 @@ export function AddHomeworkModal({
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className={errors.title ? "border-red-500" : ""}
+                    className={errors["title"] ? "border-red-500" : ""}
                   />
-                  {errors.title && (
+                  {errors["title"] && (
                     <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />
-                      {errors.title}
+                      {errors["title"]}
                     </p>
                   )}
                 </div>
@@ -219,7 +222,7 @@ export function AddHomeworkModal({
                       setFormData({ ...formData, subjectId: e.target.value })
                     }
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.subjectId ? "border-red-500" : "border-gray-300"
+                      errors["subjectId"] ? "border-red-500" : "border-gray-300"
                     }`}
                     disabled={loading}
                   >
@@ -232,10 +235,10 @@ export function AddHomeworkModal({
                       </option>
                     ))}
                   </select>
-                  {errors.subjectId && (
+                  {errors["subjectId"] && (
                     <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />
-                      {errors.subjectId}
+                      {errors["subjectId"]}
                     </p>
                   )}
                 </div>
@@ -268,12 +271,12 @@ export function AddHomeworkModal({
                       setFormData({ ...formData, dueDate: e.target.value })
                     }
                     min={getTomorrowDate()}
-                    className={errors.dueDate ? "border-red-500" : ""}
+                    className={errors["dueDate"] ? "border-red-500" : ""}
                   />
-                  {errors.dueDate && (
+                  {errors["dueDate"] && (
                     <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />
-                      {errors.dueDate}
+                      {errors["dueDate"]}
                     </p>
                   )}
                 </div>

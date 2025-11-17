@@ -4,10 +4,10 @@
 
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useState,
-  type ReactNode,
 } from "react";
 
 interface CsrfContextValue {
@@ -59,7 +59,7 @@ export function CsrfProvider({ children }: { children: ReactNode }) {
     const interval = setInterval(fetchToken, 30 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchToken]);
 
   return (
     <CsrfContext.Provider

@@ -1,7 +1,7 @@
 // Modern Background Sync Manager
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { offlineStorage } from "@/lib/db/offline-storage";
 import { useSyncStore } from "@/store";
@@ -33,14 +33,14 @@ export function SyncManager() {
   }, [setOnline]);
 
   const processSyncItem = useCallback(async (item: Record<string, unknown>) => {
-    const endpoint = `/api/${item.entity}/sync`;
+    const endpoint = `/api/${item["entity"]}/sync`;
 
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        type: item.type,
-        data: item.data,
+        type: item["type"],
+        data: item["data"],
       }),
     });
 
@@ -66,15 +66,13 @@ export function SyncManager() {
         return;
       }
 
-      console.log(`Syncing ${queue.length} items...`);
-
       // Process each item
       for (const item of queue) {
         try {
           await processSyncItem(item);
           await offlineStorage.removeSyncItem(item.id);
-        } catch (error) {
-          console.error("Sync item failed:", error);
+        } catch {
+          // Sync item failed
 
           // Increment retry count
           if (item.retries < 3) {
@@ -93,8 +91,8 @@ export function SyncManager() {
       setLastSync(new Date());
       setPendingCount(0);
       toast.success("Sve je sinhronizovano! ✅");
-    } catch (error) {
-      console.error("Sync error:", error);
+    } catch {
+      // Sync error
     } finally {
       setSyncing(false);
     }

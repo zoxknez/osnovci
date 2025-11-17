@@ -94,7 +94,11 @@ export async function POST(request: NextRequest) {
     }
 
     const subject = await prisma.subject.create({
-      data: validated.data,
+      data: {
+        name: validated.data.name,
+        color: validated.data.color,
+        ...(validated.data.icon && { icon: validated.data.icon }),
+      },
     });
 
     return NextResponse.json(

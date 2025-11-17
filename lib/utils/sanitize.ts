@@ -49,8 +49,10 @@ export function sanitizeText(input: string): string {
  */
 export function sanitizeHomeworkDescription(input: string): string {
   return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: ["b", "i", "em", "strong", "br", "p"],
+    ALLOWED_TAGS: ["b", "i", "em", "strong", "br", "p", "ul", "ol", "li"],
     ALLOWED_ATTR: [],
+    ALLOW_DATA_ATTR: false,
+    KEEP_CONTENT: true,
   });
 }
 

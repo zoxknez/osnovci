@@ -1,5 +1,5 @@
 // Master Seed - Kompletan seed sa svim demo nalozima i podacima
-import { PrismaClient, DayOfWeek } from "@prisma/client";
+import { type DayOfWeek, PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -113,7 +113,9 @@ async function main() {
     prisma.subject.create({
       data: { name: "Fizika", color: "#6366f1", icon: "⚛️" },
     }),
-    prisma.subject.create({ data: { name: "Hemija", color: "#ec4899", icon: "🧪" } }),
+    prisma.subject.create({
+      data: { name: "Hemija", color: "#ec4899", icon: "🧪" },
+    }),
     prisma.subject.create({
       data: { name: "Biologija", color: "#22c55e", icon: "🔬" },
     }),
@@ -188,8 +190,8 @@ async function main() {
         emailVerified: new Date(),
         student: {
           create: {
-            name: GENERIC_STUDENT_NAMES[i],
-            school: SCHOOLS[i % SCHOOLS.length],
+            name: GENERIC_STUDENT_NAMES[i] || `Student ${i + 1}`,
+            school: SCHOOLS[i % SCHOOLS.length] || 'OŠ Demo',
             grade: (i % 8) + 1,
             class: String.fromCharCode(65 + (i % 4)),
           },
@@ -198,11 +200,14 @@ async function main() {
       include: { student: true },
     });
 
+    // Student is guaranteed to exist because we created it with include
     if (user.student) {
       await prisma.gamification.create({
         data: { studentId: user.student.id },
       });
       genericStudents.push(user.student);
+    } else {
+      throw new Error(`Failed to create student for user ${i + 1}`);
     }
 
     console.log(`  ✅ ${GENERIC_STUDENT_NAMES[i]} (demo${i + 1}@osnovci.rs)`);
@@ -221,7 +226,7 @@ async function main() {
       student: {
         create: {
           name: "Demo Učenik",
-          school: SCHOOLS[0],
+          school: SCHOOLS[0] || 'OŠ Demo',
           grade: 5,
           class: "A",
         },
@@ -234,6 +239,8 @@ async function main() {
     await prisma.gamification.create({
       data: { studentId: demoStudentUser.student.id },
     });
+  } else {
+    throw new Error('Failed to create demo student');
   }
 
   const demoGuardianUser = await prisma.user.create({
@@ -295,21 +302,40 @@ async function main() {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + daysUntil);
 
+      const selectedSubject = selectedSubjects[i];
+      if (!selectedSubject) continue;
+
       await prisma.homework.create({
         data: {
           studentId: student.id,
-          subjectId: selectedSubjects[i].id,
-          title: `Zadatak ${i + 1} - ${selectedSubjects[i].name}`,
+          subjectId: selectedSubject.id,
+          title: `Zadatak ${i + 1} - ${selectedSubject.name}`,
           description: `Uradi vežbe i pripremi se za kontrolni`,
           dueDate,
-          priority: daysUntil === 0 ? "URGENT" : daysUntil === 1 ? "IMPORTANT" : "NORMAL",
-          status: Math.random() > 0.7 ? "DONE" : Math.random() > 0.5 ? "IN_PROGRESS" : "ASSIGNED",
+          priority:
+            daysUntil === 0
+              ? "URGENT"
+              : daysUntil === 1
+                ? "IMPORTANT"
+                : "NORMAL",
+          status:
+            Math.random() > 0.7
+              ? "DONE"
+              : Math.random() > 0.5
+                ? "IN_PROGRESS"
+                : "ASSIGNED",
         },
       });
     }
 
     // 6c) Dodaj raspored (random 15-25 časova nedeljno)
-    const daysOfWeek: DayOfWeek[] = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
+    const daysOfWeek: DayOfWeek[] = [
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+    ];
     const times = [
       { start: "08:00", end: "08:45" },
       { start: "08:50", end: "09:35" },
@@ -322,14 +348,18 @@ async function main() {
     for (const day of daysOfWeek) {
       const numClasses = 3 + Math.floor(Math.random() * 3); // 3-5 časova dnevno
       for (let i = 0; i < numClasses && i < times.length; i++) {
-        const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+        const randomSubject =
+          subjects[Math.floor(Math.random() * subjects.length)];
+        const timeSlot = times[i];
+        if (!randomSubject || !timeSlot) continue;
+        
         await prisma.scheduleEntry.create({
           data: {
             studentId: student.id,
             subjectId: randomSubject.id,
             dayOfWeek: day,
-            startTime: times[i].start,
-            endTime: times[i].end,
+            startTime: timeSlot.start,
+            endTime: timeSlot.end,
             room: `Učionica ${Math.floor(Math.random() * 20) + 1}`,
           },
         });
@@ -340,16 +370,22 @@ async function main() {
     // 6d) Dodaj ocene (5-15 random)
     const numGrades = 5 + Math.floor(Math.random() * 11);
     for (let i = 0; i < numGrades; i++) {
-      const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+      const randomSubject =
+        subjects[Math.floor(Math.random() * subjects.length)];
+      if (!randomSubject) continue;
+      
       const gradeDate = new Date();
       gradeDate.setDate(gradeDate.getDate() - Math.floor(Math.random() * 90));
+
+      const categories = ["Kontrolni", "Usmeno", "Domaći", "Pismeni"];
+      const category = categories[Math.floor(Math.random() * 4)] || "Kontrolni";
 
       await prisma.grade.create({
         data: {
           studentId: student.id,
           subjectId: randomSubject.id,
           grade: String(2 + Math.floor(Math.random() * 4)), // 2-5
-          category: ["Kontrolni", "Usmeno", "Domaći", "Pismeni"][Math.floor(Math.random() * 4)],
+          category,
           description: `Ocena iz ${randomSubject.name}`,
           date: gradeDate,
           weight: 1,
@@ -362,7 +398,9 @@ async function main() {
     );
   }
 
-  console.log("\n╔═══════════════════════════════════════════════════════════╗");
+  console.log(
+    "\n╔═══════════════════════════════════════════════════════════╗",
+  );
   console.log("║                                                           ║");
   console.log("║         🎉 MASTER SEED ZAVRŠEN - SVE KREIRANO! 🎉        ║");
   console.log("║                                                           ║");
@@ -384,7 +422,9 @@ async function main() {
   console.log("   👨‍🎓 Učenik:  ucenik@demo.rs / demo123");
   console.log("   👨‍👩‍👧 Roditelj: roditelj@demo.rs / demo123");
   console.log("");
-  console.log(`📊 UKUPNO: ${allStudents.length} učenika sa kompletnim podacima`);
+  console.log(
+    `📊 UKUPNO: ${allStudents.length} učenika sa kompletnim podacima`,
+  );
   console.log(`   • ${subjects.length} predmeta`);
   console.log("   • Domaći zadaci za sve");
   console.log("   • Nedeljni raspored za sve");
@@ -400,4 +440,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

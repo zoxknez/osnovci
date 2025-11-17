@@ -3,19 +3,19 @@
 /**
  * Performance Load Testing Script
  * Tests API endpoints under load
- * 
+ *
  * Usage:
  *   npm run perf:test        - Run performance tests
  */
 
-import http from "http";
-import https from "https";
-import { performance } from "perf_hooks";
+import http from "node:http";
+import https from "node:https";
+import { performance } from "node:perf_hooks";
 
-const BASE_URL = process.env.TEST_URL || "http://localhost:3000";
-const CONCURRENT_REQUESTS = Number.parseInt(process.env.CONCURRENT || "10", 10);
-const TOTAL_REQUESTS = Number.parseInt(process.env.REQUESTS || "100", 10);
-const TIMEOUT = Number.parseInt(process.env.TIMEOUT || "5000", 10);
+const BASE_URL = process.env["TEST_URL"] || "http://localhost:3000";
+const CONCURRENT_REQUESTS = Number.parseInt(process.env["CONCURRENT"] || "10", 10);
+const TOTAL_REQUESTS = Number.parseInt(process.env["REQUESTS"] || "100", 10);
+const TIMEOUT = Number.parseInt(process.env["TIMEOUT"] || "5000", 10);
 
 interface RequestResult {
   url: string;
@@ -53,9 +53,9 @@ function makeRequest(url: string): Promise<RequestResult> {
     const start = performance.now();
 
     const req = lib.get(fullUrl, { timeout: TIMEOUT }, (res) => {
-      let data = "";
+      let _data = "";
       res.on("data", (chunk) => {
-        data += chunk;
+        _data += chunk;
       });
       res.on("end", () => {
         const duration = performance.now() - start;
@@ -99,15 +99,15 @@ function calculateStats(results: RequestResult[]): TestSummary {
 
   const sum = durations.reduce((a, b) => a + b, 0);
   const avg = sum / durations.length;
-  const min = durations[0];
-  const max = durations[durations.length - 1];
+  const min = durations[0] ?? 0;
+  const max = durations[durations.length - 1] ?? 0;
 
-  const p50 = durations[Math.floor(durations.length * 0.5)];
-  const p95 = durations[Math.floor(durations.length * 0.95)];
-  const p99 = durations[Math.floor(durations.length * 0.99)];
+  const p50 = durations[Math.floor(durations.length * 0.5)] ?? 0;
+  const p95 = durations[Math.floor(durations.length * 0.95)] ?? 0;
+  const p99 = durations[Math.floor(durations.length * 0.99)] ?? 0;
 
   const totalDuration = max;
-  const rps = (results.length / totalDuration) * 1000;
+  const rps = totalDuration > 0 ? (results.length / totalDuration) * 1000 : 0;
 
   return {
     totalRequests: results.length,
@@ -124,10 +124,7 @@ function calculateStats(results: RequestResult[]): TestSummary {
 }
 
 // Run load test on endpoint
-async function testEndpoint(
-  name: string,
-  url: string,
-): Promise<TestSummary> {
+async function testEndpoint(name: string, url: string): Promise<TestSummary> {
   console.log(`\n🔥 Load testing: ${name} (${url})`);
   console.log(`  Requests: ${TOTAL_REQUESTS}`);
   console.log(`  Concurrency: ${CONCURRENT_REQUESTS}`);
@@ -159,7 +156,9 @@ async function testEndpoint(
 
   const stats = calculateStats(results);
 
-  console.log(`  ✅ Success: ${stats.successfulRequests}/${stats.totalRequests}`);
+  console.log(
+    `  ✅ Success: ${stats.successfulRequests}/${stats.totalRequests}`,
+  );
   console.log(`  ❌ Failed: ${stats.failedRequests}`);
   console.log(`  ⏱️  Average: ${stats.averageDuration.toFixed(2)}ms`);
   console.log(`  🚀 Min: ${stats.minDuration.toFixed(2)}ms`);
@@ -191,19 +190,25 @@ async function runPerformanceTests() {
     }
 
     // Summary
-    console.log("\n" + "=".repeat(80));
+    console.log(`\n${"=".repeat(80)}`);
     console.log("📊 PERFORMANCE TEST SUMMARY");
     console.log("=".repeat(80));
 
     for (const result of results) {
       console.log(`\n${result.name}:`);
-      console.log(`  Success Rate: ${((result.stats.successfulRequests / result.stats.totalRequests) * 100).toFixed(1)}%`);
-      console.log(`  Avg Response: ${result.stats.averageDuration.toFixed(2)}ms`);
+      console.log(
+        `  Success Rate: ${((result.stats.successfulRequests / result.stats.totalRequests) * 100).toFixed(1)}%`,
+      );
+      console.log(
+        `  Avg Response: ${result.stats.averageDuration.toFixed(2)}ms`,
+      );
       console.log(`  P95: ${result.stats.p95.toFixed(2)}ms`);
-      console.log(`  Throughput: ${result.stats.requestsPerSecond.toFixed(2)} req/s`);
+      console.log(
+        `  Throughput: ${result.stats.requestsPerSecond.toFixed(2)} req/s`,
+      );
     }
 
-    console.log("\n" + "=".repeat(80));
+    console.log(`\n${"=".repeat(80)}`);
     console.log("✅ Performance tests completed!");
   } catch (error) {
     console.error("❌ Performance tests failed:", error);
@@ -217,4 +222,3 @@ if (require.main === module) {
 }
 
 export default runPerformanceTests;
-

@@ -1,12 +1,13 @@
 // Events API - Exams, meetings, trips, competitions (Security Enhanced!)
+
+import type { Prisma } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { AuthenticationError, handleAPIError } from "@/lib/api/handlers/errors";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
-import { handleAPIError, AuthenticationError } from "@/lib/api/handlers/errors";
 
 const createEventSchema = z.object({
   type: z.enum(["EXAM", "MEETING", "TRIP", "COMPETITION", "OTHER"]),
@@ -92,7 +93,9 @@ export async function POST(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     const session = await auth();
@@ -125,13 +128,11 @@ export async function POST(request: NextRequest) {
         studentId: user.student.id,
         type: validated.data.type,
         title: validated.data.title,
-        description: validated.data.description,
+        ...(validated.data.description && { description: validated.data.description }),
         dateTime: new Date(validated.data.dateTime),
-        location: validated.data.location,
-        notes: validated.data.notes,
-        notifyAt: validated.data.notifyAt
-          ? new Date(validated.data.notifyAt)
-          : undefined,
+        ...(validated.data.location && { location: validated.data.location }),
+        ...(validated.data.notes && { notes: validated.data.notes }),
+        ...(validated.data.notifyAt && { notifyAt: new Date(validated.data.notifyAt) }),
       },
     });
 

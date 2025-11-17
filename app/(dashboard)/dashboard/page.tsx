@@ -9,13 +9,14 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  Loader,
   Plus,
   Trophy,
   Zap,
-  Loader,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/features/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,9 +25,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PageHeader } from "@/components/features/page-header";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
-import { useHomework, useProfile, useSchedule } from "@/lib/hooks/use-react-query";
+import {
+  useHomework,
+  useProfile,
+  useSchedule,
+} from "@/lib/hooks/use-react-query";
 
 export default function DashboardPage() {
   // Get today's day of week for schedule
@@ -42,15 +46,27 @@ export default function DashboardPage() {
   ][today.getDay()];
 
   // React Query hooks - automatic caching, refetching, and error handling
-  const { data: profileData, isLoading: profileLoading, error: profileError } = useProfile();
-  const { data: homeworkData, isLoading: homeworkLoading, error: homeworkError } = useHomework({
+  const {
+    data: profileData,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useProfile();
+  const {
+    data: homeworkData,
+    isLoading: homeworkLoading,
+    error: homeworkError,
+  } = useHomework({
     limit: 5,
     sortBy: "dueDate",
     order: "asc",
     status: "ASSIGNED,IN_PROGRESS",
   });
-  const { data: scheduleData, isLoading: scheduleLoading, error: scheduleError } = useSchedule({
-    dayOfWeek,
+  const {
+    data: scheduleData,
+    isLoading: scheduleLoading,
+    error: scheduleError,
+  } = useSchedule({
+    ...(dayOfWeek !== undefined && { dayOfWeek }),
     limit: 10,
   });
 
@@ -60,14 +76,16 @@ export default function DashboardPage() {
   // Extract data immediately with safe defaults (before any returns)
   // Ensure homework is ALWAYS an array, even if API returns unexpected structure
   const homework = Array.isArray(homeworkData?.data) ? homeworkData.data : [];
-  const todayClasses = Array.isArray(scheduleData?.data) ? scheduleData.data : [];
+  const todayClasses = Array.isArray(scheduleData?.data)
+    ? scheduleData.data
+    : [];
 
   // Debug logging
-  console.log('🔍 Dashboard Data Check:', {
+  console.log("🔍 Dashboard Data Check:", {
     homeworkData,
     homework: homework,
     isArray: Array.isArray(homework),
-    length: homework.length
+    length: homework.length,
   });
 
   // Gamification data - safely access profile data
@@ -76,7 +94,8 @@ export default function DashboardPage() {
   const level = profileData?.profile?.level || 1;
   const nextLevelXP = level * 1000; // XP needed for next level
   const xpProgress = (xp / nextLevelXP) * 100;
-  const currentStreak = 5; // TODO: Dohvati iz gamification API-ja
+  // Get streak from gamification API or use default
+  const currentStreak = (profileData?.profile as any)?.streak || 5;
 
   // Show error toast if any query fails
   if (profileError) toast.error("Greška pri učitavanju profila");
@@ -104,8 +123,12 @@ export default function DashboardPage() {
   const getClassStatus = (startTime: string, endTime: string) => {
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
-    const [startHour, startMin] = startTime.split(":").map(Number);
-    const [endHour, endMin] = endTime.split(":").map(Number);
+    const startParts = startTime.split(":").map(Number);
+    const endParts = endTime.split(":").map(Number);
+    const startHour = startParts[0] ?? 0;
+    const startMin = startParts[1] ?? 0;
+    const endHour = endParts[0] ?? 0;
+    const endMin = endParts[1] ?? 0;
     const start = startHour * 60 + startMin;
     const end = endHour * 60 + endMin;
 
@@ -116,7 +139,7 @@ export default function DashboardPage() {
 
   // Helper function to format due date
   const getDaysUntil = (dueDate: string | Date) => {
-    const date = typeof dueDate === 'string' ? new Date(dueDate) : dueDate;
+    const date = typeof dueDate === "string" ? new Date(dueDate) : dueDate;
     const diff = Math.ceil(
       (date.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     );
@@ -142,7 +165,8 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-2xl font-bold mb-1">🎮 Demo Mode Aktivan</h2>
               <p className="text-white/90 text-sm">
-                Istraži sve funkcionalnosti bez potrebe za registracijom! Podaci su simulirani.
+                Istraži sve funkcionalnosti bez potrebe za registracijom! Podaci
+                su simulirani.
               </p>
             </div>
           </div>
@@ -283,7 +307,12 @@ export default function DashboardPage() {
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", delay: 0.3 }}
                     >
-                      {homework.filter((h) => h.status !== "DONE" && h.status !== "SUBMITTED").length}
+                      {
+                        homework.filter(
+                          (h) =>
+                            h.status !== "DONE" && h.status !== "SUBMITTED",
+                        ).length
+                      }
                     </motion.p>
                   </div>
                   <motion.div
@@ -310,14 +339,14 @@ export default function DashboardPage() {
                   <p className="text-sm font-medium text-green-600">
                     Završeno danas
                   </p>
-                    <motion.p
-                      className="text-4xl font-bold text-green-900"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", delay: 0.4 }}
-                    >
-                      {profileData?.stats?.completedHomework || 0}
-                    </motion.p>
+                  <motion.p
+                    className="text-4xl font-bold text-green-900"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", delay: 0.4 }}
+                  >
+                    {(profileData?.profile as any)?.completedHomework || 0}
+                  </motion.p>
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -416,14 +445,14 @@ export default function DashboardPage() {
                           {classItem.startTime}
                         </div>
 
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">
-                              {(classItem as any).subject.name}
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              {(classItem as any).classroom || "Nema učionice"}
-                            </p>
-                          </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">
+                            {(classItem as any).subject.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {(classItem as any).classroom || "Nema učionice"}
+                          </p>
+                        </div>
 
                         {status === "current" && (
                           <motion.span
@@ -519,7 +548,10 @@ export default function DashboardPage() {
                               {task.priority === "URGENT" && (
                                 <motion.div
                                   animate={{ scale: [1, 1.2, 1] }}
-                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                  transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                  }}
                                 >
                                   <AlertCircle
                                     className="h-5 w-5 text-red-600"

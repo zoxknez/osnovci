@@ -15,7 +15,7 @@ interface FetchOptions extends RequestInit {
  */
 export async function fetchApi<T = any>(
   url: string,
-  options: FetchOptions = {}
+  options: FetchOptions = {},
 ): Promise<T> {
   const { showErrorToast = true, errorMessage, ...fetchOptions } = options;
 
@@ -39,8 +39,7 @@ export async function fetchApi<T = any>(
 
     return response.json();
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Nepoznata greška";
+    const message = error instanceof Error ? error.message : "Nepoznata greška";
 
     if (showErrorToast) {
       toast.error("Greška", {
@@ -57,7 +56,7 @@ export async function fetchApi<T = any>(
  */
 export async function apiGet<T = any>(
   url: string,
-  options: Omit<FetchOptions, "method" | "body"> = {}
+  options: Omit<FetchOptions, "method" | "body"> = {},
 ): Promise<T> {
   return fetchApi<T>(url, { ...options, method: "GET" });
 }
@@ -68,12 +67,12 @@ export async function apiGet<T = any>(
 export async function apiPost<T = any>(
   url: string,
   data?: any,
-  options: Omit<FetchOptions, "method" | "body"> = {}
+  options: Omit<FetchOptions, "method" | "body"> = {},
 ): Promise<T> {
   return fetchApi<T>(url, {
     ...options,
     method: "POST",
-    body: data ? JSON.stringify(data) : undefined,
+    ...(data && { body: JSON.stringify(data) }),
   });
 }
 
@@ -83,12 +82,12 @@ export async function apiPost<T = any>(
 export async function apiPut<T = any>(
   url: string,
   data?: any,
-  options: Omit<FetchOptions, "method" | "body"> = {}
+  options: Omit<FetchOptions, "method" | "body"> = {},
 ): Promise<T> {
   return fetchApi<T>(url, {
     ...options,
     method: "PUT",
-    body: data ? JSON.stringify(data) : undefined,
+    ...(data && { body: JSON.stringify(data) }),
   });
 }
 
@@ -98,12 +97,12 @@ export async function apiPut<T = any>(
 export async function apiPatch<T = any>(
   url: string,
   data?: any,
-  options: Omit<FetchOptions, "method" | "body"> = {}
+  options: Omit<FetchOptions, "method" | "body"> = {},
 ): Promise<T> {
   return fetchApi<T>(url, {
     ...options,
     method: "PATCH",
-    body: data ? JSON.stringify(data) : undefined,
+    ...(data && { body: JSON.stringify(data) }),
   });
 }
 
@@ -112,7 +111,7 @@ export async function apiPatch<T = any>(
  */
 export async function apiDelete<T = any>(
   url: string,
-  options: Omit<FetchOptions, "method" | "body"> = {}
+  options: Omit<FetchOptions, "method" | "body"> = {},
 ): Promise<T> {
   return fetchApi<T>(url, {
     ...options,
@@ -126,7 +125,7 @@ export async function apiDelete<T = any>(
 export async function uploadFile(
   url: string,
   file: File,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
 ): Promise<any> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -190,7 +189,7 @@ export async function retryRequest<T>(
     retries?: number;
     delay?: number;
     backoff?: boolean;
-  } = {}
+  } = {},
 ): Promise<T> {
   const { retries = 3, delay = 1000, backoff = true } = options;
 
@@ -203,7 +202,7 @@ export async function retryRequest<T>(
       lastError = error instanceof Error ? error : new Error("Unknown error");
 
       if (i < retries - 1) {
-        const waitTime = backoff ? delay * Math.pow(2, i) : delay;
+        const waitTime = backoff ? delay * 2 ** i : delay;
         await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
@@ -217,7 +216,7 @@ export async function retryRequest<T>(
  */
 export function createCancelableFetch<T>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): {
   promise: Promise<T>;
   cancel: () => void;

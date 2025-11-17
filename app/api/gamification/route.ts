@@ -1,21 +1,21 @@
 // Gamification API - XP, Levels, Achievements (Security Enhanced!)
 import type { Prisma } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { log } from "@/lib/logger";
 import {
-  withAuthAndRateLimit,
-  getAuthenticatedStudent,
-  success,
-  internalError,
   badRequest,
   forbidden,
+  getAuthenticatedStudent,
+  internalError,
+  success,
+  withAuthAndRateLimit,
 } from "@/lib/api/middleware";
+import { prisma } from "@/lib/db/prisma";
 import {
   addXP,
   getXPForNextLevel,
   trackHomeworkCompletion,
 } from "@/lib/gamification/xp-system";
+import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 
 const GAMIFICATION_INCLUDE = {
@@ -49,12 +49,21 @@ function formatGamification(gamification: GamificationWithAchievements | null) {
   };
 }
 
+// Types
+type Session = {
+  user: {
+    id: string;
+    role: string;
+  };
+};
+
+type Context = unknown;
+
 /**
  * GET /api/gamification - Get student's gamification data
  */
-// biome-ignore lint: session type from NextAuth, context from Next.js 15
 export const GET = withAuthAndRateLimit(
-  async (_request: NextRequest, session: any, _context: any) => {
+  async (_request: NextRequest, session: Session, _context: Context) => {
     try {
       const student = await getAuthenticatedStudent(session.user.id);
 
@@ -77,7 +86,7 @@ export const GET = withAuthAndRateLimit(
 /**
  * POST /api/gamification/complete-homework
  * Called when homework is marked as done
- * TODO: Implement when Gamification model is added
+ * Tracks completion and awards XP
  */
 export async function POST(request: NextRequest) {
   try {

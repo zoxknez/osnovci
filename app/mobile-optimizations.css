@@ -1,0 +1,428 @@
+/**
+ * Mobile Performance Optimizations
+ * Modern CSS features for optimal mobile experience
+ */
+
+/* === PERFORMANCE OPTIMIZATIONS === */
+
+/* Contain property for better rendering performance */
+.card-contain,
+.list-contain {
+  contain: layout style paint;
+}
+
+/* Will-change hints for animations (use sparingly) */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Remove will-change after animation */
+.will-change-transform.animation-complete,
+.will-change-opacity.animation-complete {
+  will-change: auto;
+}
+
+/* === CONTAINER QUERIES (Modern CSS) === */
+@supports (container-type: inline-size) {
+  .container-responsive {
+    container-type: inline-size;
+  }
+
+  @container (min-width: 400px) {
+    .container-responsive .mobile-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @container (min-width: 640px) {
+    .container-responsive .mobile-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
+
+/* === ASPECT RATIO (Modern CSS) === */
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-photo {
+  aspect-ratio: 4 / 3;
+}
+
+.aspect-portrait {
+  aspect-ratio: 3 / 4;
+}
+
+/* === SCROLL PERFORMANCE === */
+
+/* Optimize scroll containers */
+.scroll-optimized {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Momentum scrolling for iOS */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Prevent scroll chaining */
+.scroll-contained {
+  overscroll-behavior: contain;
+}
+
+.scroll-none {
+  overscroll-behavior: none;
+}
+
+/* === TOUCH OPTIMIZATIONS === */
+
+/* Prevent double-tap zoom on buttons */
+.touch-no-zoom {
+  touch-action: manipulation;
+}
+
+/* Allow panning but prevent zoom */
+.touch-pan-only {
+  touch-action: pan-x pan-y;
+}
+
+/* Prevent all touch gestures */
+.touch-none {
+  touch-action: none;
+}
+
+/* Better tap feedback */
+.tap-active {
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+  tap-highlight-color: rgba(59, 130, 246, 0.2);
+}
+
+/* === IMAGE OPTIMIZATIONS === */
+
+/* Lazy loading placeholder */
+img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+img[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+/* Responsive images */
+img.responsive {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* === FONT OPTIMIZATIONS === */
+
+/* Font display optimization */
+.font-display-swap {
+  font-display: swap;
+}
+
+.font-display-optional {
+  font-display: optional;
+}
+
+/* Better font rendering on mobile */
+.font-smooth {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* === LAYOUT OPTIMIZATIONS === */
+
+/* Modern Grid with auto-fit */
+.grid-auto-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* Modern Grid with auto-fill */
+.grid-auto-fill {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Flexbox gap fallback */
+.flex-gap {
+  display: flex;
+  gap: 1rem;
+}
+
+/* === MOBILE-SPECIFIC LAYOUTS === */
+
+/* Bottom sheet pattern */
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 90vh;
+  border-radius: 1.5rem 1.5rem 0 0;
+  background: white;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+.bottom-sheet.open {
+  transform: translateY(0);
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .bottom-sheet {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Swipeable card */
+.swipeable-card {
+  touch-action: pan-x;
+  user-select: none;
+}
+
+/* === LOADING STATES === */
+
+/* Skeleton with better performance */
+.skeleton-optimized {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-load 1.5s ease-in-out infinite;
+  will-change: background-position;
+}
+
+@keyframes skeleton-load {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* === VIRTUAL SCROLLING OPTIMIZATION === */
+
+.virtual-list {
+  contain: layout style paint;
+  content-visibility: auto;
+}
+
+.virtual-item {
+  contain-intrinsic-size: 80px;
+}
+
+/* === MEMORY OPTIMIZATIONS === */
+
+/* Reduce paint complexity */
+.simple-paint {
+  will-change: auto;
+  transform: translateZ(0); /* Force GPU acceleration only when needed */
+}
+
+/* === SAFE AREA INSETS (Enhanced) === */
+
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .safe-area-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* === REDUCED MOTION (Enhanced) === */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton-optimized {
+    animation: none;
+    background: #f0f0f0;
+  }
+}
+
+/* === LOW-END DEVICE OPTIMIZATIONS === */
+
+/* Detect low-end devices (heuristic) */
+@media (max-width: 640px) and (max-resolution: 2dppx) {
+  /* Reduce shadows and effects */
+  .card-interactive {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Simplify gradients */
+  .gradient-complex {
+    background: #667eea;
+  }
+
+  /* Reduce backdrop filters */
+  .glass-effect {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* === NETWORK-AWARE STYLES === */
+
+/* Show simplified UI on slow connections (via JS) */
+@media (prefers-reduced-data: reduce) {
+  .data-heavy {
+    display: none;
+  }
+
+  img[loading="lazy"] {
+    content-visibility: auto;
+  }
+}
+
+/* === MODERN LAYOUT FEATURES === */
+
+/* Subgrid support (when available) */
+@supports (display: grid) {
+  .grid-subgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+/* Logical properties for RTL support */
+.margin-logical {
+  margin-inline: 1rem;
+  margin-block: 0.5rem;
+}
+
+.padding-logical {
+  padding-inline: 1rem;
+  padding-block: 0.5rem;
+}
+
+/* === INTERSECTION OBSERVER OPTIMIZATIONS === */
+
+/* Content visibility for lazy rendering */
+.lazy-render {
+  content-visibility: auto;
+  contain-intrinsic-size: 200px;
+}
+
+.lazy-render.loaded {
+  content-visibility: visible;
+}
+
+/* === COLOR SCHEME OPTIMIZATIONS === */
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .skeleton-optimized {
+    background: linear-gradient(
+      90deg,
+      #2a2a2a 25%,
+      #3a3a3a 50%,
+      #2a2a2a 75%
+    );
+  }
+
+  .bottom-sheet {
+    background: #1e1e1e;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* === PWA-SPECIFIC OPTIMIZATIONS === */
+
+/* Standalone mode adjustments */
+@media (display-mode: standalone) {
+  body {
+    /* Remove browser chrome space */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-nav {
+    /* Enhanced bottom nav for PWA */
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* === ACCESSIBILITY OPTIMIZATIONS === */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .card-interactive {
+    border: 2px solid currentColor;
+  }
+
+  button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* === MODERN CSS FEATURES === */
+
+/* Use :has() selector for conditional styling */
+.card:has(.button-primary) {
+  border-color: #667eea;
+}
+
+/* Use :is() for cleaner selectors */
+.button-group :is(button, a) {
+  min-height: 44px;
+}
+
+/* Use :where() for lower specificity */
+.card :where(h1, h2, h3) {
+  margin-top: 0;
+}
+
+/* === PERFORMANCE MONITORING === */
+
+/* Debug paint flashing (remove in production) */
+/* * { outline: 1px solid red !important; } */
+

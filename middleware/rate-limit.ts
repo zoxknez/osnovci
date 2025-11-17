@@ -4,11 +4,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import {
+  apiRateLimit,
   authRateLimit,
+  isRedisConfigured,
   strictRateLimit,
   uploadRateLimit,
-  apiRateLimit,
-  isRedisConfigured,
 } from "@/lib/upstash";
 
 /**
@@ -70,9 +70,31 @@ class RateLimiter {
       if (recentRequests.length === 0) {
         this.requests.delete(key);
       } else {
+        // Update with cleaned requests to save memory
         this.requests.set(key, recentRequests);
       }
     }
+  }
+
+  /**
+   * Get current memory usage (for monitoring)
+   */
+  getMemoryUsage(): { entries: number; totalRequests: number } {
+    let totalRequests = 0;
+    for (const requests of this.requests.values()) {
+      totalRequests += requests.length;
+    }
+    return {
+      entries: this.requests.size,
+      totalRequests,
+    };
+  }
+
+  /**
+   * Clear all entries (for testing/reset)
+   */
+  clear() {
+    this.requests.clear();
   }
 }
 
@@ -113,8 +135,9 @@ function getIdentifier(request: NextRequest): string {
     request.headers.get("x-real-ip") ||
     "unknown";
 
-  // Add user ID if authenticated (from cookie/token)
-  // TODO: Extract from session
+  // User ID tracking would be extracted from session/auth token
+  // Currently using IP-based rate limiting for simplicity
+  // To add user-based limiting, extract userId from auth session here
 
   return ip;
 }
@@ -140,7 +163,12 @@ export function rateLimit(limiter: keyof typeof limiters = "api") {
 
       if (upstashLimiter) {
         try {
-          const { success, limit: maxRequests, remaining, reset } = await upstashLimiter.limit(identifier);
+          const {
+            success,
+            limit: maxRequests,
+            remaining,
+            reset,
+          } = await upstashLimiter.limit(identifier);
 
           if (!success) {
             return NextResponse.json(
@@ -170,7 +198,15 @@ export function rateLimit(limiter: keyof typeof limiters = "api") {
             },
           });
         } catch (error) {
-          console.error("Redis rate limit error, falling back to in-memory:", error);
+          // Silently fail and fall back to in-memory limiter
+          // Log only in development
+          if (process.env.NODE_ENV === "development") {
+            // eslint-disable-next-line no-console
+            console.error(
+              "Redis rate limit error, falling back to in-memory:",
+              error,
+            );
+          }
           // Fall through to in-memory limiter
         }
       }
@@ -237,7 +273,7 @@ export async function checkRateLimit(
     if (upstashLimiter) {
       try {
         const { success } = await upstashLimiter.limit(identifier);
-        
+
         if (!success) {
           return {
             success: false,
@@ -258,7 +294,15 @@ export async function checkRateLimit(
 
         return { success: true };
       } catch (error) {
-        console.error("Redis rate limit error, falling back to in-memory:", error);
+        // Silently fail and fall back to in-memory limiter
+        // Log only in development
+        if (process.env.NODE_ENV === "development") {
+          // eslint-disable-next-line no-console
+          console.error(
+            "Redis rate limit error, falling back to in-memory:",
+            error,
+          );
+        }
         // Fall through to in-memory limiter
       }
     }

@@ -282,4 +282,3 @@ export function sanitizeRequestBody(
 ): Record<string, unknown> {
   return sanitizeFields(body, schema);
 }
-

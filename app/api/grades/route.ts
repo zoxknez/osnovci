@@ -1,16 +1,13 @@
-import { auth } from "@/lib/auth/config";
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { CreateGradeSchema, QueryGradesSchema } from "@/lib/api/schemas/grades";
 import {
-  handleAPIError,
   AuthenticationError,
+  handleAPIError,
   NotFoundError,
 } from "@/lib/api/handlers/errors";
-import {
-  successResponse,
-  createdResponse,
-} from "@/lib/api/handlers/response";
+import { createdResponse, successResponse } from "@/lib/api/handlers/response";
+import { CreateGradeSchema, QueryGradesSchema } from "@/lib/api/schemas/grades";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 
@@ -82,10 +79,10 @@ export async function GET(request: NextRequest) {
     };
 
     if (validatedQuery.subjectId) {
-      where.subjectId = validatedQuery.subjectId;
+      where["subjectId"] = validatedQuery.subjectId;
     }
     if (validatedQuery.category) {
-      where.category = validatedQuery.category;
+      where["category"] = validatedQuery.category;
     }
 
     // Dohvati total broj
@@ -121,9 +118,10 @@ export async function GET(request: NextRequest) {
     const gradeValues = allGradesForStats
       .map((g) => parseFloat(g.grade))
       .filter((n) => !Number.isNaN(n));
-    const average = gradeValues.length > 0 
-      ? gradeValues.reduce((a, b) => a + b, 0) / gradeValues.length 
-      : 0;
+    const average =
+      gradeValues.length > 0
+        ? gradeValues.reduce((a, b) => a + b, 0) / gradeValues.length
+        : 0;
 
     // 2. Count by category
     const byCategory: Record<string, number> = {};
@@ -138,8 +136,9 @@ export async function GET(request: NextRequest) {
         subjectGrades[grade.subjectId] = [];
       }
       const numValue = parseFloat(grade.grade);
-      if (!Number.isNaN(numValue)) {
-        subjectGrades[grade.subjectId].push(numValue);
+      const subjectArray = subjectGrades[grade.subjectId];
+      if (!Number.isNaN(numValue) && subjectArray) {
+        subjectArray.push(numValue);
       }
     });
 
@@ -152,13 +151,16 @@ export async function GET(request: NextRequest) {
 
     const subjectMap = new Map(subjects.map((s) => [s.id, s.name]));
 
-    const bySubject = Object.entries(subjectGrades).map(([subjectId, values]) => ({
-      subject: subjectMap.get(subjectId) || 'Unknown',
-      average: values.length > 0 
-        ? values.reduce((a, b) => a + b, 0) / values.length 
-        : 0,
-      count: values.length,
-    }));
+    const bySubject = Object.entries(subjectGrades).map(
+      ([subjectId, values]) => ({
+        subject: subjectMap.get(subjectId) || "Unknown",
+        average:
+          values.length > 0
+            ? values.reduce((a, b) => a + b, 0) / values.length
+            : 0,
+        count: values.length,
+      }),
+    );
 
     // Format response
     const formatted = grades.map((grade) => ({
@@ -212,7 +214,9 @@ export async function POST(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)
@@ -252,7 +256,7 @@ export async function POST(request: NextRequest) {
         subjectId: validatedData.subjectId,
         grade: validatedData.grade,
         category: validatedData.category,
-        description: validatedData.description,
+        ...(validatedData.description && { description: validatedData.description }),
         date: validatedData.date ? new Date(validatedData.date) : new Date(),
         weight: validatedData.weight,
       },
@@ -266,14 +270,14 @@ export async function POST(request: NextRequest) {
     log.info("Created grade", {
       userId: session.user.id,
       gradeId: grade.id,
-      subject: grade.subject.name,
+      subject: grade.subject?.name,
       grade: grade.grade,
     });
 
     return createdResponse(
       {
         id: grade.id,
-        subject: grade.subject,
+        subject: grade.subject!,
         grade: grade.grade,
         category: grade.category,
         description: grade.description,

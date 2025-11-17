@@ -6,9 +6,11 @@ export default function PrivatnostPage() {
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
             🔒 Politika privatnosti
           </h1>
-          
+
           <div className="prose dark:prose-invert max-w-none">
-            <h2 className="text-2xl font-semibold mt-6 mb-4">1. Koje podatke prikupljamo</h2>
+            <h2 className="text-2xl font-semibold mt-6 mb-4">
+              1. Koje podatke prikupljamo
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               Prikupljamo sledeće podatke:
             </p>
@@ -19,7 +21,9 @@ export default function PrivatnostPage() {
               <li>Slike domaćih zadataka (opciono)</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold mt-6 mb-4">2. Kako koristimo vaše podatke</h2>
+            <h2 className="text-2xl font-semibold mt-6 mb-4">
+              2. Kako koristimo vaše podatke
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               Vaši podaci se koriste isključivo za:
             </p>
@@ -29,7 +33,9 @@ export default function PrivatnostPage() {
               <li>Poboljšanje korisničkog iskustva</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold mt-6 mb-4">3. Bezbednost podataka</h2>
+            <h2 className="text-2xl font-semibold mt-6 mb-4">
+              3. Bezbednost podataka
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
               Vaši podaci su zaštićeni:
             </p>
@@ -40,9 +46,12 @@ export default function PrivatnostPage() {
               <li>Content filtering-om za decu</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold mt-6 mb-4">4. Deljenje podataka</h2>
+            <h2 className="text-2xl font-semibold mt-6 mb-4">
+              4. Deljenje podataka
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Vaši podaci NIKADA neće biti prodati ili deljeni sa trećim stranama bez vaše saglasnosti.
+              Vaši podaci NIKADA neće biti prodati ili deljeni sa trećim
+              stranama bez vaše saglasnosti.
             </p>
 
             <h2 className="text-2xl font-semibold mt-6 mb-4">5. Vaša prava</h2>
@@ -57,7 +66,13 @@ export default function PrivatnostPage() {
 
             <h2 className="text-2xl font-semibold mt-6 mb-4">6. Kontakt</h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Za pitanja o privatnosti kontaktirajte: <a href="mailto:privacy@osnovci.rs" className="text-blue-600 hover:underline">privacy@osnovci.rs</a>
+              Za pitanja o privatnosti kontaktirajte:{" "}
+              <a
+                href="mailto:privacy@osnovci.rs"
+                className="text-blue-600 hover:underline"
+              >
+                privacy@osnovci.rs
+              </a>
             </p>
 
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-8">
@@ -76,4 +91,3 @@ export default function PrivatnostPage() {
     </div>
   );
 }
-

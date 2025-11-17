@@ -6,27 +6,40 @@ export default function UsloviPage() {
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
             📜 Uslovi korišćenja
           </h1>
-          
+
           <div className="prose dark:prose-invert max-w-none">
-            <h2 className="text-2xl font-semibold mt-6 mb-4">1. Prihvatanje uslova</h2>
+            <h2 className="text-2xl font-semibold mt-6 mb-4">
+              1. Prihvatanje uslova
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Korišćenjem aplikacije Osnovci prihvatate sledeće uslove korišćenja.
+              Korišćenjem aplikacije Osnovci prihvatate sledeće uslove
+              korišćenja.
             </p>
 
-            <h2 className="text-2xl font-semibold mt-6 mb-4">2. Upotreba aplikacije</h2>
+            <h2 className="text-2xl font-semibold mt-6 mb-4">
+              2. Upotreba aplikacije
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Aplikacija je namenjena učenicima osnovnih škola i njihovim roditeljima za praćenje školskih obaveza.
+              Aplikacija je namenjena učenicima osnovnih škola i njihovim
+              roditeljima za praćenje školskih obaveza.
             </p>
 
-            <h2 className="text-2xl font-semibold mt-6 mb-4">3. Korisnički nalog</h2>
+            <h2 className="text-2xl font-semibold mt-6 mb-4">
+              3. Korisnički nalog
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Korisnici su odgovorni za čuvanje svojih pristupnih podataka i sve aktivnosti na svom nalogu.
+              Korisnici su odgovorni za čuvanje svojih pristupnih podataka i sve
+              aktivnosti na svom nalogu.
             </p>
 
             <h2 className="text-2xl font-semibold mt-6 mb-4">4. Privatnost</h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Vaši podaci se čuvaju sigurno i neće biti deljeni sa trećim stranama. 
-              Pogledajte našu <a href="/privatnost" className="text-blue-600 hover:underline">politiku privatnosti</a>.
+              Vaši podaci se čuvaju sigurno i neće biti deljeni sa trećim
+              stranama. Pogledajte našu{" "}
+              <a href="/privatnost" className="text-blue-600 hover:underline">
+                politiku privatnosti
+              </a>
+              .
             </p>
 
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-8">
@@ -45,4 +58,3 @@ export default function UsloviPage() {
     </div>
   );
 }
-

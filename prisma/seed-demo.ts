@@ -83,7 +83,8 @@ async function main() {
     const hashedPassword = await bcrypt.hash(account.password, 10);
 
     // Use fixed ID for first account (Marko) for demo mode
-    const userId = account.email === "marko@demo.rs" ? "demo-student-id" : undefined;
+    const userId =
+      account.email === "marko@demo.rs" ? "demo-student-id" : undefined;
 
     const created = await prisma.user.create({
       data: {

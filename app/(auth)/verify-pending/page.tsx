@@ -1,19 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { apiPost } from '@/lib/utils/api';
+import Link from "next/link";
+import { useState } from "react";
+import { apiPost } from "@/lib/utils/api";
 
 export default function VerifyPendingPage() {
   const [isResending, setIsResending] = useState(false);
-  const [resendStatus, setResendStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [resendMessage, setResendMessage] = useState('');
+  const [resendStatus, setResendStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+  const [resendMessage, setResendMessage] = useState("");
 
   // Get email from URL params
   const getEmail = () => {
-    if (typeof window === 'undefined') return '';
+    if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
-    return params.get('email') || '';
+    return params.get("email") || "";
   };
 
   const email = getEmail();
@@ -22,16 +24,16 @@ export default function VerifyPendingPage() {
     if (!email) return;
 
     setIsResending(true);
-    setResendStatus('idle');
+    setResendStatus("idle");
 
     try {
-      await apiPost('/api/auth/verify-email', { email });
-      setResendStatus('success');
-      setResendMessage('✅ Email je ponovo poslat! Provjeri svoju poštu.');
-    } catch (error) {
+      await apiPost("/api/auth/verify-email", { email });
+      setResendStatus("success");
+      setResendMessage("✅ Email je ponovo poslat! Provjeri svoju poštu.");
+    } catch (_error) {
       // Obrada greške pri slanju
-      setResendStatus('error');
-      setResendMessage('❌ Greška pri slanju emaila. Pokušaj ponovo.');
+      setResendStatus("error");
+      setResendMessage("❌ Greška pri slanju emaila. Pokušaj ponovo.");
     } finally {
       setIsResending(false);
     }
@@ -61,27 +63,27 @@ export default function VerifyPendingPage() {
         <p className="text-gray-600 mb-6">
           Poslali smo link za verifikaciju na:
           <br />
-          <span className="font-semibold text-blue-600 break-all">{email || 'tvoj email'}</span>
+          <span className="font-semibold text-blue-600 break-all">
+            {email || "tvoj email"}
+          </span>
         </p>
 
         {/* Instructions */}
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 text-left">
           <p className="text-sm text-gray-700">
             ✅ Klikni na link u email-u da verificiraš nalog.
-            <br />
-            ✅ Link istekava za 24 sata.
-            <br />
-            ✅ Provjeri spam folder ako ne vidis email.
+            <br />✅ Link istekava za 24 sata.
+            <br />✅ Provjeri spam folder ako ne vidis email.
           </p>
         </div>
 
         {/* Resend Status Messages */}
-        {resendStatus === 'success' && (
+        {resendStatus === "success" && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
             {resendMessage}
           </div>
         )}
-        {resendStatus === 'error' && (
+        {resendStatus === "error" && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {resendMessage}
           </div>
@@ -94,11 +96,11 @@ export default function VerifyPendingPage() {
           type="button"
           className={`w-full py-3 px-4 rounded-lg font-semibold mb-3 transition-all ${
             isResending || !email
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-500 hover:bg-blue-600 text-white'
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600 text-white"
           }`}
         >
-          {isResending ? '⏳ Slanje...' : '🔄 Ponovo pošalji email'}
+          {isResending ? "⏳ Slanje..." : "🔄 Ponovo pošalji email"}
         </button>
 
         {/* Divider */}

@@ -1,8 +1,6 @@
 // Interactive Onboarding Tutorial - First-time User Experience
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useId } from "react";
-import type { ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -13,6 +11,8 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -20,8 +20,8 @@ interface TutorialStep {
   id: number;
   title: string;
   description: string;
-  icon?: ReactNode;     // sad je opciono i zaista se koristi
-  emoji?: string;       // fallback ako nema ikone
+  icon?: ReactNode; // sad je opciono i zaista se koristi
+  emoji?: string; // fallback ako nema ikone
   tip?: string;
 }
 
@@ -87,6 +87,11 @@ export function OnboardingTutorial({
   const step = tutorialSteps[currentStep];
   const isLastStep = currentStep === tutorialSteps.length - 1;
 
+  // Guard against undefined step
+  if (!step) {
+    return null;
+  }
+
   // a11y (modal)
   const dialogTitleId = useId();
   const dialogDescId = useId();
@@ -101,9 +106,11 @@ export function OnboardingTutorial({
       if (!overlayRef.current) return [] as HTMLElement[];
       return Array.from(
         overlayRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-      ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter(
+        (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"),
+      );
     };
 
     // init focus
@@ -118,14 +125,14 @@ export function OnboardingTutorial({
       const last = f[f.length - 1];
 
       if (e.shiftKey) {
-        if (document.activeElement === first) {
+        if (first && document.activeElement === first) {
           e.preventDefault();
-          last.focus();
+          last?.focus();
         }
       } else {
-        if (document.activeElement === last) {
+        if (last && document.activeElement === last) {
           e.preventDefault();
-          first.focus();
+          first?.focus();
         }
       }
     };
@@ -141,43 +148,6 @@ export function OnboardingTutorial({
       if (previouslyFocused.current) previouslyFocused.current.focus();
     };
   }, []);
-
-  // Keyboard navigation (samo unutar modala)
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === "ArrowRight" && !isLastStep) {
-        e.preventDefault();
-        handleNext();
-      } else if (e.key === "ArrowLeft" && currentStep > 0) {
-        e.preventDefault();
-        handlePrev();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        handleSkip();
-      } else if (e.key === "Enter" && isLastStep) {
-        e.preventDefault();
-        onComplete();
-      }
-    },
-    [currentStep, isLastStep, onComplete]
-  );
-
-  // Swipe gestures (mobile)
-  const touchStartX = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    const THRESHOLD = 60;
-    if (dx > THRESHOLD) {
-      handlePrev();
-    } else if (dx < -THRESHOLD) {
-      handleNext();
-    }
-    touchStartX.current = null;
-  };
 
   const handleNext = useCallback(() => {
     if (isLastStep) {
@@ -202,6 +172,46 @@ export function OnboardingTutorial({
     if (onSkip) onSkip();
     else onComplete();
   }, [onSkip, onComplete]);
+
+  // Keyboard navigation (samo unutar modala)
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "ArrowRight" && !isLastStep) {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === "ArrowLeft" && currentStep > 0) {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        handleSkip();
+      } else if (e.key === "Enter" && isLastStep) {
+        e.preventDefault();
+        onComplete();
+      }
+    },
+    [currentStep, isLastStep, onComplete, handleNext, handlePrev, handleSkip],
+  );
+
+  // Swipe gestures (mobile)
+  const touchStartX = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (touch) touchStartX.current = touch.clientX;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    const dx = touch.clientX - touchStartX.current;
+    const THRESHOLD = 60;
+    if (dx > THRESHOLD) {
+      handlePrev();
+    } else if (dx < -THRESHOLD) {
+      handleNext();
+    }
+    touchStartX.current = null;
+  };
 
   const variants = {
     enter: (dir: number) => ({
@@ -249,7 +259,7 @@ export function OnboardingTutorial({
               <div className="flex gap-1 mb-2" aria-hidden="true">
                 {tutorialSteps.map((_, index) => (
                   <motion.div
-                    key={`step-${index}`}
+                    key={`step-indicator-${index}`}
                     className={`h-1.5 flex-1 rounded-full ${
                       index <= currentStep ? "bg-blue-600" : "bg-gray-200"
                     }`}
@@ -262,7 +272,10 @@ export function OnboardingTutorial({
                   />
                 ))}
               </div>
-              <p className="text-xs text-gray-600 text-center" id={dialogDescId}>
+              <p
+                className="text-xs text-gray-600 text-center"
+                id={dialogDescId}
+              >
                 Korak {currentStep + 1} od {tutorialSteps.length}
               </p>
             </div>
@@ -287,9 +300,15 @@ export function OnboardingTutorial({
                 >
                   {/* Icon / Emoji */}
                   <motion.div
-                    initial={{ scale: prefersReducedMotion ? 1 : 0, rotate: prefersReducedMotion ? 0 : -180 }}
+                    initial={{
+                      scale: prefersReducedMotion ? 1 : 0,
+                      rotate: prefersReducedMotion ? 0 : -180,
+                    }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: prefersReducedMotion ? 0 : 0.2, type: "spring" }}
+                    transition={{
+                      delay: prefersReducedMotion ? 0 : 0.2,
+                      type: "spring",
+                    }}
                     className="mb-6 h-24 w-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center shadow-lg"
                     aria-hidden="true"
                   >
@@ -324,12 +343,17 @@ export function OnboardingTutorial({
                   {/* Tip */}
                   {step.tip && (
                     <motion.div
-                      initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.9 }}
+                      initial={{
+                        opacity: 0,
+                        scale: prefersReducedMotion ? 1 : 0.9,
+                      }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
                       className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-md"
                     >
-                      <p className="text-sm text-blue-800 font-medium">💡 {step.tip}</p>
+                      <p className="text-sm text-blue-800 font-medium">
+                        💡 {step.tip}
+                      </p>
                     </motion.div>
                   )}
                 </motion.div>
@@ -370,7 +394,8 @@ export function OnboardingTutorial({
 
             {/* Keyboard hints */}
             <p className="text-xs text-gray-500 text-center mt-4">
-              Koristi tastere ← → za navigaciju, Esc za preskok. Prevuci levo/desno na mobilnom.
+              Koristi tastere ← → za navigaciju, Esc za preskok. Prevuci
+              levo/desno na mobilnom.
             </p>
           </CardContent>
         </Card>

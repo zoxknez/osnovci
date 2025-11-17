@@ -13,10 +13,7 @@ export const idSchema = z
   .string()
   .min(1)
   .max(100)
-  .regex(
-    /^[a-zA-Z0-9_-]+$/,
-    "ID mora sadržati samo alfanumeričke karaktere",
-  );
+  .regex(/^[a-zA-Z0-9_-]+$/, "ID mora sadržati samo alfanumeričke karaktere");
 
 /**
  * Safe Integer - u granicama Number.MAX_SAFE_INTEGER
@@ -138,7 +135,9 @@ export const fileNameSchema = z
   .refine(
     (name) => {
       // Prevent path traversal
-      return !name.includes("..") && !name.includes("/") && !name.includes("\\");
+      return (
+        !name.includes("..") && !name.includes("/") && !name.includes("\\")
+      );
     },
     {
       message: "Ime fajla ne sme sadržati .. ili / ili \\",
@@ -179,4 +178,3 @@ export function sanitizeSearchQuery(query: string): string {
     .trim()
     .slice(0, 200); // Limit length
 }
-

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Filter } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Filter, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface FilterGradesModalProps {
@@ -132,7 +132,10 @@ export function FilterGradesModal({
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Filter className="h-6 w-6 text-purple-600" />
-                <h2 id="filter-modal-title" className="text-2xl font-bold text-gray-900">
+                <h2
+                  id="filter-modal-title"
+                  className="text-2xl font-bold text-gray-900"
+                >
                   Filteri za ocene
                 </h2>
               </div>
@@ -160,9 +163,13 @@ export function FilterGradesModal({
                   id="subject-filter"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   value={filters.subjectId || ""}
-                  onChange={(e) =>
-                    setFilters({ ...filters, subjectId: e.target.value || undefined })
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFilters({
+                      ...filters,
+                      ...(value && { subjectId: value }),
+                    });
+                  }}
                   disabled={loading}
                 >
                   <option value="">Svi predmeti</option>
@@ -186,9 +193,13 @@ export function FilterGradesModal({
                   id="category-filter"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   value={filters.category || ""}
-                  onChange={(e) =>
-                    setFilters({ ...filters, category: e.target.value || undefined })
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFilters({
+                      ...filters,
+                      ...(value && { category: value }),
+                    });
+                  }}
                 >
                   <option value="">Sve kategorije</option>
                   {CATEGORIES.map((cat) => (
@@ -211,9 +222,13 @@ export function FilterGradesModal({
                   id="period-filter"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   value={filters.period || ""}
-                  onChange={(e) =>
-                    setFilters({ ...filters, period: e.target.value || undefined })
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFilters({
+                      ...filters,
+                      ...(value && { period: value }),
+                    });
+                  }}
                 >
                   <option value="">Ceo period</option>
                   {PERIODS.map((period) => (
@@ -244,4 +259,3 @@ export function FilterGradesModal({
     </AnimatePresence>
   );
 }
-

@@ -1,24 +1,33 @@
 // Child Approval API - Step 2 of Stranger Danger Protection (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
 import {
+  getAuthenticatedStudent,
+  internalError,
+  success,
+  withAuthAndRateLimit,
+} from "@/lib/api/middleware";
+import {
   childApproves,
   sendGuardianVerificationEmail,
 } from "@/lib/auth/stranger-danger";
-import {
-  withAuthAndRateLimit,
-  getAuthenticatedStudent,
-  success,
-  internalError,
-} from "@/lib/api/middleware";
 import { csrfMiddleware } from "@/lib/security/csrf";
+
+// Types
+type Session = {
+  user: {
+    id: string;
+    role: string;
+  };
+};
+
+type Context = unknown;
 
 /**
  * POST /api/link/child-approve
  * Child confirms: "Da, ovo je moj roditelj"
  */
-// biome-ignore lint: session type from NextAuth, context from Next.js 15
 export const POST = withAuthAndRateLimit(
-  async (request: NextRequest, session: any, _context: any) => {
+  async (request: NextRequest, session: Session, _context: Context) => {
     try {
       // CSRF Protection
       const csrfResult = await csrfMiddleware(request);

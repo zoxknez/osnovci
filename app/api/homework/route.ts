@@ -1,22 +1,26 @@
-import { auth } from "@/lib/auth/config";
-import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import type { NextRequest } from "next/server";
+import {
+  AuthenticationError,
+  handleAPIError,
+  NotFoundError,
+} from "@/lib/api/handlers/errors";
+import {
+  createdResponse,
+  paginatedResponse,
+} from "@/lib/api/handlers/response";
 import {
   CreateHomeworkSchema,
   QueryHomeworkSchema,
 } from "@/lib/api/schemas/homework";
-import {
-  handleAPIError,
-  AuthenticationError,
-  NotFoundError,
-} from "@/lib/api/handlers/errors";
-import {
-  paginatedResponse,
-  createdResponse,
-} from "@/lib/api/handlers/response";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
-import { rateLimit, RateLimitPresets, addRateLimitHeaders } from "@/lib/security/rate-limit";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
 
 /**
  * GET /api/homework
@@ -33,15 +37,18 @@ export async function GET(request: NextRequest) {
     if (!rateLimitResult.success) {
       const headers = new Headers();
       addRateLimitHeaders(headers, rateLimitResult);
-      
+
       return new Response(
-        JSON.stringify({ 
-          error: "Too Many Requests", 
-          message: "Previše zahteva. Pokušaj ponovo za par minuta." 
+        JSON.stringify({
+          error: "Too Many Requests",
+          message: "Previše zahteva. Pokušaj ponovo za par minuta.",
         }),
-        { 
-          status: 429, 
-          headers: { ...Object.fromEntries(headers), "Content-Type": "application/json" } 
+        {
+          status: 429,
+          headers: {
+            ...Object.fromEntries(headers),
+            "Content-Type": "application/json",
+          },
         },
       );
     }
@@ -108,12 +115,12 @@ export async function GET(request: NextRequest) {
 
     if (validatedQuery.status) {
       // Ako je array, koristi 'in' operator
-      where.status = Array.isArray(validatedQuery.status)
+      where["status"] = Array.isArray(validatedQuery.status)
         ? { in: validatedQuery.status }
         : validatedQuery.status;
     }
     if (validatedQuery.priority) {
-      where.priority = validatedQuery.priority;
+      where["priority"] = validatedQuery.priority;
     }
 
     // Dohvati total broj
@@ -151,14 +158,18 @@ export async function GET(request: NextRequest) {
       updatedAt: hw.updatedAt,
     }));
 
+    // Validate output (catch any unexpected data structure)
+    const { HomeworkListResponseSchema } = await import('@/lib/api/schemas/response-validation');
+    const validated = HomeworkListResponseSchema.parse(formatted);
+
     log.info("Fetched homework", {
       userId: session.user.id,
-      count: formatted.length,
+      count: validated.length,
       total,
     });
 
     return paginatedResponse(
-      formatted,
+      validated,
       validatedQuery.page,
       validatedQuery.limit,
       total,
@@ -184,15 +195,18 @@ export async function POST(request: NextRequest) {
     if (!rateLimitResult.success) {
       const headers = new Headers();
       addRateLimitHeaders(headers, rateLimitResult);
-      
+
       return new Response(
-        JSON.stringify({ 
-          error: "Too Many Requests", 
-          message: "Previše zahteva. Pokušaj ponovo za par minuta." 
+        JSON.stringify({
+          error: "Too Many Requests",
+          message: "Previše zahteva. Pokušaj ponovo za par minuta.",
         }),
-        { 
-          status: 429, 
-          headers: { ...Object.fromEntries(headers), "Content-Type": "application/json" } 
+        {
+          status: 429,
+          headers: {
+            ...Object.fromEntries(headers),
+            "Content-Type": "application/json",
+          },
         },
       );
     }
@@ -200,7 +214,9 @@ export async function POST(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)
@@ -237,7 +253,7 @@ export async function POST(request: NextRequest) {
     const homework = await prisma.homework.create({
       data: {
         title: validatedData.title,
-        description: validatedData.description,
+        ...(validatedData.description && { description: validatedData.description }),
         studentId: student.id,
         subjectId: validatedData.subjectId,
         dueDate: new Date(validatedData.dueDate),
@@ -262,7 +278,7 @@ export async function POST(request: NextRequest) {
         id: homework.id,
         title: homework.title,
         description: homework.description,
-        subject: homework.subject,
+        subject: homework.subject!,
         dueDate: homework.dueDate,
         priority: homework.priority,
         status: homework.status,

@@ -1,10 +1,11 @@
 // Parental Consent API - COPPA/GDPR Compliance (Security Enhanced!)
-import { type NextRequest, NextResponse } from "next/server";
+
 import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
-import { idSchema, emailSchema } from "@/lib/security/validators";
+import { emailSchema, idSchema } from "@/lib/security/validators";
 
 /**
  * POST /api/parental-consent/request
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // Enhanced validation
     const studentId = idSchema.parse(body.studentId);
     const guardianEmail = emailSchema.parse(body.guardianEmail);
@@ -53,8 +54,20 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send verification email to parent
-    // await sendParentalConsentEmail(guardianEmail, verificationCode);
+    // Send parental consent email
+    const { sendParentalConsentEmail } = await import("@/lib/email/templates");
+
+    // Get student name for email
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { name: true },
+    });
+
+    await sendParentalConsentEmail(
+      guardianEmail,
+      verificationCode,
+      student?.name || "Student",
+    );
 
     log.info("Parental consent requested", {
       studentId,

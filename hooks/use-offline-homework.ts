@@ -34,7 +34,7 @@ export function useOfflineHomework() {
       id: item.id,
       title: item.title,
       subjectId: item.subjectId,
-      description: item.description || undefined,
+      ...(item.description && { description: item.description }),
       dueDate: new Date(item.dueDate),
       priority: item.priority,
       status: item.status as OfflineHomeworkStatus,
@@ -51,8 +51,8 @@ export function useOfflineHomework() {
       const mapped = items.map(mapStoredToOffline);
       setOfflineItems(mapped);
       setPendingCount(mapped.filter((item) => !item.synced).length);
-    } catch (error) {
-      console.error("Failed to load offline items:", error);
+    } catch {
+      // Failed to load offline items
     }
   }, [mapStoredToOffline, setPendingCount]);
 
@@ -72,7 +72,7 @@ export function useOfflineHomework() {
           studentId: item.studentId ?? "offline-student",
           subjectId: item.subjectId,
           title: item.title,
-          description: item.description,
+          ...(item.description && { description: item.description }),
           dueDate: item.dueDate.toISOString(),
           priority: item.priority,
           status: item.status,
@@ -87,10 +87,10 @@ export function useOfflineHomework() {
         });
 
         return item;
-      } catch (error) {
-        console.error("Failed to save offline:", error);
+      } catch {
+        // Failed to save offline
         toast.error("Greška pri čuvanju offline");
-        throw error;
+        throw new Error("Failed to save offline");
       }
     },
     [loadOfflineItems],
@@ -124,7 +124,7 @@ export function useOfflineHomework() {
             description: item.description,
             dueDate: item.dueDate.toISOString(),
             priority: item.priority,
-            // subjectId: item.subject, // TODO: Map subject name to ID
+            subjectId: item.subjectId, // Already stored as ID in offline storage
           }),
         });
 
@@ -135,8 +135,8 @@ export function useOfflineHomework() {
         } else {
           failed++;
         }
-      } catch (error) {
-        console.error("Failed to sync item:", item.id, error);
+      } catch {
+        // Failed to sync item
         failed++;
       }
     }
@@ -158,8 +158,8 @@ export function useOfflineHomework() {
         await offlineStorage.deleteHomework(id);
         await loadOfflineItems();
         toast.success("Offline zadatak obrisan");
-      } catch (error) {
-        console.error("Failed to delete offline item:", error);
+      } catch {
+        // Failed to delete offline item
         toast.error("Greška pri brisanju");
       }
     },

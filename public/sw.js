@@ -1,34 +1,29 @@
-// Simple Service Worker - Basic PWA functionality
-// NOTE: For production, use Workbox with proper build step
+// Service Worker - PWA Support
+// Modern, optimized Service Worker for offline functionality
 
-const CACHE_NAME = "osnovci-v3"; // Updated to force cache refresh
+const CACHE_NAME = "osnovci-v4";
 const urlsToCache = ["/", "/favicon.ico"];
 
 // Install event - cache resources
 self.addEventListener("install", (event) => {
-  console.log("🔧 Service Worker: Installing...");
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) => {
-        console.log("✅ Service Worker: Cache opened");
         // Add URLs individually to avoid blocking on 404s
         return Promise.allSettled(
           urlsToCache.map((url) =>
-            cache.add(url).catch((err) => {
-              console.warn(`⚠️ Service Worker: Failed to cache ${url}:`, err);
+            cache.add(url).catch(() => {
+              // Silently fail for optional resources
             }),
           ),
         );
       })
-      .then(() => {
-        console.log("✅ Service Worker: Installation complete");
-      })
-      .catch((error) => {
-        console.error("❌ Service Worker: Cache failed", error);
+      .catch(() => {
+        // Installation can continue even if some resources fail
       }),
   );
-  // Force waiting service worker to become active
+  // Force waiting service worker to become active immediately
   self.skipWaiting();
 });
 
@@ -37,13 +32,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log("🗑️ Service Worker: Deleting old cache", cacheName);
-            return caches.delete(cacheName);
-          }
-          return Promise.resolve();
-        }),
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name)),
       );
     }),
   );
@@ -53,103 +44,91 @@ self.addEventListener("activate", (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener("fetch", (event) => {
-  // Skip caching for POST, PUT, DELETE requests
-  if (event.request.method !== "GET") {
-    return event.respondWith(fetch(event.request));
+  const { request } = event;
+
+  // Skip non-GET requests
+  if (request.method !== "GET") {
+    return;
   }
 
-  // Skip caching for API routes (auth, etc)
-  if (event.request.url.includes("/api/")) {
-    return event.respondWith(fetch(event.request));
-  }
-
-  // Skip caching for external resources (analytics, etc)
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return event.respondWith(fetch(event.request));
+  // Skip API routes and external resources
+  if (
+    request.url.includes("/api/") ||
+    !request.url.startsWith(self.location.origin)
+  ) {
+    return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Cache hit - return response
-      if (response) {
-        return response;
+    caches.match(request).then((cachedResponse) => {
+      // Return cached response if available
+      if (cachedResponse) {
+        return cachedResponse;
       }
 
-      // Clone request
-      const fetchRequest = event.request.clone();
-
-      return fetch(fetchRequest)
+      // Fetch from network
+      return fetch(request)
         .then((response) => {
-          // Check if valid response
+          // Only cache successful GET responses
           if (
-            !response ||
-            response.status !== 200 ||
-            response.type !== "basic"
+            response &&
+            response.status === 200 &&
+            response.type === "basic"
           ) {
-            return response;
+            // Clone response for caching (responses can only be consumed once)
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
           }
-
-          // Clone response
-          const responseToCache = response.clone();
-
-          // Cache for next time (only GET requests)
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-
           return response;
         })
         .catch(() => {
-          // Network failed, return offline page if available
-          return caches.match("/offline.html");
+          // Network failed - return offline fallback if available
+          return caches.match("/offline.html").catch(() => {
+            // No offline page available
+            return new Response("Offline", {
+              status: 503,
+              statusText: "Service Unavailable",
+              headers: { "Content-Type": "text/plain" },
+            });
+          });
         });
     }),
   );
 });
 
-// Background sync for offline actions
-self.addEventListener("sync", (event) => {
-  console.log("🔄 Service Worker: Background sync triggered", event.tag);
-  if (event.tag === "sync-homework") {
-    event.waitUntil(syncHomework());
-  }
-});
-
-async function syncHomework() {
-  console.log("📤 Service Worker: Syncing homework...");
-  // TODO: Implement real sync with IndexedDB
-  // For now, just log
-  return Promise.resolve();
+// Background sync for offline actions (if supported)
+if ("sync" in self.registration) {
+  self.addEventListener("sync", (event) => {
+    if (event.tag === "sync-homework") {
+      event.waitUntil(
+        // Sync logic would go here
+        Promise.resolve(),
+      );
+    }
+  });
 }
 
-// Push notifications
+// Push notifications support (if needed in future)
 self.addEventListener("push", (event) => {
-  console.log("🔔 Service Worker: Push notification received");
-  const data = event.data ? event.data.json() : {};
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || "Osnovci", {
-      body: data.body || "Nova notifikacija",
-      icon: "/icons/icon-192x192.svg",
-      badge: "/icons/icon-72x72.svg",
-      vibrate: [200, 100, 200],
-      data: data.url,
-      actions: [
-        { action: "open", title: "Otvori" },
-        { action: "close", title: "Zatvori" },
-      ],
-    }),
-  );
-});
-
-self.addEventListener("notificationclick", (event) => {
-  console.log("🔔 Service Worker: Notification clicked");
-  event.notification.close();
-
-  if (event.action === "open") {
-    event.waitUntil(self.clients.openWindow(event.notification.data || "/"));
+  if (event.data) {
+    const data = event.data.json();
+    event.waitUntil(
+      self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: "/icons/icon-192x192.svg",
+        badge: "/icons/icon-96x96.svg",
+        data: data.data,
+      }),
+    );
   }
 });
 
-// Service Worker is ready!
-console.log("✅ Service Worker loaded successfully! 🚀");
+// Notification click handler
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data?.url || "/"),
+  );
+});

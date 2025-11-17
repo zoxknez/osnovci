@@ -2,13 +2,13 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader } from "lucide-react";
 import { PageHeader } from "@/components/features/page-header";
-import { ProfileHeader } from "@/components/features/profile/profile-header";
-import { PrivacyNotice } from "@/components/features/profile/privacy-notice";
 import { LastUpdatedNotice } from "@/components/features/profile/last-updated";
+import { PrivacyNotice } from "@/components/features/profile/privacy-notice";
+import { ProfileHeader } from "@/components/features/profile/profile-header";
 import {
   ActivitiesSection,
   BasicInfoSection,
@@ -69,9 +69,9 @@ export default function ProfilPage() {
       try {
         setLoading(true);
         const data = await apiGet("/api/profile", { showErrorToast: false });
-        
+
         // Map API data to profile format
-        if (data && data.profile) {
+        if (data?.profile) {
           setProfile({
             ...DEFAULT_PROFILE,
             name: data.profile.name || "",

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useId } from "react";
 import {
   Activity,
   AlertCircle,
@@ -19,6 +18,7 @@ import {
   Users,
   Weight,
 } from "lucide-react";
+import { useId } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { staggerItem } from "@/lib/animations/variants";
@@ -58,12 +58,14 @@ export function BasicInfoSection({
           <InfoField
             label="Datum rođenja"
             value={
-              profile.birthDate && !isNaN(new Date(profile.birthDate).getTime())
-                ? new Date(profile.birthDate).toISOString().split("T")[0]
+              profile.birthDate &&
+              !Number.isNaN(new Date(profile.birthDate).getTime())
+                ? (new Date(profile.birthDate).toISOString().split("T")[0] ?? "")
                 : ""
             }
             displayValue={
-              profile.birthDate && !isNaN(new Date(profile.birthDate).getTime())
+              profile.birthDate &&
+              !Number.isNaN(new Date(profile.birthDate).getTime())
                 ? `${new Date(profile.birthDate).toLocaleDateString("sr-RS")} (${calculateAge(profile.birthDate)} godina)`
                 : "Nije postavljeno"
             }
@@ -74,7 +76,7 @@ export function BasicInfoSection({
 
           <InfoField
             label="Adresa"
-            value={profile.address}
+            value={profile.address ?? ""}
             isEditing={isEditing}
             onChange={(value) => onChange("address", value)}
             icon={<MapPin className="h-4 w-4" />}

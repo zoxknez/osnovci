@@ -70,11 +70,13 @@ export async function addXP(studentId: string, amount: number, reason: string) {
 
     // Level up notification
     if (leveledUp) {
+      const student = await prisma.student.findUnique({ where: { id: studentId } });
+      const userId = student?.userId;
+      
+      if (!userId) return updated;
+      
       const user = await prisma.user.findUnique({
-        where: {
-          id: (await prisma.student.findUnique({ where: { id: studentId } }))
-            ?.userId,
-        },
+        where: { id: userId },
       });
 
       if (user) {
@@ -103,7 +105,8 @@ export async function addXP(studentId: string, amount: number, reason: string) {
  */
 export function calculateLevel(xp: number): number {
   for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (xp >= LEVEL_THRESHOLDS[i]) {
+    const threshold = LEVEL_THRESHOLDS[i];
+    if (threshold !== undefined && xp >= threshold) {
       return i + 1;
     }
   }
@@ -116,9 +119,11 @@ export function calculateLevel(xp: number): number {
 export function getXPForNextLevel(currentXP: number): number {
   const currentLevel = calculateLevel(currentXP);
   if (currentLevel >= LEVEL_THRESHOLDS.length) {
-    return LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
+    const lastThreshold = LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
+    return lastThreshold ?? 0;
   }
-  return LEVEL_THRESHOLDS[currentLevel];
+  const nextThreshold = LEVEL_THRESHOLDS[currentLevel];
+  return nextThreshold ?? 0;
 }
 
 /**
@@ -190,7 +195,7 @@ export async function updateStreak(studentId: string) {
 /**
  * Check and unlock achievements
  */
-async function checkAchievements(
+export async function checkAchievements(
   gamificationId: string,
   type: AchievementType,
   value: number,
@@ -314,6 +319,105 @@ async function checkAchievements(
         desc: "20 zadataka iz istog predmeta!",
         icon: "🎓",
         xp: 80,
+      },
+    ],
+    SPEED_DEMON: [
+      {
+        at: 1,
+        title: "Brzina",
+        desc: "Zadatak završen brzo!",
+        icon: "⚡",
+        xp: 15,
+      },
+    ],
+    NIGHT_OWL: [
+      {
+        at: 1,
+        title: "Noćna Ptica",
+        desc: "Radio uveče!",
+        icon: "🦉",
+        xp: 10,
+      },
+    ],
+    WEEKEND_WARRIOR: [
+      {
+        at: 1,
+        title: "Vikend Ratnik",
+        desc: "Radio vikendom!",
+        icon: "⚔️",
+        xp: 20,
+      },
+    ],
+    COMEBACK_KID: [
+      {
+        at: 1,
+        title: "Povratnik",
+        desc: "Vratio se nakon pauze!",
+        icon: "🔄",
+        xp: 25,
+      },
+    ],
+    PERFECTIONIST: [
+      {
+        at: 1,
+        title: "Perfekcionista",
+        desc: "Savršeni rezultat!",
+        icon: "💎",
+        xp: 30,
+      },
+    ],
+    SOCIAL_BUTTERFLY: [
+      {
+        at: 1,
+        title: "Društvena Leptir",
+        desc: "Pomogao drugima!",
+        icon: "🦋",
+        xp: 20,
+      },
+    ],
+    EXPLORER: [
+      {
+        at: 1,
+        title: "Istraživač",
+        desc: "Istražio nove oblasti!",
+        icon: "🗺️",
+        xp: 15,
+      },
+    ],
+    COLLECTOR: [
+      {
+        at: 1,
+        title: "Kolekcionar",
+        desc: "Sakupio sve bedževe!",
+        icon: "🏆",
+        xp: 50,
+      },
+    ],
+    HELPER: [
+      {
+        at: 1,
+        title: "Pomoćnik",
+        desc: "Pomogao drugima!",
+        icon: "🤝",
+        xp: 25,
+      },
+    ],
+    CONSISTENT: [
+      {
+        at: 1,
+        title: "Konzistentan",
+        desc: "Redovno radi zadatke!",
+        icon: "📅",
+        xp: 30,
+      },
+    ],
+    OVERACHIEVER: [
+      {
+        at: 1,
+        title: "Preko Očekivanja",
+        desc: "Završio zadatak pre roka!",
+        icon: "🚀",
+        xp: 30,
       },
     ],
   };

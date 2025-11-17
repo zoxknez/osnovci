@@ -3,12 +3,30 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Uncomment for PostgreSQL full-text search support
+  // previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
+// ============================================
+// DATABASE CONFIGURATION
+// ============================================
+// Production-ready PostgreSQL with connection pooling
+// Supports: Supabase, Neon, Railway, or self-hosted PostgreSQL
+
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+  // Prisma Accelerate support for edge caching
+  relationMode = "prisma"
 }
+
+// Development fallback: SQLite (set DATABASE_URL="file:./dev.db")
+// For local dev without PostgreSQL:
+// datasource db {
+//   provider = "sqlite"
+//   url      = env("DATABASE_URL")
+// }
 
 // ============================================
 // USER & AUTHENTICATION
@@ -49,6 +67,7 @@ model User {
   student  Student?
   guardian Guardian?
   sessions Session[]
+  biometricCredentials BiometricCredential[] // WebAuthn credentials
 
   @@index([email])
   @@index([phone])
@@ -56,17 +75,57 @@ model User {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  userId         String
+  token          String   @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  lastActivityAt DateTime @default(now())
+  
+  // Device tracking
+  deviceType String? // "mobile", "tablet", "desktop"
+  deviceName String? // "iPhone 15 Pro", "Chrome on Windows"
+  browser    String? // "Chrome 120.0"
+  os         String? // "iOS 17.2", "Windows 11"
+  ipAddress  String? // "192.168.1.100"
+  userAgent  String? // Full user agent string
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
+  @@index([userId, lastActivityAt])
+  @@index([expiresAt])
   @@map("sessions")
+}
+
+// Biometric Credentials (WebAuthn)
+// For passwordless authentication via Face ID, Fingerprint, Windows Hello
+model BiometricCredential {
+  id        String   @id @default(cuid())
+  userId    String
+  
+  // WebAuthn credential data
+  credentialID        String @unique // Base64URL encoded
+  credentialPublicKey Bytes          // Public key for verification
+  counter             BigInt @default(0) // Signature counter (prevents replay attacks)
+  
+  // Device info
+  deviceType String? // "platform" (Face ID, Touch ID) or "cross-platform" (YubiKey)
+  deviceName String? // "iPhone 15 Pro", "MacBook Pro M3"
+  
+  // Metadata
+  transports String? // Comma-separated: "usb,nfc,ble,internal"
+  
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([credentialID])
+  @@index([userId, lastUsedAt]) // For "recently used" queries
+  @@map("biometric_credentials")
 }
 
 // ============================================
@@ -85,6 +144,13 @@ enum BloodType {
   UNKNOWN // Nepoznata
 }
 
+enum Gender {
+  MALE // Muški
+  FEMALE // Ženski
+  OTHER // Drugo
+  PREFER_NOT_TO_SAY // Ne želi da navede
+}
+
 model Student {
   id        String    @id @default(cuid())
   userId    String    @unique
@@ -94,6 +160,8 @@ model Student {
   class     String // Odeljenje: 1, 2, 3...
   avatar    String?
   birthDate DateTime?
+  gender    Gender? // Pol (opciono)
+  bio       String? // Kratak opis učenika
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -218,6 +286,7 @@ model Guardian {
   userId    String   @unique
   name      String
   avatar    String?
+  pinHash   String? // Bcrypt hashed PIN for parental lock
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -253,6 +322,36 @@ model Link {
   @@index([linkCode, expiresAt]) // Za active link code validation
   @@index([guardianId, studentId, isActive]) // Za active links filter
   @@map("links")
+}
+
+// Link Verification for Stranger Danger Protection
+// Multi-step QR verification process
+model LinkVerification {
+  id String @id @default(cuid())
+  
+  studentId  String
+  guardianId String
+  linkCode   String @unique // 6-char code
+  emailCode  String // 8-char email verification code
+  
+  step VerificationStep @default(QR_SCANNED)
+  
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([linkCode])
+  @@index([studentId])
+  @@index([guardianId])
+  @@index([expiresAt]) // For cleanup of expired verifications
+  @@index([linkCode, step, expiresAt]) // For validation queries
+  @@map("link_verifications")
+}
+
+enum VerificationStep {
+  QR_SCANNED     // Step 1: Guardian scanned QR
+  CHILD_APPROVED // Step 2: Child approved on device
+  EMAIL_SENT     // Step 3: Email sent to guardian
+  VERIFIED       // Step 4: Email code verified (ready to create Link)
 }
 
 // ============================================
@@ -371,6 +470,12 @@ model Homework {
   @@index([status, dueDate])
   @@index([studentId, priority, dueDate]) // Za prioritizovan prikaz
   @@index([priority, status, dueDate]) // Za globalni "sve urgentne" query
+  
+  // PostgreSQL full-text search (pg_trgm extension required)
+  // Run: CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gist)
+  @@index([description(ops: raw("gin_trgm_ops"))], type: Gist)
+  
   @@map("homework")
 }
 
@@ -548,12 +653,23 @@ model WeeklyReport {
 // ============================================
 
 enum AchievementType {
-  HOMEWORK_MILESTONE
-  STREAK_MILESTONE
-  LEVEL_MILESTONE
-  PERFECT_WEEK
-  EARLY_BIRD
-  SUBJECT_MASTER
+  HOMEWORK_MILESTONE    // Milestone po broju zadataka
+  STREAK_MILESTONE      // Milestone za streaks
+  LEVEL_MILESTONE       // Milestone za level-e
+  PERFECT_WEEK          // Savršena nedelja
+  EARLY_BIRD            // Rani završetak
+  SUBJECT_MASTER        // Majstor predmeta
+  SPEED_DEMON           // Brzo završavanje
+  NIGHT_OWL             // Zadaci završeni uveče
+  WEEKEND_WARRIOR       // Zadaci tokom vikenda
+  COMEBACK_KID          // Povratak posle pauze
+  PERFECTIONIST         // Nema grešaka
+  HELPER                // Pomoć drugim učenicima
+  CONSISTENT            // Konzistentnost
+  EXPLORER              // Istraživanje novih tema
+  OVERACHIEVER          // Preko očekivanja
+  SOCIAL_BUTTERFLY      // Društvena aktivnost
+  COLLECTOR             // Kolekcionar bedževa
 }
 
 enum AchievementRarity {
@@ -573,6 +689,25 @@ model Gamification {
   streak            Int       @default(0)
   longestStreak     Int       @default(0)
   lastActivityDate  DateTime?
+  
+  // Enhanced tracking
+  weeklyXP          Int       @default(0)
+  monthlyXP         Int       @default(0)
+  lastWeekReset     DateTime  @default(now())
+  lastMonthReset    DateTime  @default(now())
+  perfectWeeks      Int       @default(0)
+  earlySubmissions  Int       @default(0)
+  weekendTasks      Int       @default(0)
+  nightTasks        Int       @default(0)
+  fastCompletions   Int       @default(0)
+  
+  // Streak freeze power-up
+  streakFreezes     Int       @default(0)
+  lastStreakFreeze  DateTime?
+  
+  // Privacy & preferences
+  showOnLeaderboard Boolean   @default(true)
+  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -582,6 +717,9 @@ model Gamification {
   @@index([studentId])
   @@index([level]) // Za leaderboard queries
   @@index([xp, level]) // Za ranking i level progression
+  @@index([weeklyXP]) // Za weekly leaderboard
+  @@index([monthlyXP]) // Za monthly leaderboard
+  @@index([showOnLeaderboard, xp]) // Za filtered leaderboard
   @@map("gamification")
 }
 
@@ -595,6 +733,12 @@ model Achievement {
   xpReward       Int               @default(0)
   rarity         AchievementRarity @default(COMMON)
   unlockedAt     DateTime          @default(now())
+  
+  // Enhanced progress tracking
+  progress       Int?              @default(0) // Current progress towards achievement
+  target         Int?              // Target value to unlock (if applicable)
+  isHidden       Boolean           @default(false) // Secret achievements
+  category       String?           // Grouping (e.g., "Homework", "Social", "Streak")
 
   gamification Gamification @relation(fields: [gamificationId], references: [id], onDelete: Cascade)
 
@@ -603,6 +747,7 @@ model Achievement {
   @@index([type])
   @@index([gamificationId, type]) // Za filtering achievements by type
   @@index([rarity, unlockedAt]) // Za sorting by rarity and date
+  @@index([isHidden]) // Za filtering secret achievements
   @@map("achievements")
 }
 

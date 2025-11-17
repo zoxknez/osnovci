@@ -18,7 +18,7 @@ const envSchema = z.object({
     .string()
     .min(32, "CSRF_SECRET mora imati minimum 32 karaktera")
     .optional()
-    .default(process.env.NEXTAUTH_SECRET || ""), // Fallback to NEXTAUTH_SECRET
+    .default(process.env["NEXTAUTH_SECRET"] || ""), // Fallback to NEXTAUTH_SECRET
 
   // Upstash Redis (optional - for rate limiting and caching)
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
@@ -30,12 +30,19 @@ const envSchema = z.object({
   SENTRY_PROJECT: z.string().optional(),
   SENTRY_AUTH_TOKEN: z.string().optional(),
 
-  // Email (SMTP) - optional
+  // Email Configuration
+  // SendGrid API Key (for production)
+  SENDGRID_API_KEY: z.string().optional(),
+  // Email From address (used by all email functions)
+  EMAIL_FROM: z.string().email().optional(),
+  // Test email credentials (for development with Ethereal)
+  EMAIL_TEST_USER: z.string().optional(),
+  EMAIL_TEST_PASS: z.string().optional(),
+  // Legacy SMTP support (optional)
   EMAIL_HOST: z.string().optional(),
   EMAIL_PORT: z.coerce.number().optional(),
   EMAIL_USER: z.string().optional(),
   EMAIL_PASSWORD: z.string().optional(),
-  EMAIL_FROM: z.string().email().optional(),
 
   // Push Notifications (VAPID) - optional
   VAPID_PUBLIC_KEY: z.string().optional(),
@@ -56,14 +63,23 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
 });
 
+// Import logger for proper error logging
+// Note: Using console here is acceptable as it runs at build time before logger is available
+// But we should make errors more actionable
+
 // Validate server-side env vars
 function validateServerEnv() {
   try {
     return envSchema.parse(process.env);
   } catch (error) {
+    // Use console here as logger may not be initialized at build time
+    // eslint-disable-next-line no-console
     console.error("❌ Invalid environment variables:");
+    // eslint-disable-next-line no-console
     console.error(error);
-    throw new Error("Invalid environment variables");
+    throw new Error(
+      "Invalid environment variables. Check your .env file. See docs/ENV_SETUP.md for details.",
+    );
   }
 }
 
@@ -71,13 +87,18 @@ function validateServerEnv() {
 function validateClientEnv() {
   try {
     return clientEnvSchema.parse({
-      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-      NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      NEXT_PUBLIC_APP_URL: process.env["NEXT_PUBLIC_APP_URL"],
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env["NEXT_PUBLIC_VAPID_PUBLIC_KEY"],
     });
   } catch (error) {
+    // Use console here as logger may not be initialized at build time
+    // eslint-disable-next-line no-console
     console.error("❌ Invalid client environment variables:");
+    // eslint-disable-next-line no-console
     console.error(error);
-    throw new Error("Invalid client environment variables");
+    throw new Error(
+      "Invalid client environment variables. Check your .env file.",
+    );
   }
 }
 

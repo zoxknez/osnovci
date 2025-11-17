@@ -3,12 +3,22 @@
 import bcrypt from "bcryptjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { createAndSendVerificationEmail } from "@/lib/auth/email-verification";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { createAndSendVerificationEmail } from "@/lib/auth/email-verification";
 import { csrfMiddleware } from "@/lib/security/csrf";
-import { rateLimit, RateLimitPresets, addRateLimitHeaders } from "@/lib/security/rate-limit";
-import { emailSchema, phoneSchema, nameSchema, passwordSchema, safeStringSchema } from "@/lib/security/validators";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
+import {
+  emailSchema,
+  nameSchema,
+  passwordSchema,
+  phoneSchema,
+  safeStringSchema,
+} from "@/lib/security/validators";
 
 const registerSchema = z
   .object({
@@ -37,11 +47,12 @@ export async function POST(request: NextRequest) {
     if (!rateLimitResult.success) {
       const headers = new Headers();
       addRateLimitHeaders(headers, rateLimitResult);
-      
+
       return NextResponse.json(
-        { 
-          error: "Too Many Requests", 
-          message: "Previše pokušaja registracije. Pokušaj ponovo za par minuta." 
+        {
+          error: "Too Many Requests",
+          message:
+            "Previše pokušaja registracije. Pokušaj ponovo za par minuta.",
         },
         { status: 429, headers },
       );
@@ -104,8 +115,8 @@ export async function POST(request: NextRequest) {
     // Kreiraj korisnika
     const user = await prisma.user.create({
       data: {
-        email,
-        phone,
+        ...(email && { email }),
+        ...(phone && { phone }),
         password: hashedPassword,
         role,
         ...(role === "STUDENT" && {

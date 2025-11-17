@@ -1,18 +1,13 @@
 // Content Moderation & Safety - Za decu!
 // Štiti decu od neprikladnog sadržaja
 
+import { containsProfanity, getActionForSeverity } from '@/lib/security/profanity-list';
+
 /**
  * Content Filter - za tekst
- * Blokira neprikladne reči i fraze
+ * Koristi comprehensive profanity detection
  */
 export class ContentFilter {
-  private static inappropriateWords = [
-    // Lista neprikladnih reči (dodati više)
-    "mržnja",
-    "nasilje",
-    // ... dodati više reči
-  ];
-
   /**
    * Proverava da li tekst sadrži neprikladne reči
    */
@@ -20,28 +15,27 @@ export class ContentFilter {
     safe: boolean;
     filtered: string;
     flagged: string[];
+    severity: 'none' | 'mild' | 'moderate' | 'severe' | 'critical';
+    action: 'allow' | 'warn' | 'filter' | 'block' | 'flag';
+    notifyParent: boolean;
   } {
-    const lowerText = text.toLowerCase();
-    const flagged: string[] = [];
+    const result = containsProfanity(text);
+    const actionInfo = getActionForSeverity(result.severity);
 
-    // Check za neprikladne reči
-    for (const word of ContentFilter.inappropriateWords) {
-      if (lowerText.includes(word)) {
-        flagged.push(word);
-      }
-    }
-
-    // Filter reči
+    // Filter matched words
     let filtered = text;
-    for (const word of flagged) {
-      const regex = new RegExp(word, "gi");
-      filtered = filtered.replace(regex, "***");
+    for (const word of result.matches) {
+      const regex = new RegExp(word, 'gi');
+      filtered = filtered.replace(regex, '***');
     }
 
     return {
-      safe: flagged.length === 0,
+      safe: !result.hasProfanity,
       filtered,
-      flagged,
+      flagged: result.matches,
+      severity: result.severity,
+      action: actionInfo.action,
+      notifyParent: actionInfo.notifyParent,
     };
   }
 

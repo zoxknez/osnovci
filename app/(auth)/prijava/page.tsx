@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { LogIn, Shield } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -238,7 +238,9 @@ export default function PrijavaPage() {
                     <span className="font-medium">Sigurno</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                    <span className="text-purple-600 flex-shrink-0 text-lg">✨</span>
+                    <span className="text-purple-600 flex-shrink-0 text-lg">
+                      ✨
+                    </span>
                     <span className="font-medium">Bez reklama</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">

@@ -1,5 +1,13 @@
-// Error Tracking - Sentry-like interface (Ready for real Sentry)
+// Error Tracking - Sentry Integration
 import { log } from "@/lib/logger";
+import {
+  addBreadcrumb as sentryAddBreadcrumb,
+  captureException as sentryCaptureException,
+  captureMessage as sentryCaptureMessage,
+  clearUser as sentryClearUser,
+  setUser as sentrySetUser,
+  startTransaction as sentryStartTransaction,
+} from "@/lib/sentry";
 
 export interface ErrorContext {
   user?: { id: string; email?: string };
@@ -8,16 +16,13 @@ export interface ErrorContext {
 }
 
 /**
- * Capture exception
- * TODO: Replace with real Sentry when ready
- * Installation: npm install @sentry/nextjs
- * Setup: npx @sentry/wizard@latest -i nextjs
+ * Capture exception with Sentry
  */
 export function captureException(
   error: Error | unknown,
   context?: ErrorContext,
 ) {
-  // For now, use structured logging
+  // Structured logging
   log.error("Exception captured", {
     error:
       error instanceof Error
@@ -30,21 +35,13 @@ export function captureException(
     ...context,
   });
 
-  // TODO: Uncomment when Sentry is configured
-  // if (typeof window === "undefined") {
-  //   // Server-side
-  //   Sentry.captureException(error, {
-  //     user: context?.user,
-  //     tags: context?.tags,
-  //     extra: context?.extra,
-  //   });
-  // } else {
-  //   // Client-side
-  //   Sentry.captureException(error, {
-  //     tags: context?.tags,
-  //     extra: context?.extra,
-  //   });
-  // }
+  // Send to Sentry
+  sentryCaptureException(error, {
+    level: "error",
+    ...(context?.user && { user: context.user }),
+    ...(context?.tags && { tags: context.tags }),
+    ...(context?.extra && { extra: context.extra }),
+  });
 }
 
 /**
@@ -57,17 +54,15 @@ export function captureMessage(
 ) {
   log[level === "warning" ? "warn" : level](message, context);
 
-  // TODO: Uncomment when Sentry is configured
-  // Sentry.captureMessage(message, { level, ...context });
+  // Send to Sentry
+  sentryCaptureMessage(message, level);
 }
 
 /**
  * Set user context
  */
 export function setUser(user: { id: string; email?: string; role?: string }) {
-  // TODO: Uncomment when Sentry is configured
-  // Sentry.setUser(user);
-
+  sentrySetUser(user);
   log.debug("User context set", { userId: user.id });
 }
 
@@ -75,9 +70,7 @@ export function setUser(user: { id: string; email?: string; role?: string }) {
  * Clear user context (on logout)
  */
 export function clearUser() {
-  // TODO: Uncomment when Sentry is configured
-  // Sentry.setUser(null);
-
+  sentryClearUser();
   log.debug("User context cleared");
 }
 
@@ -89,14 +82,7 @@ export function addBreadcrumb(
   category: string,
   data?: Record<string, any>,
 ) {
-  // TODO: Uncomment when Sentry is configured
-  // Sentry.addBreadcrumb({
-  //   message,
-  //   category,
-  //   data,
-  //   timestamp: Date.now(),
-  // });
-
+  sentryAddBreadcrumb(message, category, "info", data);
   log.debug("Breadcrumb", { message, category, data });
 }
 
@@ -111,9 +97,8 @@ export function startTransaction(name: string, op: string) {
       const duration = Date.now() - startTime;
       log.info("Transaction completed", { name, op, duration });
 
-      // TODO: Uncomment when Sentry is configured
-      // const transaction = Sentry.startTransaction({ name, op });
-      // transaction.finish();
+      // Send to Sentry (spans are automatically tracked)
+      sentryStartTransaction(name, op);
     },
   };
 }

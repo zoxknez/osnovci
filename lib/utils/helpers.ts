@@ -18,7 +18,8 @@ export function getRandomColor(): string {
     "#06b6d4", // Cyan
     "#f97316", // Orange
   ];
-  return colors[Math.floor(Math.random() * colors.length)];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  return color ?? "#3b82f6";
 }
 
 /**
@@ -54,10 +55,7 @@ export function formatDate(date: string | Date, locale = "sr-RS"): string {
 /**
  * Format date with time
  */
-export function formatDateTime(
-  date: string | Date,
-  locale = "sr-RS"
-): string {
+export function formatDateTime(date: string | Date, locale = "sr-RS"): string {
   return new Date(date).toLocaleString(locale, {
     year: "numeric",
     month: "long",
@@ -111,7 +109,7 @@ export function getRelativeTime(date: string | Date): string {
  */
 export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + "...";
+  return `${text.substring(0, maxLength)}...`;
 }
 
 /**
@@ -119,7 +117,7 @@ export function truncate(text: string, maxLength: number): string {
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
@@ -133,7 +131,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
   return (...args: Parameters<T>) => {
@@ -196,7 +194,8 @@ export function formatFileSize(bytes: number): string {
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+  const size = sizes[i] ?? "B";
+  return `${(bytes / k ** i).toFixed(2)} ${size}`;
 }
 
 /**
@@ -217,7 +216,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 export function getInitials(name: string): string {
   return name
     .split(" ")
-    .map((word) => word[0])
+    .map((word) => word[0] ?? "")
     .join("")
     .toUpperCase()
     .substring(0, 2);
@@ -230,7 +229,7 @@ export function pluralize(
   count: number,
   singular: string,
   plural: string,
-  genitive: string
+  genitive: string,
 ): string {
   if (count === 1) return singular;
   if (count > 1 && count < 5) return plural;

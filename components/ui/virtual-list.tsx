@@ -46,6 +46,8 @@ export function VirtualList<T>({
         {virtualizer.getVirtualItems().map((virtualRow) => {
           const item = items[virtualRow.index];
 
+          if (!item) return null;
+
           return (
             <div
               key={virtualRow.key}

@@ -1,5 +1,5 @@
-import type { LanguageOption, NotificationKey, ThemeOption } from "./types";
 import { Sun } from "lucide-react";
+import type { LanguageOption, NotificationKey, ThemeOption } from "./types";
 
 export const THEME_OPTIONS: Array<{
   value: ThemeOption;

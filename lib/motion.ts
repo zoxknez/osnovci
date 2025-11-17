@@ -3,7 +3,6 @@
  * Samo motion i AnimatePresence - smanjen bundle za ~15KB
  */
 
-export { motion, AnimatePresence } from "framer-motion";
-
 // Re-export type definitions
-export type { Variants, Transition, Target } from "framer-motion";
+export type { Target, Transition, Variants } from "framer-motion";
+export { AnimatePresence, motion } from "framer-motion";

@@ -16,12 +16,12 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import QRCodeSVG from "react-qr-code";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/features/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/features/page-header";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
-import { apiGet, apiPost, apiDelete } from "@/lib/utils/api";
+import { apiDelete, apiGet, apiPost } from "@/lib/utils/api";
 
 interface FamilyMember {
   id: string;
@@ -103,7 +103,7 @@ export default function PorodicaPage() {
       await apiPost("/api/link/child-approve", { linkCode: manualCode });
       toast.success("✅ Povezano!");
       setManualCode("");
-      
+
       // Refresh family list
       const data = await apiGet("/api/family", { showErrorToast: false });
       setFamilyMembers(data.family || []);
@@ -357,72 +357,74 @@ export default function PorodicaPage() {
             animate="animate"
           >
             {familyMembers.map((member) => (
-            <motion.div key={member.id} variants={staggerItem}>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    {/* Avatar */}
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
-                      {member.name.charAt(0)}
+              <motion.div key={member.id} variants={staggerItem}>
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      {/* Avatar */}
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                        {member.name.charAt(0)}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">
+                              {member.name}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {member.relation}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() =>
+                              handleRemoveLink(member.id, member.name)
+                            }
+                            aria-label={`Ukloni ${member.name} iz porodične grupe`}
+                          >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          </Button>
+                        </div>
+
+                        {/* Permissions */}
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-gray-700">
+                            Dozvole:
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {member.permissions.map((perm) => {
+                              const option = PERMISSION_OPTIONS.find(
+                                (p) => p.key === perm,
+                              );
+                              return (
+                                <span
+                                  key={perm}
+                                  className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
+                                >
+                                  <span>{option?.icon}</span>
+                                  <span>{option?.label}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Linked Date */}
+                        <div className="mt-3 text-xs text-gray-500">
+                          Povezano:{" "}
+                          {new Date(member.linkedAt).toLocaleDateString(
+                            "sr-RS",
+                          )}
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">
-                            {member.name}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {member.relation}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() =>
-                            handleRemoveLink(member.id, member.name)
-                          }
-                          aria-label={`Ukloni ${member.name} iz porodične grupe`}
-                        >
-                          <Trash2 className="h-4 w-4" aria-hidden="true" />
-                        </Button>
-                      </div>
-
-                      {/* Permissions */}
-                      <div className="space-y-2">
-                        <div className="text-xs font-medium text-gray-700">
-                          Dozvole:
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {member.permissions.map((perm) => {
-                            const option = PERMISSION_OPTIONS.find(
-                              (p) => p.key === perm,
-                            );
-                            return (
-                              <span
-                                key={perm}
-                                className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
-                              >
-                                <span>{option?.icon}</span>
-                                <span>{option?.label}</span>
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Linked Date */}
-                      <div className="mt-3 text-xs text-gray-500">
-                        Povezano:{" "}
-                        {new Date(member.linkedAt).toLocaleDateString("sr-RS")}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </motion.div>
         )}

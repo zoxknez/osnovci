@@ -1,9 +1,9 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import { Star, Trophy, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
-import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Star, Zap } from "lucide-react";
 
 interface HomeworkCelebrationProps {
   /** Show celebration */

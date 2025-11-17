@@ -38,7 +38,7 @@ export function formatRelative(
 
   return formatDistanceToNow(d, {
     addSuffix: true,
-    locale: locale === "en" ? undefined : sr,
+    ...(locale !== "en" && { locale: sr }),
   });
 }
 
@@ -53,7 +53,8 @@ export function getWeekDay(date: Date | string): string {
     "Petak",
     "Subota",
   ];
-  return days[d.getDay()];
+  const day = days[d.getDay()];
+  return day ?? "Nepoznat dan";
 }
 
 export function isOverdue(date: Date | string): boolean {

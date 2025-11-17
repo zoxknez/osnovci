@@ -44,6 +44,11 @@ export async function GET() {
     const memoryUsed = memoryUsage.heapUsed;
     const memoryTotal = memoryUsage.heapTotal;
     const memoryPercentage = (memoryUsed / memoryTotal) * 100;
+    // Reserved for future memory metrics
+    // @ts-expect-error - Reserved for future use
+    const memoryExternal = memoryUsage.external || 0;
+    // @ts-expect-error - Reserved for future use
+    const memoryRss = memoryUsage.rss || 0;
 
     // Determine overall status
     let overallStatus: "healthy" | "degraded" | "unhealthy" = "healthy";
@@ -61,12 +66,12 @@ export async function GET() {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      version: process.env.npm_package_version || "0.1.0",
+      version: process.env["npm_package_version"] || "0.1.0",
       services: {
         database: {
           status: dbStatus,
-          responseTime: dbResponseTime,
-          error: dbError,
+          ...(dbResponseTime !== undefined && { responseTime: dbResponseTime }),
+          ...(dbError !== undefined && { error: dbError }),
         },
         memory: {
           used: Math.round(memoryUsed / 1024 / 1024), // MB

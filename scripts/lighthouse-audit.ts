@@ -3,21 +3,21 @@
 /**
  * Lighthouse Performance Audit Script
  * Runs Lighthouse audits on key pages and generates reports
- * 
+ *
  * Usage:
  *   npm run lighthouse        - Run audit on all pages
  *   npm run lighthouse:single - Run audit on single page
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { join } from "path";
+import { exec } from "node:child_process";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
 
 const REPORTS_DIR = "./lighthouse-reports";
-const BASE_URL = process.env.LIGHTHOUSE_URL || "http://localhost:3000";
+const BASE_URL = process.env["LIGHTHOUSE_URL"] || "http://localhost:3000";
 
 // Pages to audit
 const PAGES = [
@@ -75,7 +75,10 @@ async function auditPage(name: string, url: string): Promise<PageResult> {
 
     // Read JSON report
     const reportJson = JSON.parse(
-      require("fs").readFileSync(`${join(REPORTS_DIR, name)}.report.json`, "utf-8")
+      require("node:fs").readFileSync(
+        `${join(REPORTS_DIR, name)}.report.json`,
+        "utf-8",
+      ),
     );
 
     // Extract scores
@@ -117,7 +120,7 @@ async function auditPage(name: string, url: string): Promise<PageResult> {
 
 // Generate summary report
 function generateSummary(results: PageResult[]) {
-  console.log("\n" + "=".repeat(80));
+  console.log(`\n${"=".repeat(80)}`);
   console.log("📊 LIGHTHOUSE AUDIT SUMMARY");
   console.log("=".repeat(80));
 
@@ -156,8 +159,12 @@ function generateSummary(results: PageResult[]) {
   for (const result of results) {
     console.log(`\n  ${result.name}:`);
     console.log(`    Performance:    ${result.scores.performance.toFixed(0)}`);
-    console.log(`    Accessibility:  ${result.scores.accessibility.toFixed(0)}`);
-    console.log(`    Best Practices: ${result.scores.bestPractices.toFixed(0)}`);
+    console.log(
+      `    Accessibility:  ${result.scores.accessibility.toFixed(0)}`,
+    );
+    console.log(
+      `    Best Practices: ${result.scores.bestPractices.toFixed(0)}`,
+    );
     console.log(`    SEO:            ${result.scores.seo.toFixed(0)}`);
     console.log(`    Report:         ${result.report}`);
   }
@@ -168,7 +175,7 @@ function generateSummary(results: PageResult[]) {
   writeFileSync(markdownPath, markdown);
   console.log(`\n📝 Summary saved to: ${markdownPath}`);
 
-  console.log("\n" + "=".repeat(80));
+  console.log(`\n${"=".repeat(80)}`);
 }
 
 // Generate markdown report
@@ -177,7 +184,7 @@ function generateMarkdownReport(
   avgScores: LighthouseScore,
 ): string {
   const date = new Date().toISOString();
-  
+
   let md = `# 🚀 Lighthouse Performance Audit Report\n\n`;
   md += `**Date**: ${date}\n`;
   md += `**Base URL**: ${BASE_URL}\n`;
@@ -193,7 +200,7 @@ function generateMarkdownReport(
   md += `| PWA | ${getScoreBadge(avgScores.pwa)} ${avgScores.pwa.toFixed(0)}/100 |\n\n`;
 
   md += `## 📄 Individual Page Scores\n\n`;
-  
+
   for (const result of results) {
     md += `### ${result.name}\n\n`;
     md += `**URL**: ${result.url}\n\n`;
@@ -238,7 +245,7 @@ async function runAudit() {
       try {
         const result = await auditPage(page.name, page.url);
         results.push(result);
-      } catch (error) {
+      } catch (_error) {
         console.error(`Failed to audit ${page.name}, skipping...`);
       }
     }
@@ -262,4 +269,3 @@ if (require.main === module) {
 }
 
 export default runAudit;
-

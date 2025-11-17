@@ -1,16 +1,16 @@
-import { auth } from "@/lib/auth/config";
-import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { UpdateHomeworkSchema } from "@/lib/api/schemas/homework";
+import type { NextRequest } from "next/server";
 import {
-  handleAPIError,
   AuthenticationError,
+  handleAPIError,
   NotFoundError,
 } from "@/lib/api/handlers/errors";
 import {
-  successResponse,
   noContentResponse,
+  successResponse,
 } from "@/lib/api/handlers/response";
+import { UpdateHomeworkSchema } from "@/lib/api/schemas/homework";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 import { idSchema } from "@/lib/security/validators";
@@ -93,7 +93,9 @@ export async function PUT(
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija
@@ -104,7 +106,7 @@ export async function PUT(
 
     // Await params (Next.js 15)
     const { id } = await params;
-    
+
     // Validate ID format
     idSchema.parse(id);
 
@@ -187,7 +189,9 @@ export async function DELETE(
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija
@@ -198,7 +202,7 @@ export async function DELETE(
 
     // Await params (Next.js 15)
     const { id } = await params;
-    
+
     // Validate ID format
     idSchema.parse(id);
 

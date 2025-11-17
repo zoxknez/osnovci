@@ -98,7 +98,9 @@ export function exportGradesToPDF(
   // ========================================
   // PROSJECI PO PREDMETU
   // ========================================
-  const currentY = (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 90;
+  const currentY =
+    (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable
+      ?.finalY ?? 90;
   const nextY = currentY + 10;
 
   doc.setFontSize(14);
@@ -121,7 +123,9 @@ export function exportGradesToPDF(
   // ========================================
   // SVE OCENE - Detaljna tabela
   // ========================================
-  const gradesY = (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 150;
+  const gradesY =
+    (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable
+      ?.finalY ?? 150;
   const gradesStartY = gradesY + 10;
 
   doc.setFontSize(14);
@@ -158,12 +162,7 @@ export function exportGradesToPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(128, 128, 128);
-    doc.text(
-      `Stranica ${i} od ${pageCount}`,
-      105,
-      290,
-      { align: "center" },
-    );
+    doc.text(`Stranica ${i} od ${pageCount}`, 105, 290, { align: "center" });
     doc.text("Generisano: Osnovci App", 20, 290);
   }
 

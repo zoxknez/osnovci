@@ -1,8 +1,8 @@
 // Page Header Component - Modern Hero Section za sve stranice
 "use client";
 
-import type { ReactNode } from "react";
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 
 export interface PageHeaderProps {
   /** Main title (npr. "📚 Domaći zadaci") */

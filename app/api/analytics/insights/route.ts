@@ -1,23 +1,32 @@
 // Learning Analytics API - Insights za učenje
-import { type NextRequest } from "next/server";
-import {
-  withAuthAndRateLimit,
-  getAuthenticatedStudent,
-  success,
-  internalError,
-} from "@/lib/api/middleware";
+import type { NextRequest } from "next/server";
 import {
   analyzeLearningPatterns,
   getWeeklySummary,
 } from "@/lib/analytics/learning-insights";
+import {
+  getAuthenticatedStudent,
+  internalError,
+  success,
+  withAuthAndRateLimit,
+} from "@/lib/api/middleware";
+
+// Types
+type Session = {
+  user: {
+    id: string;
+    role: string;
+  };
+};
+
+type Context = unknown;
 
 /**
  * GET /api/analytics/insights
  * Get learning insights for student
  */
-// biome-ignore lint: session type from NextAuth, context from Next.js 15
 export const GET = withAuthAndRateLimit(
-  async (_request: NextRequest, session: any, _context: any) => {
+  async (_request: NextRequest, session: Session, _context: Context) => {
     try {
       const student = await getAuthenticatedStudent(session.user.id);
 

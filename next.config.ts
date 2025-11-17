@@ -1,11 +1,11 @@
-import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import type { NextConfig } from "next";
 
 // Bundle Analyzer (optional, only for development)
 let withBundleAnalyzer: (config: NextConfig) => NextConfig;
 try {
   withBundleAnalyzer = require("@next/bundle-analyzer")({
-    enabled: process.env.ANALYZE === "true",
+    enabled: process.env["ANALYZE"] === "true",
   });
 } catch {
   // Bundle analyzer not installed, use identity function
@@ -21,22 +21,29 @@ const nextConfig: NextConfig = {
     allowedDevOrigins: ["192.168.1.101", "localhost", "127.0.0.1"],
   }),
 
-  // Image Optimization
+  // Image Optimization - Modern formats and sizes
   images: {
-    formats: ["image/webp", "image/avif"],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    formats: ["image/webp", "image/avif"], // Modern formats for better compression
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048], // Added 2048 for high-DPI displays
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Remote patterns for external images (if needed in future)
+    remotePatterns: [],
+    // Unoptimized flag for development (can improve dev performance)
+    ...(process.env.NODE_ENV === "development" && process.env["UNOPTIMIZED_IMAGES"] === "true"
+      ? { unoptimized: true }
+      : {}),
   },
 
   // Headers - Security & Performance
   async headers() {
     // Content Security Policy - Relaxed for development, strict for production
-    const ContentSecurityPolicy = (process.env.NODE_ENV === "production"
-      ? `
+    const ContentSecurityPolicy = (
+      process.env.NODE_ENV === "production"
+        ? `
         default-src 'self';
         script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com;
         style-src 'self' 'unsafe-inline';
@@ -50,7 +57,7 @@ const nextConfig: NextConfig = {
         form-action 'self';
         upgrade-insecure-requests;
       `
-      : `
+        : `
         default-src 'self' 'unsafe-inline' 'unsafe-eval';
         script-src 'self' 'unsafe-eval' 'unsafe-inline';
         style-src 'self' 'unsafe-inline';
@@ -59,7 +66,8 @@ const nextConfig: NextConfig = {
         connect-src 'self' https: http: ws: wss:;
         media-src 'self' blob:;
         worker-src 'self' blob:;
-      `)
+      `
+    )
       .replace(/\s{2,}/g, " ")
       .trim();
 
@@ -152,6 +160,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Font files caching
+      {
+        source: "/fonts/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
       // Service Worker caching
       {
         source: "/sw.js",
@@ -166,20 +184,59 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Manifest caching
+      {
+        source: "/manifest.json",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=86400",
+          },
+        ],
+      },
     ];
   },
 
   // Compiler optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"], // Keep errors and warnings for debugging
+          }
+        : false,
   },
 
   // Experimental features
   experimental: {
     // Optimize package imports
-    optimizePackageImports: ["lucide-react", "recharts", "framer-motion", "date-fns", "react-hook-form"],
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "framer-motion",
+      "date-fns",
+      "react-hook-form",
+      "@tanstack/react-query",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-select",
+      "next-themes",
+    ],
+    // Server Actions optimizations
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+    // Turbopack optimizations (when using --turbopack)
+    turbo: {
+      rules: {
+        "*.svg": {
+          loaders: ["@svgr/webpack"],
+          as: "*.js",
+        },
+      },
+    },
   },
-  
+
   // Reduce build output
   eslint: {
     ignoreDuringBuilds: false,
@@ -190,21 +247,18 @@ const nextConfig: NextConfig = {
 };
 
 // Wrap with Sentry for error tracking
-export default withSentryConfig(
-  withBundleAnalyzer(nextConfig),
-  {
-    // Sentry Webpack Plugin Options
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
-    authToken: process.env.SENTRY_AUTH_TOKEN,
+export default withSentryConfig(withBundleAnalyzer(nextConfig), {
+  // Sentry Webpack Plugin Options
+  ...(process.env["SENTRY_ORG"] && { org: process.env["SENTRY_ORG"] }),
+  ...(process.env["SENTRY_PROJECT"] && { project: process.env["SENTRY_PROJECT"] }),
+  ...(process.env["SENTRY_AUTH_TOKEN"] && { authToken: process.env["SENTRY_AUTH_TOKEN"] }),
 
-    // Only upload source maps in production
-    silent: process.env.NODE_ENV !== "production",
+  // Only upload source maps in production
+  silent: process.env.NODE_ENV !== "production",
 
-    // Upload source maps
-    widenClientFileUpload: true,
+  // Upload source maps
+  widenClientFileUpload: true,
 
-    // Disable telemetry
-    telemetry: false,
-  },
-);
+  // Disable telemetry
+  telemetry: false,
+});

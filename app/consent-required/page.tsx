@@ -37,15 +37,30 @@ export default function ConsentRequiredPage() {
             <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
               <li>Javi roditelju da je potrebna saglasnost</li>
               <li>Roditelj će dobiti email sa linkom za potvrdu</li>
-              <li>Nakon što roditelj klikne na link, možeš da koristiš aplikaciju</li>
+              <li>
+                Nakon što roditelj klikne na link, možeš da koristiš aplikaciju
+              </li>
             </ol>
           </div>
 
           <div className="space-y-3">
             <Button
-              onClick={() => {
-                // TODO: Trigger resend consent email
-                alert("Email poslat roditelju!");
+              onClick={async () => {
+                // Trigger resend consent email
+                try {
+                  const response = await fetch("/api/parental-consent/resend", {
+                    method: "POST",
+                  });
+
+                  if (response.ok) {
+                    alert("Email poslat roditelju!");
+                  } else {
+                    alert("Greška pri slanju emaila. Pokušaj ponovo.");
+                  }
+                } catch {
+                  // Failed to send consent email
+                  alert("Greška pri slanju emaila. Pokušaj ponovo.");
+                }
               }}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               size="lg"
@@ -56,9 +71,9 @@ export default function ConsentRequiredPage() {
 
             {/* Demo Mode - Skip consent */}
             <Link href="/api/auth/demo">
-              <Button 
-                variant="default" 
-                className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700" 
+              <Button
+                variant="default"
+                className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
                 size="lg"
               >
                 🎮 Idi na Demo (Preskoči saglasnost)

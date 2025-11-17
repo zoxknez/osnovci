@@ -3,26 +3,26 @@
 /**
  * Upload Database Backups to Cloud Storage
  * Supports: AWS S3, Google Cloud Storage, Azure Blob Storage
- * 
+ *
  * Usage:
  *   npm run backup:cloud -- s3
  *   npm run backup:cloud -- gcs
  *   npm run backup:cloud -- azure
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
-import { readdirSync, statSync } from "fs";
-import { join } from "path";
+import { exec } from "node:child_process";
+import { readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
 
-const BACKUP_DIR = process.env.BACKUP_DIR || "./backups";
+const BACKUP_DIR = process.env["BACKUP_DIR"] || "./backups";
 
 // Upload to AWS S3
 async function uploadToS3(backupPath: string) {
-  const bucket = process.env.AWS_S3_BUCKET;
-  const region = process.env.AWS_REGION || "us-east-1";
+  const bucket = process.env["AWS_S3_BUCKET"];
+  const region = process.env["AWS_REGION"] || "us-east-1";
 
   if (!bucket) {
     throw new Error("AWS_S3_BUCKET not configured");
@@ -40,7 +40,7 @@ async function uploadToS3(backupPath: string) {
 
 // Upload to Google Cloud Storage
 async function uploadToGCS(backupPath: string) {
-  const bucket = process.env.GCS_BUCKET;
+  const bucket = process.env["GCS_BUCKET"];
 
   if (!bucket) {
     throw new Error("GCS_BUCKET not configured");
@@ -58,8 +58,8 @@ async function uploadToGCS(backupPath: string) {
 
 // Upload to Azure Blob Storage
 async function uploadToAzure(backupPath: string) {
-  const account = process.env.AZURE_STORAGE_ACCOUNT;
-  const container = process.env.AZURE_CONTAINER || "backups";
+  const account = process.env["AZURE_STORAGE_ACCOUNT"];
+  const container = process.env["AZURE_CONTAINER"] || "backups";
 
   if (!account) {
     throw new Error("AZURE_STORAGE_ACCOUNT not configured");
@@ -91,7 +91,12 @@ function getLatestBackup(): string {
     throw new Error("No backups found");
   }
 
-  return files[0].path;
+  const file = files[0];
+  if (!file) {
+    throw new Error("No backups found");
+  }
+
+  return file.path;
 }
 
 // Main upload function
@@ -136,4 +141,3 @@ if (require.main === module) {
 }
 
 export default uploadToCloud;
-

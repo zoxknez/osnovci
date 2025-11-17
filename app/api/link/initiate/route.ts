@@ -1,22 +1,31 @@
 // Link Initiation API - Step 1 of Stranger Danger Protection (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  internalError,
+  success,
+  withAuthAndRateLimit,
+} from "@/lib/api/middleware";
+import { initiateLink } from "@/lib/auth/stranger-danger";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { initiateLink } from "@/lib/auth/stranger-danger";
-import {
-  withAuthAndRateLimit,
-  success,
-  internalError,
-} from "@/lib/api/middleware";
 import { csrfMiddleware } from "@/lib/security/csrf";
+
+// Types
+type Session = {
+  user: {
+    id: string;
+    role: string;
+  };
+};
+
+type Context = unknown;
 
 /**
  * POST /api/link/initiate
  * Guardian scans QR → Returns linkCode for child approval
  */
-// biome-ignore lint: session type from NextAuth, context from Next.js 15
 export const POST = withAuthAndRateLimit(
-  async (request: NextRequest, session: any, _context: any) => {
+  async (request: NextRequest, session: Session, _context: Context) => {
     try {
       // CSRF Protection
       const csrfResult = await csrfMiddleware(request);

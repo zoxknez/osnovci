@@ -1,9 +1,9 @@
 // Parental PIN Dialog - Mobile-Optimized
 "use client";
 
-import { useId, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, X } from "lucide-react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { verifyParentPIN } from "@/lib/auth/parental-lock";
@@ -11,7 +11,7 @@ import { verifyParentPIN } from "@/lib/auth/parental-lock";
 interface ParentalPINDialogProps {
   action: string;
   description: string;
-  studentId: string;
+  guardianId: string; // Changed from studentId to guardianId
   onVerified: () => void;
   onCancel: () => void;
 }
@@ -19,21 +19,37 @@ interface ParentalPINDialogProps {
 export function ParentalPINDialog({
   action,
   description,
-  studentId,
+  guardianId,
   onVerified,
   onCancel,
 }: ParentalPINDialogProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const inputId = useId();
 
-  const handleVerify = () => {
-    if (verifyParentPIN(pin, studentId)) {
-      onVerified();
-    } else {
+  const handleVerify = async () => {
+    if (pin.length !== 4) return;
+
+    setIsVerifying(true);
+    setError(false);
+
+    try {
+      const isValid = await verifyParentPIN(pin, guardianId);
+
+      if (isValid) {
+        onVerified();
+      } else {
+        setError(true);
+        setPin("");
+        setTimeout(() => setError(false), 2000);
+      }
+    } catch (_err) {
       setError(true);
       setPin("");
       setTimeout(() => setError(false), 2000);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -118,11 +134,11 @@ export function ParentalPINDialog({
         <div className="flex flex-col gap-3">
           <Button
             onClick={handleVerify}
-            disabled={pin.length !== 4}
+            disabled={pin.length !== 4 || isVerifying}
             size="lg"
             className="w-full text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 min-h-[56px] touch-manipulation"
           >
-            Potvrdi PIN
+            {isVerifying ? "Proveravam..." : "Potvrdi PIN"}
           </Button>
 
           <Button
@@ -137,7 +153,7 @@ export function ParentalPINDialog({
 
         {/* Help text */}
         <p className="mt-4 text-xs sm:text-sm text-gray-500 text-center">
-          💡 Default PIN: 1234 (roditelj može da promeni u podešavanjima)
+          💡 Roditelj postavlja PIN u podešavanjima profila
         </p>
       </motion.div>
     </motion.div>

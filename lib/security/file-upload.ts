@@ -3,7 +3,7 @@
  * Validates file uploads - type, size, magic bytes
  */
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 /**
  * Allowed MIME types
@@ -14,12 +14,18 @@ const ALLOWED_TYPES = {
     maxSize: 10 * 1024 * 1024,
     magicBytes: [0x89, 0x50, 0x4e, 0x47],
   },
-  "image/webp": { maxSize: 10 * 1024 * 1024, magicBytes: [0x52, 0x49, 0x46, 0x46] },
+  "image/webp": {
+    maxSize: 10 * 1024 * 1024,
+    magicBytes: [0x52, 0x49, 0x46, 0x46],
+  },
   "application/pdf": {
     maxSize: 25 * 1024 * 1024,
     magicBytes: [0x25, 0x50, 0x44, 0x46],
   }, // 25MB
-  "video/mp4": { maxSize: 100 * 1024 * 1024, magicBytes: [0x00, 0x00, 0x00, 0x18] }, // 100MB
+  "video/mp4": {
+    maxSize: 100 * 1024 * 1024,
+    magicBytes: [0x00, 0x00, 0x00, 0x18],
+  }, // 100MB
 } as const;
 
 type AllowedMimeType = keyof typeof ALLOWED_TYPES;
@@ -129,7 +135,9 @@ function validateFileExtension(fileName: string, mimeType: string): boolean {
   };
 
   const allowedExtensions = mimeToExt[mimeType];
-  return allowedExtensions ? allowedExtensions.includes(extension || "") : false;
+  return allowedExtensions
+    ? allowedExtensions.includes(extension || "")
+    : false;
 }
 
 /**
@@ -159,7 +167,11 @@ function generateFileHash(bytes: Uint8Array): string {
  */
 export async function isDuplicateFile(
   hash: string,
-  prisma: { attachment: { findFirst: (args: { where: { hash: string } }) => Promise<unknown> } },
+  prisma: {
+    attachment: {
+      findFirst: (args: { where: { hash: string } }) => Promise<unknown>;
+    };
+  },
 ): Promise<boolean> {
   // Note: Requires adding 'hash' field to Attachment model
   const existing = await prisma.attachment.findFirst({
@@ -193,13 +205,7 @@ export function basicMalwareScan(bytes: Uint8Array): {
   }
 
   // 2. Check for scripts in images (polyglot files)
-  const scriptPatterns = [
-    "<?php",
-    "<script",
-    "javascript:",
-    "eval(",
-    "exec(",
-  ];
+  const scriptPatterns = ["<?php", "<script", "javascript:", "eval(", "exec("];
 
   const text = new TextDecoder().decode(bytes.slice(0, 1024)); // Check first 1KB
 
@@ -242,4 +248,3 @@ export function sanitizeFileName(fileName: string): string {
     .replace(/^\./, "") // Remove leading dot
     .slice(0, 255); // Limit length
 }
-

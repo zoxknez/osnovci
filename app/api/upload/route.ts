@@ -1,17 +1,26 @@
 // Upload API - File uploads (Images, PDFs, etc) - Mobile Optimized + Security Enhanced!
-import { type NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "node:fs/promises";
+
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { ActivityLogger } from "@/lib/tracking/activity-logger";
 import { checkImageSafety } from "@/lib/safety/image-safety";
 import { csrfMiddleware } from "@/lib/security/csrf";
-import { rateLimit, RateLimitPresets, addRateLimitHeaders } from "@/lib/security/rate-limit";
-import { validateFileUpload, sanitizeFileName, basicMalwareScan } from "@/lib/security/file-upload";
+import {
+  basicMalwareScan,
+  sanitizeFileName,
+  validateFileUpload,
+} from "@/lib/security/file-upload";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
 import { idSchema } from "@/lib/security/validators";
+import { ActivityLogger } from "@/lib/tracking/activity-logger";
 
 // Note: File size and type validation now handled by lib/security/file-upload.ts
 
@@ -26,11 +35,11 @@ export async function POST(request: NextRequest) {
     if (!rateLimitResult.success) {
       const headers = new Headers();
       addRateLimitHeaders(headers, rateLimitResult);
-      
+
       return NextResponse.json(
-        { 
-          error: "Too Many Requests", 
-          message: "Previše upload-a. Pokušaj ponovo za par minuta." 
+        {
+          error: "Too Many Requests",
+          message: "Previše upload-a. Pokušaj ponovo za par minuta.",
         },
         { status: 429, headers },
       );
@@ -236,10 +245,41 @@ export async function POST(request: NextRequest) {
 
       // Notify parent if required
       if (safetyResult.parentNotificationRequired) {
-        // TODO: Send email to parent
-        log.info("Parent notification required for flagged image", {
-          fileName,
+        // Get parent emails and send notification
+        const student = await prisma.student.findUnique({
+          where: { id: user.student.id },
+          include: {
+            links: {
+              where: { isActive: true },
+              include: {
+                guardian: {
+                  include: { user: { select: { email: true } } },
+                },
+              },
+            },
+          },
         });
+
+        if (student?.links) {
+          const { sendFlaggedContentEmail } = await import(
+            "@/lib/email/templates"
+          );
+          for (const link of student.links) {
+            const parentEmail = link.guardian.user.email;
+            if (parentEmail) {
+              await sendFlaggedContentEmail(
+                parentEmail,
+                fileName,
+                safetyResult.reasons,
+                user.student.name || "Student",
+              ).catch((err) => {
+                log.warn("Failed to send flagged content email", {
+                  error: err,
+                });
+              });
+            }
+          }
+        }
       }
     }
 
@@ -258,6 +298,7 @@ export async function POST(request: NextRequest) {
     if (file.type.startsWith("audio/")) attachmentType = "AUDIO";
 
     // Save attachment to database
+    const thumbnailPath = attachmentType === "IMAGE" ? `/uploads/thumbnails/${thumbnailName}` : undefined;
     const attachment = await prisma.attachment.create({
       data: {
         homeworkId,
@@ -267,10 +308,7 @@ export async function POST(request: NextRequest) {
         mimeType: attachmentType === "IMAGE" ? "image/jpeg" : file.type,
         localUri: `/uploads/${fileName}`,
         remoteUrl: `/uploads/${fileName}`,
-        thumbnail:
-          attachmentType === "IMAGE"
-            ? `/uploads/thumbnails/${thumbnailName}`
-            : undefined,
+        ...(thumbnailPath && { thumbnail: thumbnailPath }),
         uploadedAt: new Date(),
       },
     });

@@ -4,15 +4,15 @@
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  CheckCircle,
   GraduationCap,
   Shield,
   Sparkles,
   Users,
-  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,7 +89,7 @@ export default function RegistracijaPage() {
 
       toast.success("Nalog uspešno kreiran! 🎉");
       router.push("/prijava");
-    } catch (error) {
+    } catch (_error) {
       // Toast already shown by apiPost
     } finally {
       setIsLoading(false);

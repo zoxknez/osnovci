@@ -39,15 +39,15 @@ export function trapFocus(element: HTMLElement): () => void {
 
     if (e.shiftKey) {
       // Shift + Tab
-      if (document.activeElement === firstFocusable) {
+      if (firstFocusable && document.activeElement === firstFocusable) {
         e.preventDefault();
-        lastFocusable.focus();
+        lastFocusable?.focus();
       }
     } else {
       // Tab
-      if (document.activeElement === lastFocusable) {
+      if (lastFocusable && document.activeElement === lastFocusable) {
         e.preventDefault();
-        firstFocusable.focus();
+        firstFocusable?.focus();
       }
     }
   };
@@ -72,9 +72,13 @@ export function getContrastRatio(color1: string, color2: string): number {
     const b = parseInt(hex.substring(4, 6), 16) / 255;
 
     // Calculate luminance
-    const [rLinear, gLinear, bLinear] = [r, g, b].map((c) =>
+    const linear = [r, g, b].map((c) =>
       c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4,
     );
+    
+    const rLinear = linear[0] ?? 0;
+    const gLinear = linear[1] ?? 0;
+    const bLinear = linear[2] ?? 0;
 
     return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
   };

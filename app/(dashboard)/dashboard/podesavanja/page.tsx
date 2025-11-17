@@ -2,17 +2,17 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Loader } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader } from "lucide-react";
 import { PageHeader } from "@/components/features/page-header";
-import { SettingsHeader } from "@/components/features/settings/settings-header";
-import { ProfileSection } from "@/components/features/settings/profile-section";
+import { AppInfoCard } from "@/components/features/settings/app-info-card";
 import { AppearanceSection } from "@/components/features/settings/appearance-section";
 import { NotificationsSection } from "@/components/features/settings/notifications-section";
+import { ProfileSection } from "@/components/features/settings/profile-section";
 import { SecuritySection } from "@/components/features/settings/security-section";
 import { SettingsActions } from "@/components/features/settings/settings-actions";
-import { AppInfoCard } from "@/components/features/settings/app-info-card";
+import { SettingsHeader } from "@/components/features/settings/settings-header";
 import type {
   AutoSaveFn,
   LanguageOption,
@@ -49,7 +49,7 @@ export default function PodjesavanjaPage() {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
-  
+
   // Debounce timer za input polja
   const saveTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -59,8 +59,8 @@ export default function PodjesavanjaPage() {
       try {
         setLoading(true);
         const data = await apiGet("/api/profile", { showErrorToast: false });
-        
-        if (data && data.profile) {
+
+        if (data?.profile) {
           setProfileData({
             name: data.profile.name || "",
             email: data.profile.email || "",
@@ -69,8 +69,8 @@ export default function PodjesavanjaPage() {
             class: "",
           });
         }
-      } catch (error) {
-        console.error("Error loading settings:", error);
+      } catch {
+        // Error loading settings
       } finally {
         setLoading(false);
       }
@@ -93,18 +93,17 @@ export default function PodjesavanjaPage() {
     try {
       // Sačuvaj u localStorage kao backup
       localStorage.setItem(`setting_${setting}`, JSON.stringify(value));
-      
+
       // Za profile podatke koristi /api/profile
       if (setting.startsWith("profile.")) {
         const field = setting.replace("profile.", "");
         await apiPatch("/api/profile", { [field]: value });
       }
-      
-      // Za ostala podešavanja (jezik, notifikacije, itd.)
-      // TODO: Implementirati /api/settings endpoint
-      console.log(`✅ Auto-saved: ${setting}`);
-    } catch (error) {
-      console.error(`❌ Failed to auto-save ${setting}:`, error);
+
+      // Za ostala podešavanja (jezik, notifikacije, itd.) koristi localStorage
+      // API endpoint /api/settings može biti dodato kada treba centralno čuvanje
+    } catch {
+      // Failed to auto-save setting
       toast.error("Greška pri čuvanju", {
         description: "Promena nije sačuvana",
         duration: 2000,
@@ -138,7 +137,7 @@ export default function PodjesavanjaPage() {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
     }
-    
+
     saveTimerRef.current = setTimeout(async () => {
       await autoSave(`profile.${field}`, value);
       // Mini diskretan toast

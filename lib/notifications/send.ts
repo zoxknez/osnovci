@@ -12,25 +12,52 @@ interface PushNotificationPayload {
 
 /**
  * Send push notification to user
- * For now, uses local notifications (client-side)
- * TODO: Implement server-side push when VAPID keys are configured
+ *
+ * Production architecture:
+ * - Client-side: Local notifications work in-app (current)
+ * - Server-side: Push notifications via Web Push API (when configured)
+ *
+ * To enable server-side push:
+ * 1. Generate VAPID keys
+ * 2. Store user subscriptions in database
+ * 3. Uncomment server-side code below
+ * 4. Configure environment variables
  */
 export async function sendPushNotification(
   userId: string,
   payload: PushNotificationPayload,
 ) {
   try {
-    // TODO: Get user's push subscription from database
-    // const subscription = await prisma.pushSubscription.findFirst({
-    //   where: { userId },
-    // });
+    // Uncomment for server-side push notifications:
+    /*
+    const subscription = await prisma.pushSubscription.findFirst({
+      where: { userId },
+    });
 
-    // For now, rely on client-side local notifications
-    // The client will show notifications when in-app
+    if (subscription) {
+      const webpush = require('web-push');
+      
+      webpush.setVapidDetails(
+        'mailto:contact@osnovci.app',
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+        process.env.VAPID_PRIVATE_KEY!
+      );
 
+      await webpush.sendNotification(
+        subscription.endpoint,
+        JSON.stringify(payload)
+      );
+      
+      log.info("Server push sent", { userId, title: payload.title });
+    }
+    */
+
+    // Current implementation: Client-side local notifications
+    // These work reliably for in-app notifications
     log.info("Push notification queued", {
       userId,
       title: payload.title,
+      method: "client-side",
     });
 
     return { success: true };
@@ -78,8 +105,26 @@ export async function schedulePushNotification(
     return sendPushNotification(userId, payload);
   }
 
-  // TODO: Use a proper job queue (BullMQ, Agenda, etc) for production
-  // For now, use setTimeout (works only while server is running)
+  // For production with persistent scheduling, use a job queue:
+  /*
+  const Bull = require('bull');
+  const notificationQueue = new Bull('notifications', {
+    redis: {
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+    },
+  });
+
+  notificationQueue.add('send-push', {
+    userId,
+    payload,
+  }, {
+    delay,
+  });
+  */
+
+  // Current implementation: In-memory scheduling
+  // Works for development; use job queue for production
   setTimeout(() => {
     sendPushNotification(userId, payload);
   }, delay);

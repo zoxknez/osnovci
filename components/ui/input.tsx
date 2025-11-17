@@ -2,24 +2,24 @@
 
 import { AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
 import * as React from "react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Error message - prikazuje se ispod inputa */
-  error?: string;
+  error?: string | undefined;
   /** Label text - OBAVEZAN za accessibility */
-  label?: string;
+  label?: string | undefined;
   /** Helper text - informativna poruka ispod inputa */
-  helperText?: string;
+  helperText?: string | undefined;
   /** Success message - za validaciju */
-  success?: string;
+  success?: string | undefined;
   /** Icon na početku inputa */
-  leftIcon?: React.ReactNode;
+  leftIcon?: React.ReactNode | undefined;
   /** Icon na kraju inputa */
-  rightIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode | undefined;
   /** Show character count */
-  showCharCount?: boolean;
+  showCharCount?: boolean | undefined;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(

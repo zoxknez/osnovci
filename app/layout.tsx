@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "./mobile-enhancements.css";
+import "./mobile-optimizations.css";
 import "./dyslexia-mode.css";
 
 const inter = Inter({
@@ -28,12 +29,19 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Osnovci Tim" }],
   creator: "Osnovci",
-  metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
+  metadataBase: new URL(process.env["NEXTAUTH_URL"] || "http://localhost:3000"),
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Osnovci",
+    // iOS specific optimizations
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-capable": "yes",
+    "format-detection": "telephone=no",
   },
   formatDetection: {
     telephone: false,
@@ -49,19 +57,23 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#3b82f6",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#3b82f6" },
+    { media: "(prefers-color-scheme: dark)", color: "#1e40af" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  viewportFit: "cover", // Support for notch/insets
 };
 
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { Providers } from "./providers";
 import { getNonce } from "@/lib/security/csp";
+import { Providers } from "./providers";
 
 export default async function RootLayout({
   children,
@@ -82,8 +94,17 @@ export default async function RootLayout({
           rel="apple-touch-icon"
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><text y='60' font-size='120'>📚</text></svg>"
         />
+        {/* Mobile Optimizations */}
         <meta name="theme-color" content="#3b82f6" />
-        <meta name="mobile-web-app-capable" content="true" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="format-detection" content="telephone=no" />
+        {/* Preconnect for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        {/* Performance hints */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 transition-colors duration-300`}

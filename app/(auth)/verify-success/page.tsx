@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
-import Link from 'next/link';
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function VerifySuccessPage() {
   return (
@@ -14,7 +14,7 @@ export default function VerifySuccessPage() {
 
 function VerifySuccessContent() {
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || 'unknown';
+  const email = searchParams.get("email") || "unknown";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">

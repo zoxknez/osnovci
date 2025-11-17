@@ -4,13 +4,20 @@
 import { addDays, format, isSameDay, startOfWeek } from "date-fns";
 import { sr } from "date-fns/locale";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, BookOpen, ChevronLeft, ChevronRight, Clock, Loader } from "lucide-react";
+import {
+  Bell,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Loader,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/features/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PageHeader } from "@/components/features/page-header";
 import {
   fadeInUp,
   staggerContainer,
@@ -47,7 +54,11 @@ export default function RasporedPage() {
   const selectedDayRef = useRef<HTMLButtonElement>(null);
 
   // React Query hook - automatic caching and refetching
-  const { data: scheduleData, isLoading: loading, error } = useSchedule({
+  const {
+    data: scheduleData,
+    isLoading: loading,
+    error,
+  } = useSchedule({
     limit: 100,
   });
 
@@ -69,7 +80,8 @@ export default function RasporedPage() {
   // Get current time for LIVE indicator
   const now = new Date();
   const currentTime = format(now, "HH:mm");
-  const currentDayKey = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1].key;
+  const currentDayIndex = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1];
+  const currentDayKey = currentDayIndex?.key ?? "MON";
 
   // Check if lesson is happening now
   const isLessonActive = (lesson: ScheduleEntry) => {
@@ -78,11 +90,9 @@ export default function RasporedPage() {
   };
 
   // Get lessons for selected day
-  const selectedDayKey =
-    DAYS[selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1].key;
-  const dayLessons = schedule.filter(
-    (l) => l.dayOfWeek === selectedDayKey,
-  );
+  const selectedDayIndex = DAYS[selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1];
+  const selectedDayKey = selectedDayIndex?.key ?? "MON";
+  const dayLessons = schedule.filter((l) => l.dayOfWeek === selectedDayKey);
 
   // Group lessons by day for week view
   const weekSchedule = useMemo(() => {
@@ -208,10 +218,11 @@ export default function RasporedPage() {
             >
               <div className="flex lg:grid lg:grid-cols-7 gap-2 sm:gap-3 pb-1">
                 {weekDays.map((day) => {
-                  const dayKey =
+                  const dayKeyObj =
                     DAYS[day.getDay() === 0 ? 6 : day.getDay() - 1];
+                  const dayKey = dayKeyObj?.key ?? "MON";
                   const lessonsCount = schedule.filter(
-                    (l) => l.dayOfWeek === dayKey.key,
+                    (l) => l.dayOfWeek === dayKey,
                   ).length;
                   const selected = isSameDay(day, selectedDate);
                   const today = isToday(day);
@@ -239,7 +250,7 @@ export default function RasporedPage() {
                       <div
                         className={`text-[10px] sm:text-sm font-semibold mb-1 uppercase tracking-wide ${selected ? "text-blue-100" : "text-gray-500"}`}
                       >
-                        {dayKey.short}
+                        {dayKeyObj?.short ?? ""}
                       </div>
 
                       {/* Date number */}
@@ -391,7 +402,8 @@ export default function RasporedPage() {
                                   <div className="space-y-1 text-sm text-gray-600">
                                     <div className="flex items-center gap-2">
                                       <BookOpen className="h-4 w-4" />
-                                      {lesson.classroom || "Učionica nije određena"}
+                                      {lesson.classroom ||
+                                        "Učionica nije određena"}
                                     </div>
                                     {lesson.notes && (
                                       <div className="flex items-center gap-2">

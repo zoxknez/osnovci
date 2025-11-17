@@ -51,7 +51,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
 
     if (!subscription) {
       // Create new subscription
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      const vapidPublicKey = process.env["NEXT_PUBLIC_VAPID_PUBLIC_KEY"];
 
       if (!vapidPublicKey) {
         console.error("VAPID public key nije konfigurisan");

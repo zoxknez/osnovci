@@ -3,8 +3,8 @@
  * Client-side data fetching with caching
  */
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Homework, Grade, Subject } from "@prisma/client";
+import type { Grade, Homework, Subject } from "@prisma/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Get CSRF headers (imported dynamically to avoid circular dependency)
@@ -54,7 +54,9 @@ async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     // Create error with status code
-    const errorData = await res.json().catch(() => ({ message: "API request failed" }));
+    const errorData = await res
+      .json()
+      .catch(() => ({ message: "API request failed" }));
     const error: any = new Error(errorData.message || "API request failed");
     error.status = res.status;
     error.statusText = res.statusText;
@@ -298,10 +300,7 @@ interface ScheduleResponse {
   };
 }
 
-export function useSchedule(params?: {
-  dayOfWeek?: string;
-  limit?: number;
-}) {
+export function useSchedule(params?: { dayOfWeek?: string; limit?: number }) {
   const searchParams = new URLSearchParams();
   if (params?.dayOfWeek) searchParams.append("dayOfWeek", params.dayOfWeek);
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -385,4 +384,3 @@ export function usePrefetchHomework() {
     });
   };
 }
-

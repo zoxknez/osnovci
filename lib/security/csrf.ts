@@ -3,9 +3,9 @@
  * Generates and validates CSRF tokens for POST/PUT/DELETE requests
  */
 
-import { randomBytes, createHmac } from "crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-const SECRET = process.env.CSRF_SECRET || process.env.NEXTAUTH_SECRET;
+const SECRET = process.env["CSRF_SECRET"] || process.env["NEXTAUTH_SECRET"];
 
 if (!SECRET) {
   throw new Error(
@@ -37,6 +37,7 @@ export function verifyCsrfToken(token: string, secret: string): boolean {
     .digest("hex");
 
   // Constant-time comparison to prevent timing attacks
+  // Using Node's built-in timingSafeEqual for better security and performance
   return timingSafeEqual(
     Buffer.from(token, "hex"),
     Buffer.from(expectedToken, "hex"),
@@ -44,21 +45,7 @@ export function verifyCsrfToken(token: string, secret: string): boolean {
 }
 
 /**
- * Timing-safe string comparison
- */
-function timingSafeEqual(a: Buffer, b: Buffer): boolean {
-  if (a.length !== b.length) return false;
-
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a[i] ^ b[i];
-  }
-
-  return result === 0;
-}
-
-/**
- * CSRF Middleware for API routes
+ * CSRF Middleware for API routes with Origin verification
  */
 export async function csrfMiddleware(
   req: Request,
@@ -68,6 +55,27 @@ export async function csrfMiddleware(
   // Skip CSRF check for safe methods
   if (["GET", "HEAD", "OPTIONS"].includes(method)) {
     return { valid: true };
+  }
+
+  // Origin verification - prevent cross-site attacks
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("host");
+  
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host;
+      if (originHost !== host) {
+        return {
+          valid: false,
+          error: "Origin mismatch - potential CSRF attack",
+        };
+      }
+    } catch (error) {
+      return {
+        valid: false,
+        error: "Invalid origin header",
+      };
+    }
   }
 
   // Check for CSRF token in headers

@@ -1,11 +1,12 @@
 // API Middleware helpers - Rate Limiting, Sanitization, etc.
 import { type NextRequest, NextResponse } from "next/server";
+import type { Session } from "next-auth";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { checkRateLimit } from "@/middleware/rate-limit";
-import { sanitizeText } from "@/lib/utils/sanitize";
 import { captureException } from "@/lib/monitoring/error-tracking";
+import { sanitizeText } from "@/lib/utils/sanitize";
+import { checkRateLimit } from "@/middleware/rate-limit";
 
 /**
  * Authenticated Student Middleware
@@ -110,10 +111,9 @@ export function sanitizeBody<T extends Record<string, any>>(
  * Next.js 15 compatible
  */
 export function withAuth(
-  // biome-ignore lint: session type comes from NextAuth
   handler: (
     req: NextRequest,
-    session: any,
+    session: Session,
     context: { params: Promise<Record<string, string>> },
   ) => Promise<NextResponse>,
 ) {
@@ -136,10 +136,9 @@ export function withAuth(
  * Next.js 15 compatible
  */
 export function withAuthAndRateLimit(
-  // biome-ignore lint: session type comes from NextAuth
   handler: (
     req: NextRequest,
-    session: any,
+    session: Session,
     context: { params: Promise<Record<string, string>> },
   ) => Promise<NextResponse>,
   limiterType: "api" | "auth" | "upload" = "api",

@@ -1,20 +1,20 @@
-import { auth } from "@/lib/auth/config";
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db/prisma";
 import {
-  CreateScheduleSchema,
-  QueryScheduleSchema,
-  type DayOfWeek,
-} from "@/lib/api/schemas/schedule";
-import {
-  handleAPIError,
   AuthenticationError,
+  handleAPIError,
   NotFoundError,
 } from "@/lib/api/handlers/errors";
 import {
-  paginatedResponse,
   createdResponse,
+  paginatedResponse,
 } from "@/lib/api/handlers/response";
+import {
+  CreateScheduleSchema,
+  type DayOfWeek,
+  QueryScheduleSchema,
+} from "@/lib/api/schemas/schedule";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 
@@ -55,12 +55,12 @@ export async function GET(request: NextRequest) {
     }
 
     const studentIds: string[] = [];
-    
+
     // Ako je sam student
     if (user.student) {
       studentIds.push(user.student.id);
     }
-    
+
     // Ako nema student direktno, traži
     if (studentIds.length === 0) {
       const student = await prisma.student.findFirst({
@@ -77,10 +77,10 @@ export async function GET(request: NextRequest) {
     };
 
     if (validatedQuery.dayOfWeek) {
-      where.dayOfWeek = validatedQuery.dayOfWeek;
+      where["dayOfWeek"] = validatedQuery.dayOfWeek;
     }
     if (validatedQuery.status) {
-      where.status = validatedQuery.status;
+      where["status"] = validatedQuery.status;
     }
 
     // Dohvati total broj
@@ -141,7 +141,9 @@ export async function POST(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)
@@ -183,7 +185,7 @@ export async function POST(request: NextRequest) {
         startTime: validatedData.startTime,
         endTime: validatedData.endTime,
         room: validatedData.classroom,
-        notes: validatedData.notes,
+        ...(validatedData.notes && { notes: validatedData.notes }),
       },
       include: {
         subject: {
@@ -195,13 +197,13 @@ export async function POST(request: NextRequest) {
     log.info("Created schedule entry", {
       userId: session.user.id,
       scheduleId: schedule.id,
-      subject: schedule.subject.name,
+      subject: schedule.subject?.name,
     });
 
     return createdResponse(
       {
         id: schedule.id,
-        subject: schedule.subject,
+        subject: schedule.subject!,
         dayOfWeek: schedule.dayOfWeek,
         startTime: schedule.startTime,
         endTime: schedule.endTime,

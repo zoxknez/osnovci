@@ -4,7 +4,7 @@ import pino from "pino";
 // Create logger instance
 export const logger = pino({
   level:
-    process.env.LOG_LEVEL ||
+    (process.env["LOG_LEVEL"] as "debug" | "info" | "warn" | "error" | "fatal") ||
     (process.env.NODE_ENV === "production" ? "info" : "debug"),
 
   // Simplified browser-safe logging (no pino-pretty to avoid thread-stream issues)

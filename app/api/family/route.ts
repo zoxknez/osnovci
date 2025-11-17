@@ -1,23 +1,23 @@
-import { auth } from "@/lib/auth/config";
-import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import type { NextRequest } from "next/server";
 import {
-  InitiateFamilyLinkSchema,
-  UpdatePermissionsSchema,
-  QueryFamilySchema,
-} from "@/lib/api/schemas/family";
-import {
-  handleAPIError,
   AuthenticationError,
-  NotFoundError,
   ConflictError,
+  handleAPIError,
+  NotFoundError,
 } from "@/lib/api/handlers/errors";
 import {
-  successResponse,
-  paginatedResponse,
   createdResponse,
   noContentResponse,
+  paginatedResponse,
+  successResponse,
 } from "@/lib/api/handlers/response";
+import {
+  InitiateFamilyLinkSchema,
+  QueryFamilySchema,
+  UpdatePermissionsSchema,
+} from "@/lib/api/schemas/family";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 
@@ -62,7 +62,13 @@ export async function GET(request: NextRequest) {
 
     // Ako nema ni student ni guardian, vrati praznu listu
     if (!user.student && !user.guardian) {
-      return paginatedResponse([], 1, validatedQuery.limit, 0, "Nema članova porodice");
+      return paginatedResponse(
+        [],
+        1,
+        validatedQuery.limit,
+        0,
+        "Nema članova porodice",
+      );
     }
 
     // Build filter based on role
@@ -70,17 +76,17 @@ export async function GET(request: NextRequest) {
 
     if (user.student) {
       // Student vidi svoje roditelje/čuvare
-      where.studentId = user.student.id;
+      where["studentId"] = user.student.id;
     } else if (user.guardian) {
       // Guardian vidi svoju decu
-      where.guardianId = user.guardian.id;
+      where["guardianId"] = user.guardian.id;
     }
 
     if (validatedQuery.status) {
-      where.status = validatedQuery.status;
+      where["status"] = validatedQuery.status;
     }
     if (validatedQuery.role) {
-      where.role = validatedQuery.role;
+      where["role"] = validatedQuery.role;
     }
 
     // Dohvati total broj
@@ -111,7 +117,10 @@ export async function GET(request: NextRequest) {
     // Format response
     const formatted = links.map((link) => ({
       id: link.id,
-      name: link.guardian?.name || link.guardian?.user?.email?.split("@")[0] || "Guardian",
+      name:
+        link.guardian?.name ||
+        link.guardian?.user?.email?.split("@")[0] ||
+        "Guardian",
       email: link.guardian?.user?.email || "",
       studentName: link.student?.name || "",
       linkCode: link.linkCode,
@@ -148,7 +157,9 @@ export async function POST(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)
@@ -203,10 +214,11 @@ export async function POST(request: NextRequest) {
       });
 
       // Kreiraj Guardian profil
+      const guardianName = validatedData.email.split("@")[0] ?? "Guardian";
       await prisma.guardian.create({
         data: {
           userId: newUser.id,
-          name: validatedData.email.split("@")[0],
+          name: guardianName,
         },
       });
 
@@ -257,8 +269,13 @@ export async function POST(request: NextRequest) {
       guardianEmail: validatedData.email,
     });
 
-    // TODO: Pošalji email sa link kodom
-    // await sendVerificationEmail(validatedData.email, newLink.linkCode);
+    // Send family link email
+    const { sendFamilyLinkEmail } = await import("@/lib/email/templates");
+    await sendFamilyLinkEmail(
+      validatedData.email,
+      newLink.linkCode,
+      student.name,
+    );
 
     return createdResponse(
       {
@@ -284,7 +301,9 @@ export async function PUT(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)
@@ -357,7 +376,9 @@ export async function DELETE(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)

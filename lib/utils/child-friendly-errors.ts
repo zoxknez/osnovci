@@ -172,7 +172,11 @@ export function getChildFriendlyError(
   errorCode: string | number,
   customMessage?: string,
 ): ChildFriendlyError {
-  const error = CHILD_FRIENDLY_ERRORS[errorCode] || CHILD_FRIENDLY_ERRORS[500];
+  const error = CHILD_FRIENDLY_ERRORS[errorCode] ?? CHILD_FRIENDLY_ERRORS[500];
+  
+  if (!error) {
+    return CHILD_FRIENDLY_ERRORS[500] as ChildFriendlyError;
+  }
 
   if (customMessage) {
     return {
@@ -189,13 +193,15 @@ export function getChildFriendlyError(
  */
 export function formatAPIError(error: any): ChildFriendlyError {
   // Network errors
+  const networkError = CHILD_FRIENDLY_ERRORS["network_error"];
   if (error.name === "TypeError" && error.message.includes("fetch")) {
-    return CHILD_FRIENDLY_ERRORS.network_error;
+    return networkError as ChildFriendlyError;
   }
 
   // Timeout
+  const timeoutError = CHILD_FRIENDLY_ERRORS["timeout"];
   if (error.name === "AbortError" || error.code === "ETIMEDOUT") {
-    return CHILD_FRIENDLY_ERRORS.timeout;
+    return timeoutError as ChildFriendlyError;
   }
 
   // HTTP status codes
@@ -204,7 +210,8 @@ export function formatAPIError(error: any): ChildFriendlyError {
   }
 
   // Default
-  return CHILD_FRIENDLY_ERRORS[500];
+  const defaultError = CHILD_FRIENDLY_ERRORS[500];
+  return defaultError as ChildFriendlyError;
 }
 
 /**

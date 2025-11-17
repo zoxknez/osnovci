@@ -1,7 +1,7 @@
 // Loading Skeleton Component - Beautiful placeholders
 "use client";
 
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Width (CSS value ili preset) */

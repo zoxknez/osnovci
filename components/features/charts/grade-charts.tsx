@@ -60,11 +60,7 @@ export function SubjectRadarChart({ data }: SubjectRadarChartProps) {
     <ResponsiveContainer width="100%" height={300}>
       <RadarChart data={data}>
         <PolarGrid stroke="#64748b" opacity={0.3} />
-        <PolarAngleAxis
-          dataKey="subject"
-          stroke="#64748b"
-          fontSize={12}
-        />
+        <PolarAngleAxis dataKey="subject" stroke="#64748b" fontSize={12} />
         <PolarRadiusAxis
           angle={90}
           domain={[0, 5]}

@@ -1,10 +1,10 @@
 // Text-to-Speech Hook - For younger children & visual impairments
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Volume2, VolumeX } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX } from "lucide-react";
 
 export function useTextToSpeech() {
   const [speaking, setSpeaking] = useState(false);
@@ -79,9 +79,8 @@ export function useTextToSpeech() {
         setSpeaking(false);
       };
 
-      utterance.onerror = (error) => {
+      utterance.onerror = () => {
         setSpeaking(false);
-        console.error("TTS error:", error);
         toast.error("Greška pri čitanju 😔");
       };
 

@@ -3,34 +3,46 @@
 /**
  * Automated Database Backup Script
  * Supports SQLite, PostgreSQL, and MySQL
- * 
+ *
  * Usage:
  *   npm run backup        - Create backup
  *   npm run backup:auto   - Scheduled backup (cron)
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
-import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync, copyFileSync, createReadStream, createWriteStream } from "fs";
-import { join } from "path";
+import { exec } from "node:child_process";
+import {
+  copyFileSync,
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  statSync,
+  unlinkSync,
+} from "node:fs";
+import { join } from "node:path";
+import { pipeline } from "node:stream/promises";
+import { promisify } from "node:util";
+import { createGzip } from "node:zlib";
 import { format } from "date-fns";
-import { createGzip } from "zlib";
-import { pipeline } from "stream/promises";
 
 const execAsync = promisify(exec);
 
 // Configuration
-const BACKUP_DIR = process.env.BACKUP_DIR || "./backups";
-const DATABASE_URL = process.env.DATABASE_URL || "file:./prisma/dev.db";
-const MAX_BACKUPS = Number.parseInt(process.env.MAX_BACKUPS || "30", 10);
-const COMPRESSION = process.env.BACKUP_COMPRESSION === "true";
+const BACKUP_DIR = process.env["BACKUP_DIR"] || "./backups";
+const DATABASE_URL = process.env["DATABASE_URL"] || "file:./prisma/dev.db";
+const MAX_BACKUPS = Number.parseInt(process.env["MAX_BACKUPS"] || "30", 10);
+const COMPRESSION = process.env["BACKUP_COMPRESSION"] === "true";
 
 // Database type detection
 function detectDatabaseType(): "sqlite" | "postgresql" | "mysql" {
   if (DATABASE_URL.startsWith("file:") || DATABASE_URL.includes(".db")) {
     return "sqlite";
   }
-  if (DATABASE_URL.startsWith("postgresql://") || DATABASE_URL.startsWith("postgres://")) {
+  if (
+    DATABASE_URL.startsWith("postgresql://") ||
+    DATABASE_URL.startsWith("postgres://")
+  ) {
     return "postgresql";
   }
   if (DATABASE_URL.startsWith("mysql://")) {
@@ -71,7 +83,7 @@ async function backupSQLite(): Promise<string> {
     await pipeline(
       createReadStream(sourcePath),
       createGzip(),
-      createWriteStream(backupPath)
+      createWriteStream(backupPath),
     );
   } else {
     // Simple copy (cross-platform)
@@ -272,7 +284,7 @@ if (require.main === module) {
     case "list":
       listBackups();
       break;
-    case "restore":
+    case "restore": {
       const backupPath = process.argv[3];
       if (!backupPath) {
         console.error("❌ Please provide backup path");
@@ -280,10 +292,10 @@ if (require.main === module) {
       }
       restore(backupPath);
       break;
+    }
     default:
       backup();
   }
 }
 
 export default backup;
-

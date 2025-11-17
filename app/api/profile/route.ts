@@ -1,18 +1,18 @@
-import { auth } from "@/lib/auth/config";
-import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db/prisma";
 import bcrypt from "bcryptjs";
+import type { NextRequest } from "next/server";
 import {
-  UpdateProfileSchema,
-  ChangePasswordSchema,
-} from "@/lib/api/schemas/profile";
-import {
-  handleAPIError,
   AuthenticationError,
+  handleAPIError,
   NotFoundError,
   ValidationError,
 } from "@/lib/api/handlers/errors";
-import { successResponse, createdResponse } from "@/lib/api/handlers/response";
+import { createdResponse, successResponse } from "@/lib/api/handlers/response";
+import {
+  ChangePasswordSchema,
+  UpdateProfileSchema,
+} from "@/lib/api/schemas/profile";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 
@@ -22,37 +22,17 @@ import { csrfMiddleware } from "@/lib/security/csrf";
  */
 export async function GET(request: NextRequest) {
   try {
-    // Autentifikacija (with demo mode support)
+    // Autentifikacija
     const session = await auth();
-    console.log('🔍 Session received:', JSON.stringify(session?.user, null, 2));
-    
+
     if (!session?.user?.id) {
-      console.log('❌ No session or user ID!');
+      log.warn("Profile access without session", {
+        ip: request.headers.get("x-forwarded-for"),
+      });
       throw new AuthenticationError();
     }
 
-    console.log('✅ Session valid, querying user with ID:', session.user.id);
-
-    // ULTRA DEBUG: Prvo pokušaj jednostavan query bez includes
-    console.log('🔎 Step 1: Trying simple findUnique...');
-    const simpleUser = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    });
-    console.log('🔎 Simple result:', simpleUser ? `FOUND: ${simpleUser.email}` : 'NULL');
-
-    // ULTRA DEBUG: Svi useri u bazi
-    console.log('🔎 Step 2: Getting ALL users...');
-    const allUsers = await prisma.user.findMany({ take: 5 });
-    console.log('🔎 All users:', allUsers.map(u => ({ id: u.id, email: u.email })));
-
-    // ULTRA DEBUG: Probaj findFirst umesto findUnique
-    console.log('🔎 Step 3: Trying findFirst...');
-    const firstUser = await prisma.user.findFirst({
-      where: { id: session.user.id }
-    });
-    console.log('🔎 FindFirst result:', firstUser ? `FOUND: ${firstUser.email}` : 'NULL');
-
-    // Dohvati korisnika
+    // Dohvati korisnika sa svim relacionim podacima
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
@@ -72,10 +52,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log('📊 Prisma result:', user ? `Found user: ${user.email}` : 'User is NULL');
-
     if (!user) {
-      console.log('❌ User not found in database for ID:', session.user.id);
+      log.error("User not found in database", {
+        userId: session.user.id,
+      });
       throw new NotFoundError("Korisnik");
     }
 
@@ -107,6 +87,10 @@ export async function GET(request: NextRequest) {
       studentId = found.id;
     }
 
+    if (!studentId) {
+      throw new NotFoundError("Učenik");
+    }
+
     // Dohvati kompletan student objekat sa svim poljima
     const fullStudent = await prisma.student.findUnique({
       where: { id: studentId },
@@ -114,26 +98,41 @@ export async function GET(request: NextRequest) {
 
     // Dohvati statistiku
     const homework = await prisma.homework.findMany({
-      where: { studentId: studentId },
+      where: { studentId },
     });
 
     const grades = await prisma.grade.findMany({
-      where: { studentId: studentId },
+      where: { studentId },
     });
 
-    const schedules = await prisma.scheduleEntry.findMany({
-      where: { studentId: studentId },
+    const schedule = await prisma.scheduleEntry.findMany({
+      where: { studentId },
     });
 
     const completedHomework = homework.filter(
       (h) => h.status === "DONE" || h.status === "SUBMITTED",
     ).length;
 
-    const gradeValues = grades.map((g) => parseFloat(g.grade)).filter((n) => !Number.isNaN(n));
+    const gradeValues = grades
+      .map((g) => parseFloat(g.grade))
+      .filter((n) => !Number.isNaN(n));
     const averageGrade =
       gradeValues.length > 0
         ? gradeValues.reduce((a, b) => a + b) / gradeValues.length
         : 0;
+
+    // Get gamification data
+    const gamification = fullStudent
+      ? await prisma.gamification.findUnique({
+          where: { studentId: fullStudent.id },
+          include: {
+            achievements: {
+              orderBy: { unlockedAt: "desc" },
+              take: 10, // Get latest 10 achievements
+            },
+          },
+        })
+      : null;
 
     const profileData = {
       id: user.id,
@@ -141,13 +140,13 @@ export async function GET(request: NextRequest) {
       email: user.email,
       avatar: fullStudent?.avatar || user.guardian?.avatar,
       dateOfBirth: fullStudent?.birthDate,
-      gender: undefined, // TODO: Add gender field to Student model
+      gender: fullStudent?.gender || undefined,
       school: fullStudent?.school,
       grade: fullStudent?.grade,
-      bio: undefined, // TODO: Add bio field to Student model
+      bio: fullStudent?.bio || undefined,
       role: user.role,
-      xp: 0, // TODO: Get from Gamification model
-      level: 1, // TODO: Get from Gamification model
+      xp: gamification?.xp || 0,
+      level: gamification?.level || 1,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -156,10 +155,10 @@ export async function GET(request: NextRequest) {
       totalHomework: homework.length,
       completedHomework: completedHomework,
       averageGrade: Math.round(averageGrade * 100) / 100,
-      totalClasses: schedules.length,
-      attendanceRate: 95, // TODO: Implementiraj praćenje prisustva
-      xpThisMonth: 0, // TODO: Get from Gamification model
-      achievements: [], // TODO: Implementiraj achievement sistem
+      totalClasses: schedule.length,
+      attendanceRate: 95, // Placeholder - Attendance tracking to be implemented
+      xpThisMonth: gamification?.totalXPEarned || 0,
+      achievements: gamification?.achievements || [],
     };
 
     log.info("Fetched profile", {
@@ -185,7 +184,9 @@ export async function PUT(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)
@@ -271,7 +272,9 @@ export async function POST(request: NextRequest) {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
-      return handleAPIError(new Error(csrfResult.error || "CSRF validation failed"));
+      return handleAPIError(
+        new Error(csrfResult.error || "CSRF validation failed"),
+      );
     }
 
     // Autentifikacija (with demo mode support)

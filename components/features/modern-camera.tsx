@@ -47,10 +47,13 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
     const brightness = 10;
 
     for (let i = 0; i < data.length; i += 4) {
-      // Apply contrast
-      data[i] = (data[i] - 128) * contrast + 128 + brightness; // R
-      data[i + 1] = (data[i + 1] - 128) * contrast + 128 + brightness; // G
-      data[i + 2] = (data[i + 2] - 128) * contrast + 128 + brightness; // B
+      // Apply contrast (with nullish check for TypeScript strict mode)
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      if (r !== undefined) data[i] = (r - 128) * contrast + 128 + brightness;
+      if (g !== undefined) data[i + 1] = (g - 128) * contrast + 128 + brightness;
+      if (b !== undefined) data[i + 2] = (b - 128) * contrast + 128 + brightness;
     }
 
     return imageData;
@@ -60,8 +63,15 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
   const dataURLtoFile = useCallback(
     (dataUrl: string, filename: string): File => {
       const arr = dataUrl.split(",");
-      const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
-      const bstr = atob(arr[1]);
+      const firstPart = arr[0];
+      const secondPart = arr[1];
+      
+      if (!firstPart || !secondPart) {
+        throw new Error('Invalid data URL');
+      }
+      
+      const mime = firstPart.match(/:(.*?);/)?.[1] || "image/jpeg";
+      const bstr = atob(secondPart);
       let n = bstr.length;
       const u8arr = new Uint8Array(n);
 
@@ -274,8 +284,8 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
                 className="w-full h-full"
                 style={{
                   backgroundImage: `url('${capturedImage}')`,
-                  backgroundSize: 'contain',
-                  backgroundPosition: 'center',
+                  backgroundSize: "contain",
+                  backgroundPosition: "center",
                 }}
                 aria-label="Snimljena fotografija domaćeg zadatka sa AI poboljšanjem"
               />
@@ -352,7 +362,9 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
               className="flex items-center justify-center gap-4 max-w-2xl mx-auto"
               aria-label="Akcije za snimljenu fotografiju"
             >
-              <legend className="sr-only">Akcije za snimljenu fotografiju</legend>
+              <legend className="sr-only">
+                Akcije za snimljenu fotografiju
+              </legend>
               <Button
                 size="lg"
                 variant="outline"

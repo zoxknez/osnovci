@@ -7,31 +7,31 @@ import {
   Calendar,
   Download,
   Filter,
+  Loader,
   Star,
   Target,
   TrendingDown,
   TrendingUp,
-  Loader,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { useGrades } from "@/lib/hooks/use-react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/features/page-header";
-import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/features/page-header";
 import {
   FilterGradesModal,
   type GradeFilters,
 } from "@/components/modals/filter-grades-modal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { staggerContainer, staggerItem } from "@/lib/animations/variants";
+import { useGrades } from "@/lib/hooks/use-react-query";
 import { exportGradesToPDF } from "@/lib/utils/pdf-export";
 
 // Lazy load charts - reducira initial bundle za ~200KB
 const GradeDistributionChart = dynamic(
   () =>
     import("@/components/features/charts/grade-charts").then(
-      (mod) => mod.GradeDistributionChart
+      (mod) => mod.GradeDistributionChart,
     ),
   {
     loading: () => (
@@ -40,13 +40,13 @@ const GradeDistributionChart = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 );
 
 const SubjectRadarChart = dynamic(
   () =>
     import("@/components/features/charts/grade-charts").then(
-      (mod) => mod.SubjectRadarChart
+      (mod) => mod.SubjectRadarChart,
     ),
   {
     loading: () => (
@@ -55,12 +55,8 @@ const SubjectRadarChart = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 );
-
-// TODO: Data for trend chart - implement in future feature
-// TODO: Data for radar chart (skills) - implement in future feature
-// TODO: Data for bar chart (grade distribution) - implement in future feature
 
 export default function OcenePage() {
   const [page, _setPage] = useState(1);
@@ -68,70 +64,97 @@ export default function OcenePage() {
   const [filters, setFilters] = useState<GradeFilters>({});
 
   // React Query hook - automatic caching and refetching
-  const { data: gradesData, isLoading: loading, error: queryError } = useGrades({
+  const {
+    data: gradesData,
+    isLoading: loading,
+    error: queryError,
+  } = useGrades({
     page,
     limit: 50,
     sortBy: "date",
     order: "desc",
-    subjectId: filters.subjectId,
-    category: filters.category,
-    period: filters.period,
+    ...(filters.subjectId !== undefined && { subjectId: filters.subjectId }),
+    ...(filters.category !== undefined && { category: filters.category }),
+    ...(filters.period !== undefined && { period: filters.period }),
   });
 
   // Show error toast if query fails
   if (queryError) {
-    toast.error("Greška pri učitavanju ocjena", { description: queryError.message });
+    toast.error("Greška pri učitavanju ocjena", {
+      description: queryError.message,
+    });
   }
 
   const grades = Array.isArray(gradesData?.data) ? gradesData.data : [];
   const stats = gradesData?.stats || null;
   const error = queryError ? queryError.message : null;
 
+  // Types
+  type GradeBySubject = {
+    subject: string;
+    color: string;
+    grades: number[];
+    icon: string;
+    average?: number;
+    trend?: string;
+    lastGrade?: number;
+    totalGrades?: number;
+  };
+
+
   // Organizuj grade po subjektu za prikaz
-  const gradesBySubject = grades.reduce((acc: any, grade: any) => {
-    if (!acc[grade.subject.name]) {
-      acc[grade.subject.name] = {
-        subject: grade.subject.name,
-        color: grade.subject.color || "#3b82f6",
-        grades: [],
-        icon: "📚",
-      };
-    }
-    acc[grade.subject.name].grades.push(parseInt(grade.grade));
-    return acc;
-  }, {});
+  const gradesBySubject = grades.reduce(
+    (acc: Record<string, GradeBySubject>, grade: any) => {
+      const subjectName = grade.subject?.name || "Unknown";
+      if (!acc[subjectName]) {
+        acc[subjectName] = {
+          subject: subjectName,
+          color: grade.subject?.color || "#3b82f6",
+          grades: [],
+          icon: "📚",
+        };
+      }
+      acc[subjectName].grades.push(parseInt(grade.grade, 10));
+      return acc;
+    },
+    {},
+  );
 
   // Konvertuj u niz i kalkuliši prosjeke
-  const subjectGrades = Object.values(gradesBySubject).map((sg: any) => {
-    const avg =
-      sg.grades.reduce((a: number, b: number) => a + b, 0) / sg.grades.length;
-    const trend =
-      sg.grades.length > 1
-        ? sg.grades[0] > sg.grades[sg.grades.length - 1]
-          ? "up"
-          : sg.grades[0] < sg.grades[sg.grades.length - 1]
-            ? "down"
-            : "stable"
-        : "stable";
+  const subjectGrades = Object.values(gradesBySubject).map(
+    (sg) => {
+      const avg =
+        sg.grades.reduce((a: number, b: number) => a + b, 0) / sg.grades.length;
+      const firstGrade = sg.grades[0];
+      const lastGrade = sg.grades[sg.grades.length - 1];
+      const trend =
+        sg.grades.length > 1 && firstGrade !== undefined && lastGrade !== undefined
+          ? firstGrade > lastGrade
+            ? "up"
+            : firstGrade < lastGrade
+              ? "down"
+              : "stable"
+          : "stable";
 
-    return {
-      ...sg,
-      average: Math.round(avg * 100) / 100,
-      trend,
-      lastGrade: sg.grades[0],
-      totalGrades: sg.grades.length,
-    };
-  });
+      return {
+        ...sg,
+        average: Math.round(avg * 100) / 100,
+        trend,
+        lastGrade: firstGrade,
+        totalGrades: sg.grades.length,
+      };
+    },
+  );
 
   // Pripremi podatke za grafike
-  const chartData = subjectGrades.map((sg: any) => ({
+  const chartData = subjectGrades.map((sg) => ({
     name: sg.subject.substring(0, 8),
-    average: sg.average,
+    average: sg.average || 0,
   }));
 
-  const radarData = subjectGrades.map((sg: any) => ({
+  const radarData = subjectGrades.map((sg) => ({
     name: sg.subject.substring(0, 6),
-    value: sg.average,
+    value: sg.average || 0,
   }));
 
   if (loading) {
@@ -186,7 +209,7 @@ export default function OcenePage() {
                   const fileName = exportGradesToPDF(
                     gradesForPDF,
                     stats as any, // stats is already checked for null above via disabled prop
-                    "Učenik", // TODO: Get student name from session
+                    "Učenik", // Student name could be retrieved from profile API if needed
                   );
 
                   toast.success("📥 PDF Izvoz", {
@@ -258,12 +281,14 @@ export default function OcenePage() {
                       Najbolji predmet
                     </p>
                     <p className="text-2xl font-bold text-purple-600">
-                      {subjectGrades
-                        .reduce(
-                          (max, s) => (s.average > max.average ? s : max),
-                          subjectGrades[0],
-                        )
-                        ?.subject.substring(0, 10)}
+                      {subjectGrades.length > 0 && subjectGrades[0] !== undefined
+                        ? subjectGrades
+                            .reduce(
+                              (max, s) => ((s.average ?? 0) > (max.average ?? 0) ? s : max),
+                              subjectGrades[0],
+                            )
+                            .subject.substring(0, 10)
+                        : "N/A"}
                     </p>
                   </div>
                   <Target className="h-12 w-12 text-purple-400 opacity-20" />
@@ -349,7 +374,7 @@ export default function OcenePage() {
         animate="visible"
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
       >
-        {subjectGrades.map((sg: any) => (
+        {subjectGrades.map((sg) => (
           <motion.div key={sg.subject} variants={staggerItem}>
             <Card
               className="border-0 hover:shadow-lg transition-all h-full"
@@ -377,19 +402,19 @@ export default function OcenePage() {
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-600">Prosjek</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {sg.average}
+                      {sg.average || 0}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-600">Zadnja ocjena</p>
                     <p className="text-lg font-semibold text-gray-900">
-                      {sg.lastGrade}
+                      {sg.lastGrade || 0}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-600">Broj ocjena</p>
                     <p className="text-lg font-semibold text-gray-900">
-                      {sg.totalGrades}
+                      {sg.totalGrades || 0}
                     </p>
                   </div>
                 </div>

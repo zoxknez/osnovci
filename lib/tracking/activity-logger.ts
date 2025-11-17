@@ -1,5 +1,5 @@
 // Activity Logger - Track student actions for parental oversight
-import { type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
@@ -34,17 +34,17 @@ export async function logActivity({
   request,
 }: LogActivityParams) {
   try {
+    const ipAddress = request?.headers.get("x-forwarded-for") || request?.headers.get("x-real-ip");
+    const userAgent = request?.headers.get("user-agent");
+    
     const activity = await prisma.activityLog.create({
       data: {
         studentId,
         type,
         description,
         metadata: metadata || {},
-        ipAddress:
-          request?.headers.get("x-forwarded-for") ||
-          request?.headers.get("x-real-ip") ||
-          undefined,
-        userAgent: request?.headers.get("user-agent") || undefined,
+        ...(ipAddress && { ipAddress }),
+        ...(userAgent && { userAgent }),
       },
     });
 
@@ -104,11 +104,17 @@ async function checkParentalNotification(
       const parentEmail = link.guardian.user.email;
       if (!parentEmail) continue;
 
-      // TODO: Send email notification
-      log.info("Parent notification queued", {
+      // Send email notification to parent
+      const { sendActivityNotificationEmail } = await import(
+        "@/lib/email/templates"
+      );
+      await sendActivityNotificationEmail(
         parentEmail,
-        activityType: type,
-        studentId,
+        type,
+        description,
+        student.name,
+      ).catch((err) => {
+        log.warn("Failed to send activity email to parent", { error: err });
       });
 
       // Also create in-app notification
@@ -149,7 +155,7 @@ export const ActivityLogger = {
       studentId,
       type: "LOGIN",
       description: "Prijava na nalog",
-      request,
+      ...(request && { request }),
     }),
 
   homeworkCreated: (
@@ -162,7 +168,7 @@ export const ActivityLogger = {
       type: "HOMEWORK_CREATED",
       description: `Kreiran zadatak: ${homeworkTitle}`,
       metadata: { homeworkTitle },
-      request,
+      ...(request && { request }),
     }),
 
   photoUploaded: (
@@ -174,16 +180,16 @@ export const ActivityLogger = {
     logActivity({
       studentId,
       type: "PHOTO_UPLOADED",
-      description: `Uploadovana slika: ${fileName}`,
+      description: `Učitana slika: ${fileName}`,
       metadata: { fileName, homeworkId },
-      request,
+      ...(request && { request }),
     }),
 
   passwordChanged: (studentId: string, request?: NextRequest) =>
     logActivity({
       studentId,
       type: "PASSWORD_CHANGED",
-      description: "Promenjena lozinka",
-      request,
+      description: "Lozinka promenjena",
+      ...(request && { request }),
     }),
 };

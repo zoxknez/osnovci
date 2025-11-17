@@ -1,20 +1,29 @@
 // Activity Log API - For parents to see what child is doing
 import { type NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
 import {
-  withAuthAndRateLimit,
-  success,
   internalError,
+  success,
+  withAuthAndRateLimit,
 } from "@/lib/api/middleware";
+import { prisma } from "@/lib/db/prisma";
 import { getActivityLog } from "@/lib/tracking/activity-logger";
+
+// Types
+type Session = {
+  user: {
+    id: string;
+    role: string;
+  };
+};
+
+type Context = unknown;
 
 /**
  * GET /api/activity-log?studentId=xxx
  * Parents can see child's activity
  */
-// biome-ignore lint: session type from NextAuth, context from Next.js 15
 export const GET = withAuthAndRateLimit(
-  async (request: NextRequest, session: any, _context: any) => {
+  async (request: NextRequest, session: Session, _context: Context) => {
     try {
       const { searchParams } = new URL(request.url);
       const studentId = searchParams.get("studentId");

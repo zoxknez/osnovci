@@ -1,7 +1,7 @@
 // Account Lockout - Prevent brute-force attacks
 // Uses Redis for persistent storage (production-ready)
 import { log } from "@/lib/logger";
-import { redis, isRedisConfigured } from "@/lib/upstash";
+import { isRedisConfigured, redis } from "@/lib/upstash";
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 30;
@@ -28,11 +28,7 @@ function getRedisKey(email: string, suffix = "count"): string {
 /**
  * Record a login attempt (Redis-based with fallback)
  */
-export async function recordLoginAttempt({
-  email,
-  success,
-  ip,
-}: LoginAttempt) {
+export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
   const key = email.toLowerCase();
 
   if (success) {

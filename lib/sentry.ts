@@ -81,14 +81,14 @@ export function clearUser() {
 /**
  * Start transaction (performance monitoring)
  */
-export function startTransaction(
-  name: string,
-  operation: string,
-) {
-  return Sentry.startSpan({
-    name,
-    op: operation,
-  }, () => {});
+export function startTransaction(name: string, operation: string) {
+  return Sentry.startSpan(
+    {
+      name,
+      op: operation,
+    },
+    () => {},
+  );
 }
 
 /**
@@ -104,7 +104,7 @@ export function addBreadcrumb(
     message,
     category,
     level,
-    data,
+    ...(data !== undefined && { data }),
   });
 }
 
@@ -200,7 +200,7 @@ export class PerformanceMonitor {
         `${this.name}: ${name} completed in ${duration}ms`,
         "performance",
         status === "ok" ? "info" : "error",
-        { duration, operation: span.operation }
+        { duration, operation: span.operation },
       );
       this.spans.delete(name);
     }
@@ -214,10 +214,9 @@ export class PerformanceMonitor {
         `${this.name}: ${name} completed in ${duration}ms`,
         "performance",
         status === "ok" ? "info" : "error",
-        { duration, operation: span.operation }
+        { duration, operation: span.operation },
       );
     }
     this.spans.clear();
   }
 }
-

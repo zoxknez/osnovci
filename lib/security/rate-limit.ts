@@ -6,12 +6,14 @@
 import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import { log } from "@/lib/logger";
+// @ts-expect-error - Reserved for future fallback implementation
+import { rateLimitMemory } from './rate-limit-fallback';
 
 // Initialize Redis client
-const redis = process.env.UPSTASH_REDIS_REST_URL
+const redis = process.env["UPSTASH_REDIS_REST_URL"]
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env["UPSTASH_REDIS_REST_URL"],
+      token: process.env["UPSTASH_REDIS_REST_TOKEN"]!,
     })
   : null;
 
@@ -57,14 +59,14 @@ function getIdentifier(request: NextRequest): string {
 
 /**
  * Sliding window rate limiter
- * 
+ *
  * @example
  * ```ts
  * const result = await rateLimit(request, {
  *   limit: 10,
  *   window: 60, // 10 requests per minute
  * });
- * 
+ *
  * if (!result.success) {
  *   return NextResponse.json(
  *     { error: "Too many requests" },
@@ -210,10 +212,13 @@ export function addRateLimitHeaders(
   headers.set("X-RateLimit-Limit", result.limit.toString());
   headers.set("X-RateLimit-Remaining", result.remaining.toString());
   headers.set("X-RateLimit-Reset", result.reset.toString());
-  
+
   if (!result.success) {
-    headers.set("Retry-After", Math.ceil((result.reset - Date.now()) / 1000).toString());
+    headers.set(
+      "Retry-After",
+      Math.ceil((result.reset - Date.now()) / 1000).toString(),
+    );
   }
-  
+
   return headers;
 }

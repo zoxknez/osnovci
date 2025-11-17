@@ -1,9 +1,10 @@
 // Homework Attachments API - Upload fotografija za domaće zadatke
-import { NextRequest, NextResponse } from "next/server";
+
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 
 // Max file size: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -23,7 +24,7 @@ const ALLOWED_TYPES = [
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: homeworkId } = await params;
@@ -31,10 +32,7 @@ export async function POST(
     // Auth check
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Verify homework exists and get student
@@ -54,7 +52,7 @@ export async function POST(
     if (!homework) {
       return NextResponse.json(
         { error: "Homework not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -62,7 +60,7 @@ export async function POST(
     if (homework.student.userId !== session.user.id) {
       return NextResponse.json(
         { error: "Forbidden - You don't own this homework" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -71,17 +69,14 @@ export async function POST(
     const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: "File too large. Max size: 10MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -89,7 +84,7 @@ export async function POST(
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type. Allowed: JPEG, PNG, WebP, PDF" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -100,7 +95,7 @@ export async function POST(
 
     // Upload directory
     const uploadDir = join(process.cwd(), "public", "uploads", "homework");
-    
+
     // Ensure directory exists
     await mkdir(uploadDir, { recursive: true });
 
@@ -140,7 +135,7 @@ export async function POST(
     console.error("Error uploading attachment:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -151,7 +146,7 @@ export async function POST(
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: homeworkId } = await params;
@@ -159,10 +154,7 @@ export async function GET(
     // Auth check
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Verify homework exists
@@ -182,13 +174,13 @@ export async function GET(
     if (!homework) {
       return NextResponse.json(
         { error: "Homework not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Check access (owner or guardian)
     const isOwner = homework.student.userId === session.user.id;
-    
+
     if (!isOwner) {
       // Check if user is guardian
       const guardianLink = await prisma.link.findFirst({
@@ -201,10 +193,7 @@ export async function GET(
       });
 
       if (!guardianLink) {
-        return NextResponse.json(
-          { error: "Forbidden" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
 
@@ -231,7 +220,7 @@ export async function GET(
     console.error("Error fetching attachments:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -242,7 +231,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: homeworkId } = await params;
@@ -250,10 +239,7 @@ export async function DELETE(
     // Auth check
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { searchParams } = new URL(request.url);
     const attachmentId = searchParams.get("attachmentId");
@@ -261,7 +247,7 @@ export async function DELETE(
     if (!attachmentId) {
       return NextResponse.json(
         { error: "Attachment ID required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -287,21 +273,18 @@ export async function DELETE(
     if (!attachment || attachment.homeworkId !== homeworkId) {
       return NextResponse.json(
         { error: "Attachment not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Check ownership
     if (attachment.homework.student.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Delete file from filesystem
     if (attachment.remoteUrl) {
-      const fs = await import("fs/promises");
+      const fs = await import("node:fs/promises");
       const filepath = join(process.cwd(), "public", attachment.remoteUrl);
       try {
         await fs.unlink(filepath);
@@ -324,7 +307,7 @@ export async function DELETE(
     console.error("Error deleting attachment:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

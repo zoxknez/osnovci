@@ -18,9 +18,7 @@ export interface ProfileSettings {
   class: string;
 }
 
-export interface AutoSaveFn {
-  (
-    setting: string,
-    value: string | boolean | Record<string, unknown>,
-  ): Promise<void>;
-}
+export type AutoSaveFn = (
+  setting: string,
+  value: string | boolean | Record<string, unknown>,
+) => Promise<void>;

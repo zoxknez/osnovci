@@ -52,7 +52,7 @@ export async function createNotification({
     await sendPushNotification(userId, {
       title,
       body: message,
-      data,
+      ...(data && { data }),
     }).catch((err) => {
       log.warn("Failed to send push notification", { error: err });
     });
