@@ -10,6 +10,10 @@
  */
 
 import { NextResponse } from "next/server";
+
+type RouteContext = {
+  params: Promise<{ credentialId: string }>;
+};
 import {
   deleteBiometricCredential,
   getUserBiometricCredentials,
@@ -19,7 +23,7 @@ import { log } from "@/lib/logger";
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ credentialId: string }> },
+  context: RouteContext,
 ) {
   try {
     // Check authentication
@@ -31,7 +35,7 @@ export async function DELETE(
       );
     }
 
-    const { credentialId } = await params;
+    const { credentialId } = await context.params;
 
     // Get all user's credentials to check ownership and prevent lockout
     const allCredentials = await getUserBiometricCredentials(session.user.id);

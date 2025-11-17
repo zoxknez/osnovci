@@ -4,6 +4,10 @@ import {
   handleAPIError,
   NotFoundError,
 } from "@/lib/api/handlers/errors";
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
 import {
   noContentResponse,
   successResponse,
@@ -21,8 +25,9 @@ import { idSchema } from "@/lib/security/validators";
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  context: RouteContext,
 ) {
+  const { params } = context;
   try {
     // Autentifikacija
     const session = await auth();
@@ -87,8 +92,9 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  context: RouteContext,
 ) {
+  const { params } = context;
   try {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
@@ -183,8 +189,9 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  context: RouteContext,
 ) {
+  const { params } = context;
   try {
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);

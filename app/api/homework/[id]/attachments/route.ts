@@ -3,6 +3,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type NextRequest, NextResponse } from "next/server";
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 
@@ -24,10 +28,10 @@ const ALLOWED_TYPES = [
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  context: RouteContext,
 ) {
   try {
-    const { id: homeworkId } = await params;
+    const { id: homeworkId } = await context.params;
 
     // Auth check
     const session = await auth();
@@ -146,10 +150,10 @@ export async function POST(
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  context: RouteContext,
 ) {
   try {
-    const { id: homeworkId } = await params;
+    const { id: homeworkId } = await context.params;
 
     // Auth check
     const session = await auth();
@@ -231,10 +235,10 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  context: RouteContext,
 ) {
   try {
-    const { id: homeworkId } = await params;
+    const { id: homeworkId } = await context.params;
 
     // Auth check
     const session = await auth();

@@ -6,13 +6,17 @@
  */
 
 import { NextResponse } from "next/server";
+
+type RouteContext = {
+  params: Promise<{ studentId: string }>;
+};
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ studentId: string }> },
+  context: RouteContext,
 ) {
   try {
     const session = await auth();
@@ -23,7 +27,7 @@ export async function PATCH(
       );
     }
 
-    const { studentId } = await params;
+    const { studentId } = await context.params;
     const body = await request.json();
 
     // Verify student belongs to user
