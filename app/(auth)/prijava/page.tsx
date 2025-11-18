@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LogIn, Shield } from "lucide-react";
+import { LogIn, Shield, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
@@ -77,6 +77,35 @@ export default function PrijavaPage() {
     } catch (error) {
       log.error("Login failed", error, { email: formData.email });
       toast.error("Došlo je do greške. Pokušajte ponovo.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    toast.info("Prijavljujem te kao demo korisnika...", { duration: 2000 });
+
+    try {
+      const result = await signIn("credentials", {
+        email: "marko@demo.rs",
+        password: "marko123",
+        redirect: false,
+        callbackUrl: "/dashboard",
+      });
+
+      if (result?.error) {
+        toast.error("Demo nalog trenutno nije dostupan");
+        setIsLoading(false);
+        return;
+      }
+
+      toast.success("Dobrodošao Marko! Istraži aplikaciju! 🎉");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      window.location.href = "/dashboard";
+    } catch (error) {
+      log.error("Demo login failed", error);
+      toast.error("Demo prijava nije uspela. Pokušaj ponovo.");
     } finally {
       setIsLoading(false);
     }
@@ -277,6 +306,29 @@ export default function PrijavaPage() {
                       Prijavi se
                     </>
                   )}
+                </Button>
+
+                {/* Demo Login Button */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-gray-500">ili</span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 text-amber-900 font-bold shadow-md hover:shadow-lg transition-all"
+                  size="lg"
+                  onClick={handleDemoLogin}
+                  disabled={isLoading}
+                  aria-label="Prijavi se kao demo korisnik"
+                >
+                  <Sparkles className="mr-2 h-5 w-5 text-amber-600" />
+                  Isprobaj Demo (Marko)
                 </Button>
               </form>
 
