@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { maskLeaderboardName } from "@/lib/utils/privacy";
 
 export async function GET() {
   try {
@@ -53,10 +54,12 @@ export async function GET() {
         {} as Record<string, number>,
       );
 
+      const isCurrentUser = entry.student.userId === currentUserId;
+      
       return {
         rank: index + 1,
         studentId: entry.studentId,
-        name: entry.student.name,
+        name: maskLeaderboardName(entry.student.name, isCurrentUser),
         avatar: entry.student.avatar,
         level: entry.level,
         xp: entry.xp,
@@ -65,7 +68,7 @@ export async function GET() {
         longestStreak: entry.longestStreak,
         totalHomeworkDone: entry.totalHomeworkDone,
         achievementCounts,
-        isCurrentUser: entry.student.userId === currentUserId,
+        isCurrentUser,
       };
     });
 

@@ -51,6 +51,9 @@ const envSchema = z.object({
   // Analytics (optional)
   NEXT_PUBLIC_VERCEL_ANALYTICS_ID: z.string().optional(),
 
+  // Security - File Scanning (optional but recommended for production)
+  VIRUSTOTAL_API_KEY: z.string().optional(),
+
   // Node Environment
   NODE_ENV: z
     .enum(["development", "production", "test"])

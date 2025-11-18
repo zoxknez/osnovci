@@ -169,6 +169,29 @@ export async function verifyConsentCode({
       return { success: false, error: "Invalid code format" };
     }
 
+    // 🛡️ CRITICAL SECURITY: Rate limiting check
+    const {
+      canAttemptConsentVerification,
+      recordConsentAttempt,
+    } = await import("@/lib/security/consent-rate-limiter");
+
+    const rateLimitCheck = await canAttemptConsentVerification(
+      code,
+      ipAddress || "unknown"
+    );
+
+    if (!rateLimitCheck.allowed) {
+      log.warn("Consent verification rate limit exceeded", {
+        code,
+        ipAddress,
+        retryAfter: rateLimitCheck.retryAfter,
+      });
+      return {
+        success: false,
+        error: rateLimitCheck.reason || "Too many attempts. Please try again later.",
+      };
+    }
+
     // Find consent request
     const consent = await prisma.parentalConsent.findUnique({
       where: { code },
@@ -184,11 +207,18 @@ export async function verifyConsentCode({
     });
 
     if (!consent) {
-      log.warn("Consent code not found", { code });
+      // Record failed attempt
+      await recordConsentAttempt(
+        code,
+        false,
+        ipAddress || "unknown",
+        userAgent || "unknown"
+      );
+      log.warn("Consent code not found", { code, ipAddress });
       return { success: false, error: "Invalid code" };
     }
 
-    // Increment attempts
+    // Increment attempts in database
     await prisma.parentalConsent.update({
       where: { id: consent.id },
       data: { attempts: { increment: 1 } },
@@ -196,6 +226,13 @@ export async function verifyConsentCode({
 
     // Check if already verified
     if (consent.status === ConsentStatus.VERIFIED) {
+      // Record successful attempt
+      await recordConsentAttempt(
+        code,
+        true,
+        ipAddress || "unknown",
+        userAgent || "unknown"
+      );
       return {
         success: true,
         studentId: consent.studentId,
@@ -209,13 +246,27 @@ export async function verifyConsentCode({
         where: { id: consent.id },
         data: { status: ConsentStatus.EXPIRED },
       });
-      log.warn("Consent code expired", { code, consentId: consent.id });
+      // Record failed attempt
+      await recordConsentAttempt(
+        code,
+        false,
+        ipAddress || "unknown",
+        userAgent || "unknown"
+      );
+      log.warn("Consent code expired", { code, consentId: consent.id, ipAddress });
       return { success: false, error: "Code expired" };
     }
 
     // Check if revoked
     if (consent.status === ConsentStatus.REVOKED) {
-      log.warn("Consent code revoked", { code, consentId: consent.id });
+      // Record failed attempt
+      await recordConsentAttempt(
+        code,
+        false,
+        ipAddress || "unknown",
+        userAgent || "unknown"
+      );
+      log.warn("Consent code revoked", { code, consentId: consent.id, ipAddress });
       return { success: false, error: "Code revoked" };
     }
 
@@ -243,10 +294,19 @@ export async function verifyConsentCode({
       }),
     ]);
 
+    // Record successful attempt
+    await recordConsentAttempt(
+      code,
+      true,
+      ipAddress || "unknown",
+      userAgent || "unknown"
+    );
+
     log.info("Parental consent verified", {
       consentId: consent.id,
       studentId: consent.studentId,
       parentEmail: consent.parentEmail,
+      ipAddress,
     });
 
     return {
@@ -256,6 +316,7 @@ export async function verifyConsentCode({
     };
   } catch (error) {
     log.error("Error verifying consent code", error, { code });
+    // Don't record attempt on error to avoid false positives
     return { success: false, error: "Verification failed" };
   }
 }

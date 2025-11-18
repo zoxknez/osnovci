@@ -10,10 +10,10 @@ import { log } from "@/lib/logger";
 import { checkImageSafety } from "@/lib/safety/image-safety";
 import { csrfMiddleware } from "@/lib/security/csrf";
 import {
-  basicMalwareScan,
   sanitizeFileName,
   validateFileUpload,
 } from "@/lib/security/file-upload";
+import { advancedFileScan } from "@/lib/security/advanced-file-scanner";
 import {
   addRateLimitHeaders,
   RateLimitPresets,
@@ -122,24 +122,50 @@ export async function POST(request: NextRequest) {
 
     // Get file buffer for further processing
     const bytes = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(bytes);
+    const buffer = Buffer.from(bytes);
 
-    // MALWARE SCAN - Basic heuristics
-    const malwareScan = basicMalwareScan(uint8Array);
-    if (!malwareScan.safe) {
-      log.error("Malware detected in upload", {
+    // 🛡️ ADVANCED SECURITY SCAN - VirusTotal, EXIF removal, PDF JS detection
+    const scanResult = await advancedFileScan(buffer, file.name, file.type);
+    
+    if (!scanResult.safe) {
+      log.error("Security threat detected in upload", {
         fileName: file.name,
-        reason: malwareScan.reason,
+        scanType: scanResult.scanType,
+        error: scanResult.error,
+        details: scanResult.details,
         studentId: user.student.id,
       });
+      
+      // Log security incident for monitoring
+      await ActivityLogger.securityIncident(
+        user.student.id,
+        "malicious_file_upload",
+        {
+          fileName: file.name,
+          scanType: scanResult.scanType,
+          threatNames: scanResult.details.threatNames,
+          malicious: scanResult.details.malicious,
+        },
+        request
+      );
+
       return NextResponse.json(
         {
           error: "Security threat detected",
-          message: "Fajl sadrži sumnjiv sadržaj i ne može biti upload-ovan",
+          message: scanResult.error || "Fajl sadrži sumnjiv sadržaj i ne može biti upload-ovan",
         },
         { status: 400 },
       );
     }
+
+    // Log successful scan (important for audit trail)
+    log.info("File passed security scan", {
+      fileName: file.name,
+      scanType: scanResult.scanType,
+      exifRemoved: scanResult.details.exifRemoved,
+      malicious: scanResult.details.malicious,
+      totalEngines: scanResult.details.totalEngines,
+    });
 
     // Check homework ownership
     const homework = await prisma.homework.findUnique({
@@ -154,8 +180,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert to buffer
-    let buffer: Buffer = Buffer.from(bytes);
+    // Buffer already created above after security scan
+    let finalBuffer: Buffer = buffer;
 
     // Generate unique filename - SANITIZED
     const timestamp = Date.now();
@@ -180,7 +206,7 @@ export async function POST(request: NextRequest) {
     if (file.type.startsWith("image/")) {
       try {
         // Optimize image - Mobile friendly!
-        const optimized = await sharp(buffer)
+        const optimized = await sharp(finalBuffer)
           .resize(1920, 1080, {
             fit: "inside",
             withoutEnlargement: true,
@@ -193,7 +219,7 @@ export async function POST(request: NextRequest) {
           .toBuffer();
 
         // Generate thumbnail (fast loading on mobile!)
-        const thumbnail = await sharp(buffer)
+        const thumbnail = await sharp(finalBuffer)
           .resize(400, 400, {
             fit: "cover",
             position: "center",
@@ -202,15 +228,16 @@ export async function POST(request: NextRequest) {
           .toBuffer();
 
         // Save optimized versions
-        buffer = Buffer.from(optimized); // Replace original with optimized
+        finalBuffer = Buffer.from(optimized); // Replace original with optimized
 
         const thumbnailPath = join(thumbnailsDir, thumbnailName);
         await writeFile(thumbnailPath, thumbnail);
 
         log.info("Image optimized for mobile", {
           originalSize: bytes.byteLength,
-          optimizedSize: buffer.length,
-          reduction: `${(((bytes.byteLength - buffer.length) / bytes.byteLength) * 100).toFixed(1)}%`,
+          optimizedSize: finalBuffer.length,
+          reduction: `${(((bytes.byteLength - finalBuffer.length) / bytes.byteLength) * 100).toFixed(1)}%`,
+          exifRemoved: scanResult.details.exifRemoved,
         });
       } catch (error) {
         log.warn("Image optimization failed, using original", { error });
@@ -220,7 +247,7 @@ export async function POST(request: NextRequest) {
 
     // Save file to disk
     const filePath = join(uploadsDir, fileName);
-    await writeFile(filePath, buffer);
+    await writeFile(filePath, finalBuffer);
 
     log.info("File uploaded", {
       fileName,
@@ -230,11 +257,9 @@ export async function POST(request: NextRequest) {
       studentId: user.student.id,
     });
 
-    // SAFETY CHECK - Image moderation for children!
+      // SAFETY CHECK - Image moderation for children!
     if (file.type.startsWith("image/")) {
-      const safetyResult = await checkImageSafety(buffer);
-
-      if (!safetyResult.safe) {
+      const safetyResult = await checkImageSafety(finalBuffer);      if (!safetyResult.safe) {
         log.warn("Image flagged as potentially unsafe", {
           fileName,
           score: safetyResult.score,
@@ -304,7 +329,7 @@ export async function POST(request: NextRequest) {
         homeworkId,
         type: attachmentType,
         fileName,
-        fileSize: buffer.length, // Optimized size!
+        fileSize: finalBuffer.length, // Optimized size!
         mimeType: attachmentType === "IMAGE" ? "image/jpeg" : file.type,
         localUri: `/uploads/${fileName}`,
         remoteUrl: `/uploads/${fileName}`,

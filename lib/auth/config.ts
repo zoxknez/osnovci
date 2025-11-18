@@ -162,6 +162,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
 
+      // 🛡️ CRITICAL SECURITY: Check JWT blacklist
+      // Prevents stolen JWT access after logout/password change
+      if (token.sessionToken) {
+        const { isTokenBlacklisted } = await import('@/lib/auth/jwt-blacklist');
+        const blacklisted = await isTokenBlacklisted(token.sessionToken as string);
+        
+        if (blacklisted) {
+          throw new Error('Token has been revoked');
+        }
+      }
+
       // Validate session on every request (if sessionToken exists)
       // Uses Redis cache for performance - reduces DB load by ~90%
       if (token.sessionToken && trigger !== "signIn") {

@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { maskLeaderboardName } from "@/lib/utils/privacy";
 
 export async function GET() {
   try {
@@ -36,17 +37,21 @@ export async function GET() {
       take: 50, // Top 50 monthly
     });
 
-    const leaderboard = topStudents.map((entry, index) => ({
-      rank: index + 1,
-      studentId: entry.studentId,
-      name: entry.student.name,
-      avatar: entry.student.avatar,
-      level: entry.level,
-      monthlyXP: entry.monthlyXP,
-      xp: entry.xp,
-      streak: entry.streak,
-      isCurrentUser: entry.student.userId === currentUserId,
-    }));
+    const leaderboard = topStudents.map((entry, index) => {
+      const isCurrentUser = entry.student.userId === currentUserId;
+      
+      return {
+        rank: index + 1,
+        studentId: entry.studentId,
+        name: maskLeaderboardName(entry.student.name, isCurrentUser),
+        avatar: entry.student.avatar,
+        level: entry.level,
+        monthlyXP: entry.monthlyXP,
+        xp: entry.xp,
+        streak: entry.streak,
+        isCurrentUser,
+      };
+    });
 
     // Find current user's rank
     let currentUserRank = null;

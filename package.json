@@ -80,7 +80,7 @@
     "framer-motion": "^12.23.24",
     "idb": "^8.0.3",
     "ioredis": "^5.8.2",
-    "isomorphic-dompurify": "^2.29.0",
+    "isomorphic-dompurify": "^2.32.0",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "lru-cache": "^11.2.2",

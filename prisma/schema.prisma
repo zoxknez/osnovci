@@ -85,6 +85,8 @@ model User {
 
   @@index([email])
   @@index([phone])
+  @@index([role]) // For role-based queries
+  @@index([emailVerified]) // For filtering verified users
   @@map("users")
 }
 
@@ -110,6 +112,7 @@ model Session {
   @@index([token])
   @@index([userId, lastActivityAt])
   @@index([expiresAt])
+  @@index([userId, expiresAt]) // For active session cleanup
   @@map("sessions")
 }
 
@@ -555,6 +558,7 @@ model Attachment {
   @@index([homeworkId])
   @@index([type, uploadedAt]) // Za filtering by type with date sort
   @@index([homeworkId, syncedAt]) // Za sync status check
+  @@index([uploadedAt]) // For recent uploads queries
   @@map("attachments")
 }
 
@@ -595,6 +599,7 @@ model ScheduleEntry {
   @@index([dayOfWeek])
   // Compound indexes
   @@index([studentId, dayOfWeek])
+  @@index([studentId, dayOfWeek, startTime]) // For schedule ordering
   @@index([studentId, dayOfWeek, startTime])
   @@map("schedule_entries")
 }

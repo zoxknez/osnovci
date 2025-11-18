@@ -12,7 +12,8 @@ export type ActivityType =
   | "PASSWORD_CHANGED"
   | "PROFILE_UPDATED"
   | "PARENT_LINKED"
-  | "PARENT_REMOVED";
+  | "PARENT_REMOVED"
+  | "SECURITY_INCIDENT";
 
 interface LogActivityParams {
   studentId: string;
@@ -190,6 +191,20 @@ export const ActivityLogger = {
       studentId,
       type: "PASSWORD_CHANGED",
       description: "Lozinka promenjena",
+      ...(request && { request }),
+    }),
+
+  securityIncident: (
+    studentId: string,
+    incidentType: string,
+    metadata: any,
+    request?: NextRequest,
+  ) =>
+    logActivity({
+      studentId,
+      type: "SECURITY_INCIDENT",
+      description: `Bezbednosni incident: ${incidentType}`,
+      metadata: { incidentType, ...metadata },
       ...(request && { request }),
     }),
 };
