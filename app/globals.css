@@ -147,19 +147,17 @@ body {
   }
 }
 
-/* ⚠️ CRITICAL: Framer Motion Fallback - Ensure all motion components are visible without JS */
-/* This fixes the "white screen" issue on slow mobile connections */
-[style*="opacity:0"] {
+/* ⚠️ CRITICAL: Framer Motion Fallback - Ensure critical content is visible without JS */
+/* Only apply fallback to specific loading states, NOT animations */
+[data-loading][style*="opacity:0"] {
   opacity: 1;
 }
 
-[style*="transform:"] {
-  /* Remove initial transform state to show content immediately */
-  transform: none;
-}
+/* Keep transform animations intact - they're intentional */
+/* [style*="transform:"] - REMOVED: Was breaking Framer Motion animations */
 
-/* Force visibility for all divs with Framer Motion styles */
-div[style*="opacity"] {
+/* Only force visibility for actual loading states with data attribute */
+[data-loading-state="true"] {
   opacity: 1;
   visibility: visible;
   display: block;

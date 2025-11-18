@@ -522,8 +522,10 @@ html {
   }
 }
 
-/* Smooth color transitions for theme switching */
-* {
+/* Smooth color transitions for theme switching - Specific targets only */
+/* Removed global * selector to prevent conflicts with Framer Motion */
+.theme-transition,
+[data-theme-aware] {
   transition:
     background-color 0.3s ease,
     color 0.3s ease,

@@ -21,28 +21,32 @@ export default function Home() {
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
-            className="absolute top-10 sm:top-20 -left-10 sm:left-10 w-48 h-48 sm:w-72 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-            animate={{
+            initial={{ opacity: 0 }}
+            animate={{ 
+              opacity: 0.2,
               x: [0, 100, 0],
               y: [0, 50, 0],
             }}
             transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut",
+              opacity: { duration: 0.8, ease: "easeOut" },
+              x: { duration: 20, repeat: Infinity, ease: "easeInOut" },
+              y: { duration: 20, repeat: Infinity, ease: "easeInOut" },
             }}
+            className="absolute top-10 sm:top-20 -left-10 sm:left-10 w-48 h-48 sm:w-72 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl"
           />
           <motion.div
-            className="absolute bottom-10 sm:bottom-20 -right-10 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-            animate={{
+            initial={{ opacity: 0 }}
+            animate={{ 
+              opacity: 0.2,
               x: [0, -100, 0],
               y: [0, -50, 0],
             }}
             transition={{
-              duration: 15,
-              repeat: Infinity,
-              ease: "easeInOut",
+              opacity: { duration: 0.8, ease: "easeOut", delay: 0.2 },
+              x: { duration: 15, repeat: Infinity, ease: "easeInOut" },
+              y: { duration: 15, repeat: Infinity, ease: "easeInOut" },
             }}
+            className="absolute bottom-10 sm:bottom-20 -right-10 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl"
           />
         </div>
 
