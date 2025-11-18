@@ -98,7 +98,7 @@ export function sendMetric(
 ) {
   const metric: Metric = {
     name,
-    value: typeof data.value === "number" ? data.value : JSON.stringify(data),
+    value: typeof data["value"] === "number" ? data["value"] : JSON.stringify(data),
     timestamp: Date.now(),
     metadata: data,
   };
@@ -146,7 +146,6 @@ export function trackPageLoad() {
   // Wait for page to fully load
   window.addEventListener("load", () => {
     setTimeout(() => {
-      const perfData = window.performance.timing;
       const navTiming = window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
       
       if (navTiming) {
@@ -326,7 +325,7 @@ export function useWebVitals() {
     if (typeof window === "undefined") return;
     
     // Import web-vitals dynamically
-    import("web-vitals").then(({ onCLS, onFID, onLCP, onFCP, onTTFB }) => {
+    import("web-vitals").then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
       onCLS((metric: WebVitalMetric) => {
         reportWebVital(metric);
         sendMetric("web_vital_cls", {
@@ -335,9 +334,9 @@ export function useWebVitals() {
         });
       });
       
-      onFID((metric: WebVitalMetric) => {
+      onINP((metric: WebVitalMetric) => {
         reportWebVital(metric);
-        sendMetric("web_vital_fid", {
+        sendMetric("web_vital_inp", {
           value: metric.value,
           rating: metric.rating,
         });

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, 
@@ -68,9 +67,12 @@ export function SubtaskEditor({
 
   const toggleSubtask = (index: number) => {
     const updated = [...subtasks];
+    const current = updated[index];
+    if (!current) return;
+    
     updated[index] = {
-      ...updated[index],
-      status: updated[index].status === "SUBMITTED" ? "ASSIGNED" : "SUBMITTED",
+      ...current,
+      status: current.status === "SUBMITTED" ? "ASSIGNED" : "SUBMITTED",
     };
     onSubtasksChange(updated);
   };
@@ -85,6 +87,8 @@ export function SubtaskEditor({
 
     const updated = [...subtasks];
     const draggedItem = updated[draggedIndex];
+    if (!draggedItem) return;
+    
     updated.splice(draggedIndex, 1);
     updated.splice(index, 0, draggedItem);
 

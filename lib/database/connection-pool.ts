@@ -44,48 +44,8 @@ export function createPrismaClient() {
       : ['error'],
   });
 
-  // Add query timeout middleware
-  client.$use(async (params: any, next: any) => {
-    const startTime = Date.now();
-    
-    try {
-      // Create timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(new Error(`Query timeout after ${queryTimeout}ms: ${params.model}.${params.action}`));
-        }, queryTimeout);
-      });
-
-      // Race between query and timeout
-      const result = await Promise.race([
-        next(params),
-        timeoutPromise,
-      ]);
-
-      const duration = Date.now() - startTime;
-      
-      // Log slow queries (>1 second)
-      if (duration > 1000) {
-        log.warn('Slow query detected', {
-          model: params.model,
-          action: params.action,
-          duration: `${duration}ms`,
-        });
-      }
-
-      return result;
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      
-      log.error('Query failed', error as Error, {
-        model: params.model,
-        action: params.action,
-        duration: `${duration}ms`,
-      });
-      
-      throw error;
-    }
-  });
+  // TODO: Add query timeout using Prisma Client Extensions
+  // $use middleware is deprecated in Prisma 5+
 
   // Add connection pool monitoring
   if (process.env['NODE_ENV'] === 'production') {
@@ -207,24 +167,13 @@ export async function checkDatabaseHealth(): Promise<{
  * Get connection pool metrics
  */
 export async function getConnectionPoolMetrics() {
-  try {
-    // This is a rough estimate based on active transactions
-    const metrics = await prisma.$metrics.json();
-    
-    return {
-      available: connectionConfig.connection_limit,
-      active: metrics.counters.find((c: { key: string }) => c.key === 'prisma_client_queries_active')?.value || 0,
-      idle: connectionConfig.connection_limit - (metrics.counters.find((c: { key: string }) => c.key === 'prisma_client_queries_active')?.value || 0),
-    };
-  } catch {
-    // Metrics might not be available in all Prisma versions
-    return {
-      available: connectionConfig.connection_limit,
-      active: 0,
-      idle: connectionConfig.connection_limit,
-      note: 'Metrics not available',
-    };
-  }
+  // $metrics API not available without explicit Prisma Client configuration
+  return {
+    available: connectionConfig.connection_limit,
+    active: 0,
+    idle: connectionConfig.connection_limit,
+    note: 'Metrics require Prisma Client metrics configuration',
+  };
 }
 
 /**

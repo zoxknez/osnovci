@@ -66,7 +66,7 @@ export async function getCalendarEvents(
   const tests = await prisma.grade.findMany({
     where: {
       studentId,
-      type: "TEST",
+      category: "Kontrolni", // Test category
       createdAt: {
         gte: startDate,
         lte: endDate,
@@ -85,8 +85,11 @@ export async function getCalendarEvents(
     );
 
     for (const entry of dayEntries) {
-      const [startHour, startMinute] = entry.startTime.split(":").map(Number);
-      const [endHour, endMinute] = entry.endTime.split(":").map(Number);
+      // Skip entries without subject (custom events)
+      if (!entry.subject) continue;
+
+      const [startHour = 0, startMinute = 0] = entry.startTime.split(":").map(Number);
+      const [endHour = 0, endMinute = 0] = entry.endTime.split(":").map(Number);
 
       const startTime = new Date(currentDate);
       startTime.setHours(startHour, startMinute, 0, 0);
@@ -102,10 +105,10 @@ export async function getCalendarEvents(
         type: "CLASS",
         color: getSubjectColor(entry.subject.name),
         isAllDay: false,
-        subjectId: entry.subjectId,
+        ...(entry.subjectId && { subjectId: entry.subjectId }),
         subjectName: entry.subject.name,
-        room: entry.room || undefined,
-        notes: entry.notes || undefined,
+        ...(entry.room && { room: entry.room }),
+        ...(entry.notes && { notes: entry.notes }),
       });
     }
 
@@ -120,7 +123,7 @@ export async function getCalendarEvents(
     events.push({
       id: `homework-${hw.id}`,
       title: `📝 ${hw.title}`,
-      description: hw.description || undefined,
+      ...(hw.description && { description: hw.description }),
       startTime: new Date(hw.dueDate),
       endTime: dueTime,
       type: "HOMEWORK",
@@ -136,7 +139,7 @@ export async function getCalendarEvents(
   for (const test of tests) {
     events.push({
       id: `test-${test.id}`,
-      title: `📊 ${test.subject.name} - ${test.type}`,
+      title: `📊 ${test.subject.name} - ${test.category}`,
       startTime: test.createdAt,
       endTime: test.createdAt,
       type: "TEST",
@@ -345,21 +348,22 @@ export async function createCustomEvent(
     color?: string;
   }
 ): Promise<{ id: string; title: string }> {
-  // Store custom events in Schedule table with a special marker
-  const event = await prisma.schedule.create({
+  // Store custom events in ScheduleEntry table with a special marker
+  const event = await prisma.scheduleEntry.create({
     data: {
       studentId,
-      title: data.title,
-      description: data.description,
-      date: data.startTime,
-      startTime: data.startTime,
-      endTime: data.endTime,
+      customTitle: data.title,
+      dayOfWeek: "MONDAY", // Will use customDate instead
+      startTime: data.startTime.toTimeString().slice(0, 5), // "HH:mm"
+      endTime: data.endTime.toTimeString().slice(0, 5),
       isCustomEvent: true,
-      color: data.color,
+      customDate: data.startTime,
+      ...(data.color && { customColor: data.color }),
+      ...(data.description && { notes: data.description }),
     },
   });
 
-  return { id: event.id, title: event.title };
+  return { id: event.id, title: event.customTitle || "" };
 }
 
 /**
@@ -378,12 +382,13 @@ export async function updateEventTime(
         data: { dueDate: newStartTime },
       });
     } else if (eventType === "schedule") {
-      await prisma.schedule.update({
-        where: { id: eventId.replace("schedule-", "").split("-")[0] },
+      const scheduleId = eventId.replace("schedule-", "").split("-")[0] as string;
+      await prisma.scheduleEntry.update({
+        where: { id: scheduleId },
         data: {
-          date: newStartTime,
-          startTime: newStartTime,
-          endTime: newEndTime,
+          customDate: newStartTime,
+          startTime: newStartTime.toTimeString().slice(0, 5),
+          endTime: newEndTime.toTimeString().slice(0, 5),
         },
       });
     }
@@ -401,7 +406,7 @@ export async function deleteCustomEvent(
   eventId: string
 ): Promise<{ success: boolean }> {
   try {
-    await prisma.schedule.delete({
+    await prisma.scheduleEntry.delete({
       where: { id: eventId, isCustomEvent: true },
     });
     return { success: true };

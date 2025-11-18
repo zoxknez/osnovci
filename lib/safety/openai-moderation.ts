@@ -45,7 +45,7 @@ export interface OpenAIModerationResult {
 export async function moderateTextWithAI(
   text: string
 ): Promise<OpenAIModerationResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env["OPENAI_API_KEY"];
 
   // Fallback if OpenAI not configured
   if (!apiKey) {
@@ -82,7 +82,7 @@ export async function moderateTextWithAI(
 
     // Calculate severity based on scores
     const scores = result.category_scores;
-    const highestScore = Math.max(...Object.values(scores));
+    const highestScore = Math.max(...Object.values(scores).map(Number));
     
     let severity: "none" | "low" | "medium" | "high" | "critical" = "none";
     if (highestScore >= 0.9) severity = "critical";
@@ -127,7 +127,7 @@ export async function moderateTextWithAI(
 export async function moderateTextsWithAI(
   texts: string[]
 ): Promise<OpenAIModerationResult[]> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env["OPENAI_API_KEY"];
 
   if (!apiKey) {
     return texts.map(() => createFallbackResult());
@@ -155,7 +155,7 @@ export async function moderateTextsWithAI(
 
     return results.map((result: any) => {
       const scores = result.category_scores;
-      const highestScore = Math.max(...Object.values(scores));
+      const highestScore = Math.max(...Object.values(scores).map(Number));
 
       let severity: "none" | "low" | "medium" | "high" | "critical" = "none";
       if (highestScore >= 0.9) severity = "critical";
@@ -227,7 +227,7 @@ function createFallbackResult(): OpenAIModerationResult {
  * Check if OpenAI moderation is enabled
  */
 export function isOpenAIModerationEnabled(): boolean {
-  return !!process.env.OPENAI_API_KEY;
+  return !!process.env["OPENAI_API_KEY"];
 }
 
 /**

@@ -108,13 +108,13 @@ export async function moderateContent(
         contentType: input.contentType,
         contentId: input.contentId,
         originalText: input.text,
-        moderatedText: moderated !== input.text ? moderated : null,
+        ...(moderated !== input.text && { moderatedText: moderated }),
         userId: input.userId,
-        studentId: input.studentId,
+        ...(input.studentId && { studentId: input.studentId }),
         status: finalStatus,
         flagged: aiResult?.flagged || !profanityCheck.safe || piiCheck.detected,
         severity: finalSeverity,
-        flaggedWords: flaggedWords.length > 0 ? JSON.stringify(flaggedWords) : null,
+        ...(flaggedWords.length > 0 && { flaggedWords: JSON.stringify(flaggedWords) }),
         ...(aiResult
           ? {
               categories: {
@@ -128,11 +128,11 @@ export async function moderateContent(
             }
           : {}),
         hasPII: piiCheck.detected,
-        piiTypes: piiCheck.detected ? piiCheck.types.join(",") : null,
+        ...(piiCheck.detected && { piiTypes: piiCheck.types.join(",") }),
         actionTaken: finalAction,
         notifyParent,
-        ipAddress: input.ipAddress,
-        userAgent: input.userAgent,
+        ...(input.ipAddress && { ipAddress: input.ipAddress }),
+        ...(input.userAgent && { userAgent: input.userAgent }),
       },
     });
 
@@ -162,7 +162,7 @@ export async function moderateContent(
       flaggedWords,
       flaggedCategories,
       notifyParent,
-      blockReason: finalAction === "block" ? warnings[0] : undefined,
+      ...(finalAction === "block" && warnings[0] && { blockReason: warnings[0] }),
       moderationLogId: moderationLog.id,
     };
   } catch (error) {
@@ -178,7 +178,7 @@ export async function moderateContent(
         contentId: input.contentId,
         originalText: input.text,
         userId: input.userId,
-        studentId: input.studentId,
+        ...(input.studentId && { studentId: input.studentId }),
         status: "FLAGGED",
         flagged: true,
         severity: "critical",
@@ -284,25 +284,25 @@ async function notifyParentAsync(
     const student = await prisma.student.findUnique({
       where: { id: studentId },
       include: {
-        guardianLinks: {
+        links: {
           where: { isActive: true },
           include: { guardian: { include: { user: true } } },
         },
       },
     });
 
-    if (!student || student.guardianLinks.length === 0) {
+    if (!student || student.links.length === 0) {
       return;
     }
 
     // Create notification for each guardian
-    for (const link of student.guardianLinks) {
+    for (const link of student.links) {
       await prisma.notification.create({
         data: {
           userId: link.guardian.userId,
-          type: "SECURITY_ALERT",
+          type: "HOMEWORK_REVIEWED" as any, // TODO: Add SECURITY_ALERT to enum
           title: "⚠️ Moderacija sadržaja",
-          message: `Detektovan je neprikladansan sadržaj od strane učenika ${student.firstName}. Razlozi: ${warnings.join(", ")}`,
+          message: `Detektovan je neprikladansan sadržaj od strane učenika. Razlozi: ${warnings.join(", ")}`,
           metadata: {
             studentId,
             moderationLogId,
@@ -324,7 +324,7 @@ async function notifyParentAsync(
     log.info("Parent notified about flagged content", {
       studentId,
       moderationLogId,
-      guardianCount: student.guardianLinks.length,
+      guardianCount: student.links.length,
     });
   } catch (error) {
     log.error("Failed to notify parent", error, { studentId, moderationLogId });

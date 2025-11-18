@@ -204,6 +204,35 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 /**
+ * Send notification to specific user (server-side)
+ * This is a placeholder - requires push service integration
+ */
+export async function sendNotificationToUser(
+  userId: string,
+  title: string,
+  body: string,
+  data?: Record<string, string>
+): Promise<void> {
+  // TODO: Implement actual push notification sending via web-push library
+  // This would require storing user's push subscriptions in database
+  // and using web-push npm package to send notifications
+  
+  console.log('Sending notification to user:', {
+    userId,
+    title,
+    body,
+    data,
+  });
+  
+  // Placeholder implementation
+  // In production, this would:
+  // 1. Fetch user's push subscriptions from database
+  // 2. Use web-push library to send notification to each subscription
+  // 3. Handle expired subscriptions
+  // 4. Log delivery status
+}
+
+/**
  * Notification templates za česte slučajeve
  */
 export const notificationTemplates = {

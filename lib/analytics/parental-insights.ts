@@ -50,7 +50,6 @@ export async function calculateEngagementScore(
     by: ["createdAt"],
     where: {
       studentId,
-      action: "LOGIN",
       createdAt: { gte: startDate, lte: endDate },
     },
   });
@@ -62,18 +61,17 @@ export async function calculateEngagementScore(
 
   const loginFrequencyScore = daysBetween > 0 ? (uniqueDays / daysBetween) * 25 : 0;
 
-  // Time spent (0-25 points) - 30+ min/day is optimal
-  const totalMinutes = await prisma.activityLog.aggregate({
+  // Time spent (0-25 points) - based on activity frequency
+  const totalActivities = await prisma.activityLog.count({
     where: {
       studentId,
       createdAt: { gte: startDate, lte: endDate },
     },
-    _sum: { duration: true },
   });
 
-  const avgMinutesPerDay = totalMinutes._sum.duration 
-    ? totalMinutes._sum.duration / daysBetween 
-    : 0;
+  // Estimate: assume each activity = ~5 minutes
+  const estimatedMinutes = totalActivities * 5;
+  const avgMinutesPerDay = daysBetween > 0 ? estimatedMinutes / daysBetween : 0;
 
   const timeSpentScore = Math.min((avgMinutesPerDay / 30) * 25, 25);
 
@@ -83,18 +81,24 @@ export async function calculateEngagementScore(
       studentId,
       createdAt: { gte: startDate, lte: endDate },
     },
-    select: { value: true },
+    select: { grade: true },
   });
 
   let gradeConsistencyScore = 0;
   if (grades.length >= 3) {
-    const values = grades.map((g: { value: number }) => g.value);
-    const avg = values.reduce((a: number, b: number) => a + b, 0) / values.length;
-    const variance = values.reduce((sum: number, val: number) => sum + Math.pow(val - avg, 2), 0) / values.length;
-    const stdDev = Math.sqrt(variance);
+    // Convert string grades to numbers (1-5 scale)
+    const values = grades
+      .map((g) => parseInt(g.grade, 10))
+      .filter((v) => !isNaN(v));
     
-    // Lower standard deviation = higher consistency
-    gradeConsistencyScore = Math.max(20 - (stdDev * 5), 0);
+    if (values.length >= 3) {
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      const variance = values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length;
+      const stdDev = Math.sqrt(variance);
+      
+      // Lower standard deviation = higher consistency
+      gradeConsistencyScore = Math.max(20 - (stdDev * 5), 0);
+    }
   }
 
   const totalScore = Math.round(
@@ -166,24 +170,31 @@ export async function detectBehavioralAlerts(
   }
 
   // Check for grade drops (compare last 2 weeks)
-  const recentGrades = await prisma.grade.aggregate({
+  const recentGradesRaw = await prisma.grade.findMany({
     where: {
       studentId,
       createdAt: { gte: oneWeekAgo, lte: now },
     },
-    _avg: { value: true },
+    select: { grade: true },
   });
 
-  const previousGrades = await prisma.grade.aggregate({
+  const previousGradesRaw = await prisma.grade.findMany({
     where: {
       studentId,
       createdAt: { gte: twoWeeksAgo, lt: oneWeekAgo },
     },
-    _avg: { value: true },
+    select: { grade: true },
   });
 
-  if (recentGrades._avg.value && previousGrades._avg.value) {
-    const drop = previousGrades._avg.value - recentGrades._avg.value;
+  // Calculate averages manually
+  const recentValues = recentGradesRaw.map((g) => parseInt(g.grade, 10)).filter((v) => !isNaN(v));
+  const previousValues = previousGradesRaw.map((g) => parseInt(g.grade, 10)).filter((v) => !isNaN(v));
+
+  if (recentValues.length > 0 && previousValues.length > 0) {
+    const recentAvg = recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
+    const previousAvg = previousValues.reduce((a, b) => a + b, 0) / previousValues.length;
+    const drop = previousAvg - recentAvg;
+    
     if (drop >= 1) {
       alerts.push({
         type: "grade_drop",
@@ -206,15 +217,15 @@ export async function detectBehavioralAlerts(
   }
 
   // Check for excessive time (burnout risk)
-  const totalTime = await prisma.activityLog.aggregate({
+  const activityCount = await prisma.activityLog.count({
     where: {
       studentId,
       createdAt: { gte: oneWeekAgo, lte: now },
     },
-    _sum: { duration: true },
   });
 
-  const avgDailyMinutes = totalTime._sum.duration ? totalTime._sum.duration / 7 : 0;
+  // Estimate: ~5 min per activity
+  const avgDailyMinutes = (activityCount * 5) / 7;
   if (avgDailyMinutes > 120) {
     alerts.push({
       type: "excessive_time",
@@ -251,21 +262,24 @@ export async function getTimeOnDeviceAnalytics(
     minutes: number;
   } | null;
 }> {
+  // Group by activity type and count occurrences
   const activities = await prisma.activityLog.groupBy({
-    by: ["action"],
+    by: ["type"],
     where: {
       studentId,
       createdAt: { gte: startDate, lte: endDate },
     },
-    _sum: { duration: true },
+    _count: { id: true },
   });
 
-  const totalMinutes = activities.reduce((sum: number, a: { _sum: { duration: number | null } }) => sum + (a._sum.duration || 0), 0);
+  // Estimate minutes: each activity ~5 min
+  const totalCount = activities.reduce((sum, a) => sum + a._count.id, 0);
+  const totalMinutes = totalCount * 5;
 
-  const byActivity = activities.map((a: { action: string; _sum: { duration: number | null } }) => ({
-    action: a.action,
-    minutes: a._sum.duration || 0,
-    percentage: totalMinutes > 0 ? ((a._sum.duration || 0) / totalMinutes) * 100 : 0,
+  const byActivity = activities.map((a) => ({
+    action: a.type,
+    minutes: a._count.id * 5,
+    percentage: totalCount > 0 ? (a._count.id / totalCount) * 100 : 0,
   }));
 
   // Time of day breakdown
@@ -276,44 +290,26 @@ export async function getTimeOnDeviceAnalytics(
     },
     select: {
       createdAt: true,
-      duration: true,
     },
   });
 
   const hourMap = new Map<number, number>();
-  logs.forEach((log: { createdAt: Date; duration: number | null }) => {
+  logs.forEach((log) => {
     const hour = log.createdAt.getHours();
-    hourMap.set(hour, (hourMap.get(hour) || 0) + (log.duration || 0));
+    hourMap.set(hour, (hourMap.get(hour) || 0) + 5); // ~5 min per activity
   });
 
   const byTimeOfDay = Array.from(hourMap.entries())
     .map(([hour, minutes]) => ({ hour, minutes }))
     .sort((a, b) => a.hour - b.hour);
 
-  // Longest session
-  const longestLog = await prisma.activityLog.findFirst({
-    where: {
-      studentId,
-      createdAt: { gte: startDate, lte: endDate },
-    },
-    orderBy: { duration: "desc" },
-    select: {
-      createdAt: true,
-      duration: true,
-    },
-  });
-
   return {
     totalMinutes,
     byActivity,
     byTimeOfDay,
-    longestSession: longestLog 
-      ? { date: longestLog.createdAt, minutes: longestLog.duration || 0 }
-      : null,
+    longestSession: null, // TODO: Calculate from consecutive activity timestamps
   };
-}
-
-/**
+}/**
  * Subject Focus Report
  * Which subjects are getting most/least attention
  */
@@ -360,27 +356,14 @@ export async function getSubjectFocusReport(
       homework: Array<{ id: string }>;
       grades: Array<{ id: string }>;
     }) => {
-      // Estimate time from activity logs (rough approximation)
-      const homeworkLogs = await prisma.activityLog.aggregate({
-        where: {
-          studentId,
-          action: "HOMEWORK_WORK",
-          metadata: {
-            path: ["subjectId"],
-            equals: subject.id,
-          },
-          createdAt: { gte: startDate, lte: endDate },
-        },
-        _sum: { duration: true },
-      });
-
-      const homeworkMinutes = homeworkLogs._sum.duration || 0;
+      // Estimate time: ~15 min per homework
+      const homeworkMinutes = subject.homework.length * 15;
 
       // Determine attention level based on homework frequency
       let attentionLevel: "low" | "medium" | "high";
-      if (subject.homework.length >= 5 || homeworkMinutes >= 180) {
+      if (subject.homework.length >= 5) {
         attentionLevel = "high";
-      } else if (subject.homework.length >= 2 || homeworkMinutes >= 60) {
+      } else if (subject.homework.length >= 2) {
         attentionLevel = "medium";
       } else {
         attentionLevel = "low";

@@ -46,10 +46,12 @@ export async function createSubtasks(
           studentId: parent.studentId,
           subjectId: parent.subjectId,
           title: subtask.title,
-          description: subtask.description,
+          ...(subtask.description && { description: subtask.description }),
           dueDate: parent.dueDate,
           priority: parent.priority,
-          estimatedMinutes: subtask.estimatedMinutes,
+          ...(subtask.estimatedMinutes && {
+            estimatedMinutes: subtask.estimatedMinutes,
+          }),
           order: subtask.order ?? index,
           status: "ASSIGNED",
         },
@@ -69,7 +71,7 @@ export async function createSubtasks(
  * Reorder subtasks
  */
 export async function reorderSubtasks(
-  parentId: string,
+  _parentId: string,
   subtaskIds: string[]
 ): Promise<void> {
   const updates = subtaskIds.map((id, index) =>
@@ -308,8 +310,8 @@ export async function createTaskTemplate(
       studentId,
       subjectId,
       title: data.title,
-      description: data.description,
-      estimatedMinutes: data.estimatedMinutes,
+      ...(data.description && { description: data.description }),
+      ...(data.estimatedMinutes && { estimatedMinutes: data.estimatedMinutes }),
       isTemplate: true,
       dueDate: new Date(), // Dummy date for templates
       status: "ASSIGNED",
@@ -354,10 +356,12 @@ export async function createFromTemplate(
       studentId: template.studentId,
       subjectId: template.subjectId,
       title: template.title,
-      description: template.description,
+      ...(template.description && { description: template.description }),
       dueDate,
-      priority: priority || template.priority,
-      estimatedMinutes: template.estimatedMinutes,
+      priority: (priority || template.priority) as any,
+      ...(template.estimatedMinutes && {
+        estimatedMinutes: template.estimatedMinutes,
+      }),
       templateId,
       status: "ASSIGNED",
     },
@@ -369,8 +373,8 @@ export async function createFromTemplate(
       homework.id,
       template.subtasks.map((s) => ({
         title: s.title,
-        description: s.description || undefined,
-        estimatedMinutes: s.estimatedMinutes || undefined,
+        ...(s.description && { description: s.description }),
+        ...(s.estimatedMinutes && { estimatedMinutes: s.estimatedMinutes }),
         order: s.order,
       }))
     );
@@ -441,8 +445,8 @@ export async function createRecurringTask(
       studentId,
       subjectId,
       title: data.title,
-      description: data.description,
-      estimatedMinutes: data.estimatedMinutes,
+      ...(data.description && { description: data.description }),
+      ...(data.estimatedMinutes && { estimatedMinutes: data.estimatedMinutes }),
       isRecurring: true,
       recurrenceRule: data.recurrenceRule,
       dueDate: data.startDate,
@@ -535,7 +539,7 @@ export async function bulkUpdatePriority(
 ): Promise<{ count: number }> {
   const result = await prisma.homework.updateMany({
     where: { id: { in: homeworkIds } },
-    data: { priority },
+    data: { priority: priority as any },
   });
 
   return { count: result.count };
