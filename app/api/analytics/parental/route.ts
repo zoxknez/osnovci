@@ -228,10 +228,10 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
   // Group by category
   const byCategory: { [key: string]: { count: number; sum: number } } = {};
   grades.forEach((g: any) => {
-    if (!byType[g.category]) {
-      byType[g.category] = { count: 0, sum: 0 };
+    if (!byCategory[g.category]) {
+      byCategory[g.category] = { count: 0, sum: 0 };
     }
-    const cat = byType[g.category];
+    const cat = byCategory[g.category];
     if (cat) {
       cat.count++;
       cat.sum += parseFloat(g.grade) || 0;
@@ -250,7 +250,7 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
       count: data.count,
       average: Math.round((data.sum / data.count) * 100) / 100,
     })),
-    byType: Object.entries(byType).map(([type, data]) => ({
+    byType: Object.entries(byCategory).map(([type, data]) => ({
       type,
       count: data.count,
       average: Math.round((data.sum / data.count) * 100) / 100,

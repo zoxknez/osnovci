@@ -75,42 +75,25 @@ export function PageHeader({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
-      className="relative mb-8 overflow-hidden hero-glow hero-rounded"
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="relative mb-8 overflow-hidden rounded-3xl"
       style={{
         background: styles.inlineColor,
+        boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.15)",
       }}
     >
-      {/* Main gradient background */}
+      {/* Blurred background accent - single layer */}
       <div
-        className={`absolute inset-0 -z-20 bg-gradient-to-br ${styles.bg} opacity-95 hero-rounded`}
+        className="absolute inset-0 -z-10 rounded-3xl blur-2xl"
         style={{
           background: styles.inlineColor,
-          opacity: 0.95,
+          opacity: 0.3,
         }}
       />
 
-      {/* Blurred background accent */}
+      {/* Static background pattern - no animation to reduce flash */}
       <div
-        className={`absolute inset-0 -z-10 bg-gradient-to-r ${styles.bg} hero-rounded blur-2xl opacity-40`}
-        style={{
-          background: styles.inlineColor,
-          opacity: 0.4,
-          filter: "blur(64px)",
-        }}
-      />
-
-      {/* Animated background pattern */}
-      <motion.div
-        className="absolute inset-0 -z-10 opacity-20"
-        animate={{
-          backgroundPosition: ["0% 0%", "100% 100%"],
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          repeatType: "reverse",
-        }}
+        className="absolute inset-0 -z-10 opacity-10"
         style={{
           backgroundImage: `
             radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
@@ -126,33 +109,21 @@ export function PageHeader({
           <div className="flex-1 min-w-0">
             {/* Badge */}
             {badge && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-                className="inline-block mb-3 sm:mb-4"
-              >
+              <div className="inline-block mb-3 sm:mb-4">
                 <span
                   className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-lg text-white border ${styles.border} shadow-lg hover:bg-white/30 transition-all cursor-default`}
                 >
-                  <motion.span
-                    className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${styles.dot}`}
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
+                  <span className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${styles.dot}`} />
                   <span className="hidden sm:inline">{badge}</span>
                   <span className="inline sm:hidden text-xs">
                     {badge?.slice(0, 8)}
                   </span>
                 </span>
-              </motion.div>
+              </div>
             )}
 
             {/* Title - Mobile optimized typography */}
-            <motion.h1
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15, type: "spring", stiffness: 100 }}
+            <h1
               className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-2 sm:mb-4 leading-tight"
               style={{
                 textShadow: `
@@ -163,13 +134,10 @@ export function PageHeader({
               }}
             >
               {title}
-            </motion.h1>
+            </h1>
 
             {/* Description - Mobile optimized */}
-            <motion.p
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
+            <p
               className="text-sm sm:text-lg md:text-xl text-white/95 max-w-2xl leading-snug sm:leading-relaxed font-medium"
               style={{
                 textShadow: `
@@ -179,58 +147,33 @@ export function PageHeader({
               }}
             >
               {description}
-            </motion.p>
+            </p>
           </div>
 
           {/* Action button */}
           {action && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.25, type: "spring", stiffness: 200 }}
-              className="flex-shrink-0"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <div className="flex-shrink-0">
               {action}
-            </motion.div>
+            </div>
           )}
         </div>
 
-        {/* Floating decorative elements */}
-        <motion.div
-          className="absolute top-8 right-8 w-24 h-24 rounded-full opacity-20 pointer-events-none"
-          animate={{
-            y: [0, 15, 0],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear",
-          }}
+        {/* Static decorative elements - removed animation */}
+        <div
+          className="absolute top-8 right-8 w-24 h-24 rounded-full opacity-10 pointer-events-none"
         >
           <div
             className={`w-full h-full rounded-full bg-gradient-to-br ${styles.accent} blur-lg`}
           />
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute bottom-8 left-8 w-32 h-32 rounded-full opacity-15 pointer-events-none"
-          animate={{
-            y: [0, -20, 0],
-            x: [0, 10, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+        <div
+          className="absolute bottom-8 left-8 w-32 h-32 rounded-full opacity-10 pointer-events-none"
         >
           <div
             className={`w-full h-full rounded-full bg-gradient-to-tr ${styles.accent} blur-xl`}
           />
-        </motion.div>
+        </div>
 
         {/* Decorative SVG pattern */}
         <div className="absolute top-0 right-0 w-48 h-48 opacity-10 pointer-events-none">
@@ -251,17 +194,10 @@ export function PageHeader({
         </div>
       </div>
 
-      {/* Bottom accent gradient bar */}
-      <motion.div
+      {/* Bottom accent gradient bar - no animation */}
+      <div
         className={`absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r ${styles.accent}`}
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.5, duration: 0.8 }}
-        style={{ transformOrigin: "left" }}
       />
-
-      {/* Glow effect */}
-      <div className="absolute inset-0 -z-30 rounded-3xl opacity-0 blur-3xl bg-gradient-to-r from-transparent via-white/10 to-transparent" />
     </motion.div>
   );
 }

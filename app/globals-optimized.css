@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+/* Osnovci - Modern CSS Variables & Optimizations */
+:root {
+  /* Core Colors - RGB for dynamic alpha */
+  --primary: 59 130 246;
+  --primary-light: 96 165 250;
+  --accent: 147 51 234;
+  --accent-light: 168 85 247;
+  --bg: 255 255 255;
+  --fg: 15 23 42;
+  
+  /* Gradients - Precomputed for performance */
+  --gradient-primary: linear-gradient(135deg, rgb(59 130 246), rgb(147 51 234));
+  --gradient-secondary: linear-gradient(135deg, rgb(34 197 94), rgb(59 130 246));
+  --gradient-bg: linear-gradient(135deg, rgba(240, 249, 255, 1), rgba(248, 250, 252, 0.8), rgba(240, 245, 255, 1));
+  
+  /* Spacing - Mobile-optimized touch targets */
+  --touch-target: 44px;
+  
+  /* Shadows - Kid-friendly, polished */
+  --shadow-sm: 0 2px 8px 0 rgb(59 130 246 / 0.08);
+  --shadow-md: 0 4px 16px 0 rgb(59 130 246 / 0.12);
+  --shadow-lg: 0 8px 24px 0 rgb(59 130 246 / 0.15);
+  --shadow-xl: 0 12px 32px 0 rgb(59 130 246 / 0.18);
+}
+
+/* Base Styles - Optimized */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--gradient-bg);
+  background-attachment: fixed;
+  color: rgb(var(--fg));
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transform: translateZ(0);
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* PWA standalone mode */
+@media (display-mode: standalone) {
+  body {
+    margin: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgb(241 245 249);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(148 163 184);
+}
+
+/* Utility Classes */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Accessibility - Focus States */
+:focus-visible {
+  outline: 3px solid rgb(var(--primary));
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: more) {
+  .text-gray-500 {
+    color: rgb(75 85 99);
+  }
+  
+  .border-gray-200 {
+    border-color: rgb(156 163 175);
+  }
+  
+  .shadow-sm {
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.15);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .print-break-before {
+    page-break-before: always;
+  }
+}
+
+/* Mobile Touch Optimization */
+@media (max-width: 640px) {
+  button, a, input, select, textarea {
+    min-height: var(--touch-target);
+  }
+  
+  p, li {
+    line-height: 1.6;
+  }
+}
+
+/* Extra Small Devices */
+@media (max-width: 380px) {
+  button, a[role="button"], input, select, textarea {
+    min-height: 40px;
+    min-width: 40px;
+  }
+  
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.125rem; }
+}

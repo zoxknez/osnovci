@@ -1,6 +1,7 @@
 /**
- * App Providers
+ * App Providers - Optimized & Enhanced
  * Wraps app with all necessary context providers
+ * Includes performance monitoring and error handling
  */
 
 "use client";
@@ -10,6 +11,8 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CsrfProvider } from "@/lib/security/csrf-provider";
 import { ShortcutsProvider } from "@/components/providers/shortcuts-provider";
+import { AdvancedErrorBoundary } from "@/components/ui/advanced-error-boundary";
+import { useWebVitals } from "@/lib/performance/monitoring";
 
 /**
  * Create QueryClient with default options
@@ -60,7 +63,15 @@ function getQueryClient() {
 }
 
 /**
- * App Providers Component
+ * Performance Monitor Component
+ */
+function PerformanceMonitor() {
+  useWebVitals();
+  return null;
+}
+
+/**
+ * App Providers Component - Enhanced
  */
 export function Providers({
   children,
@@ -75,20 +86,27 @@ export function Providers({
   const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <CsrfProvider>
-          <ShortcutsProvider>{children}</ShortcutsProvider>
-        </CsrfProvider>
-      </ThemeProvider>
+    <AdvancedErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <CsrfProvider>
+            <ShortcutsProvider>
+              {/* Performance monitoring */}
+              <PerformanceMonitor />
+              
+              {children}
+            </ShortcutsProvider>
+          </CsrfProvider>
+        </ThemeProvider>
 
-      {/* React Query Devtools - Only in development */}
-      {process.env.NODE_ENV === "development" && (
-        <ReactQueryDevtools
-          initialIsOpen={false}
-          buttonPosition="bottom-right"
-        />
-      )}
-    </QueryClientProvider>
+        {/* React Query Devtools - Only in development */}
+        {process.env.NODE_ENV === "development" && (
+          <ReactQueryDevtools
+            initialIsOpen={false}
+            buttonPosition="bottom-right"
+          />
+        )}
+      </QueryClientProvider>
+    </AdvancedErrorBoundary>
   );
 }
