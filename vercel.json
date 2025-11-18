@@ -6,16 +6,8 @@
   "regions": ["iad1"],
   "crons": [
     {
-      "path": "/api/cron/cleanup-sessions",
-      "schedule": "0 */6 * * *"
-    },
-    {
       "path": "/api/cron/reset-xp",
       "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/homework-reminders",
-      "schedule": "*/15 * * * *"
     }
   ]
 }
