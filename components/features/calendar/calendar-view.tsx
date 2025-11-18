@@ -214,7 +214,7 @@ export function CalendarView({
         {view === "month" && (
           <MonthView
             studentId={studentId}
-            month={currentDate}
+            date={currentDate}
             {...(onEventClick && { onEventClick })}
           />
         )}
