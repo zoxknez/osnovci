@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/reset-xp",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/homework-reminders",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

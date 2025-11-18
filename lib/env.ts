@@ -54,6 +54,9 @@ const envSchema = z.object({
   // Security - File Scanning (optional but recommended for production)
   VIRUSTOTAL_API_KEY: z.string().optional(),
 
+  // Cron Jobs (optional but recommended for production)
+  CRON_SECRET: z.string().optional(),
+
   // Node Environment
   NODE_ENV: z
     .enum(["development", "production", "test"])

@@ -73,6 +73,9 @@ model User {
   twoFactorSecret  String? // Encrypted TOTP secret
   backupCodes      String? // Encrypted JSON array of backup codes
   
+  // Notification Preferences (JSON)
+  notificationSettings Json? // { homeworkReminders: true, emailNotifications: true, pushNotifications: true }
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -650,6 +653,8 @@ enum NotificationType {
   HOMEWORK_DUE
   HOMEWORK_SUBMITTED
   HOMEWORK_REVIEWED
+  HOMEWORK_REMINDER
+  HOMEWORK_OVERDUE
   EVENT_REMINDER
   SCHEDULE_CHANGE
   LINK_REQUEST
@@ -661,17 +666,22 @@ model Notification {
   type      NotificationType
   title     String
   message   String
-  data      Json? // Dodatni podaci
-  isRead    Boolean          @default(false)
+  data      Json? // Dodatni podaci (deprecated - use metadata)
+  metadata  Json? // Structured metadata (homeworkId, studentId, etc)
+  read      Boolean          @default(false)
+  isRead    Boolean          @default(false) // Deprecated - use 'read'
   createdAt DateTime         @default(now())
 
   @@index([userId])
+  @@index([read])
   @@index([isRead])
   @@index([createdAt])
   // Compound indexes
+  @@index([userId, read])
   @@index([userId, isRead])
   @@index([userId, createdAt])
-  @@index([userId, isRead, createdAt]) // Za unread notifications timeline
+  @@index([userId, read, createdAt]) // Za unread notifications timeline
+  @@index([userId, isRead, createdAt])
   @@index([type, userId]) // Za notification filtering by type
   @@map("notifications")
 }

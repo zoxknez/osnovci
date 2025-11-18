@@ -395,5 +395,55 @@ export async function sendWeeklyReport(
   }
 }
 
+/**
+ * Send custom email (generic function)
+ * Use for cases where template doesn't exist
+ */
+export async function sendCustomEmail(
+  toEmail: string,
+  subject: string,
+  html: string,
+  text?: string,
+): Promise<EmailResult> {
+  try {
+    const sanitizedEmail = sanitizeEmail(toEmail);
+    if (!isValidEmail(sanitizedEmail)) {
+      return {
+        success: false,
+        error: 'Invalid email address',
+      };
+    }
+
+    const transporter = createTransporter();
+
+    const result = await sendEmailWithRetry(transporter, {
+      from: getEmailFrom(),
+      to: sanitizedEmail,
+      subject,
+      text: text || subject,
+      html,
+    });
+
+    if (result.success) {
+      log.info('Custom email sent', { to: sanitizedEmail, subject });
+    }
+
+    return result;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    log.error('Failed to send custom email', {
+      to: toEmail,
+      subject,
+      error: errorMessage,
+    });
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
 // Export types
 export type { EmailResult, WeeklyReportData };
