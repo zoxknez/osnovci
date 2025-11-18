@@ -43,7 +43,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Osnovci Tim" }],
   creator: "Osnovci",
-  metadataBase: new URL(process.env["NEXTAUTH_URL"] || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env["NEXTAUTH_URL"] || 
+    (process.env['VERCEL_URL'] ? `https://${process.env['VERCEL_URL']}` : "http://localhost:3000")
+  ),
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
