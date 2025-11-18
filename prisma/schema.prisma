@@ -713,23 +713,87 @@ model WeeklyReport {
 // ============================================
 
 enum AchievementType {
-  HOMEWORK_MILESTONE    // Milestone po broju zadataka
-  STREAK_MILESTONE      // Milestone za streaks
-  LEVEL_MILESTONE       // Milestone za level-e
-  PERFECT_WEEK          // Savršena nedelja
-  EARLY_BIRD            // Rani završetak
-  SUBJECT_MASTER        // Majstor predmeta
+  // Homework Achievements
+  FIRST_HOMEWORK        // Prvi domaći zadatak
+  HOMEWORK_5            // 5 domaćih zadataka
+  HOMEWORK_10           // 10 domaćih zadataka
+  HOMEWORK_25           // 25 domaćih zadataka
+  HOMEWORK_50           // 50 domaćih zadataka
+  HOMEWORK_100          // 100 domaćih zadataka
+  ALL_HOMEWORK_WEEK     // Svi domaći u nedelji
+  ALL_HOMEWORK_MONTH    // Svi domaći u mesecu
+  
+  // Streak Achievements
+  STREAK_3              // 3 dana streak
+  STREAK_7              // 7 dana streak
+  STREAK_14             // 14 dana streak
+  STREAK_30             // 30 dana streak
+  STREAK_60             // 60 dana streak
+  STREAK_100            // 100 dana streak
+  
+  // Level Achievements
+  LEVEL_5               // Nivo 5
+  LEVEL_10              // Nivo 10
+  LEVEL_20              // Nivo 20
+  LEVEL_30              // Nivo 30
+  LEVEL_50              // Nivo 50
+  
+  // XP Achievements
+  XP_500                // 500 XP
+  XP_1000               // 1000 XP
+  XP_2500               // 2500 XP
+  XP_5000               // 5000 XP
+  XP_10000              // 10000 XP
+  
+  // Grade Achievements
+  FIRST_GRADE_5         // Prva petica
+  GRADE_5_STREAK_3      // 3 petice zaredom
+  GRADE_5_STREAK_5      // 5 petica zaredom
+  GRADE_5_STREAK_10     // 10 petica zaredom
+  PERFECT_WEEK          // Sve petice u nedelji
+  PERFECT_MONTH         // Sve petice u mesecu
+  GRADE_AVG_45          // Prosek 4.5
+  GRADE_AVG_48          // Prosek 4.8
+  GRADE_AVG_50          // Prosek 5.0
+  
+  // Time-based Achievements
+  EARLY_BIRD            // Rano jutro (pre 7h)
+  NIGHT_OWL             // Kasno uveče (posle 22h)
+  WEEKEND_WARRIOR       // Vikend aktivnost
+  EARLY_SUBMISSION      // Rana predaja
+  EARLY_SUBMISSION_10   // 10 ranih predaja
+  EARLY_SUBMISSION_25   // 25 ranih predaja
+  
+  // Speed Achievements
   SPEED_DEMON           // Brzo završavanje
-  NIGHT_OWL             // Zadaci završeni uveče
-  WEEKEND_WARRIOR       // Zadaci tokom vikenda
+  SPEEDRUNNER_5         // 5 brzih završetaka
+  SPEEDRUNNER_10        // 10 brzih završetaka
+  LIGHTNING_FAST        // Munja brz
+  
+  // Subject Achievements
+  SUBJECT_MASTER        // Majstor predmeta
+  ALL_SUBJECTS_5        // Sve petice iz svih predmeta
+  SUBJECT_SPECIALIST    // Specialist za predmet
+  
+  // Social Achievements
+  HELPER                // Pomoćnik
+  SOCIAL_BUTTERFLY      // Druželjubiv
+  TEAM_PLAYER           // Timski igrač
+  
+  // Consistency Achievements
+  CONSISTENT_7          // 7 dana konzistentnosti
+  CONSISTENT_30         // 30 dana konzistentnosti
+  CONSISTENT_90         // 90 dana konzistentnosti
+  PERFECTIONIST         // Perfekcionist
+  
+  // Special Achievements
   COMEBACK_KID          // Povratak posle pauze
-  PERFECTIONIST         // Nema grešaka
-  HELPER                // Pomoć drugim učenicima
-  CONSISTENT            // Konzistentnost
-  EXPLORER              // Istraživanje novih tema
-  OVERACHIEVER          // Preko očekivanja
-  SOCIAL_BUTTERFLY      // Društvena aktivnost
-  COLLECTOR             // Kolekcionar bedževa
+  EXPLORER              // Istraživač
+  OVERACHIEVER          // Prekoračivač
+  COLLECTOR             // Kolekcionar
+  TOP_STUDENT           // Najbolji učenik
+  LEADERBOARD_TOP_3     // Top 3 na leaderboard-u
+  LEADERBOARD_TOP_10    // Top 10 na leaderboard-u
 }
 
 enum AchievementRarity {

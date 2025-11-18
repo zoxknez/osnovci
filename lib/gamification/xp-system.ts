@@ -2,7 +2,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createNotification } from "@/lib/notifications/create";
-import { checkAchievements } from "./achievements";
+import { checkAndUnlockAchievements } from "./achievement-triggers";
 
 // XP Rewards
 export const XP_REWARDS = {
@@ -89,7 +89,7 @@ export async function addXP(studentId: string, amount: number, reason: string) {
         });
 
         // Check for level milestone achievements
-        await checkAchievements(gamif.id, "LEVEL_MILESTONE", newLevel);
+        await checkAndUnlockAchievements(studentId);
       }
     }
 
@@ -159,7 +159,7 @@ export async function updateStreak(studentId: string) {
 
         // Check streak achievements
         if (newStreak === 7 || newStreak === 30 || newStreak === 100) {
-          await checkAchievements(gamif.id, "STREAK_MILESTONE", newStreak);
+          await checkAndUnlockAchievements(studentId);
         }
       } else if (daysSinceLastActivity > 1) {
         // Streak broken 😢
@@ -232,9 +232,9 @@ export async function trackHomeworkCompletion(
     await updateStreak(studentId);
 
     // Check milestones
-    await checkAchievements(gamif.id, "HOMEWORK_MILESTONE", newTotal);
+    await checkAndUnlockAchievements(studentId);
     if (early) {
-      await checkAchievements(gamif.id, "EARLY_BIRD", 1);
+      await checkAndUnlockAchievements(studentId);
     }
   } catch (error) {
     log.error("Failed to track homework completion", { error, studentId });

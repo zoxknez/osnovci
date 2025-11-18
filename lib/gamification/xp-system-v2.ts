@@ -17,7 +17,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createNotification } from "@/lib/notifications/create";
-import { checkAchievements } from "./achievements";
+import { checkAndUnlockAchievements } from "./achievement-triggers";
 import {
   addXPCore,
   calculateLevel,
@@ -55,9 +55,9 @@ export async function addXP(
 ) {
   // Call core XP function with achievement callback
   const result = await addXPCore(studentId, baseAmount, reason, metadata, {
-    onLevelUp: async (newLevel, gamificationId) => {
+    onLevelUp: async () => {
       // Check for level milestone achievements
-      await checkAchievements(gamificationId, "LEVEL_MILESTONE", newLevel);
+      await checkAndUnlockAchievements(studentId);
     },
   });
 
@@ -114,7 +114,7 @@ export async function updateStreak(studentId: string, forceIncrement = false) {
 
         // Check streak achievements
         if ([7, 14, 30, 50, 100, 365].includes(newStreak)) {
-          await checkAchievements(gamif.id, "STREAK_MILESTONE", newStreak);
+          await checkAndUnlockAchievements(studentId);
         }
       } else if (daysSinceLastActivity === 2 && gamif.streakFreezes > 0) {
         // Missed 1 day but have streak freeze - use it!
@@ -143,7 +143,7 @@ export async function updateStreak(studentId: string, forceIncrement = false) {
         // Comeback achievement if returning after 7+ days
         if (daysSinceLastActivity >= 7) {
           await addXP(studentId, XP_REWARDS.COMEBACK, "Welcome back!");
-          await checkAchievements(gamif.id, "COMEBACK_KID", 1);
+          await checkAndUnlockAchievements(studentId);
         }
 
         const student = await prisma.student.findUnique({

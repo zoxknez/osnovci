@@ -267,6 +267,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Trigger achievement check for new grade
+    const { triggerAchievementCheck } = await import(
+      "@/lib/gamification/achievement-triggers"
+    );
+    triggerAchievementCheck(student.id, "GRADE_RECEIVED").catch((err) =>
+      log.error("Achievement check failed", err)
+    );
+
     log.info("Created grade", {
       userId: session.user.id,
       gradeId: grade.id,

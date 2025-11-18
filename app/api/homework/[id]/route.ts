@@ -161,6 +161,16 @@ export async function PUT(
       },
     });
 
+    // Trigger achievement check if homework completed
+    if (validatedData.status === "DONE" && homework.status !== "DONE") {
+      const { triggerAchievementCheck } = await import(
+        "@/lib/gamification/achievement-triggers"
+      );
+      triggerAchievementCheck(student.id, "HOMEWORK_COMPLETED").catch((err) =>
+        log.error("Achievement check failed", err)
+      );
+    }
+
     log.info("Updated homework", {
       userId: session.user.id,
       homeworkId: id,
