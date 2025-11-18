@@ -503,24 +503,50 @@ model Homework {
   reviewNote  String? // Roditeljska napomena
   reviewedAt  DateTime?
   version     Int            @default(1) // Optimistic locking version
+  
+  // Task Management++ fields
+  parentId    String? // Parent task for subtasks
+  order       Int            @default(0) // Order within parent
+  isTemplate  Boolean        @default(false) // Is this a task template?
+  templateId  String? // Created from template
+  isRecurring Boolean        @default(false) // Recurring task
+  recurrenceRule String? // RRULE format (daily, weekly, etc.)
+  estimatedMinutes Int? // Estimated duration
+  actualMinutes    Int? // Actual time spent
+  tags        String? // JSON array of tags ["math", "urgent"]
+  
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  completedAt DateTime? // When task was completed
 
   // Relations
   student     Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   subject     Subject      @relation(fields: [subjectId], references: [id])
   attachments Attachment[]
+  
+  // Subtasks relations
+  parent      Homework?    @relation("HomeworkSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks    Homework[]   @relation("HomeworkSubtasks")
+  
+  // Task dependencies
+  dependsOn   TaskDependency[] @relation("DependentTask")
+  blockedBy   TaskDependency[] @relation("BlockingTask")
 
   @@index([studentId])
   @@index([subjectId])
   @@index([dueDate])
   @@index([status])
+  @@index([parentId]) // For subtask queries
+  @@index([templateId]) // For template instances
+  @@index([isRecurring]) // For recurring task queries
   // Compound indexes za performance
   @@index([studentId, status])
   @@index([studentId, dueDate, status])
   @@index([status, dueDate])
   @@index([studentId, priority, dueDate]) // Za prioritizovan prikaz
   @@index([priority, status, dueDate]) // Za globalni "sve urgentne" query
+  @@index([studentId, parentId, order]) // For ordered subtasks
+  @@index([isTemplate, subjectId]) // For template library
   
   // PostgreSQL full-text search (pg_trgm extension required) - ONLY FOR POSTGRESQL
   // Run: CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -528,6 +554,29 @@ model Homework {
   // @@index([description(ops: raw("gin_trgm_ops"))], type: Gist)
   
   @@map("homework")
+}
+
+// Task Dependencies (for "can't start B until A is done")
+model TaskDependency {
+  id            String   @id @default(cuid())
+  taskId        String // Dependent task (blocked)
+  dependsOnId   String // Blocking task (must be completed first)
+  dependencyType DependencyType @default(FINISH_TO_START)
+  createdAt     DateTime @default(now())
+
+  task          Homework @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask Homework @relation("BlockingTask", fields: [dependsOnId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnId]) // Prevent duplicate dependencies
+  @@index([taskId])
+  @@index([dependsOnId])
+  @@map("task_dependencies")
+}
+
+enum DependencyType {
+  FINISH_TO_START // B can't start until A is finished (most common)
+  START_TO_START  // B can't start until A starts
+  FINISH_TO_FINISH // B can't finish until A finishes
 }
 
 // ============================================
