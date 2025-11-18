@@ -15,7 +15,7 @@ const CONSENT_LOCKOUT_PREFIX = 'consent:lockout:';
 const MAX_ATTEMPTS = 5; // Max attempts before lockout
 const LOCKOUT_DURATION = 15 * 60; // 15 minutes lockout
 const ATTEMPT_WINDOW = 15 * 60; // 15 minute sliding window
-const EXPONENTIAL_BASE = 2; // Delay multiplier
+// const EXPONENTIAL_BASE = 2; // Delay multiplier (reserved for future use)
 
 interface AttemptRecord {
   count: number;
@@ -263,52 +263,21 @@ async function notifyParentAboutLockout(
 
     if (!consent) return;
 
-    const { sendEmail } = await import('@/lib/email/send');
+    // Send parent alert email using template system
+    const { sendParentalAlertEmail } = await import('@/lib/email/templates');
     
-    await sendEmail({
-      to: consent.parentEmail,
-      subject: '🚨 Osnovci: Sigurnosno upozorenje - Verifikacija pristanka',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #ef4444;">🚨 Sigurnosno upozorenje</h2>
-          
-          <p>Poštovani,</p>
-          
-          <p>
-            Detektovali smo <strong>${attemptCount} neuspelih pokušaja</strong> 
-            verifikacije koda pristanka za učenika <strong>${consent.student.name}</strong>.
-          </p>
-          
-          <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; margin: 20px 0;">
-            <p style="margin: 0; color: #991b1b;">
-              <strong>Kod je privremeno blokiran iz bezbednosnih razloga.</strong>
-            </p>
-          </div>
-          
-          <p><strong>Šta treba da uradite:</strong></p>
-          <ul>
-            <li>Ako ste Vi pokušavali verifikaciju, sačekajte 15 minuta i pokušajte ponovo</li>
-            <li>Ako niste Vi pokušavali verifikaciju, molimo kontaktirajte nas ODMAH</li>
-            <li>Proverite da li neko neovlašćeno ima pristup vašem email-u</li>
-          </ul>
-          
-          <p>
-            Možete zatražiti novi kod pristanka sa strane učenika ili kontaktirati našu podršku.
-          </p>
-          
-          <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
-            Ovo je automatska poruka iz sigurnosnog sistema Osnovci aplikacije.
-          </p>
-        </div>
-      `,
-    });
-
-    log.info('Parent notified about consent lockout', {
-      code,
-      parentEmail: consent.parentEmail,
+    await sendParentalAlertEmail(
+      consent.parentEmail,
+      'consent_lockout',
+      {
+        studentName: consent.student.name,
+        attemptCount: attemptCount.toString(),
+      }
+    ).catch((err) => {
+      log.warn('Failed to send parent alert email', { error: err });
     });
   } catch (error) {
-    log.error('Failed to notify parent about lockout', { error, code });
+    log.error('Failed to send parent lockout notification', error, { code });
   }
 }
 

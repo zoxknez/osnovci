@@ -306,6 +306,7 @@ enum ActivityType {
   PROFILE_UPDATED
   PARENT_LINKED
   PARENT_REMOVED
+  SECURITY_INCIDENT
 }
 
 model ActivityLog {
@@ -600,7 +601,6 @@ model ScheduleEntry {
   // Compound indexes
   @@index([studentId, dayOfWeek])
   @@index([studentId, dayOfWeek, startTime]) // For schedule ordering
-  @@index([studentId, dayOfWeek, startTime])
   @@map("schedule_entries")
 }
 

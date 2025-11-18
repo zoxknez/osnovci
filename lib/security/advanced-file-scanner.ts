@@ -71,7 +71,7 @@ export async function advancedFileScan(
         safe: false,
         scanType: "heuristic",
         details: {},
-        error: heuristicResult.reason,
+        error: heuristicResult.reason || "File failed security scan",
         timestamp: new Date(),
       };
     }
@@ -177,7 +177,7 @@ async function scanWithVirusTotal(
 
     // 2. File not in database - upload for scanning
     const formData = new FormData();
-    formData.append("file", new Blob([buffer]), fileName);
+    formData.append("file", new Blob([new Uint8Array(buffer)]), fileName);
 
     const uploadUrl = `${VIRUSTOTAL_API_URL}/files`;
     const uploadResponse = await fetch(uploadUrl, {
@@ -273,21 +273,27 @@ function parseVirusTotalResponse(
   // - Less than VIRUS_TOTAL_MIN_ENGINES flagged it
   const safe = malicious === 0 || malicious < VIRUS_TOTAL_MIN_ENGINES;
 
-  return {
+  const result: AdvancedScanResult = {
     safe,
     scanType,
     details: {
       malicious,
       suspicious,
       totalEngines,
-      threatNames: threatNames.length > 0 ? threatNames : undefined,
       scanId: data.data?.id,
     },
-    error: safe
-      ? undefined
-      : `Fajl detektovan kao malware od ${malicious} od ${totalEngines} skenera`,
     timestamp: new Date(),
   };
+
+  if (threatNames.length > 0) {
+    result.details.threatNames = threatNames;
+  }
+
+  if (!safe) {
+    result.error = `Fajl detektovan kao malware od ${malicious} od ${totalEngines} skenera`;
+  }
+
+  return result;
 }
 
 /**
@@ -296,7 +302,7 @@ function parseVirusTotalResponse(
 function heuristicMalwareScan(
   buffer: Buffer,
   fileName: string,
-  mimeType: string
+  _mimeType: string
 ): { safe: boolean; reason?: string } {
   // 1. Check for embedded executables
   const exeSignatures = [
