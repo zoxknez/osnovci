@@ -43,7 +43,8 @@ export async function sendVerificationEmail(
     }
 
     // Create verification URL
-    const baseUrl = env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl = env.NEXTAUTH_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
 
     // Generate email template
