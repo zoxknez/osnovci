@@ -11,7 +11,7 @@ const envSchema = z.object({
   NEXTAUTH_SECRET: z
     .string()
     .min(32, "NEXTAUTH_SECRET mora imati minimum 32 karaktera"),
-  NEXTAUTH_URL: z.string().url("NEXTAUTH_URL mora biti validan URL"),
+  NEXTAUTH_URL: z.string().url("NEXTAUTH_URL mora biti validan URL").optional(),
 
   // CSRF Protection
   CSRF_SECRET: z
