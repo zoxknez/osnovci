@@ -34,9 +34,9 @@ export function buildCSP(nonce: string): string {
   return `
     default-src 'self';
     script-src 'self' ${isDev ? "'unsafe-eval' 'unsafe-inline'" : `'nonce-${nonce}'`} https://va.vercel-scripts.com;
-    style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
+    style-src 'self' 'unsafe-inline' ${!isDev ? `'nonce-${nonce}'` : ""};
     img-src 'self' blob: data: https:;
-    font-src 'self' data: https://cdn.jsdelivr.net;
+    font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com;
     connect-src 'self' https: wss: https://vitals.vercel-insights.com;
     media-src 'self' blob:;
     worker-src 'self' blob:;

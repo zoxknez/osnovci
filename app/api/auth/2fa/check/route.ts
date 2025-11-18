@@ -46,13 +46,23 @@ export async function POST(request: NextRequest) {
     const { email } = validated.data;
 
     // Check if user exists and has 2FA enabled
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        twoFactorEnabled: true,
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          twoFactorEnabled: true,
+        },
+      });
+    } catch (dbError) {
+      // Database might not be ready yet
+      log.warn("Database query failed in 2FA check", { dbError, email });
+      // Return false to allow login attempt (2FA will be checked again during actual login)
+      return NextResponse.json({
+        twoFactorEnabled: false,
+      });
+    }
 
     // Return whether 2FA is enabled
     // Even if user doesn't exist, return false to prevent user enumeration
