@@ -419,7 +419,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Convert to timeline data
-    const timeline: GradeTrendData[] = grades.map((g) => ({
+    const timeline: GradeTrendData[] = grades.map((g: any) => ({
       date: format(g.createdAt, "yyyy-MM-dd"),
       grade: parseFloat(g.grade) || 0,
       subject: g.subject.name,
@@ -427,7 +427,7 @@ export async function GET(request: NextRequest) {
     }));
 
     // Calculate overview
-    const gradeValues = timeline.map((t) => t.grade);
+    const gradeValues = timeline.map((t: any) => t.grade);
     const averageGrade =
       gradeValues.reduce((sum, g) => sum + g, 0) / gradeValues.length;
     const highestGrade = Math.max(...gradeValues);

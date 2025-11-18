@@ -132,9 +132,9 @@ async function getHomeworkStatistics(studentId: string, startDate: Date, endDate
   });
 
   const total = homework.length;
-  const completed = homework.filter((h) => h.status === "DONE" || h.status === "REVIEWED").length;
-  const pending = homework.filter((h) => h.status === "ASSIGNED" || h.status === "IN_PROGRESS").length;
-  const overdue = homework.filter((h) => h.status !== "DONE" && h.status !== "REVIEWED" && new Date(h.dueDate) < new Date()).length;
+  const completed = homework.filter((h: any) => h.status === "DONE" || h.status === "REVIEWED").length;
+  const pending = homework.filter((h: any) => h.status === "ASSIGNED" || h.status === "IN_PROGRESS").length;
+  const overdue = homework.filter((h: any) => h.status !== "DONE" && h.status !== "REVIEWED" && new Date(h.dueDate) < new Date()).length;
 
   // Completion rate by day
   const dailyCompletion: { [key: string]: { completed: number; assigned: number } } = {};
@@ -164,7 +164,7 @@ async function getHomeworkStatistics(studentId: string, startDate: Date, endDate
       rate: data.assigned > 0 ? Math.round((data.completed / data.assigned) * 100) : 0,
     })),
     avgCompletionTime: Math.round(avgCompletionTime * 10) / 10, // Round to 1 decimal
-    withAttachments: homework.filter((h) => h.attachments.length > 0).length,
+    withAttachments: homework.filter((h: any) => h.attachments.length > 0).length,
   };
 }
 
@@ -201,7 +201,7 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
     };
   }
 
-  const gradeNumbers = grades.map((g) => parseFloat(g.grade) || 0);
+  const gradeNumbers = grades.map((g: any) => parseFloat(g.grade) || 0);
   const average = gradeNumbers.reduce((sum, n) => sum + n, 0) / gradeNumbers.length;
   const highest = Math.max(...gradeNumbers);
   const lowest = Math.min(...gradeNumbers);
@@ -214,7 +214,7 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
 
   // Group by subject
   const bySubject: { [key: string]: { count: number; sum: number; name: string } } = {};
-  grades.forEach((g) => {
+  grades.forEach((g: any) => {
     if (!bySubject[g.subjectId]) {
       bySubject[g.subjectId] = { count: 0, sum: 0, name: g.subject.name };
     }
@@ -226,8 +226,8 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
   });
 
   // Group by category
-  const byType: { [key: string]: { count: number; sum: number } } = {};
-  grades.forEach((g) => {
+  const byCategory: { [key: string]: { count: number; sum: number } } = {};
+  grades.forEach((g: any) => {
     if (!byType[g.category]) {
       byType[g.category] = { count: 0, sum: 0 };
     }
@@ -255,7 +255,7 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
       count: data.count,
       average: Math.round((data.sum / data.count) * 100) / 100,
     })),
-    timeline: grades.map((g) => ({
+    timeline: grades.map((g: any) => ({
       date: format(new Date(g.date), "yyyy-MM-dd"),
       grade: parseFloat(g.grade) || 0,
       subject: g.subject.name,
@@ -312,7 +312,7 @@ async function getTimeSpentAnalytics(studentId: string, startDate: Date, endDate
 
   // Daily breakdown
   const dailyTime: { [key: string]: number } = {};
-  sessions.forEach((s) => {
+  sessions.forEach((s: any) => {
     const day = format(s.start, "yyyy-MM-dd");
     const duration = (s.end.getTime() - s.start.getTime()) / (1000 * 60);
     dailyTime[day] = (dailyTime[day] || 0) + duration;
@@ -434,8 +434,8 @@ async function getWeeklyComparison(studentId: string) {
     }),
   ]);
 
-  const currentCompleted = currentWeekHomework.filter((h) => h.status === "DONE" || h.status === "REVIEWED").length;
-  const previousCompleted = previousWeekHomework.filter((h) => h.status === "DONE" || h.status === "REVIEWED").length;
+  const currentCompleted = currentWeekHomework.filter((h: any) => h.status === "DONE" || h.status === "REVIEWED").length;
+  const previousCompleted = previousWeekHomework.filter((h: any) => h.status === "DONE" || h.status === "REVIEWED").length;
 
   const currentGradeAvg = currentWeekGrades.length > 0
     ? currentWeekGrades.reduce((sum, g) => sum + (parseFloat(g.grade) || 0), 0) / currentWeekGrades.length
@@ -488,7 +488,7 @@ async function getAchievementProgress(studentId: string) {
   return {
     total: gamification.achievements.length,
     totalPoints,
-    recent: gamification.achievements.map((a) => ({
+    recent: gamification.achievements.map((a: any) => ({
       id: a.id,
       name: a.title,
       description: a.description || "",

@@ -1,0 +1,24 @@
+/**
+ * Admin Rate Limit Monitoring Page
+ * Route: /admin/rate-limits
+ */
+
+import { auth } from "@/lib/auth/config";
+import { redirect } from "next/navigation";
+import RateLimitDashboard from "@/components/admin/rate-limit-dashboard";
+
+export default async function AdminRateLimitsPage() {
+  const session = await auth();
+
+  // Check authentication
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  // Check admin role
+  if (session.user.role !== "ADMIN") {
+    redirect("/dashboard");
+  }
+
+  return <RateLimitDashboard />;
+}
