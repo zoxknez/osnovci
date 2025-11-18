@@ -1,0 +1,48 @@
+/* Page Header Gradient Styles - CSP compliant */
+
+.page-header-gradient-blue {
+  background: linear-gradient(to bottom right, #2563eb, #3b82f6, #60a5fa);
+}
+
+.page-header-gradient-purple {
+  background: linear-gradient(to bottom right, #7c3aed, #a855f7, #d8b4fe);
+}
+
+.page-header-gradient-green {
+  background: linear-gradient(to bottom right, #16a34a, #22c55e, #4ade80);
+}
+
+.page-header-gradient-orange {
+  background: linear-gradient(to bottom right, #ea580c, #f97316, #fb923c);
+}
+
+.page-header-gradient-mixed {
+  background: linear-gradient(to bottom right, #2563eb, #c084fc, #ec4899);
+}
+
+.page-header-gradient-pink {
+  background: linear-gradient(to bottom right, #ec4899, #f43f5e, #fb7185);
+}
+
+.page-header-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 50%);
+}
+
+.page-header-shadow {
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+}
+
+.page-header-text-shadow {
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.page-header-text-shadow-sm {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}

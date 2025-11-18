@@ -1,0 +1,482 @@
+/* ================================================
+   ACCESSIBILITY ENHANCEMENTS (WCAG AAA)
+   Complete a11y system for inclusive experience
+   ================================================ */
+
+/* === SKIP LINKS === */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: rgb(59, 130, 246);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  z-index: 10000;
+  font-weight: 600;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid rgb(147, 51, 234);
+  outline-offset: 2px;
+}
+
+/* === FOCUS INDICATORS === */
+/* Enhanced focus for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid rgb(59, 130, 246);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Different focus style for buttons */
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid rgb(147, 51, 234);
+  outline-offset: 3px;
+}
+
+/* Focus for interactive cards */
+.interactive-card:focus-within {
+  outline: 2px solid rgb(59, 130, 246);
+  outline-offset: 4px;
+}
+
+/* === HIGH CONTRAST MODE === */
+@media (prefers-contrast: high) {
+  * {
+    border-width: 2px !important;
+    outline-width: 3px !important;
+  }
+
+  .btn {
+    border: 2px solid currentColor !important;
+  }
+
+  .card {
+    border: 2px solid currentColor !important;
+  }
+
+  /* Ensure text is always readable */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* === FORCED COLORS MODE (Windows High Contrast) === */
+@media (forced-colors: active) {
+  * {
+    forced-color-adjust: auto;
+  }
+
+  .card,
+  .btn,
+  .input {
+    border: 1px solid ButtonText;
+  }
+
+  svg {
+    forced-color-adjust: auto;
+  }
+}
+
+/* === SCREEN READER ONLY === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* === TOUCH TARGET SIZES === */
+/* Ensure minimum 44x44px touch targets (WCAG 2.5.5) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile-specific larger targets */
+@media (max-width: 768px) {
+  button,
+  a,
+  [role="button"],
+  [role="link"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* === TEXT SPACING (WCAG 1.4.12) === */
+.text-spacing-enhanced {
+  line-height: 1.5 !important;
+  letter-spacing: 0.12em !important;
+  word-spacing: 0.16em !important;
+}
+
+.text-spacing-enhanced p {
+  margin-bottom: 2em !important;
+}
+
+/* === DYSLEXIA-FRIENDLY MODE === */
+.dyslexia-mode {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', Arial, sans-serif;
+  font-size: 1.1em;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+  word-spacing: 0.15em;
+}
+
+.dyslexia-mode p {
+  margin-bottom: 1.5em;
+  text-align: left;
+}
+
+.dyslexia-mode h1,
+.dyslexia-mode h2,
+.dyslexia-mode h3 {
+  font-weight: 700;
+  margin-bottom: 0.75em;
+}
+
+/* Avoid justified text for dyslexia */
+.dyslexia-mode {
+  text-align: left !important;
+}
+
+/* === ADHD-FRIENDLY MODE === */
+.adhd-mode {
+  /* Reduce visual clutter */
+  --color-primary: 59 130 246;
+  --color-secondary: 226 232 240;
+  background: white;
+}
+
+.adhd-mode * {
+  /* Reduce animations */
+  animation-duration: 0.1s !important;
+  transition-duration: 0.1s !important;
+}
+
+.adhd-mode .decoration,
+.adhd-mode .gradient,
+.adhd-mode .pattern {
+  /* Hide decorative elements */
+  display: none !important;
+}
+
+.adhd-mode .card {
+  /* Simpler cards */
+  border: 2px solid rgb(226, 232, 240);
+  background: white;
+  box-shadow: none;
+}
+
+/* === COLOR BLINDNESS SUPPORT === */
+/* Protanopia/Deuteranopia (red-green) adjustments */
+.color-blind-rg {
+  --color-success: 59 130 246; /* Use blue instead of green */
+  --color-error: 245 158 11; /* Use orange instead of red */
+  --color-warning: 168 85 247; /* Use purple */
+}
+
+/* Tritanopia (blue-yellow) adjustments */
+.color-blind-by {
+  --color-primary: 239 68 68; /* Use red instead of blue */
+  --color-info: 236 72 153; /* Use pink */
+}
+
+/* Always use icons + text, never color alone */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-indicator::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* === KEYBOARD NAVIGATION HELPERS === */
+/* Visible focus path */
+.focus-path *:focus {
+  outline: 2px dashed rgb(59, 130, 246);
+  outline-offset: 2px;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* Tab order indicators (dev mode) */
+[data-show-tab-order="true"] *[tabindex]:not([tabindex="-1"])::after {
+  content: attr(tabindex);
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: rgb(239, 68, 68);
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 50%;
+  z-index: 9999;
+}
+
+/* === LIVE REGION STYLES === */
+[aria-live="polite"],
+[aria-live="assertive"] {
+  position: relative;
+}
+
+/* Visual indicator for live regions (dev mode) */
+[data-show-live-regions="true"] [aria-live]::before {
+  content: "LIVE: " attr(aria-live);
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: rgb(147, 51, 234);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep essential animations but make them instant */
+  .loading-spinner {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* === PREFERS COLOR SCHEME === */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-background: 15 23 42;
+    --color-foreground: 248 250 252;
+    --color-secondary: 30 41 59;
+  }
+}
+
+/* === INCREASED CONTRAST === */
+.contrast-high {
+  --color-foreground: 0 0 0;
+  --color-background: 255 255 255;
+  filter: contrast(1.2);
+}
+
+.contrast-high .text-muted {
+  color: rgb(71, 85, 105) !important;
+}
+
+/* === TOOLTIP ACCESSIBILITY === */
+[role="tooltip"] {
+  position: absolute;
+  background: rgb(15, 23, 42);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+  max-width: 250px;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+/* Tooltip arrow */
+[role="tooltip"]::before {
+  content: "";
+  position: absolute;
+  border: 6px solid transparent;
+}
+
+[role="tooltip"][data-placement="top"]::before {
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: rgb(15, 23, 42);
+}
+
+/* === ERROR MESSAGES === */
+.error-message {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  padding: 12px;
+  background: rgb(254, 242, 242);
+  border: 2px solid rgb(239, 68, 68);
+  border-radius: 8px;
+  color: rgb(127, 29, 29);
+}
+
+.error-message::before {
+  content: "⚠️";
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+/* === SUCCESS MESSAGES === */
+.success-message {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  padding: 12px;
+  background: rgb(240, 253, 244);
+  border: 2px solid rgb(34, 197, 94);
+  border-radius: 8px;
+  color: rgb(20, 83, 45);
+}
+
+.success-message::before {
+  content: "✓";
+  flex-shrink: 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* === FORM VALIDATION === */
+input:invalid,
+textarea:invalid,
+select:invalid {
+  border-color: rgb(239, 68, 68);
+  outline-color: rgb(239, 68, 68);
+}
+
+input:valid,
+textarea:valid,
+select:valid {
+  border-color: rgb(34, 197, 94);
+}
+
+/* Visual feedback for required fields */
+[required]::after {
+  content: " *";
+  color: rgb(239, 68, 68);
+  font-weight: bold;
+}
+
+/* === LOADING STATES === */
+[aria-busy="true"] {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+[aria-busy="true"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgb(59, 130, 246);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* === LANDMARK REGIONS === */
+/* Visual dev indicators for ARIA landmarks */
+[data-show-landmarks="true"] [role="main"]::before,
+[data-show-landmarks="true"] main::before {
+  content: "MAIN";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgb(34, 197, 94);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  z-index: 9999;
+}
+
+[data-show-landmarks="true"] [role="navigation"]::before,
+[data-show-landmarks="true"] nav::before {
+  content: "NAV";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgb(59, 130, 246);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  z-index: 9999;
+}
+
+/* === PRINT STYLES === */
+@media print {
+  /* Hide non-essential elements */
+  nav,
+  .sidebar,
+  .no-print,
+  button,
+  [role="button"] {
+    display: none !important;
+  }
+
+  /* Ensure readable text */
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: black;
+    background: white;
+  }
+
+  /* Avoid page breaks in important elements */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  .card,
+  .homework-item,
+  .schedule-item {
+    page-break-inside: avoid;
+  }
+
+  /* Show link URLs */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: rgb(71, 85, 105);
+  }
+}

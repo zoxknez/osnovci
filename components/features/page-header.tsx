@@ -23,42 +23,42 @@ const variantStyles = {
     accent: "from-blue-400 to-blue-300",
     dot: "bg-blue-300",
     border: "border-blue-300",
-    inlineColor: "linear-gradient(to bottom right, #2563eb, #3b82f6, #60a5fa)",
+    bgClass: "page-header-gradient-blue",
   },
   purple: {
     bg: "from-purple-600 via-purple-500 to-purple-400",
     accent: "from-purple-400 to-purple-300",
     dot: "bg-purple-300",
     border: "border-purple-300",
-    inlineColor: "linear-gradient(to bottom right, #7c3aed, #a855f7, #d8b4fe)",
+    bgClass: "page-header-gradient-purple",
   },
   green: {
     bg: "from-green-600 via-green-500 to-green-400",
     accent: "from-green-400 to-green-300",
     dot: "bg-green-300",
     border: "border-green-300",
-    inlineColor: "linear-gradient(to bottom right, #16a34a, #22c55e, #4ade80)",
+    bgClass: "page-header-gradient-green",
   },
   orange: {
     bg: "from-orange-600 via-orange-500 to-orange-400",
     accent: "from-orange-400 to-orange-300",
     dot: "bg-orange-300",
     border: "border-orange-300",
-    inlineColor: "linear-gradient(to bottom right, #ea580c, #f97316, #fb923c)",
+    bgClass: "page-header-gradient-orange",
   },
   gradient: {
     bg: "from-blue-600 via-purple-600 to-pink-600",
     accent: "from-blue-400 to-pink-400",
     dot: "bg-pink-300",
     border: "border-pink-300",
-    inlineColor: "linear-gradient(to bottom right, #2563eb, #c084fc, #ec4899)",
+    bgClass: "page-header-gradient-mixed",
   },
   pink: {
     bg: "from-pink-600 via-pink-500 to-rose-400",
     accent: "from-pink-400 to-rose-300",
     dot: "bg-pink-300",
     border: "border-pink-300",
-    inlineColor: "linear-gradient(to bottom right, #ec4899, #f43f5e, #fb7185)",
+    bgClass: "page-header-gradient-pink",
   },
 };
 
@@ -76,31 +76,15 @@ export function PageHeader({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="relative mb-8 overflow-hidden rounded-3xl"
-      style={{
-        background: styles.inlineColor,
-        boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.15)",
-      }}
+      className={`relative mb-8 overflow-hidden rounded-3xl page-header-shadow ${styles.bgClass}`}
     >
       {/* Blurred background accent - single layer */}
       <div
-        className="absolute inset-0 -z-10 rounded-3xl blur-2xl"
-        style={{
-          background: styles.inlineColor,
-          opacity: 0.3,
-        }}
+        className={`absolute inset-0 -z-10 rounded-3xl blur-2xl opacity-30 ${styles.bgClass}`}
       />
 
       {/* Static background pattern - no animation to reduce flash */}
-      <div
-        className="absolute inset-0 -z-10 opacity-10"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 50%)
-          `,
-        }}
-      />
+      <div className="absolute inset-0 -z-10 opacity-10 page-header-pattern" />
 
       {/* Content container - Mobile optimized */}
       <div className="relative px-3 py-8 sm:px-8 sm:py-14 md:py-16 lg:px-10 lg:py-18">
@@ -123,29 +107,12 @@ export function PageHeader({
             )}
 
             {/* Title - Mobile optimized typography */}
-            <h1
-              className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-2 sm:mb-4 leading-tight"
-              style={{
-                textShadow: `
-                  0 2px 4px rgba(0, 0, 0, 0.1),
-                  0 4px 8px rgba(0, 0, 0, 0.15),
-                  0 8px 16px rgba(0, 0, 0, 0.2)
-                `,
-              }}
-            >
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-2 sm:mb-4 leading-tight page-header-text-shadow">
               {title}
             </h1>
 
             {/* Description - Mobile optimized */}
-            <p
-              className="text-sm sm:text-lg md:text-xl text-white/95 max-w-2xl leading-snug sm:leading-relaxed font-medium"
-              style={{
-                textShadow: `
-                  0 1px 2px rgba(0, 0, 0, 0.1),
-                  0 2px 4px rgba(0, 0, 0, 0.1)
-                `,
-              }}
-            >
+            <p className="text-sm sm:text-lg md:text-xl text-white/95 max-w-2xl leading-snug sm:leading-relaxed font-medium page-header-text-shadow-sm">
               {description}
             </p>
           </div>
@@ -178,11 +145,10 @@ export function PageHeader({
         {/* Decorative SVG pattern */}
         <div className="absolute top-0 right-0 w-48 h-48 opacity-10 pointer-events-none">
           <svg
-            className="w-full h-full"
+            className="w-full h-full text-white"
             fill="currentColor"
             viewBox="0 0 100 100"
             aria-hidden="true"
-            style={{ color: "white" }}
           >
             <title>Dekorativni element</title>
             <path
