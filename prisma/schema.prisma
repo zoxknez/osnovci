@@ -13,18 +13,24 @@ generator client {
 // Production-ready PostgreSQL with connection pooling
 // Supports: Supabase, Neon, Railway, or self-hosted PostgreSQL
 
-// Development: SQLite (current)
+// ============================================
+// ACTIVE DATABASE CONFIGURATION
+// ============================================
+// Switch between SQLite (development) and PostgreSQL (production)
+// by commenting/uncommenting the appropriate datasource block
+
+// Development: SQLite (currently active)
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // Production: PostgreSQL (uncomment when deploying)
+// After switching, run: npm run db:push && npm run db:seed:demo
 // datasource db {
 //   provider  = "postgresql"
 //   url       = env("DATABASE_URL")
 //   directUrl = env("DATABASE_URL_UNPOOLED")
-//   relationMode = "prisma"
 // }
 
 // Development fallback: SQLite (set DATABASE_URL="file:./dev.db")

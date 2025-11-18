@@ -39,6 +39,8 @@
     "backup": "tsx scripts/backup-database.ts",
     "backup:list": "tsx scripts/backup-database.ts list",
     "backup:restore": "tsx scripts/backup-database.ts restore",
+    "worker:email": "tsx workers/email-worker.ts",
+    "worker:email:dev": "tsx --watch workers/email-worker.ts",
     "backup:cloud": "tsx scripts/backup-to-cloud.ts",
     "lighthouse": "tsx scripts/lighthouse-audit.ts",
     "lighthouse:ci": "lhci autorun --config=config/lighthouserc.json",

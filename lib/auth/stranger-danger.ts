@@ -65,7 +65,7 @@ export async function childApproves(linkCode: string, studentId: string) {
     }
 
     if (verification.studentId !== studentId) {
-      return { success: false, error: "Unauthorized" };
+      return { success: false, error: "ID-evi ne odgovaraju" };
     }
 
     if (new Date() > verification.expiresAt) {
