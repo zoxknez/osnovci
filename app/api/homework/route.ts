@@ -15,6 +15,7 @@ import {
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { ContentFilter } from "@/lib/safety/content-filter";
 import { csrfMiddleware } from "@/lib/security/csrf";
 import {
   addRateLimitHeaders,
@@ -231,6 +232,76 @@ export async function POST(request: NextRequest) {
     // Validacija
     const validatedData = CreateHomeworkSchema.parse(body);
 
+    // 🛡️ CONTENT MODERATION - check for inappropriate content
+    let moderatedDescription = validatedData.description;
+    let contentWarnings: string[] = [];
+
+    if (validatedData.description) {
+      const contentCheck = ContentFilter.check(validatedData.description);
+      
+      if (!contentCheck.safe) {
+        // Block critical/severe content
+        if (contentCheck.severity === 'critical' || contentCheck.severity === 'severe') {
+          log.warn("Homework blocked due to inappropriate content", {
+            userId: session.user.id,
+            severity: contentCheck.severity,
+            flagged: contentCheck.flagged,
+          });
+          
+          return new Response(
+            JSON.stringify({
+              error: "Inappropriate Content",
+              message: "Sadržaj sadrži neprikladne reči i ne može biti sačuvan.",
+              flagged: contentCheck.flagged,
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        
+        // Filter moderate content
+        if (contentCheck.action === 'filter') {
+          moderatedDescription = contentCheck.filtered;
+          contentWarnings.push("Neki sadržaj je filtriran");
+        }
+        
+        // 🚨 GUARDIAN NOTIFICATION - Send alert to parents/guardians
+        if (contentCheck.notifyParent) {
+          log.warn("Inappropriate content detected - notifying guardians", {
+            userId: session.user.id,
+            severity: contentCheck.severity,
+            flagged: contentCheck.flagged,
+          });
+
+          // Get student info for notification
+          const studentForAlert = await prisma.student.findFirst({
+            where: { userId: session.user.id },
+            select: { id: true, name: true },
+          });
+
+          if (studentForAlert) {
+            // Import and send notification asynchronously (don't block request)
+            import("@/lib/notifications/guardian-alerts")
+              .then(({ notifyGuardiansAboutContent }) => {
+                return notifyGuardiansAboutContent({
+                  studentId: studentForAlert.id,
+                  studentName: studentForAlert.name,
+                  contentType: "homework",
+                  flaggedWords: contentCheck.flagged,
+                  severity: contentCheck.severity as "moderate" | "severe" | "critical",
+                  originalText: validatedData.description || "",
+                  filteredText: contentCheck.filtered,
+                  timestamp: new Date(),
+                  contextUrl: `${process.env["NEXT_PUBLIC_APP_URL"] || "https://osnovci.app"}/homework`,
+                });
+              })
+              .catch((error) => {
+                log.error("Failed to send guardian notification", { error });
+              });
+          }
+        }
+      }
+    }
+
     // Provjeri da li subjekt postoji
     const subject = await prisma.subject.findUnique({
       where: { id: validatedData.subjectId },
@@ -253,7 +324,7 @@ export async function POST(request: NextRequest) {
     const homework = await prisma.homework.create({
       data: {
         title: validatedData.title,
-        ...(validatedData.description && { description: validatedData.description }),
+        ...(moderatedDescription && { description: moderatedDescription }),
         studentId: student.id,
         subjectId: validatedData.subjectId,
         dueDate: new Date(validatedData.dueDate),

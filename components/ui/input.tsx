@@ -192,7 +192,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
             {/* Success message */}
             {!error && success && (
-              <p className="text-sm text-green-600 flex items-center gap-1">
+              <p className="text-sm text-green-700 flex items-center gap-1">
                 <CheckCircle
                   className="h-4 w-4 flex-shrink-0"
                   aria-hidden="true"
@@ -215,7 +215,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               className={cn(
                 "text-xs font-medium flex-shrink-0",
                 maxLength && charCount > maxLength * 0.9
-                  ? "text-orange-500"
+                  ? "text-orange-600"
                   : "text-gray-500",
               )}
               aria-live="polite"

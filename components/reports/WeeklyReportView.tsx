@@ -185,7 +185,7 @@ export function WeeklyReportView({
         {/* Homework Stats */}
         <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400 mb-1">
+            <div className="flex items-center justify-center gap-1 text-green-700 dark:text-green-400 mb-1">
               <CheckCircle2 className="w-4 h-4" />
               <span className="text-2xl font-bold">{homework.completed}</span>
             </div>
@@ -356,7 +356,7 @@ function StatCard({
   const colorClasses = {
     blue: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
     green:
-      "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",
+      "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
     orange:
       "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400",
     purple:

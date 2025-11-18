@@ -40,6 +40,7 @@ export default function RegistracijaPage() {
     phone: "",
     password: "",
     confirmPassword: "",
+    dateOfBirth: "", // COPPA compliance
     // Za učenike
     school: "",
     grade: 1,
@@ -80,6 +81,7 @@ export default function RegistracijaPage() {
         email: formData.email || undefined,
         phone: formData.phone || undefined,
         password: formData.password,
+        dateOfBirth: formData.dateOfBirth || undefined,
         ...(role === "STUDENT" && {
           school: formData.school,
           grade: formData.grade,
@@ -175,7 +177,7 @@ export default function RegistracijaPage() {
                 className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 bg-gradient-to-r from-green-100 to-blue-100 px-4 py-2 rounded-full shadow-md"
                 whileHover={{ scale: 1.05 }}
               >
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-green-700" />
                 <span className="font-semibold">Korak 2/2 - Još malo!</span>
               </motion.div>
             </motion.div>
@@ -240,19 +242,19 @@ export default function RegistracijaPage() {
                     {/* Features list */}
                     <div className="relative space-y-1.5 sm:space-y-2">
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <span className="text-green-600 font-bold">✓</span>
+                        <span className="text-green-700 font-bold">✓</span>
                         <span className="font-medium">
                           Fotografisanje domaćih
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <span className="text-green-600 font-bold">✓</span>
+                        <span className="text-green-700 font-bold">✓</span>
                         <span className="font-medium">
                           Gamifikacija i XP sistem
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <span className="text-green-600 font-bold">✓</span>
+                        <span className="text-green-700 font-bold">✓</span>
                         <span className="font-medium">
                           Povezivanje sa roditeljima
                         </span>
@@ -305,15 +307,15 @@ export default function RegistracijaPage() {
                     {/* Features list */}
                     <div className="relative space-y-1.5 sm:space-y-2">
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <span className="text-green-600 font-bold">✓</span>
+                        <span className="text-green-700 font-bold">✓</span>
                         <span className="font-medium">Praćenje više dece</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <span className="text-green-600 font-bold">✓</span>
+                        <span className="text-green-700 font-bold">✓</span>
                         <span className="font-medium">Nedeljni izveštaji</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <span className="text-green-600 font-bold">✓</span>
+                        <span className="text-green-700 font-bold">✓</span>
                         <span className="font-medium">Analitika napretka</span>
                       </div>
                     </div>
@@ -406,6 +408,19 @@ export default function RegistracijaPage() {
                       }
                       disabled={isLoading}
                       helperText="Ili koristi telefon za prijavu"
+                    />
+
+                    <Input
+                      label="Datum rođenja"
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={(e) =>
+                        setFormData({ ...formData, dateOfBirth: e.target.value })
+                      }
+                      required={role === "STUDENT"}
+                      disabled={isLoading}
+                      helperText={role === "STUDENT" ? "Obavezno za učenike (COPPA zakon)" : "Opciono za roditelje"}
+                      max={new Date().toISOString().split('T')[0]}
                     />
 
                     {role === "STUDENT" && (
@@ -571,7 +586,7 @@ export default function RegistracijaPage() {
                     {/* Trust badges */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mt-5 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <Shield className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        <Shield className="h-4 w-4 text-green-700 flex-shrink-0" />
                         <span className="font-medium">100% Sigurno</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">

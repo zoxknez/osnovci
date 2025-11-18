@@ -7,6 +7,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 import { log } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,8 @@ import { Input } from "@/components/ui/input";
 
 export default function PrijavaPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [show2FA, setShow2FA] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     email: "",
@@ -36,6 +39,16 @@ export default function PrijavaPage() {
     setIsLoading(true);
 
     try {
+      // Step 1: Check if user has 2FA enabled
+      const check2FAResponse = await fetch("/api/auth/2fa/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const check2FAData = await check2FAResponse.json();
+
+      // Step 2: Verify password with NextAuth
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
@@ -49,14 +62,17 @@ export default function PrijavaPage() {
         return;
       }
 
-      // Uspešan login - prikaži success toast
+      // Step 3: If 2FA is enabled, show 2FA modal
+      if (check2FAData.twoFactorEnabled) {
+        setPendingEmail(formData.email);
+        setShow2FA(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Step 4: No 2FA - Complete login
       toast.success("Dobrodošli nazad! 🎉");
-
-      // Čekaj malo da se session refresh-uje
       await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Force redirect sa window.location za potpuni page refresh
-      // Ovo osigurava da se session pravilno učita na server-u
       window.location.href = "/dashboard";
     } catch (error) {
       log.error("Login failed", error, { email: formData.email });
@@ -64,6 +80,49 @@ export default function PrijavaPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handle2FAVerify = async (token: string): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/auth/2fa/verify-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: pendingEmail,
+          token,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return false;
+      }
+
+      // 2FA verified - complete login
+      toast.success("2FA verifikovan! Dobrodošli nazad! 🎉");
+      
+      if (data.usedBackupCode) {
+        toast.info("Backup kod je iskorišćen i više ne može biti korišćen.", {
+          duration: 5000,
+        });
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      window.location.href = "/dashboard";
+      return true;
+    } catch (error) {
+      log.error("2FA verification failed", error);
+      return false;
+    }
+  };
+
+  const handle2FACancel = () => {
+    setShow2FA(false);
+    setPendingEmail("");
+    // Logout the session since password was correct but 2FA was cancelled
+    signIn("credentials", { redirect: false }); // This will clear any pending session
+    toast.info("Prijava otkazana");
   };
 
   return (
@@ -221,6 +280,14 @@ export default function PrijavaPage() {
                 </Button>
               </form>
 
+              {/* 2FA Modal */}
+              <TwoFactorModal
+                open={show2FA}
+                onVerify={handle2FAVerify}
+                onCancel={handle2FACancel}
+                email={pendingEmail}
+              />
+
               {/* Sign up link */}
               <div className="text-center mt-5 sm:mt-6">
                 <p className="text-sm text-gray-600 mb-4">
@@ -236,7 +303,7 @@ export default function PrijavaPage() {
                 {/* Trust badges - Mobile optimized */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mt-5 sm:mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                    <Shield className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <Shield className="h-4 w-4 text-green-700 flex-shrink-0" />
                     <span className="font-medium">Sigurno</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">

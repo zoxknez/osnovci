@@ -35,11 +35,11 @@ const buttonVariants = cva(
 
         // Success - Za pozitivne akcije
         success:
-          "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 active:scale-95 focus-visible:ring-green-500",
+          "bg-gradient-to-r from-green-700 to-green-800 text-white shadow-md hover:shadow-lg hover:from-green-800 hover:to-green-900 active:scale-95 focus-visible:ring-green-500",
 
         // Warning - Za opasne ali ne destructive akcije
         warning:
-          "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-orange-700 active:scale-95 focus-visible:ring-orange-400",
+          "bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-md hover:shadow-lg hover:from-orange-700 hover:to-orange-800 active:scale-95 focus-visible:ring-orange-400",
       },
       size: {
         default: "h-11 px-5 py-2.5",

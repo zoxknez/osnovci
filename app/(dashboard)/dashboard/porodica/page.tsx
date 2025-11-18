@@ -209,7 +209,7 @@ export default function PorodicaPage() {
                         >
                           {copied ? (
                             <Check
-                              className="h-4 w-4 text-green-600"
+                              className="h-4 w-4 text-green-700"
                               aria-hidden="true"
                             />
                           ) : (

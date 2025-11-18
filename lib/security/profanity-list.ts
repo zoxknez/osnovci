@@ -34,6 +34,9 @@ export const SERBIAN_PROFANITY = [
   'kreten', 'kretenu', 'kretenska',
   'mongoloid', 'mongoloidu',
   'mentol', 'mentolu',
+  'mrzim', 'mrziš', 'mrzi',
+  'mržnja', 'mržnje',
+  'sovini', 'šovinista', 'šovinizam',
 ];
 
 // Tier 3 - Bullying patterns (regex-based detection)

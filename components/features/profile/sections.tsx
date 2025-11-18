@@ -129,7 +129,7 @@ export function PhysicalSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-green-600" />
+            <Activity className="h-5 w-5 text-green-700" />
             Fizičke karakteristike
           </CardTitle>
         </CardHeader>
@@ -145,7 +145,7 @@ export function PhysicalSection({
               <MetricDisplay
                 value={profile.height}
                 unit="cm"
-                accent="text-green-600"
+                accent="text-green-700"
               />
             }
           />

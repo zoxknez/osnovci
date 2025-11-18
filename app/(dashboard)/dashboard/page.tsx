@@ -336,7 +336,7 @@ export default function DashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-600">
+                  <p className="text-sm font-medium text-green-700">
                     Završeno danas
                   </p>
                   <motion.p
@@ -358,7 +358,7 @@ export default function DashboardPage() {
                   </motion.p>
                 </div>
                 <motion.div
-                  className="h-14 w-14 rounded-full bg-green-600 flex items-center justify-center"
+                  className="h-14 w-14 rounded-full bg-green-700 flex items-center justify-center"
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
@@ -471,7 +471,7 @@ export default function DashboardPage() {
                         )}
                         {status === "done" && (
                           <CheckCircle2
-                            className="h-5 w-5 text-green-600"
+                            className="h-5 w-5 text-green-700"
                             aria-label="Završeno"
                           />
                         )}
@@ -583,7 +583,7 @@ export default function DashboardPage() {
                                 • {getDaysUntil(task.dueDate)}
                               </span>
                               {task.status === "DONE" && (
-                                <span className="text-xs text-green-600 font-medium">
+                                <span className="text-xs text-green-700 font-medium">
                                   +10 XP
                                 </span>
                               )}

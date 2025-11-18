@@ -2,24 +2,38 @@
 
 import { motion } from "framer-motion";
 import { Fingerprint, Key, Lock, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { staggerItem } from "@/lib/animations/variants";
 
 interface SecuritySectionProps {
   biometricEnabled: boolean;
-  twoFactorEnabled: boolean;
   onPasswordChange: () => void;
   onToggleBiometric: () => Promise<void>;
-  onToggleTwoFactor: () => Promise<void>;
 }
 
 export function SecuritySection({
   biometricEnabled,
-  twoFactorEnabled,
   onPasswordChange,
   onToggleBiometric,
-  onToggleTwoFactor,
 }: SecuritySectionProps) {
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
+  useEffect(() => {
+    const fetchTwoFactorStatus = async () => {
+      try {
+        const response = await fetch("/api/auth/2fa/status");
+        const data = await response.json();
+        if (response.ok) {
+          setTwoFactorEnabled(data.enabled);
+        }
+      } catch {
+        // Failed to fetch 2FA status
+      }
+    };
+
+    fetchTwoFactorStatus();
+  }, []);
   return (
     <motion.div variants={staggerItem}>
       <Card>
@@ -66,16 +80,40 @@ export function SecuritySection({
             onToggle={onToggleBiometric}
           />
 
-          <SecurityToggle
-            title="2FA Verifikacija"
-            description={
-              twoFactorEnabled ? "Dodatna zaštita aktivna" : "Neaktivno"
-            }
-            enabled={twoFactorEnabled}
-            icon={<Shield className="h-5 w-5" />}
-            activeColor="purple"
-            onToggle={onToggleTwoFactor}
-          />
+          <motion.a
+            href="/dashboard/podesavanja/2fa"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="block w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all border-2 border-gray-200 hover:border-purple-300 touch-manipulation"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                  twoFactorEnabled ? "bg-purple-100" : "bg-gray-200"
+                }`}>
+                  <Shield className={`h-5 w-5 transition-colors ${
+                    twoFactorEnabled ? "text-purple-600" : "text-gray-500"
+                  }`} />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">
+                    2FA Verifikacija
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    {twoFactorEnabled ? "Dodatna zaštita aktivna" : "Neaktivno"}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {twoFactorEnabled && (
+                  <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
+                    Omogućeno
+                  </span>
+                )}
+                <Key className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </motion.a>
         </CardContent>
       </Card>
     </motion.div>
@@ -103,7 +141,7 @@ function SecurityToggle({
     activeColor === "green"
       ? {
           container: enabled ? "bg-green-100" : "bg-gray-200",
-          icon: enabled ? "text-green-600" : "text-gray-500",
+          icon: enabled ? "text-green-700" : "text-gray-500",
           track: enabled ? "bg-green-500" : "bg-gray-300",
         }
       : {

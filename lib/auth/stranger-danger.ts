@@ -61,7 +61,7 @@ export async function childApproves(linkCode: string, studentId: string) {
     });
 
     if (!verification) {
-      return { success: false, error: "Invalid link code" };
+      return { success: false, error: "Verifikacija nije pronađena" };
     }
 
     if (verification.studentId !== studentId) {
@@ -71,7 +71,7 @@ export async function childApproves(linkCode: string, studentId: string) {
     if (new Date() > verification.expiresAt) {
       // Cleanup expired
       await prisma.linkVerification.delete({ where: { linkCode } });
-      return { success: false, error: "Link code expired" };
+      return { success: false, error: "Verifikacija je istekla" };
     }
 
     if (verification.step !== VerificationStep.QR_SCANNED) {
@@ -176,7 +176,7 @@ export async function verifyEmailCodeAndLink(
     }
 
     if (verification.studentId !== studentId) {
-      return { success: false, error: "Unauthorized" };
+      return { success: false, error: "ID-evi ne odgovaraju" };
     }
 
     if (verification.emailCode !== emailCode.toUpperCase()) {

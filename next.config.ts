@@ -1,5 +1,9 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// i18n Configuration
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 // Bundle Analyzer (optional, only for development)
 let withBundleAnalyzer: (config: NextConfig) => NextConfig;
@@ -235,7 +239,12 @@ const nextConfig: NextConfig = {
         },
       },
     },
+    // Client Trace Metadata for better debugging
+    clientTraceMetadata: ["environment", "nextjs"],
   },
+  
+  // Output standalone for better Docker builds
+  ...(process.env.NODE_ENV === "production" && { output: "standalone" }),
 
   // Reduce build output
   eslint: {
@@ -246,8 +255,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Wrap with Sentry for error tracking
-export default withSentryConfig(withBundleAnalyzer(nextConfig), {
+// Wrap with i18n, Bundle Analyzer, and Sentry
+export default withSentryConfig(withBundleAnalyzer(withNextIntl(nextConfig)), {
   // Sentry Webpack Plugin Options
   ...(process.env["SENTRY_ORG"] && { org: process.env["SENTRY_ORG"] }),
   ...(process.env["SENTRY_PROJECT"] && { project: process.env["SENTRY_PROJECT"] }),

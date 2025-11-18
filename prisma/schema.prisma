@@ -13,13 +13,19 @@ generator client {
 // Production-ready PostgreSQL with connection pooling
 // Supports: Supabase, Neon, Railway, or self-hosted PostgreSQL
 
+// Development: SQLite (current)
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
-  // Prisma Accelerate support for edge caching
-  relationMode = "prisma"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
+
+// Production: PostgreSQL (uncomment when deploying)
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("DATABASE_URL")
+//   directUrl = env("DATABASE_URL_UNPOOLED")
+//   relationMode = "prisma"
+// }
 
 // Development fallback: SQLite (set DATABASE_URL="file:./dev.db")
 // For local dev without PostgreSQL:
@@ -60,6 +66,13 @@ model User {
   pinCode       String? // Encrypted PIN for quick access
   biometric     Boolean   @default(false)
   emailVerified DateTime? // NULL = nije verificiran, DateTime = verificiran
+  dateOfBirth   DateTime? // COPPA compliance - age verification
+  
+  // Two-Factor Authentication (2FA/TOTP)
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String? // Encrypted TOTP secret
+  backupCodes      String? // Encrypted JSON array of backup codes
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -68,6 +81,7 @@ model User {
   guardian Guardian?
   sessions Session[]
   biometricCredentials BiometricCredential[] // WebAuthn credentials
+  pushSubscriptions PushSubscription[] // Web Push Notifications
 
   @@index([email])
   @@index([phone])
@@ -208,14 +222,15 @@ model Student {
   notes      String? // Opšte napomene
 
   // Relations
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  links        Link[]
-  homework     Homework[]
-  schedule     ScheduleEntry[]
-  events       Event[]
-  subjects     StudentSubject[]
-  grades       Grade[]
-  gamification Gamification?
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links           Link[]
+  homework        Homework[]
+  schedule        ScheduleEntry[]
+  events          Event[]
+  subjects        StudentSubject[]
+  grades          Grade[]
+  gamification    Gamification?
+  parentalConsent ParentalConsent[] // Consent requests for this student
 
   @@index([userId])
   @@index([school, grade, class])
@@ -227,23 +242,50 @@ model Student {
 // PARENTAL CONSENT (COPPA/GDPR Compliance)
 // ============================================
 
-model ParentalConsent {
-  id               String    @id @default(cuid())
-  studentId        String
-  guardianEmail    String
-  verificationCode String    @unique
-  verified         Boolean   @default(false)
-  verifiedAt       DateTime?
-  ipAddress        String?
-  userAgent        String?
-  expiresAt        DateTime // 7 days to verify
-  createdAt        DateTime  @default(now())
+enum ConsentStatus {
+  PENDING   // Čeka verifikaciju
+  VERIFIED  // Verifikovan od strane roditelja
+  EXPIRED   // Istekao (6h)
+  REVOKED   // Povučen
+}
 
+model ParentalConsent {
+  id        String   @id @default(cuid())
+  studentId String   // ID učenika koji čeka pristanak
+  
+  // Kod za verifikaciju (6-digit)
+  code      String   @unique // Format: "123456"
+  
+  // Roditelj koji daje pristanak
+  parentEmail String  // Email roditelja
+  parentName  String? // Ime roditelja (opciono)
+  
+  // Status i vremena
+  status      ConsentStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  expiresAt   DateTime      // Auto-expire nakon 6h
+  verifiedAt  DateTime?     // Kada je verifikovan
+  revokedAt   DateTime?     // Kada je povučen
+  
+  // Tracking
+  ipAddress   String?  // IP adresa pri verifikaciji
+  userAgent   String?  // User agent pri verifikaciji
+  
+  // Metadata
+  emailSentAt DateTime? // Kada je email poslat
+  attempts    Int       @default(0) // Broj pokušaja verifikacije
+  
+  // Relation
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
   @@index([studentId])
-  @@index([verificationCode])
-  @@index([guardianEmail])
-  @@index([verified, expiresAt]) // Za cleanup expired unverified consents
-  @@index([studentId, verified]) // Za student consent check
+  @@index([code])
+  @@index([parentEmail])
+  @@index([status])
+  @@index([code, status]) // Za verifikaciju - aktivni kodovi
+  @@index([studentId, status]) // Za student consent check
+  @@index([expiresAt]) // Za cleanup job
+  @@index([createdAt]) // Za analytics
   @@map("parental_consents")
 }
 
@@ -388,6 +430,7 @@ model Grade {
   description String?
   date        DateTime @default(now())
   weight      Int      @default(1) // Ponder ocene (1-3)
+  version     Int      @default(1) // Optimistic locking version
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -452,6 +495,7 @@ model Homework {
   notes       String? // Učenikove beleške
   reviewNote  String? // Roditeljska napomena
   reviewedAt  DateTime?
+  version     Int            @default(1) // Optimistic locking version
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -471,10 +515,10 @@ model Homework {
   @@index([studentId, priority, dueDate]) // Za prioritizovan prikaz
   @@index([priority, status, dueDate]) // Za globalni "sve urgentne" query
   
-  // PostgreSQL full-text search (pg_trgm extension required)
+  // PostgreSQL full-text search (pg_trgm extension required) - ONLY FOR POSTGRESQL
   // Run: CREATE EXTENSION IF NOT EXISTS pg_trgm;
-  @@index([title(ops: raw("gin_trgm_ops"))], type: Gist)
-  @@index([description(ops: raw("gin_trgm_ops"))], type: Gist)
+  // @@index([title(ops: raw("gin_trgm_ops"))], type: Gist)
+  // @@index([description(ops: raw("gin_trgm_ops"))], type: Gist)
   
   @@map("homework")
 }
@@ -539,6 +583,7 @@ model ScheduleEntry {
   notes     String? // "Poneti pribor za crtanje"
   isAWeek   Boolean   @default(true) // A smena
   isBWeek   Boolean   @default(true) // B smena
+  version   Int       @default(1) // Optimistic locking version
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -765,4 +810,100 @@ model VerificationToken {
   @@index([email])
   @@index([expires])
   @@map("verification_tokens")
+}
+
+// ============================================
+// PUSH NOTIFICATIONS
+// ============================================
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String   // Public key for encryption
+  auth      String   // Auth secret for encryption
+  isActive  Boolean  @default(true)
+  lastUsed  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([endpoint])
+  @@map("push_subscriptions")
+}
+
+// ============================================
+// NOTIFICATION PREFERENCES (Granular Control)
+// ============================================
+
+enum NotificationChannel {
+  EMAIL      // Email notifikacije
+  PUSH       // Browser push notifications
+  IN_APP     // In-app notifikacije (UI bell icon)
+}
+
+enum NotificationEventType {
+  // Homework events
+  HOMEWORK_ASSIGNED      // Novi domaći zadatak dodeljen
+  HOMEWORK_DUE_SOON      // Domaći uskoro ističe (24h)
+  HOMEWORK_OVERDUE       // Domaći je prekoračen
+  HOMEWORK_SUBMITTED     // Domaći predat (za roditelje)
+  HOMEWORK_REVIEWED      // Domaći pregledan i ocenjen
+  
+  // Grade events
+  GRADE_ADDED            // Nova ocena dodata
+  GRADE_UPDATED          // Ocena izmenjena
+  
+  // Schedule events
+  SCHEDULE_CHANGED       // Raspored promenjen
+  EVENT_REMINDER         // Podsetnik za događaj (kontrolni, sastanak)
+  
+  // Family events
+  LINK_REQUEST           // Zahtev za povezivanje roditelj-dete
+  LINK_APPROVED          // Veza odobrena
+  
+  // Safety & moderation
+  CONTENT_MODERATION     // Neprikladan sadržaj detektovan
+  SAFETY_ALERT           // Bezbednosni alert
+  
+  // Account events
+  LOGIN_NEW_DEVICE       // Prijava sa novog uređaja
+  PASSWORD_CHANGED       // Lozinka promenjena
+  TWO_FACTOR_ENABLED     // 2FA omogućen
+}
+
+model NotificationPreference {
+  id        String                  @id @default(cuid())
+  userId    String                  // User ID (student ili guardian)
+  
+  // Event type
+  eventType NotificationEventType
+  
+  // Channels (per-event granular control)
+  emailEnabled  Boolean @default(true)
+  pushEnabled   Boolean @default(true)
+  inAppEnabled  Boolean @default(true)
+  
+  // Timing preferences (optional)
+  quietHoursStart Int? // Start hour (0-23) for quiet hours
+  quietHoursEnd   Int? // End hour (0-23) for quiet hours
+  
+  // Frequency control
+  digest        Boolean @default(false) // Group notifications into daily digest
+  instantOnly   Boolean @default(false) // Only instant notifications (no digest)
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, eventType]) // One preference per event type per user
+  @@index([userId])
+  @@index([eventType])
+  @@index([userId, emailEnabled])
+  @@index([userId, pushEnabled])
+  @@index([userId, inAppEnabled])
+  @@map("notification_preferences")
 }

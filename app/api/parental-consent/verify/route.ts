@@ -1,6 +1,5 @@
 // Parental Consent Verification (Security Enhanced!)
 import { type NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 
@@ -19,68 +18,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { verificationCode } = await request.json();
+    const { code } = await request.json();
 
-    if (!verificationCode) {
+    if (!code) {
       return NextResponse.json(
-        { error: "Verification code je obavezan" },
+        { error: "Kod je obavezan" },
         { status: 400 },
       );
     }
 
-    // Find consent request
-    const consent = await prisma.parentalConsent.findUnique({
-      where: { verificationCode },
+    // Use new consent verification system
+    const { verifyConsentCode } = await import("@/lib/auth/parental-consent");
+
+    const ipAddress = request.headers.get("x-forwarded-for") || 
+                      request.headers.get("x-real-ip") || 
+                      "unknown";
+    const userAgent = request.headers.get("user-agent") || "unknown";
+
+    const result = await verifyConsentCode({
+      code,
+      ipAddress,
+      userAgent,
     });
 
-    if (!consent) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: "Nevažeći verification code" },
-        { status: 404 },
-      );
-    }
-
-    // Check if expired
-    if (new Date() > consent.expiresAt) {
-      return NextResponse.json(
-        { error: "Verification code je istekao. Zahtevaj novi." },
+        { error: result.error || "Verifikacija nije uspela" },
         { status: 400 },
       );
     }
 
-    // Check if already verified
-    if (consent.verified) {
-      return NextResponse.json({ error: "Već verifikovano" }, { status: 400 });
-    }
-
-    // Mark as verified
-    await prisma.parentalConsent.update({
-      where: { id: consent.id },
-      data: {
-        verified: true,
-        verifiedAt: new Date(),
-      },
-    });
-
-    // Activate student account
-    await prisma.student.update({
-      where: { id: consent.studentId },
-      data: {
-        parentalConsentGiven: true,
-        parentalConsentDate: new Date(),
-        parentalConsentEmail: consent.guardianEmail,
-        accountActive: true,
-      },
-    });
-
-    log.info("Parental consent verified", {
-      studentId: consent.studentId,
-      guardianEmail: consent.guardianEmail,
+    log.info("Parental consent verified via verify endpoint", {
+      studentId: result.studentId,
+      studentName: result.studentName,
     });
 
     return NextResponse.json({
       success: true,
       message: "Hvala! Nalog deteta je sada aktivan. 🎉",
+      student: {
+        id: result.studentId,
+        name: result.studentName,
+      },
     });
   } catch (error) {
     log.error("Parental consent verification failed", { error });

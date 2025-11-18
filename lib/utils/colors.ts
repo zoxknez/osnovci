@@ -43,7 +43,7 @@ export function getStatusColor(status: string): string {
     case "IN_PROGRESS":
       return "text-blue-600 bg-blue-50";
     case "DONE":
-      return "text-green-600 bg-green-50";
+      return "text-green-700 bg-green-50";
     case "SUBMITTED":
       return "text-purple-600 bg-purple-50";
     case "REVIEWED":

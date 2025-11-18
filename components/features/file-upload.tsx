@@ -266,7 +266,7 @@ export function FileUpload({
                 {/* Icon */}
                 <div className="flex-shrink-0">
                   {file.status === "success" ? (
-                    <CheckCircle2 className="h-10 w-10 text-green-600" />
+                    <CheckCircle2 className="h-10 w-10 text-green-700" />
                   ) : file.status === "error" ? (
                     <AlertCircle className="h-10 w-10 text-red-600" />
                   ) : (

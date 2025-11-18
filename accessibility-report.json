@@ -1,0 +1,454 @@
+{
+  "timestamp": "2025-11-17T21:02:35.932Z",
+  "filesScanned": 67,
+  "totalIssues": 42,
+  "high": 2,
+  "medium": 7,
+  "low": 33,
+  "issues": [
+    {
+      "file": "components\\auth\\BiometricSetup.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"text-sm font-medium\">"
+      ]
+    },
+    {
+      "file": "components\\features\\camera-error-boundary.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2 className=\"text-xl font-bold text-gray-900 mb-2\">"
+      ]
+    },
+    {
+      "file": "components\\features\\file-upload-error-boundary.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"text-lg font-bold text-gray-900 mb-2\">"
+      ]
+    },
+    {
+      "file": "components\\features\\file-upload.tsx",
+      "issue": "Missing aria-label on icon buttons",
+      "severity": "high",
+      "occurrences": 1,
+      "fix": "Add aria-label attribute to icon-only buttons",
+      "matches": [
+        "<Button\n                  variant=\"ghost\"\n                  size=\"icon\""
+      ]
+    },
+    {
+      "file": "components\\features\\modern-camera.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2\n            id=\"camera-instructions\"\n            className=\"text-white text-lg font-semibold flex items-center gap-2\"\n          >"
+      ]
+    },
+    {
+      "file": "components\\features\\page-header.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-2xl sm:text-3xl font-bold text-gray-900\">"
+      ]
+    },
+    {
+      "file": "components\\features\\profile\\sections.tsx",
+      "issue": "Input without label",
+      "severity": "medium",
+      "occurrences": 5,
+      "fix": "Add aria-label or associate with a <label> using id",
+      "matches": [
+        "<Input",
+        "<Input",
+        "<Input"
+      ]
+    },
+    {
+      "file": "components\\features\\settings\\profile-section.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"font-semibold text-gray-900\">"
+      ]
+    },
+    {
+      "file": "components\\gamification\\Leaderboard.tsx",
+      "issue": "Input without label",
+      "severity": "medium",
+      "occurrences": 1,
+      "fix": "Add aria-label or associate with a <label> using id",
+      "matches": [
+        "<input"
+      ]
+    },
+    {
+      "file": "components\\gamification\\Leaderboard.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"text-lg font-bold\">"
+      ]
+    },
+    {
+      "file": "components\\modals\\add-homework-modal.tsx",
+      "issue": "Input without label",
+      "severity": "medium",
+      "occurrences": 2,
+      "fix": "Add aria-label or associate with a <label> using id",
+      "matches": [
+        "<Input",
+        "<Input"
+      ]
+    },
+    {
+      "file": "components\\modals\\add-homework-modal.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2\n                  id=\"modal-title\"\n                  className=\"text-xl font-bold text-gray-900\"\n                >"
+      ]
+    },
+    {
+      "file": "components\\modals\\filter-grades-modal.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2\n                  id=\"filter-modal-title\"\n                  className=\"text-2xl font-bold text-gray-900\"\n                >"
+      ]
+    },
+    {
+      "file": "components\\modals\\parental-pin-dialog.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2 className=\"text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2\">"
+      ]
+    },
+    {
+      "file": "components\\reports\\WeeklyReportView.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 6,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-3xl font-bold text-gray-900 dark:text-gray-100\">",
+        "<h2 className=\"text-xl font-semibold text-gray-900 dark:text-gray-100\">",
+        "<h2 className=\"text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4\">"
+      ]
+    },
+    {
+      "file": "components\\ui\\card.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3\n    ref={ref}\n    className={cn(\n      \"font-semibold leading-none tracking-tight text-gray-900\",\n      className,\n    )}\n    {...props}\n  />"
+      ]
+    },
+    {
+      "file": "components\\ui\\child-error.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 2,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2 className=\"text-2xl sm:text-3xl font-extrabold text-gray-900 text-center mb-3\">",
+        "<h2 className=\"text-3xl font-extrabold text-gray-900 text-center mb-3\">"
+      ]
+    },
+    {
+      "file": "components\\ui\\optimized-card.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3\n      ref={ref}\n      className={cn(\"font-semibold leading-none tracking-tight\", className)}\n      {...props}\n    />"
+      ]
+    },
+    {
+      "file": "components\\ui\\virtual-list.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h4 className=\"font-semibold text-gray-900\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\prijava\\page.tsx",
+      "issue": "Input without label",
+      "severity": "medium",
+      "occurrences": 2,
+      "fix": "Add aria-label or associate with a <label> using id",
+      "matches": [
+        "<Input",
+        "<Input"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\prijava\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 sm:mb-3 hover:scale-105 active:scale-95 transition-transform inline-block\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\privatnost\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 7,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-4xl font-bold text-gray-900 dark:text-white mb-6\">",
+        "<h2 className=\"text-2xl font-semibold mt-6 mb-4\">",
+        "<h2 className=\"text-2xl font-semibold mt-6 mb-4\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\registracija\\page.tsx",
+      "issue": "Input without label",
+      "severity": "medium",
+      "occurrences": 7,
+      "fix": "Add aria-label or associate with a <label> using id",
+      "matches": [
+        "<Input",
+        "<Input",
+        "<Input"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\registracija\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 3,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 sm:mb-3 hover:scale-105 active:scale-95 transition-transform inline-block\">",
+        "<h3 className=\"relative mb-2 sm:mb-3 text-xl sm:text-2xl font-extrabold text-gray-900\">",
+        "<h3 className=\"relative mb-2 sm:mb-3 text-xl sm:text-2xl font-extrabold text-gray-900\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\uslovi\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 5,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-4xl font-bold text-gray-900 dark:text-white mb-6\">",
+        "<h2 className=\"text-2xl font-semibold mt-6 mb-4\">",
+        "<h2 className=\"text-2xl font-semibold mt-6 mb-4\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\verify-error\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\verify-pending\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-3xl font-bold text-gray-800 mb-2\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\verify-success\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"
+      ]
+    },
+    {
+      "file": "app\\(auth)\\zaboravljena-lozinka\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-3xl font-bold text-gray-900 dark:text-white mb-4\">"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\domaci\\page.tsx",
+      "issue": "Input without label",
+      "severity": "medium",
+      "occurrences": 1,
+      "fix": "Add aria-label or associate with a <label> using id",
+      "matches": [
+        "<Input"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\domaci\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"text-lg font-semibold text-gray-900\">"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\layout.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 2,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent\">",
+        "<h1 className=\"text-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent\">"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\ocene\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"font-semibold text-gray-900\">"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 3,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2 className=\"text-2xl font-bold mb-1\">",
+        "<h4 className=\"font-semibold text-gray-900\">",
+        "<h4 className=\"font-semibold text-gray-900 group-hover:text-blue-600 transition-colors\">"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\porodica\\page.tsx",
+      "issue": "Missing aria-label on icon buttons",
+      "severity": "high",
+      "occurrences": 1,
+      "fix": "Add aria-label attribute to icon-only buttons",
+      "matches": [
+        "<Button\n                            variant=\"ghost\"\n                            size=\"icon\""
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\porodica\\page.tsx",
+      "issue": "Input without label",
+      "severity": "medium",
+      "occurrences": 1,
+      "fix": "Add aria-label or associate with a <label> using id",
+      "matches": [
+        "<Input"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\porodica\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 4,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"text-xl font-bold text-gray-900 mb-4\">",
+        "<h2 className=\"text-xl font-bold text-gray-900 mb-4\">",
+        "<h3 className=\"font-semibold text-gray-900\">"
+      ]
+    },
+    {
+      "file": "app\\(dashboard)\\dashboard\\raspored\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 5,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"text-xl font-semibold text-gray-900 mb-2\">",
+        "<h3 className=\"text-xl font-bold text-gray-900\">",
+        "<h3 className=\"text-lg font-bold\">"
+      ]
+    },
+    {
+      "file": "app\\account-inactive\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"font-semibold text-yellow-900 mb-2\">"
+      ]
+    },
+    {
+      "file": "app\\consent-required\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h3 className=\"font-semibold text-blue-900 mb-2 flex items-center gap-2\">"
+      ]
+    },
+    {
+      "file": "app\\error.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 1,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"
+      ]
+    },
+    {
+      "file": "app\\page.tsx",
+      "issue": "Missing heading hierarchy",
+      "severity": "low",
+      "occurrences": 3,
+      "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
+      "matches": [
+        "<h2 className=\"text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 sm:mb-4 leading-tight\">",
+        "<h3 className=\"relative mb-2.5 sm:mb-3 text-xl sm:text-2xl font-bold text-gray-900 leading-tight\">",
+        "<h2 className=\"text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 sm:mb-6 leading-tight\">"
+      ]
+    }
+  ]
+}

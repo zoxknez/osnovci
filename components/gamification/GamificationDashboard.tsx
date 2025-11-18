@@ -160,7 +160,7 @@ export function GamificationDashboard({
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Flame className="w-8 h-8 text-orange-500" />
+              <Flame className="w-8 h-8 text-orange-600" />
               <span className="text-3xl font-bold">{data.streak}</span>
               <span className="text-sm text-muted-foreground">days</span>
             </div>

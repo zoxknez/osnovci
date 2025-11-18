@@ -4,6 +4,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { InactivityMonitor } from "@/components/features/inactivity-monitor-wrapper";
 
 export default async function DashboardGroupLayout({
   children,
@@ -44,6 +45,11 @@ export default async function DashboardGroupLayout({
     }
   }
 
-  // ✅ Authenticated and verified - render dashboard
-  return <>{children}</>;
+  // ✅ Authenticated and verified - render dashboard with inactivity monitor
+  return (
+    <>
+      <InactivityMonitor />
+      {children}
+    </>
+  );
 }

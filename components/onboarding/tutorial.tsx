@@ -48,7 +48,7 @@ const tutorialSteps: TutorialStep[] = [
     title: "Fotografiši dokaze",
     description:
       "Koristi kameru da uslikaš urađeni zadatak. Slika će biti automatski kompresovana i spremna za slanje.",
-    icon: <Camera className="h-12 w-12 text-green-600" />,
+    icon: <Camera className="h-12 w-12 text-green-700" />,
     emoji: "📸",
     tip: "Radi i offline! Sinhronizuje se kada se povežeš na internet.",
   },

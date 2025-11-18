@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CsrfProvider } from "@/lib/security/csrf-provider";
+import { ShortcutsProvider } from "@/components/providers/shortcuts-provider";
 
 /**
  * Create QueryClient with default options
@@ -76,7 +77,9 @@ export function Providers({
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <CsrfProvider>{children}</CsrfProvider>
+        <CsrfProvider>
+          <ShortcutsProvider>{children}</ShortcutsProvider>
+        </CsrfProvider>
       </ThemeProvider>
 
       {/* React Query Devtools - Only in development */}

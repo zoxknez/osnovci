@@ -262,7 +262,7 @@ export default function OcenePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Ukupne ocjene</p>
-                    <p className="text-3xl font-bold text-green-600">
+                    <p className="text-3xl font-bold text-green-700">
                       {stats.total}
                     </p>
                   </div>
@@ -392,7 +392,7 @@ export default function OcenePage() {
                     </h3>
                   </div>
                   {sg.trend === "up" && (
-                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    <TrendingUp className="h-5 w-5 text-green-700" />
                   )}
                   {sg.trend === "down" && (
                     <TrendingDown className="h-5 w-5 text-red-600" />

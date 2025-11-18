@@ -1,6 +1,5 @@
 // Parental Consent API - COPPA/GDPR Compliance (Security Enhanced!)
 
-import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
@@ -35,27 +34,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate verification code
-    const verificationCode = nanoid(32);
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-    // Create consent request
-    const consent = await prisma.parentalConsent.create({
-      data: {
-        studentId,
-        guardianEmail,
-        verificationCode,
-        expiresAt,
-        ipAddress:
-          request.headers.get("x-forwarded-for") ||
-          request.headers.get("x-real-ip") ||
-          "unknown",
-        userAgent: request.headers.get("user-agent") || "unknown",
-      },
+    // Use new consent system
+    const { createConsentRequest } = await import("@/lib/auth/parental-consent");
+    
+    const result = await createConsentRequest({
+      studentId,
+      parentEmail: guardianEmail,
+      expiresInHours: 6, // 6 hours instead of 7 days
     });
 
+    if (!result.success || !result.code) {
+      return NextResponse.json(
+        { error: result.error || "Failed to create consent request" },
+        { status: 500 },
+      );
+    }
+
+    const consent = {
+      id: result.consentId,
+      code: result.code,
+      expiresAt: result.expiresAt,
+    };
+
     // Send parental consent email
-    const { sendParentalConsentEmail } = await import("@/lib/email/templates");
+    const { sendParentalConsentEmail } = await import("@/lib/email/parental-consent");
 
     // Get student name for email
     const student = await prisma.student.findUnique({
@@ -63,16 +65,26 @@ export async function POST(request: NextRequest) {
       select: { name: true },
     });
 
-    await sendParentalConsentEmail(
-      guardianEmail,
-      verificationCode,
-      student?.name || "Student",
-    );
+    await sendParentalConsentEmail({
+      childName: student?.name || "Student",
+      childAge: 0, // TODO: Calculate from birthDate
+      parentEmail: guardianEmail,
+      parentName: "Poštovani roditelju/staratelju",
+      consentToken: consent.code,
+      consentUrl: `${process.env["NEXT_PUBLIC_APP_URL"]}/consent-verify`,
+    });
+
+    // Mark email as sent
+    const { markEmailSent } = await import("@/lib/auth/parental-consent");
+    if (consent.id) {
+      await markEmailSent(consent.id);
+    }
 
     log.info("Parental consent requested", {
       studentId,
       guardianEmail,
-      expiresAt,
+      consentId: consent.id,
+      expiresAt: consent.expiresAt,
     });
 
     return NextResponse.json(
@@ -81,7 +93,7 @@ export async function POST(request: NextRequest) {
         message:
           "Email poslat roditelju! Nalog će biti aktivan kada roditelj potvrdi.",
         consentId: consent.id,
-        expiresAt,
+        expiresAt: consent.expiresAt,
       },
       { status: 201 },
     );

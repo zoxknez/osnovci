@@ -14,11 +14,17 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
 import { HomeworkCelebration } from "@/components/features/homework-celebration";
-import { ModernCamera } from "@/components/features/modern-camera";
 import { PageHeader } from "@/components/features/page-header";
+
+// Lazy load heavy components (Camera uses MediaStream API)
+const ModernCamera = lazy(() => 
+  import("@/components/features/modern-camera").then((mod) => ({ 
+    default: mod.ModernCamera 
+  }))
+);
 import {
   AddHomeworkModal,
   type HomeworkFormData,
@@ -474,7 +480,7 @@ export default function DomaciPage() {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">
+              <p className="text-3xl font-bold text-green-700">
                 {
                   allHomework.filter(
                     (h) => h.status === "done" || h.status === "submitted",
@@ -654,15 +660,21 @@ export default function DomaciPage() {
         </div>
       )}
 
-      {/* Camera Modal */}
+      {/* Camera Modal - Lazy Loaded */}
       {cameraOpen && (
-        <ModernCamera
-          onClose={() => {
-            setCameraOpen(false);
-            setSelectedHomeworkId(null);
-          }}
-          onCapture={handlePhotoCapture}
-        />
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            <Loader className="h-8 w-8 animate-spin text-white" />
+          </div>
+        }>
+          <ModernCamera
+            onClose={() => {
+              setCameraOpen(false);
+              setSelectedHomeworkId(null);
+            }}
+            onCapture={handlePhotoCapture}
+          />
+        </Suspense>
       )}
 
       {/* Celebration Animation */}

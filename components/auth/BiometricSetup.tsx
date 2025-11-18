@@ -138,7 +138,7 @@ export function BiometricSetup() {
         {registerSuccess && (
           <div className="rounded-lg border border-green-500 bg-green-50 dark:bg-green-950 p-4">
             <div className="flex gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-green-700" />
               <p className="text-sm text-green-800 dark:text-green-200">
                 Uređaj je uspešno registrovan! Sada možete da se prijavljujete
                 pomoću biometrije.

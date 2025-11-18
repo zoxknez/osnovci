@@ -3,7 +3,9 @@
 import bcrypt from "bcryptjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { verifyAge } from "@/lib/auth/age-verification";
 import { createAndSendVerificationEmail } from "@/lib/auth/email-verification";
+import { sendParentalConsentEmail } from "@/lib/email/parental-consent";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
@@ -27,6 +29,7 @@ const registerSchema = z
     password: passwordSchema, // Enhanced password validation
     role: z.enum(["STUDENT", "GUARDIAN"]),
     name: nameSchema,
+    dateOfBirth: z.string().optional(), // ISO date string
     // Za učenike
     school: safeStringSchema.max(200).optional(),
     grade: z.number().int().min(1).max(8).optional(),
@@ -34,6 +37,15 @@ const registerSchema = z
   })
   .refine((data) => data.email || data.phone, {
     message: "Mora postojati email ili telefon",
+  })
+  .refine((data) => {
+    // Studenti MORAJU imati dateOfBirth (COPPA compliance)
+    if (data.role === "STUDENT" && !data.dateOfBirth) {
+      return false;
+    }
+    return true;
+  }, {
+    message: "Datum rođenja je obavezan za učenike (COPPA zakon)",
   });
 
 export async function POST(request: NextRequest) {
@@ -83,10 +95,40 @@ export async function POST(request: NextRequest) {
       password,
       role,
       name,
+      dateOfBirth,
       school,
       grade,
       class: className,
     } = validated.data;
+
+    // 🔒 COPPA COMPLIANCE - Age Verification
+    let needsParentalConsent = false;
+    let ageVerificationResult = null;
+
+    if (dateOfBirth) {
+      const dob = new Date(dateOfBirth);
+      ageVerificationResult = verifyAge(dob);
+
+      if (!ageVerificationResult.isValid) {
+        return NextResponse.json(
+          {
+            error: "Nevažeći datum rođenja",
+            message: ageVerificationResult.message,
+          },
+          { status: 400 },
+        );
+      }
+
+      needsParentalConsent = ageVerificationResult.requiresConsent;
+
+      // Log age verification for students
+      if (role === "STUDENT") {
+        log.info("Age verification for student registration", {
+          age: ageVerificationResult.age,
+          needsConsent: needsParentalConsent,
+        });
+      }
+    }
 
     // Proveri da li korisnik već postoji
     if (email) {
@@ -119,6 +161,7 @@ export async function POST(request: NextRequest) {
         ...(phone && { phone }),
         password: hashedPassword,
         role,
+        ...(dateOfBirth && { dateOfBirth: new Date(dateOfBirth) }),
         ...(role === "STUDENT" && {
           student: {
             create: {
@@ -126,6 +169,7 @@ export async function POST(request: NextRequest) {
               school: school || "",
               grade: grade || 1,
               class: className || "1",
+              parentalConsentGiven: !needsParentalConsent, // Auto-approve if >13
             },
           },
         }),
@@ -143,7 +187,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 🎯 NOVO - Pošalji email verifikaciju ako je email dostupan
+    // 🎯 Email Verification - pošalji email verifikaciju ako je email dostupan
     let emailVerificationSent = false;
     if (email) {
       try {
@@ -160,7 +204,70 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 🎯 NOVO - Vrati success sa redirect na verify-pending ako je email
+    // 🔒 COPPA Parental Consent - kreiraj consent request i pošalji email
+    let parentalConsentEmailSent = false;
+    
+    if (needsParentalConsent && email && user.student) {
+      try {
+        // Import consent helper
+        const { createConsentRequest } = await import("@/lib/auth/parental-consent");
+        const { markEmailSent } = await import("@/lib/auth/parental-consent");
+        
+        // Create consent request in database
+        const consentResult = await createConsentRequest({
+          studentId: user.student.id,
+          parentEmail: email, // TODO: Add separate parent email field in registration
+          parentName: "Poštovani roditelju/staratelju", // TODO: Add parent name field
+          expiresInHours: 6,
+        });
+
+        if (consentResult.success && consentResult.code) {
+          // Send email with consent code
+          await sendParentalConsentEmail({
+            childName: name,
+            childAge: ageVerificationResult?.age || 0,
+            parentEmail: email,
+            parentName: "Poštovani roditelju/staratelju",
+            consentToken: consentResult.code,
+            consentUrl: `${process.env["NEXT_PUBLIC_APP_URL"]}/consent-verify`,
+          });
+          
+          // Mark email as sent
+          if (consentResult.consentId) {
+            await markEmailSent(consentResult.consentId);
+          }
+          
+          parentalConsentEmailSent = true;
+          log.info("Parental consent request created and email sent", {
+            studentId: user.student.id,
+            consentId: consentResult.consentId,
+            parentEmail: email,
+          });
+        }
+      } catch (emailError) {
+        log.error("Failed to create consent request or send email", { emailError });
+      }
+    }
+
+    // 🎯 Vrati success response sa svim potrebnim informacijama
+    if (needsParentalConsent) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Nalog kreiran! Čeka se roditeljska saglasnost.",
+          email,
+          needsVerification: emailVerificationSent,
+          needsParentalConsent: true,
+          consentEmailSent: parentalConsentEmailSent,
+          user: {
+            id: user.id,
+            role: user.role,
+          },
+        },
+        { status: 201 },
+      );
+    }
+
     if (email && emailVerificationSent) {
       return NextResponse.json(
         {
@@ -168,6 +275,7 @@ export async function POST(request: NextRequest) {
           message: "Nalog uspešno kreiran! Proveri email za verifikaciju.",
           email,
           needsVerification: true,
+          needsParentalConsent: false,
           user: {
             id: user.id,
             role: user.role,
@@ -182,6 +290,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: "Nalog uspešno kreiran!",
+        needsParentalConsent: false,
         user: {
           id: user.id,
           role: user.role,

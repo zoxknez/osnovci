@@ -108,7 +108,7 @@ describe("GET /api/homework", () => {
     const data = await response.json();
 
     expect(response.status).toBe(401);
-    expect(data.error).toBe("Unauthorized");
+    expect(data.code).toBe("UNAUTHORIZED");
   });
 
   it("should return homework list for authenticated student", async () => {
@@ -304,7 +304,7 @@ describe("POST /api/homework", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe("Bad Request");
+    expect(data.code).toBe("VALIDATION_ERROR");
   });
 
   it("should sanitize input (XSS protection)", async () => {

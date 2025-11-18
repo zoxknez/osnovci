@@ -8,7 +8,7 @@ export function ThemeToggle() {
   // Light theme only - no toggle needed
   return (
     <Button variant="ghost" size="icon" disabled aria-label="Svetla tema">
-      <Sun className="h-5 w-5 text-orange-500" />
+      <Sun className="h-5 w-5 text-orange-600" />
     </Button>
   );
 }
@@ -18,7 +18,7 @@ export function SimpleThemeToggle() {
   // Light theme only - no toggle needed
   return (
     <Button variant="ghost" size="icon" disabled aria-label="Svetla tema">
-      <Sun className="h-5 w-5 text-orange-500" />
+      <Sun className="h-5 w-5 text-orange-600" />
     </Button>
   );
 }

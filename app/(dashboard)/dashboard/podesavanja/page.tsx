@@ -47,7 +47,6 @@ export default function PodjesavanjaPage() {
   const [profileData, setProfileData] =
     useState<ProfileSettings>(DEFAULT_PROFILE);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
 
   // Debounce timer za input polja
@@ -163,13 +162,6 @@ export default function PodjesavanjaPage() {
     toast.success(next ? "✓ Uključeno" : "✓ Isključeno", { duration: 1000 });
   };
 
-  const handleTwoFactorToggle = async () => {
-    const next = !twoFactorEnabled;
-    setTwoFactorEnabled(next);
-    await autoSave("twoFactor", next);
-    toast.success(next ? "✓ Uključeno" : "✓ Isključeno", { duration: 1000 });
-  };
-
   const handlePasswordChange = () => {
     toast.info("🔐 Otvaranje forme...", {
       description: "Unesi trenutnu i novu lozinku",
@@ -197,7 +189,7 @@ export default function PodjesavanjaPage() {
           badge="Lični prostor"
         />
         <div className="flex items-center justify-center py-12">
-          <Loader className="h-8 w-8 animate-spin text-green-600" />
+          <Loader className="h-8 w-8 animate-spin text-green-700" />
         </div>
       </div>
     );
@@ -241,10 +233,8 @@ export default function PodjesavanjaPage() {
 
         <SecuritySection
           biometricEnabled={biometricEnabled}
-          twoFactorEnabled={twoFactorEnabled}
           onPasswordChange={handlePasswordChange}
           onToggleBiometric={handleBiometricToggle}
-          onToggleTwoFactor={handleTwoFactorToggle}
         />
 
         <SettingsActions onLogout={handleLogout} />
