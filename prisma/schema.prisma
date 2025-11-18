@@ -986,3 +986,85 @@ model NotificationPreference {
   @@index([userId, inAppEnabled])
   @@map("notification_preferences")
 }
+
+// ============================================
+// CONTENT MODERATION
+// ============================================
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
+}
+
+enum ContentType {
+  HOMEWORK_TITLE
+  HOMEWORK_DESCRIPTION
+  HOMEWORK_NOTE
+  GRADE_NOTE
+  SCHEDULE_NOTE
+  PROFILE_BIO
+  ATTACHMENT_FILENAME
+}
+
+model ModerationLog {
+  id String @id @default(cuid())
+
+  // Content details
+  contentType  ContentType
+  contentId    String // ID of homework, grade, etc.
+  originalText String // Original content
+  moderatedText String? // Filtered/moderated version
+
+  // User context
+  userId   String
+  studentId String?
+  
+  // Moderation results
+  status       ModerationStatus @default(PENDING)
+  flagged      Boolean          @default(false)
+  severity     String?          // none, mild, moderate, severe, critical
+  flaggedWords String?          // JSON array of flagged words
+  categories   Json?            // AI moderation categories
+
+  // AI moderation scores
+  aiProvider      String? // openai, aws-rekognition
+  aiConfidence    Float?  // 0-100
+  aiCategories    Json?   // Detailed AI results
+  
+  // Personal info detection
+  hasPII          Boolean @default(false)
+  piiTypes        String? // email, phone, address, jmbg
+
+  // Actions taken
+  actionTaken     String? // allow, warn, filter, block, flag
+  notifyParent    Boolean @default(false)
+  parentNotified  Boolean @default(false)
+  parentNotifiedAt DateTime?
+
+  // Review tracking
+  reviewedBy   String? // Admin user ID
+  reviewedAt   DateTime?
+  reviewNotes  String?
+
+  // Metadata
+  ipAddress    String?
+  userAgent    String?
+  metadata     Json? // Additional context
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([studentId])
+  @@index([contentType])
+  @@index([status])
+  @@index([flagged])
+  @@index([notifyParent])
+  @@index([createdAt])
+  @@index([userId, contentType])
+  @@index([status, flagged])
+  @@index([notifyParent, parentNotified])
+  @@map("moderation_logs")
+}

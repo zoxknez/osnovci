@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
       studentId = user.student.id;
     } else if (user?.guardian && studentIdParam) {
       const hasAccess = user.guardian.links.some(
-        (link) => link.studentId === studentIdParam
+        (link: any) => link.studentId === studentIdParam
       );
       if (!hasAccess) {
         return NextResponse.json({ error: "Access denied" }, { status: 403 });
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
       progress: progress.filter((p) => !p.unlocked),
       stats: {
         total: achievements.length,
-        totalXP: achievements.reduce((sum, a) => sum + (a.xpReward || 0), 0),
+        totalXP: achievements.reduce((sum: number, a: any) => sum + (a.xpReward || 0), 0),
         level: gamification?.level || 1,
         currentXP: gamification?.xp || 0,
         totalXPEarned: gamification?.totalXPEarned || 0,

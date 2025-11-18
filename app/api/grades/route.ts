@@ -5,10 +5,14 @@ import {
   NotFoundError,
 } from "@/lib/api/handlers/errors";
 import { createdResponse, successResponse } from "@/lib/api/handlers/response";
-import { CreateGradeSchema, QueryGradesSchema } from "@/lib/api/schemas/grades";
+import {
+  CreateGradeSchema,
+  QueryGradesSchema,
+} from "@/lib/api/schemas/grades";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { moderateContent } from "@/lib/safety/moderation-service";
 import { csrfMiddleware } from "@/lib/security/csrf";
 
 /**
@@ -249,6 +253,38 @@ export async function POST(request: NextRequest) {
       throw new NotFoundError("Učenik");
     }
 
+    // 🛡️ MODERATE DESCRIPTION (if present)
+    let moderatedDescription = validatedData.description;
+
+    if (validatedData.description) {
+      const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip");
+      const userAgent = request.headers.get("user-agent");
+
+      const moderationResult = await moderateContent({
+        text: validatedData.description,
+        contentType: "GRADE_NOTE",
+        contentId: "pending",
+        userId: session.user.id,
+        studentId: student.id,
+        ...(student.age !== null && { userAge: student.age }),
+        ...(ipAddress && { ipAddress }),
+        ...(userAgent && { userAgent }),
+      });
+
+      if (moderationResult.action === "block") {
+        return new Response(
+          JSON.stringify({
+            error: "Inappropriate Content",
+            message: moderationResult.blockReason || "Sadržaj sadrži neprikladne reči.",
+            warnings: moderationResult.warnings,
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      moderatedDescription = moderationResult.moderated;
+    }
+
     // Kreiraj ocjenu
     const grade = await prisma.grade.create({
       data: {
@@ -256,7 +292,7 @@ export async function POST(request: NextRequest) {
         subjectId: validatedData.subjectId,
         grade: validatedData.grade,
         category: validatedData.category,
-        ...(validatedData.description && { description: validatedData.description }),
+        ...(moderatedDescription && { description: moderatedDescription }),
         date: validatedData.date ? new Date(validatedData.date) : new Date(),
         weight: validatedData.weight,
       },

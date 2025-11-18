@@ -55,7 +55,7 @@ export default async function GradeAnalyticsPage({
   } else if (user.guardian) {
     // User is a guardian - show selected student or first linked student
     const selectedLink = user.guardian.links.find(
-      (link) => link.studentId === params.studentId
+      (link: any) => link.studentId === params.studentId
     );
     const activeLink = selectedLink || user.guardian.links[0];
     
@@ -97,7 +97,7 @@ export default async function GradeAnalyticsPage({
                 <SelectValue placeholder="Izaberite učenika" />
               </SelectTrigger>
               <SelectContent>
-                {user.guardian.links.map((link) => (
+                {user.guardian.links.map((link: any) => (
                   <SelectItem key={link.studentId} value={link.studentId}>
                     {link.student.name}
                   </SelectItem>
