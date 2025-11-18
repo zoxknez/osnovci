@@ -3,7 +3,6 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
 import { buildCSP, generateNonce } from "@/lib/security/csp";
 
 export async function middleware(request: NextRequest) {
@@ -24,57 +23,25 @@ export async function middleware(request: NextRequest) {
   const isPublicPage = publicPages.some((page) => pathname.startsWith(page));
 
   // Skip auth check for public pages and static assets
+  // Auth check is now handled in layouts and API routes to reduce middleware bundle size
   if (
     !isPublicPage &&
     !pathname.startsWith("/_next") &&
     !pathname.startsWith("/favicon.ico")
   ) {
-    // Get session
-    const session = await auth();
+    // Check for session cookie - lightweight check
+    const sessionToken = request.cookies.get("authjs.session-token") || 
+      request.cookies.get("__Secure-authjs.session-token");
 
-    // Redirect to login if not authenticated
-    if (!session?.user?.id) {
+    // Redirect to login if no session cookie
+    if (!sessionToken) {
       const loginUrl = new URL("/prijava", request.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
     }
-
-    // Email verification check (skip for API routes)
-    if (!pathname.startsWith("/api")) {
-      if (
-        session.user.email &&
-        !session.user.emailVerified &&
-        pathname !== "/verify-pending"
-      ) {
-        return NextResponse.redirect(new URL("/verify-pending", request.url));
-      }
-
-      // Parental consent check (for students)
-      if (session.user.role === "STUDENT") {
-        const student = session.user.student;
-
-        if (
-          student &&
-          !student.parentalConsentGiven &&
-          pathname !== "/consent-required"
-        ) {
-          return NextResponse.redirect(
-            new URL("/consent-required", request.url),
-          );
-        }
-
-        // Account active check
-        if (
-          student &&
-          !student.accountActive &&
-          pathname !== "/account-inactive"
-        ) {
-          return NextResponse.redirect(
-            new URL("/account-inactive", request.url),
-          );
-        }
-      }
-    }
+    
+    // Additional checks (email verification, consent, etc.) moved to page layouts
+    // This keeps middleware lean for Edge Runtime
   }
 
   // Landing page -> Dashboard redirect
