@@ -630,29 +630,37 @@ enum DayOfWeek {
 }
 
 model ScheduleEntry {
-  id        String    @id @default(cuid())
-  studentId String
-  subjectId String
-  dayOfWeek DayOfWeek
-  startTime String // "08:00"
-  endTime   String // "08:45"
-  room      String? // Učionica
-  notes     String? // "Poneti pribor za crtanje"
-  isAWeek   Boolean   @default(true) // A smena
-  isBWeek   Boolean   @default(true) // B smena
-  version   Int       @default(1) // Optimistic locking version
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  studentId     String
+  subjectId     String?   // Optional for custom events
+  dayOfWeek     DayOfWeek
+  startTime     String // "08:00"
+  endTime       String // "08:45"
+  room          String? // Učionica
+  notes         String? // "Poneti pribor za crtanje"
+  isAWeek       Boolean   @default(true) // A smena
+  isBWeek       Boolean   @default(true) // B smena
+  isCustomEvent Boolean   @default(false) // Custom calendar event
+  customTitle   String? // Title for custom events
+  customColor   String? // Hex color for custom events (#3B82F6)
+  customDate    DateTime? // Specific date for one-time custom events
+  version       Int       @default(1) // Optimistic locking version
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subject Subject @relation(fields: [subjectId], references: [id])
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id])
 
   @@index([studentId])
   @@index([subjectId])
   @@index([dayOfWeek])
+  @@index([isCustomEvent])
+  @@index([customDate])
   // Compound indexes
   @@index([studentId, dayOfWeek])
   @@index([studentId, dayOfWeek, startTime]) // For schedule ordering
+  @@index([studentId, isCustomEvent]) // For filtering custom events
+  @@index([studentId, customDate]) // For date-specific custom events
   @@map("schedule_entries")
 }
 
