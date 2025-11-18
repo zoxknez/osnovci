@@ -201,27 +201,27 @@ export function CalendarView({
           <DayView
             studentId={studentId}
             date={currentDate}
-            onEventClick={onEventClick}
+            {...(onEventClick && { onEventClick })}
           />
         )}
         {view === "week" && (
           <WeekView
             studentId={studentId}
             date={currentDate}
-            onEventClick={onEventClick}
+            {...(onEventClick && { onEventClick })}
           />
         )}
         {view === "month" && (
           <MonthView
             studentId={studentId}
-            date={currentDate}
-            onEventClick={onEventClick}
+            month={currentDate}
+            {...(onEventClick && { onEventClick })}
           />
         )}
         {view === "agenda" && (
           <AgendaView
             studentId={studentId}
-            onEventClick={onEventClick}
+            {...(onEventClick && { onEventClick })}
           />
         )}
       </div>
