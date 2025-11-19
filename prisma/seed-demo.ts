@@ -93,12 +93,15 @@ async function main() {
         phone: account.phone,
         password: hashedPassword,
         role: account.role,
+        emailVerified: new Date(),
         student: {
           create: {
             name: account.name,
             school: account.school,
             grade: account.grade,
             class: account.class,
+            parentalConsentGiven: true,
+            accountActive: true,
           },
         },
       },
