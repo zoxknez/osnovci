@@ -326,28 +326,44 @@ export default function PrijavaPage() {
                   )}
                 </Button>
 
-                {/* Demo Login Button */}
-                <div className="relative">
+                {/* Demo Login Section */}
+                <div className="relative mt-6">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">ili</span>
+                    <span className="bg-white px-2 text-gray-500">brz pristup</span>
                   </div>
                 </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 text-amber-900 font-bold shadow-md hover:shadow-lg transition-all"
-                  size="lg"
-                  onClick={handleDemoLogin}
-                  disabled={isLoading}
-                  aria-label="Prijavi se kao demo korisnik"
-                >
-                  <Sparkles className="mr-2 h-5 w-5 text-amber-600" />
-                  Isprobaj Demo (Marko)
-                </Button>
+                <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border-2 border-amber-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="h-5 w-5 text-amber-600" />
+                    <h3 className="font-bold text-amber-900">Demo Nalog</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Isprobaj aplikaciju bez registracije
+                  </p>
+                  <div className="flex gap-2 text-xs text-gray-500 mb-3">
+                    <div className="flex-1">
+                      <strong>Email:</strong> marko@demo.rs
+                    </div>
+                    <div className="flex-1">
+                      <strong>Lozinka:</strong> marko123
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-amber-400 bg-white hover:bg-amber-50 text-amber-900 font-bold"
+                    size="sm"
+                    onClick={handleDemoLogin}
+                    disabled={isLoading}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4 text-amber-600" />
+                    Uloguj se kao Marko
+                  </Button>
+                </div>
               </form>
 
               {/* 2FA Modal */}

@@ -70,13 +70,13 @@ export default function ConsentRequiredPage() {
             </Button>
 
             {/* Demo Mode - Skip consent */}
-            <Link href="/api/auth/demo">
+            <Link href="/prijava">
               <Button
                 variant="default"
                 className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
                 size="lg"
               >
-                🎮 Idi na Demo (Preskoči saglasnost)
+                🎮 Vrati se na prijavu
               </Button>
             </Link>
 
