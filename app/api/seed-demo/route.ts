@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
-
+  try {
     // Check if demo user already exists
     const existing = await prisma.user.findUnique({
       where: { email: "marko@demo.rs" },
