@@ -95,7 +95,15 @@ export default function PrijavaPage() {
       });
 
       if (result?.error) {
-        toast.error("Demo nalog trenutno nije dostupan");
+        console.error("Demo login error:", result.error);
+        toast.error(`Demo nalog greška: ${result.error}`);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!result?.ok) {
+        console.error("Demo login failed:", result);
+        toast.error("Demo nalog trenutno nije dostupan. Pokušaj ručnu prijavu.");
         setIsLoading(false);
         return;
       }
@@ -104,6 +112,7 @@ export default function PrijavaPage() {
       await new Promise((resolve) => setTimeout(resolve, 100));
       window.location.href = "/dashboard";
     } catch (error) {
+      console.error("Demo login exception:", error);
       log.error("Demo login failed", error);
       toast.error("Demo prijava nije uspela. Pokušaj ponovo.");
     } finally {
