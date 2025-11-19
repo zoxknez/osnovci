@@ -130,20 +130,20 @@ export async function GET(request: NextRequest) {
       : null;
 
     const profileData = {
-      id: user.id,
-      name: fullStudent?.name || user.guardian?.name || "Unknown",
-      email: user.email,
-      avatar: fullStudent?.avatar || user.guardian?.avatar,
+      id: session.user.id,
+      name: fullStudent?.name || session.user.guardian?.name || "Unknown",
+      email: session.user.email,
+      avatar: fullStudent?.avatar || undefined,
       dateOfBirth: fullStudent?.birthDate,
       gender: fullStudent?.gender || undefined,
       school: fullStudent?.school,
       grade: fullStudent?.grade,
       bio: fullStudent?.bio || undefined,
-      role: user.role,
+      role: session.user.role,
       xp: gamification?.xp || 0,
       level: gamification?.level || 1,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      createdAt: fullStudent?.createdAt,
+      updatedAt: fullStudent?.updatedAt,
     };
 
     const stats = {

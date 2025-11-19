@@ -243,7 +243,6 @@ export async function POST(request: NextRequest) {
         contentId: "pending", // Will update after creation
         userId: session.user.id,
         studentId: student.id,
-        ...(student.age !== null && { userAge: student.age }),
         ...(ipAddress && { ipAddress }),
         ...(userAgent && { userAgent }),
       });
