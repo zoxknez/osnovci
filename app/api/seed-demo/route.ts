@@ -39,6 +39,8 @@ export async function GET() {
             school: 'OŠ "Vuk Karadžić"',
             grade: 5,
             class: "A",
+            parentalConsentGiven: true,
+            accountActive: true,
           },
         },
       },
