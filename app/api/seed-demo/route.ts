@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     // Security: Only allow in development or with special token
     const { token } = await req.json();
     
-    if (process.env.NODE_ENV === "production" && token !== process.env.SEED_TOKEN) {
+    if (process.env.NODE_ENV === "production" && token !== process.env["SEED_TOKEN"]) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
