@@ -87,6 +87,15 @@ export default function PrijavaPage() {
     toast.info("Prijavljujem te kao demo korisnika...", { duration: 2000 });
 
     try {
+      // Automatically fill in demo credentials and submit
+      setFormData({
+        email: "marko@demo.rs",
+        password: "marko123",
+      });
+
+      // Small delay to ensure state update
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const result = await signIn("credentials", {
         email: "marko@demo.rs",
         password: "marko123",
@@ -96,14 +105,14 @@ export default function PrijavaPage() {
 
       if (result?.error) {
         console.error("Demo login error:", result.error);
-        toast.error(`Demo nalog greška: ${result.error}`);
+        toast.error(`Greška: ${result.error}`);
         setIsLoading(false);
         return;
       }
 
       if (!result?.ok) {
         console.error("Demo login failed:", result);
-        toast.error("Demo nalog trenutno nije dostupan. Pokušaj ručnu prijavu.");
+        toast.error("Demo nalog trenutno nije dostupan");
         setIsLoading(false);
         return;
       }
@@ -114,7 +123,7 @@ export default function PrijavaPage() {
     } catch (error) {
       console.error("Demo login exception:", error);
       log.error("Demo login failed", error);
-      toast.error("Demo prijava nije uspela. Pokušaj ponovo.");
+      toast.error("Demo prijava nije uspela");
     } finally {
       setIsLoading(false);
     }
