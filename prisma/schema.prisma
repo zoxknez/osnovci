@@ -19,19 +19,18 @@ generator client {
 // Switch between SQLite (development) and PostgreSQL (production)
 // by commenting/uncommenting the appropriate datasource block
 
-// Development: SQLite (currently active)
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-
-// Production: PostgreSQL (uncomment when deploying)
-// After switching, run: npm run db:push && npm run db:seed:demo
+// Development: SQLite (uncomment for local development)
 // datasource db {
-//   provider  = "postgresql"
-//   url       = env("DATABASE_URL")
-//   directUrl = env("DATABASE_URL_UNPOOLED")
+//   provider = "sqlite"
+//   url      = env("DATABASE_URL")
 // }
+
+// Production: PostgreSQL (currently active)
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
 
 // Development fallback: SQLite (set DATABASE_URL="file:./dev.db")
 // For local dev without PostgreSQL:
