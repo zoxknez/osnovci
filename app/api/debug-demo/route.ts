@@ -18,7 +18,7 @@ export async function GET() {
         student: {
           include: {
             homework: true,
-            scheduleEntries: true,
+            schedule: true,
             gamification: true,
           },
         },
@@ -46,7 +46,7 @@ export async function GET() {
                   parentalConsentGiven: demoUser.student.parentalConsentGiven,
                   accountActive: demoUser.student.accountActive,
                   homeworkCount: demoUser.student.homework.length,
-                  scheduleCount: demoUser.student.scheduleEntries.length,
+                  scheduleCount: demoUser.student.schedule.length,
                   hasGamification: !!demoUser.student.gamification,
                 }
               : null,
