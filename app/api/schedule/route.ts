@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
       throw new AuthenticationError();
     }
 
+    // Get student ID from session
+    if (!session.user.student?.id) {
+      throw new NotFoundError("Učenik");
+    }
+
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
     const queryData = {
@@ -44,32 +49,8 @@ export async function GET(request: NextRequest) {
     // Validacija query parametara
     const validatedQuery = QueryScheduleSchema.parse(queryData);
 
-    // Dohvati korisnika i njegove učenike
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { student: { select: { id: true } } },
-    });
-
-    if (!user) {
-      throw new NotFoundError("Korisnik");
-    }
-
-    const studentIds: string[] = [];
-
-    // Ako je sam student
-    if (user.student) {
-      studentIds.push(user.student.id);
-    }
-
-    // Ako nema student direktno, traži
-    if (studentIds.length === 0) {
-      const student = await prisma.student.findFirst({
-        where: { userId: user.id },
-      });
-      if (student) {
-        studentIds.push(student.id);
-      }
-    }
+    // Use student ID from session
+    const studentIds: string[] = [session.user.student.id];
 
     // Build filter
     const where: Record<string, unknown> = {
@@ -158,6 +139,11 @@ export async function POST(request: NextRequest) {
     // Validacija
     const validatedData = CreateScheduleSchema.parse(body);
 
+    // Get student ID from session
+    if (!session.user.student?.id) {
+      throw new NotFoundError("Učenik");
+    }
+
     // Provjeri da li subjekt postoji
     const subject = await prisma.subject.findUnique({
       where: { id: validatedData.subjectId },
@@ -167,19 +153,10 @@ export async function POST(request: NextRequest) {
       throw new NotFoundError("Predmet");
     }
 
-    // Dohvati studentov ID
-    const student = await prisma.student.findFirst({
-      where: { userId: session.user.id },
-    });
-
-    if (!student) {
-      throw new NotFoundError("Učenik");
-    }
-
     // Kreiraj raspored
     const schedule = await prisma.scheduleEntry.create({
       data: {
-        studentId: student.id,
+        studentId: session.user.student.id,
         subjectId: validatedData.subjectId,
         dayOfWeek: validatedData.dayOfWeek as DayOfWeek,
         startTime: validatedData.startTime,

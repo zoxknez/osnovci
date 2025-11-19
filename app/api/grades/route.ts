@@ -27,6 +27,11 @@ export async function GET(request: NextRequest) {
       throw new AuthenticationError();
     }
 
+    // Get student ID from session
+    if (!session.user.student?.id) {
+      throw new NotFoundError("Učenik");
+    }
+
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
     const queryData = {
@@ -42,39 +47,25 @@ export async function GET(request: NextRequest) {
     // Validacija query parametara
     const validatedQuery = QueryGradesSchema.parse(queryData);
 
-    // Dohvati korisnika
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: {
-        student: true,
-        guardian: {
-          include: {
-            links: {
-              where: { isActive: true },
-              include: { student: { select: { id: true } } },
-            },
+    // Use student ID from session
+    const studentIds: string[] = [session.user.student.id];
+
+    // If guardian, add linked students
+    if (session.user.guardian) {
+      const guardian = await prisma.guardian.findUnique({
+        where: { id: session.user.guardian.id },
+        include: {
+          links: {
+            where: { isActive: true },
+            select: { studentId: true },
           },
         },
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundError("Korisnik");
-    }
-
-    // Prikupi student IDs
-    const studentIds: string[] = [];
-    if (user.student) {
-      studentIds.push(user.student.id);
-    }
-    if (user.guardian?.links) {
-      user.guardian.links.forEach((link) => {
-        studentIds.push(link.student.id);
       });
-    }
-
-    if (studentIds.length === 0) {
-      throw new NotFoundError("Nema dostupnih učenika");
+      if (guardian?.links) {
+        guardian.links.forEach((link) => {
+          studentIds.push(link.studentId);
+        });
+      }
     }
 
     // Build filter
@@ -235,6 +226,11 @@ export async function POST(request: NextRequest) {
     // Validacija
     const validatedData = CreateGradeSchema.parse(body);
 
+    // Get student ID from session
+    if (!session.user.student?.id) {
+      throw new NotFoundError("Učenik");
+    }
+
     // Provjeri da li subjekt postoji
     const subject = await prisma.subject.findUnique({
       where: { id: validatedData.subjectId },
@@ -244,14 +240,7 @@ export async function POST(request: NextRequest) {
       throw new NotFoundError("Predmet");
     }
 
-    // Dohvati studentov ID
-    const student = await prisma.student.findFirst({
-      where: { userId: session.user.id },
-    });
-
-    if (!student) {
-      throw new NotFoundError("Učenik");
-    }
+    const student = session.user.student;
 
     // 🛡️ MODERATE DESCRIPTION (if present)
     let moderatedDescription = validatedData.description;

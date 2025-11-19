@@ -22,13 +22,8 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Dohvati korisnika
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { student: true },
-    });
-
-    if (!user?.student) {
+    // Use session student data
+    if (!session.user.student) {
       return NextResponse.json({
         success: true,
         subjects: [],
@@ -38,7 +33,7 @@ export async function GET(_request: NextRequest) {
 
     // Dohvati subjects za ovog studenta
     const studentSubjects = await prisma.studentSubject.findMany({
-      where: { studentId: user.student.id },
+      where: { studentId: session.user.student.id },
       include: {
         subject: true,
       },

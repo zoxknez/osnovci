@@ -32,47 +32,42 @@ export async function GET(request: NextRequest) {
       throw new AuthenticationError();
     }
 
-    // Dohvati korisnika sa svim relacionim podacima
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: {
-        student: true,
-        guardian: {
-          include: {
-            links: {
-              where: { isActive: true },
-              include: {
-                student: {
-                  select: { id: true, name: true, school: true, grade: true },
-                },
+    // Use session data directly - no need to re-query user
+    const students = [];
+    if (session.user.student) {
+      students.push({
+        id: session.user.student.id,
+        name: session.user.student.name,
+        school: session.user.student.school,
+        grade: session.user.student.grade,
+      });
+    }
+    
+    // If guardian, query linked students
+    if (session.user.guardian) {
+      const guardian = await prisma.guardian.findUnique({
+        where: { id: session.user.guardian.id },
+        include: {
+          links: {
+            where: { isActive: true },
+            include: {
+              student: {
+                select: { id: true, name: true, school: true, grade: true },
               },
             },
           },
         },
-      },
-    });
-
-    if (!user) {
-      log.error("User not found in database", {
-        userId: session.user.id,
       });
-      throw new NotFoundError("Korisnik");
+      
+      if (guardian?.links) {
+        guardian.links.forEach((link) => {
+          students.push(link.student);
+        });
+      }
     }
 
-    // Prikupi sve dostupne studente
-    const students = [];
-    if (user.student) {
-      students.push({
-        id: user.student.id,
-        name: user.student.name,
-        school: user.student.school,
-        grade: user.student.grade,
-      });
-    }
-    if (user.guardian?.links) {
-      user.guardian.links.forEach((link) => {
-        students.push(link.student);
-      });
+    if (students.length === 0) {
+      throw new NotFoundError("Nema dostupnih učenika");
     }
 
     // Ako je student, dohvati njegov profil
