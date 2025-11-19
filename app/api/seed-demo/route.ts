@@ -7,17 +7,7 @@ import { log } from "@/lib/logger";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function POST(req: Request) {
-  try {
-    // Security: Only allow in development or with special token
-    const { token } = await req.json();
-    
-    if (process.env.NODE_ENV === "production" && token !== process.env["SEED_TOKEN"]) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+export async function GET() {
 
     // Check if demo user already exists
     const existing = await prisma.user.findUnique({
