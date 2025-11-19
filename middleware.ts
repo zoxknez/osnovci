@@ -18,6 +18,7 @@ export async function middleware(request: NextRequest) {
     "/api/auth", // NextAuth endpoints
     "/api/csrf", // CSRF token generation
     "/api/health", // Health check
+    "/api/seed-demo", // Demo account creation
   ];
 
   const isPublicPage = publicPages.some((page) => pathname.startsWith(page));
