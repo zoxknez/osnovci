@@ -13,6 +13,28 @@
 
 import { openDB, DBSchema, IDBPDatabase } from "idb";
 import { log } from "@/lib/logger";
+import LZString from "lz-string";
+
+// Compression helpers
+function compress(str: string | null): string | null {
+  if (!str) return null;
+  try {
+    return LZString.compressToUTF16(str);
+  } catch (e) {
+    log.warn("[IndexedDB] Compression failed", { error: e });
+    return str;
+  }
+}
+
+function decompress(str: string | null): string | null {
+  if (!str) return null;
+  try {
+    const decompressed = LZString.decompressFromUTF16(str);
+    return decompressed || str; // Fallback to original if decompression returns null (invalid)
+  } catch (e) {
+    return str;
+  }
+}
 
 // Database schema
 interface OfflineDB extends DBSchema {
@@ -115,10 +137,21 @@ interface OfflineDB extends DBSchema {
       updatedAt: number;
     };
   };
+  
+  family: {
+    key: string;
+    value: {
+      id: string;
+      name: string;
+      role: string;
+      avatar: string | null;
+      cachedAt: number;
+    };
+  };
 }
 
 const DB_NAME = "osnovci-offline";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance: IDBPDatabase<OfflineDB> | null = null;
 
@@ -180,6 +213,11 @@ export async function initOfflineDB(): Promise<IDBPDatabase<OfflineDB>> {
           db.createObjectStore("metadata", { keyPath: "key" });
         }
 
+        // Family store
+        if (!db.objectStoreNames.contains("family")) {
+          db.createObjectStore("family", { keyPath: "id" });
+        }
+
         log.info("[IndexedDB] Database initialized", { version: DB_VERSION });
       },
     });
@@ -204,11 +242,11 @@ export async function cacheHomework(homework: any[]): Promise<void> {
       studentId: hw.studentId,
       subjectId: hw.subjectId,
       title: hw.title,
-      description: hw.description,
+      description: compress(hw.description),
       dueDate: hw.dueDate,
       priority: hw.priority,
       status: hw.status,
-      notes: hw.notes,
+      notes: compress(hw.notes),
       cachedAt: Date.now(),
       synced: true,
     });
@@ -224,7 +262,13 @@ export async function cacheHomework(homework: any[]): Promise<void> {
 export async function getCachedHomework(studentId: string): Promise<any[]> {
   const db = await initOfflineDB();
   const index = db.transaction("homework").store.index("by-student");
-  return await index.getAll(studentId);
+  const data = await index.getAll(studentId);
+  
+  return data.map(hw => ({
+    ...hw,
+    description: decompress(hw.description),
+    notes: decompress(hw.notes),
+  }));
 }
 
 /**
@@ -407,7 +451,7 @@ export async function cacheEvents(events: any[]): Promise<void> {
       id: event.id,
       studentId: event.studentId,
       title: event.title,
-      description: event.description,
+      description: compress(event.description),
       date: event.date,
       type: event.type,
       cachedAt: Date.now(),
@@ -424,7 +468,12 @@ export async function cacheEvents(events: any[]): Promise<void> {
 export async function getCachedEvents(studentId: string): Promise<any[]> {
   const db = await initOfflineDB();
   const index = db.transaction("events").store.index("by-student");
-  return await index.getAll(studentId);
+  const data = await index.getAll(studentId);
+
+  return data.map(event => ({
+    ...event,
+    description: decompress(event.description),
+  }));
 }
 
 /**

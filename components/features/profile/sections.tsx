@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   Activity,
   AlertCircle,
+  Clock,
   Droplet,
   Eye,
   FileText,
@@ -14,9 +15,11 @@ import {
   Ruler,
   Stethoscope,
   Syringe,
+  Trophy,
   User,
   Users,
   Weight,
+  Zap,
 } from "lucide-react";
 import { useId } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,11 +28,64 @@ import { staggerItem } from "@/lib/animations/variants";
 import type { ProfileData, ProfileUpdateHandler } from "./types";
 import { BLOOD_TYPE_OPTIONS, calculateBMI } from "./utils";
 
+interface UserStats {
+  xp: number;
+  level: number;
+  completedHomework: number;
+  streak: number;
+}
+
 interface BasicInfoSectionProps {
   profile: ProfileData;
   isEditing: boolean;
   onChange: ProfileUpdateHandler;
   calculateAge: (birthDate: string) => number;
+}
+
+export function GamificationSection({ stats }: { stats: UserStats | null }) {
+  return (
+    <motion.div variants={staggerItem}>
+      <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-indigo-900">
+            <Trophy className="h-5 w-5 text-indigo-600" />
+            Napredak i Postignuća
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-3">
+          <div className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center">
+            <div className="text-3xl font-bold text-indigo-600 mb-1">
+              {stats?.xp || 0}
+            </div>
+            <div className="text-sm font-medium text-gray-600 flex items-center justify-center gap-1">
+              <Zap className="w-4 h-4 text-yellow-500" />
+              Ukupno XP
+            </div>
+          </div>
+
+          <div className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center">
+            <div className="text-3xl font-bold text-purple-600 mb-1">
+              {stats?.level || 1}
+            </div>
+            <div className="text-sm font-medium text-gray-600 flex items-center justify-center gap-1">
+              <Trophy className="w-4 h-4 text-purple-500" />
+              Trenutni Level
+            </div>
+          </div>
+
+          <div className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center">
+            <div className="text-3xl font-bold text-blue-600 mb-1">
+              {stats?.streak || 0}
+            </div>
+            <div className="text-sm font-medium text-gray-600 flex items-center justify-center gap-1">
+              <Clock className="w-4 h-4 text-blue-500" />
+              Dana u nizu
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 }
 
 export function BasicInfoSection({

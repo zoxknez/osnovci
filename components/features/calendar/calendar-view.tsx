@@ -1,5 +1,6 @@
 "use client";
 
+import { exportCalendarAction } from "@/app/actions/calendar";
 import { useState } from "react";
 import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks, startOfMonth, addMonths, subMonths } from "date-fns";
 import { sr } from "date-fns/locale";
@@ -81,20 +82,15 @@ export function CalendarView({
       const startDate = view === "month" ? startOfMonth(currentDate) : currentDate;
       const endDate = view === "month" ? addMonths(startDate, 1) : addDays(currentDate, 30);
 
-      const response = await fetch("/api/calendar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "export_calendar",
-          studentId,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        }),
+      const result = await exportCalendarAction({
+        studentId,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
       });
 
-      if (!response.ok) throw new Error("Export failed");
+      if (!result.success || !result.icalData) throw new Error(result.error || "Export failed");
 
-      const blob = await response.blob();
+      const blob = new Blob([result.icalData], { type: "text/calendar" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

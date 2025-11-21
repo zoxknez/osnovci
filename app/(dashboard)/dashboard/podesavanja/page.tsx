@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Loader } from "lucide-react";
+import { Loader, Wifi, WifiOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/features/page-header";
@@ -14,14 +14,15 @@ import { SecuritySection } from "@/components/features/settings/security-section
 import { SettingsActions } from "@/components/features/settings/settings-actions";
 import { SettingsHeader } from "@/components/features/settings/settings-header";
 import type {
-  AutoSaveFn,
   LanguageOption,
   NotificationKey,
-  NotificationsSettings,
   ProfileSettings,
 } from "@/components/features/settings/types";
 import { staggerContainer } from "@/lib/animations/variants";
-import { apiGet, apiPatch } from "@/lib/utils/api";
+import { useSettingsStore } from "@/store/settings";
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
+import { signOut } from "next-auth/react";
 
 const DEFAULT_PROFILE: ProfileSettings = {
   name: "",
@@ -31,52 +32,38 @@ const DEFAULT_PROFILE: ProfileSettings = {
   class: "",
 };
 
-const DEFAULT_NOTIFICATIONS: NotificationsSettings = {
-  grades: true,
-  homework: true,
-  schedule: false,
-  messages: true,
-};
-
 export default function PodjesavanjaPage() {
-  const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState<LanguageOption>("sr");
-  const [notifications, setNotifications] = useState<NotificationsSettings>(
-    DEFAULT_NOTIFICATIONS,
-  );
+  // Global settings store
+  const { 
+    language, setLanguage,
+    notifications, toggleNotification,
+    biometricEnabled, setBiometric 
+  } = useSettingsStore();
+
+  const { data: profile, isLoading: isProfileLoading } = useProfile();
+  const { mutate: updateProfile } = useUpdateProfile();
+
   const [profileData, setProfileData] =
     useState<ProfileSettings>(DEFAULT_PROFILE);
-  const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  
+  const isOnline = useNetworkStatus();
 
   // Debounce timer za input polja
   const saveTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  // Učitaj podatke sa API-ja
+  // Sinhronizuj podatke sa servera
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        setLoading(true);
-        const data = await apiGet("/api/profile", { showErrorToast: false });
-
-        if (data?.profile) {
-          setProfileData({
-            name: data.profile.name || "",
-            email: data.profile.email || "",
-            phone: "",
-            school: data.profile.school || "",
-            class: "",
-          });
-        }
-      } catch {
-        // Error loading settings
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSettings();
-  }, []);
+    if (profile?.profile) {
+      setProfileData({
+        name: profile.profile.name || "",
+        email: profile.profile.email || "",
+        phone: "", // Nije podržano na backendu trenutno
+        school: profile.profile.school || "",
+        class: "", // Nije podržano na backendu trenutno
+      });
+    }
+  }, [profile]);
 
   // Cleanup debounce timer
   useEffect(() => {
@@ -87,40 +74,26 @@ export default function PodjesavanjaPage() {
     };
   }, []);
 
-  // Auto-save funkcija sa API integracijom
-  const autoSave: AutoSaveFn = useCallback(async (setting, value) => {
-    try {
-      // Sačuvaj u localStorage kao backup
-      localStorage.setItem(`setting_${setting}`, JSON.stringify(value));
-
-      // Za profile podatke koristi /api/profile
-      if (setting.startsWith("profile.")) {
-        const field = setting.replace("profile.", "");
-        await apiPatch("/api/profile", { [field]: value });
-      }
-
-      // Za ostala podešavanja (jezik, notifikacije, itd.) koristi localStorage
-      // API endpoint /api/settings može biti dodato kada treba centralno čuvanje
-    } catch {
-      // Failed to auto-save setting
-      toast.error("Greška pri čuvanju", {
-        description: "Promena nije sačuvana",
-        duration: 2000,
-      });
+  // Auto-save funkcija za profil
+  const saveProfileField = useCallback((field: string, value: string) => {
+    if (!navigator.onLine) {
+        toast.error("Nije moguće sačuvati profil dok ste offline.");
+        return;
     }
-  }, []);
+    // Mapiramo polja koja backend podržava
+    if (['name', 'email', 'school'].includes(field)) {
+        updateProfile({ [field]: value });
+    }
+  }, [updateProfile]);
 
   const handleLanguageChange = async (newLanguage: LanguageOption) => {
     setLanguage(newLanguage);
-    await autoSave("language", newLanguage);
     // Diskretan toast - brzo nestaje
     toast.success("🌍 Sačuvano", { duration: 1000 });
   };
 
   const handleNotificationToggle = async (key: NotificationKey) => {
-    const updated = { ...notifications, [key]: !notifications[key] };
-    setNotifications(updated);
-    await autoSave("notifications", updated);
+    toggleNotification(key);
     // Bez toast-a - instant feedback je već u UI switch komponenti
   };
 
@@ -132,19 +105,28 @@ export default function PodjesavanjaPage() {
     field: keyof ProfileSettings,
     value: string,
   ) => {
+    if (!isOnline) {
+        toast.error("Izmena profila nije dostupna u offline režimu.");
+        return;
+    }
+
     // Debounce - čeka 800ms pre slanja na API
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
     }
 
-    saveTimerRef.current = setTimeout(async () => {
-      await autoSave(`profile.${field}`, value);
+    saveTimerRef.current = setTimeout(() => {
+      saveProfileField(field, value);
       // Mini diskretan toast
       toast.success("✓", { duration: 800 });
     }, 800);
   };
 
   const handleAvatarUpload = async () => {
+    if (!isOnline) {
+        toast.error("Nije moguće menjati sliku dok ste offline.");
+        return;
+    }
     setIsSavingAvatar(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSavingAvatar(false);
@@ -156,30 +138,31 @@ export default function PodjesavanjaPage() {
 
   const handleBiometricToggle = async () => {
     const next = !biometricEnabled;
-    setBiometricEnabled(next);
-    await autoSave("biometric", next);
+    setBiometric(next);
     // Mini toast samo za sigurnosne opcije
     toast.success(next ? "✓ Uključeno" : "✓ Isključeno", { duration: 1000 });
   };
 
   const handlePasswordChange = () => {
+    if (!isOnline) {
+        toast.error("Promena lozinke nije moguća offline.");
+        return;
+    }
     toast.info("🔐 Otvaranje forme...", {
       description: "Unesi trenutnu i novu lozinku",
       duration: 2000,
     });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     toast.success("👋 Odjavio si se!", {
       description: "Vidimo se uskoro!",
       duration: 2000,
     });
-    setTimeout(() => {
-      window.location.href = "/prijava";
-    }, 1500);
+    await signOut({ callbackUrl: "/prijava" });
   };
 
-  if (loading) {
+  if (isProfileLoading) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <PageHeader
@@ -202,7 +185,17 @@ export default function PodjesavanjaPage() {
         title="⚙️ Podešavanja"
         description="Sve promene se automatski čuvaju ✨"
         variant="green"
-        badge="Auto-save"
+        badge={
+            !isOnline ? (
+              <span className="flex items-center gap-1">
+                <WifiOff className="h-3 w-3" /> Offline
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Wifi className="h-3 w-3" /> Online
+              </span>
+            )
+          }
       />
 
       <SettingsHeader />

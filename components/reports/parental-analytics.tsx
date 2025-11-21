@@ -42,6 +42,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { format } from "date-fns";
+import { getParentalAnalyticsAction } from "@/app/actions/analytics";
 
 interface AnalyticsData {
   period: {
@@ -162,16 +163,15 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `/api/analytics/parental?studentId=${studentId}&period=${period}`
-      );
+      const response = await getParentalAnalyticsAction(studentId, period);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch analytics");
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      const data = await response.json();
-      setAnalytics(data);
+      if (response.data) {
+        setAnalytics(response.data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {

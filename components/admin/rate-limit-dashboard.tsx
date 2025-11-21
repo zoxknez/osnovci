@@ -18,6 +18,7 @@ import {
   Clock
 } from "lucide-react";
 import { toast } from "sonner";
+import { getRateLimitViolationsAction, resetRateLimitViolationsAction } from "@/app/actions/admin";
 
 interface ViolationRecord {
   identifier: string;
@@ -47,10 +48,10 @@ export default function RateLimitDashboard() {
   const fetchViolations = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/rate-limits");
-      if (!response.ok) throw new Error("Failed to fetch");
+      const response = await getRateLimitViolationsAction();
+      if (response.error) throw new Error(response.error);
 
-      const data = await response.json();
+      const data = response.data;
       setViolations(data.violations || []);
       setStats(data.stats || null);
     } catch (error) {
@@ -65,13 +66,9 @@ export default function RateLimitDashboard() {
     try {
       setResetting(identifier);
       
-      const response = await fetch("/api/admin/rate-limits/reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier }),
-      });
+      const response = await resetRateLimitViolationsAction(identifier);
 
-      if (!response.ok) throw new Error("Failed to reset");
+      if (response.error) throw new Error(response.error);
 
       toast.success("Violations reset successfully");
       fetchViolations();

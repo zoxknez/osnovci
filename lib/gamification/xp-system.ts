@@ -1,181 +1,187 @@
-// XP & Leveling System - Gamification for kids
+/**
+ * Enhanced XP & Leveling System - Gamification v2
+ *
+ * Improvements:
+ * - Dynamic XP calculation based on multiple factors
+ * - Weekly & monthly XP tracking
+ * - Time-based bonuses (early bird, night owl, weekend warrior)
+ * - Difficulty multipliers
+ * - Streak multipliers
+ * - Combo bonuses
+ * - 15 achievement types (9 new)
+ * - Progress tracking for achievements
+ * - Hidden achievements
+ * - Streak freeze power-ups
+ */
+
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { createNotification } from "@/lib/notifications/create";
 import { checkAndUnlockAchievements } from "./achievement-triggers";
+import {
+  addXPCore,
+  calculateLevel,
+  getXPForNextLevel,
+  getLevelProgress,
+  validateHomeworkSubmission,
+  LEVEL_THRESHOLDS,
+  XP_REWARDS,
+} from "./xp-core";
 
-// XP Rewards
-export const XP_REWARDS = {
-  HOMEWORK_COMPLETED: 10,
-  HOMEWORK_EARLY: 15, // 3+ days before due date
-  PERFECT_WEEK: 50, // All homework done this week
-  STREAK_DAY: 5, // Each day in streak
-  LEVEL_UP: 20, // Bonus when leveling up
-};
+// Re-export core functions and constants
+export { calculateLevel, getXPForNextLevel, getLevelProgress, validateHomeworkSubmission, LEVEL_THRESHOLDS, XP_REWARDS };
 
-// Level thresholds
-export const LEVEL_THRESHOLDS = [
-  0, // Level 1
-  50, // Level 2
-  150, // Level 3
-  300, // Level 4
-  500, // Level 5
-  750, // Level 6
-  1050, // Level 7
-  1400, // Level 8
-  1800, // Level 9
-  2300, // Level 10
-  // ... continue up to 50
-];
+// ============================================
+// ENHANCED XP FUNCTIONS WITH ACHIEVEMENTS
+// ============================================
 
 /**
- * Add XP to student
+ * Add XP to student with enhanced calculation + achievement checks
+ * 
+ * This is a wrapper around addXPCore that also handles checkAchievements calls.
  */
-export async function addXP(studentId: string, amount: number, reason: string) {
+export async function addXP(
+  studentId: string,
+  baseAmount: number,
+  reason: string,
+  metadata?: {
+    isWeekend?: boolean;
+    isNight?: boolean;
+    isMorning?: boolean;
+    isFast?: boolean;
+    isPerfect?: boolean;
+    hasDetailedNotes?: boolean;
+    applyStreakMultiplier?: boolean;
+  },
+  tx?: any // Prisma Transaction Client
+) {
+  // Call core XP function with achievement callback
+  const result = await addXPCore(studentId, baseAmount, reason, metadata, {
+    onLevelUp: async () => {
+      // Check for level milestone achievements
+      // Note: checkAndUnlockAchievements might need tx support too, but for now we keep it simple
+      // If it fails, it's not critical for data integrity of XP
+      await checkAndUnlockAchievements(studentId);
+    },
+    tx,
+  });
+
+  return result;
+}
+
+/**
+ * Enhanced streak update with freeze power-up
+ */
+export async function updateStreak(studentId: string, forceIncrement = false, tx?: any) {
   try {
-    // Get or create gamification record
-    let gamif = await prisma.gamification.findUnique({
-      where: { studentId },
-    });
-
-    if (!gamif) {
-      gamif = await prisma.gamification.create({
-        data: { studentId },
-      });
-    }
-
-    const newXP = gamif.xp + amount;
-    const newLevel = calculateLevel(newXP);
-    const leveledUp = newLevel > gamif.level;
-
-    // Update gamification
-    const updated = await prisma.gamification.update({
-      where: { id: gamif.id },
-      data: {
-        xp: newXP,
-        level: newLevel,
-        totalXPEarned: gamif.totalXPEarned + amount,
-        updatedAt: new Date(),
-      },
-    });
-
-    log.info("XP added", {
-      studentId,
-      amount,
-      reason,
-      newXP,
-      newLevel,
-      leveledUp,
-    });
-
-    // Level up notification
-    if (leveledUp) {
-      const student = await prisma.student.findUnique({ where: { id: studentId } });
-      const userId = student?.userId;
-      
-      if (!userId) return updated;
-      
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-      });
-
-      if (user) {
-        await createNotification({
-          userId: user.id,
-          type: "HOMEWORK_SUBMITTED", // Reuse enum (or create LEVEL_UP)
-          title: `Level Up! 🎉 Level ${newLevel}!`,
-          message: `Čestitamo! Dostigao si Level ${newLevel}! Nastavi tako!`,
-          data: { level: newLevel, xp: newXP },
-        });
-
-        // Check for level milestone achievements
-        await checkAndUnlockAchievements(studentId);
-      }
-    }
-
-    return updated;
-  } catch (error) {
-    log.error("Failed to add XP", { error, studentId, amount });
-    throw error;
-  }
-}
-
-/**
- * Calculate level from XP
- */
-export function calculateLevel(xp: number): number {
-  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    const threshold = LEVEL_THRESHOLDS[i];
-    if (threshold !== undefined && xp >= threshold) {
-      return i + 1;
-    }
-  }
-  return 1;
-}
-
-/**
- * Get XP needed for next level
- */
-export function getXPForNextLevel(currentXP: number): number {
-  const currentLevel = calculateLevel(currentXP);
-  if (currentLevel >= LEVEL_THRESHOLDS.length) {
-    const lastThreshold = LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
-    return lastThreshold ?? 0;
-  }
-  const nextThreshold = LEVEL_THRESHOLDS[currentLevel];
-  return nextThreshold ?? 0;
-}
-
-/**
- * Update streak (call daily when student completes homework)
- */
-export async function updateStreak(studentId: string) {
-  try {
-    const gamif = await prisma.gamification.findUnique({
+    const db = tx || prisma;
+    const gamif = await db.gamification.findUnique({
       where: { studentId },
     });
 
     if (!gamif) return null;
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day
+
     const lastActivity = gamif.lastActivityDate;
 
     let newStreak = gamif.streak;
+    let usedFreeze = false;
 
     if (!lastActivity) {
       // First activity
       newStreak = 1;
     } else {
+      const lastActivityNormalized = new Date(lastActivity);
+      lastActivityNormalized.setHours(0, 0, 0, 0);
+
       const daysSinceLastActivity = Math.floor(
-        (today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24),
+        (today.getTime() - lastActivityNormalized.getTime()) /
+          (1000 * 60 * 60 * 24),
       );
 
-      if (daysSinceLastActivity === 1) {
+      if (daysSinceLastActivity === 0 && !forceIncrement) {
+        // Same day, keep streak
+        return gamif;
+      } else if (daysSinceLastActivity === 1 || forceIncrement) {
         // Consecutive day!
         newStreak = gamif.streak + 1;
 
         // Streak XP bonus
-        await addXP(studentId, XP_REWARDS.STREAK_DAY, "Streak bonus");
+        await addXP(
+          studentId,
+          XP_REWARDS.STREAK_DAY,
+          `Streak Day ${newStreak}`,
+          {
+            applyStreakMultiplier: false,
+          },
+          db
+        );
 
         // Check streak achievements
-        if (newStreak === 7 || newStreak === 30 || newStreak === 100) {
+        if ([7, 14, 30, 50, 100, 365].includes(newStreak)) {
           await checkAndUnlockAchievements(studentId);
+        }
+      } else if (daysSinceLastActivity === 2 && gamif.streakFreezes > 0) {
+        // Missed 1 day but have streak freeze - use it!
+        usedFreeze = true;
+        newStreak = gamif.streak; // Keep streak
+
+        const student = await db.student.findUnique({
+          where: { id: studentId },
+          include: { user: true },
+        });
+
+        if (student) {
+          await createNotification({
+            userId: student.user.id,
+            type: "HOMEWORK_SUBMITTED",
+            title: "🛡️ Streak Freeze Aktiviran!",
+            message: `Tvoj streak od ${newStreak} dana je spašen! Preostalo freeze-ova: ${gamif.streakFreezes - 1}`,
+            data: { streak: newStreak, freezesLeft: gamif.streakFreezes - 1 },
+          });
         }
       } else if (daysSinceLastActivity > 1) {
         // Streak broken 😢
+        const oldStreak = gamif.streak;
         newStreak = 1;
+
+        // Comeback achievement if returning after 7+ days
+        if (daysSinceLastActivity >= 7) {
+          await addXP(studentId, XP_REWARDS.COMEBACK, "Welcome back!", undefined, db);
+          await checkAndUnlockAchievements(studentId);
+        }
+
+        const student = await db.student.findUnique({
+          where: { id: studentId },
+          include: { user: true },
+        });
+
+        if (student && oldStreak >= 7) {
+          await createNotification({
+            userId: student.user.id,
+            type: "HOMEWORK_SUBMITTED",
+            title: "💔 Streak Prekinut",
+            message: `Tvoj streak od ${oldStreak} dana je prekinut. Počni novi!`,
+            data: { oldStreak, newStreak },
+          });
+        }
       }
-      // daysSinceLastActivity === 0 -> same day, keep streak
     }
 
     const longestStreak = Math.max(gamif.longestStreak, newStreak);
 
-    const updated = await prisma.gamification.update({
+    const updated = await db.gamification.update({
       where: { id: gamif.id },
       data: {
         streak: newStreak,
         longestStreak,
         lastActivityDate: today,
+        streakFreezes: usedFreeze
+          ? gamif.streakFreezes - 1
+          : gamif.streakFreezes,
+        lastStreakFreeze: usedFreeze ? today : gamif.lastStreakFreeze,
       },
     });
 
@@ -183,6 +189,7 @@ export async function updateStreak(studentId: string) {
       studentId,
       streak: newStreak,
       longestStreak,
+      usedFreeze,
     });
 
     return updated;
@@ -192,49 +199,110 @@ export async function updateStreak(studentId: string) {
   }
 }
 
-// NOTE: checkAchievements is imported from achievements.ts to avoid circular dependencies
+/**
+ * Reset weekly/monthly XP counters (should be called by cron job)
+ */
+export async function resetPeriodicXP() {
+  try {
+    const now = new Date();
+
+    // Reset weekly XP (every Monday)
+    const dayOfWeek = now.getDay();
+    if (dayOfWeek === 1) {
+      // Monday
+      await prisma.gamification.updateMany({
+        where: {
+          lastWeekReset: {
+            lt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+          },
+        },
+        data: {
+          weeklyXP: 0,
+          lastWeekReset: now,
+        },
+      });
+      log.info("Weekly XP reset completed");
+    }
+
+    // Reset monthly XP (first day of month)
+    if (now.getDate() === 1) {
+      await prisma.gamification.updateMany({
+        where: {
+          lastMonthReset: {
+            lt: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+          },
+        },
+        data: {
+          monthlyXP: 0,
+          lastMonthReset: now,
+        },
+      });
+      log.info("Monthly XP reset completed");
+    }
+  } catch (error) {
+    log.error("Failed to reset periodic XP", error);
+  }
+}
 
 /**
- * Track homework completion
+ * Track homework completion with enhanced logic
  */
 export async function trackHomeworkCompletion(
   studentId: string,
   early = false,
 ) {
   try {
+    // Anti-gaming check
+    const validation = await validateHomeworkSubmission(studentId);
+    if (!validation.allowed) {
+      log.warn("XP blocked by anti-gaming check", { studentId, reason: validation.reason });
+      return;
+    }
+
     const gamif = await prisma.gamification.findUnique({
       where: { studentId },
     });
 
     if (!gamif) return;
 
-    // Increment total homework done
-    const newTotal = gamif.totalHomeworkDone + 1;
+    // Use transaction to ensure data integrity
+    await prisma.$transaction(async (tx) => {
+      // Increment total homework done
+      const newTotal = gamif.totalHomeworkDone + 1;
 
-    await prisma.gamification.update({
-      where: { id: gamif.id },
-      data: {
-        totalHomeworkDone: newTotal,
-      },
+      await tx.gamification.update({
+        where: { id: gamif.id },
+        data: {
+          totalHomeworkDone: newTotal,
+        },
+      });
+
+      // Add XP
+      const xpAmount = early
+        ? XP_REWARDS.HOMEWORK_EARLY
+        : XP_REWARDS.HOMEWORK_COMPLETED;
+        
+      await addXP(
+        studentId,
+        xpAmount,
+        early ? "Homework (early!)" : "Homework completed",
+        {
+          applyStreakMultiplier: true,
+        },
+        tx
+      );
+
+      // Update streak
+      await updateStreak(studentId, false, tx);
     });
 
-    // Add XP
-    const xpAmount = early
-      ? XP_REWARDS.HOMEWORK_EARLY
-      : XP_REWARDS.HOMEWORK_COMPLETED;
-    await addXP(
-      studentId,
-      xpAmount,
-      early ? "Homework (early!)" : "Homework completed",
-    );
-
-    // Update streak
-    await updateStreak(studentId);
-
-    // Check milestones
+    // Check milestones (outside transaction to avoid long locks)
     await checkAndUnlockAchievements(studentId);
+    
+    // Trigger specific achievement checks
     if (early) {
-      await checkAndUnlockAchievements(studentId);
+      // Check early submission achievements specifically if needed
+      // But checkAndUnlockAchievements covers all types
     }
   } catch (error) {
     log.error("Failed to track homework completion", { error, studentId });

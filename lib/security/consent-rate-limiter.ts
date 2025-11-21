@@ -264,9 +264,9 @@ async function notifyParentAboutLockout(
     if (!consent) return;
 
     // Send parent alert email using template system
-    const { sendParentalAlertEmail } = await import('@/lib/email/templates');
+    const { sendParentalAlert } = await import('@/lib/email/service');
     
-    await sendParentalAlertEmail(
+    await sendParentalAlert(
       consent.parentEmail,
       'consent_lockout',
       {

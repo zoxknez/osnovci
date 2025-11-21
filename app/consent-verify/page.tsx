@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { verifyConsentAction } from "@/app/actions/parental-consent";
 
 export default function ConsentVerifyPage() {
   const router = useRouter();
@@ -36,16 +37,10 @@ export default function ConsentVerifyPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/verify-consent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      });
+      const response = await verifyConsentAction({ code });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Greška pri verifikaciji koda");
+      if (response.error) {
+        throw new Error(response.error);
       }
 
       setVerified(true);

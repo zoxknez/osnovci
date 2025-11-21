@@ -11,6 +11,8 @@ export interface LearningInsights {
   streak: number;
   recommendedActions: string[];
   motivationalMessage: string;
+  totalFocusTime: number; // Total minutes focused
+  focusSessionsCount: number; // Number of focus sessions
 }
 
 /**
@@ -28,6 +30,18 @@ export async function analyzeLearningPatterns(
       orderBy: { createdAt: "desc" },
       take: 100, // Last 100 assignments
     });
+
+    // Get focus sessions
+    const focusSessions = await prisma.focusSession.findMany({
+      where: { 
+        studentId,
+        status: "COMPLETED"
+      },
+      orderBy: { startTime: "desc" },
+      take: 50
+    });
+
+    const totalFocusTime = focusSessions.reduce((acc, session) => acc + (session.duration || 0), 0);
 
     // Get gamification data
     const gamif = await prisma.gamification.findUnique({
@@ -102,6 +116,12 @@ export async function analyzeLearningPatterns(
       );
     }
 
+    if (totalFocusTime > 60) {
+      recommendedActions.push(
+        "Odličan fokus! 🧠 Tvoj mozak je kao mišić, što ga više vežbaš, to je jači!",
+      );
+    }
+
     // Motivational message based on performance
     let motivationalMessage = "";
 
@@ -125,6 +145,8 @@ export async function analyzeLearningPatterns(
       streak: gamif?.streak || 0,
       recommendedActions,
       motivationalMessage,
+      totalFocusTime,
+      focusSessionsCount: focusSessions.length,
     };
   } catch (error) {
     log.error("Failed to analyze learning patterns", { error, studentId });
@@ -139,6 +161,8 @@ export async function analyzeLearningPatterns(
       streak: 0,
       recommendedActions: ["Počni sa jednim zadatkom! Možeš to! 💪"],
       motivationalMessage: "Hajde da počnemo! Verujem u tebe! 🚀",
+      totalFocusTime: 0,
+      focusSessionsCount: 0,
     };
   }
 }

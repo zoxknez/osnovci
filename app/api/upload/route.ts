@@ -1,7 +1,5 @@
 // Upload API - File uploads (Images, PDFs, etc) - Mobile Optimized + Security Enhanced!
 
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { auth } from "@/lib/auth/config";
@@ -196,11 +194,11 @@ export async function POST(request: NextRequest) {
       originalSize: file.size,
       sanitizedName: fileName,
     });
-    // Create uploads directories
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    const thumbnailsDir = join(uploadsDir, "thumbnails");
-    await mkdir(uploadsDir, { recursive: true });
-    await mkdir(thumbnailsDir, { recursive: true });
+    // Create uploads directories (Only needed for local fallback, but good to have)
+    // const uploadsDir = join(process.cwd(), "public", "uploads");
+    // const thumbnailsDir = join(uploadsDir, "thumbnails");
+    // await mkdir(uploadsDir, { recursive: true });
+    // await mkdir(thumbnailsDir, { recursive: true });
 
     // Mobile Optimization: Compress images with Sharp!
     if (file.type.startsWith("image/")) {
@@ -230,8 +228,10 @@ export async function POST(request: NextRequest) {
         // Save optimized versions
         finalBuffer = Buffer.from(optimized); // Replace original with optimized
 
-        const thumbnailPath = join(thumbnailsDir, thumbnailName);
-        await writeFile(thumbnailPath, thumbnail);
+        // Upload thumbnail to Storage Service
+        const { StorageService } = await import("@/lib/storage/storage-service");
+        const thumbKey = `thumbnails/${thumbnailName}`;
+        await StorageService.upload(Buffer.from(thumbnail), thumbKey, "image/jpeg");
 
         log.info("Image optimized for mobile", {
           originalSize: bytes.byteLength,
@@ -245,9 +245,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Save file to disk
-    const filePath = join(uploadsDir, fileName);
-    await writeFile(filePath, finalBuffer);
+    // Upload main file to Storage Service
+    const { StorageService } = await import("@/lib/storage/storage-service");
+    const uploadResult = await StorageService.upload(
+      finalBuffer, 
+      fileName, 
+      file.type.startsWith("image/") ? "image/jpeg" : file.type
+    );
 
     log.info("File uploaded", {
       fileName,
@@ -255,6 +259,7 @@ export async function POST(request: NextRequest) {
       fileType: file.type,
       homeworkId,
       studentId: user.student.id,
+      provider: uploadResult.provider,
     });
 
       // SAFETY CHECK - Image moderation for children!
@@ -324,6 +329,11 @@ export async function POST(request: NextRequest) {
 
     // Save attachment to database
     const thumbnailPath = attachmentType === "IMAGE" ? `/uploads/thumbnails/${thumbnailName}` : undefined;
+    
+    // Use the URL returned from StorageService
+    const fileUrl = uploadResult.url;
+    const thumbnailUrl = thumbnailPath ? (uploadResult.provider === 'local' ? thumbnailPath : `${process.env['STORAGE_PUBLIC_URL'] || ''}/thumbnails/${thumbnailName}`) : undefined;
+
     const attachment = await prisma.attachment.create({
       data: {
         homeworkId,
@@ -331,9 +341,9 @@ export async function POST(request: NextRequest) {
         fileName,
         fileSize: finalBuffer.length, // Optimized size!
         mimeType: attachmentType === "IMAGE" ? "image/jpeg" : file.type,
-        localUri: `/uploads/${fileName}`,
-        remoteUrl: `/uploads/${fileName}`,
-        ...(thumbnailPath && { thumbnail: thumbnailPath }),
+        localUri: fileUrl, // For backward compatibility or local caching
+        remoteUrl: fileUrl,
+        ...(thumbnailUrl && { thumbnail: thumbnailUrl }),
         uploadedAt: new Date(),
       },
     });
@@ -344,7 +354,7 @@ export async function POST(request: NextRequest) {
         message: "Fajl je uspešno upload-ovan!",
         attachment: {
           id: attachment.id,
-          url: `/uploads/${fileName}`,
+          url: fileUrl,
           type: attachmentType,
           fileName,
           fileSize: file.size,

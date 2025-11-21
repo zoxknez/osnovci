@@ -1,6 +1,8 @@
 // Web Push Notifications - Cross-platform
 "use client";
 
+import { subscribeToPushAction, unsubscribeFromPushAction } from "@/app/actions/notifications";
+
 /**
  * Check if push notifications are supported
  */
@@ -145,17 +147,8 @@ export function scheduleNotification(
  */
 async function saveSubscription(subscription: PushSubscription): Promise<void> {
   try {
-    const response = await fetch("/api/notifications/subscribe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(subscription.toJSON()),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to save subscription");
-    }
+    const result = await subscribeToPushAction(subscription.toJSON() as any);
+    if (result.error) throw new Error(result.error);
   } catch (error) {
     console.error("Error saving subscription:", error);
     throw error;
@@ -169,17 +162,8 @@ async function deleteSubscription(
   subscription: PushSubscription,
 ): Promise<void> {
   try {
-    const response = await fetch("/api/notifications/unsubscribe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(subscription.toJSON()),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to delete subscription");
-    }
+    const result = await unsubscribeFromPushAction(subscription.endpoint);
+    if (result.error) throw new Error(result.error);
   } catch (error) {
     console.error("Error deleting subscription:", error);
     throw error;
@@ -201,35 +185,6 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   }
 
   return outputArray;
-}
-
-/**
- * Send notification to specific user (server-side)
- * This is a placeholder - requires push service integration
- */
-export async function sendNotificationToUser(
-  userId: string,
-  title: string,
-  body: string,
-  data?: Record<string, string>
-): Promise<void> {
-  // TODO: Implement actual push notification sending via web-push library
-  // This would require storing user's push subscriptions in database
-  // and using web-push npm package to send notifications
-  
-  console.log('Sending notification to user:', {
-    userId,
-    title,
-    body,
-    data,
-  });
-  
-  // Placeholder implementation
-  // In production, this would:
-  // 1. Fetch user's push subscriptions from database
-  // 2. Use web-push library to send notification to each subscription
-  // 3. Handle expired subscriptions
-  // 4. Log delivery status
 }
 
 /**
@@ -281,3 +236,4 @@ export const notificationTemplates = {
     data: { type: "level_up" },
   }),
 };
+

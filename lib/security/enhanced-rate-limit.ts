@@ -334,6 +334,124 @@ export async function enhancedRateLimit(
 }
 
 /**
+ * Get rate limit status without incrementing counters
+ */
+export async function getRateLimitStatus(
+  request: NextRequest | { headers: Headers },
+  preset: keyof typeof TieredRateLimitPresets,
+  userId?: string
+): Promise<EnhancedRateLimitResult> {
+  // Mock request if needed or extract headers
+  const headers = request instanceof Request ? request.headers : request.headers;
+  
+  // Get role
+  let role: UserRole = "UNAUTHENTICATED";
+  if (userId) {
+    // If userId provided, we assume we can determine role or pass it
+    // For now, let's fetch session if not provided
+    // But we can't easily get session from just userId without DB lookup
+    // So we'll rely on auth() if userId is not passed, or assume STUDENT if passed but no session?
+    // Better to just use auth() again or pass role.
+    try {
+      const session = await auth();
+      if (session?.user) {
+        role = (session.user.role as UserRole) || "STUDENT";
+      }
+    } catch {}
+  } else {
+    try {
+      const session = await auth();
+      if (session?.user) {
+        role = (session.user.role as UserRole) || "STUDENT";
+        userId = session.user.id;
+      }
+    } catch {}
+  }
+
+  const config = TieredRateLimitPresets[preset][role];
+  const { limit: baseLimit, window } = config;
+
+  const ip =
+    headers.get("x-forwarded-for")?.split(",")[0] ||
+    headers.get("x-real-ip") ||
+    "unknown";
+  
+  const identifier = userId ? `${ip}:${userId}` : ip;
+  
+  // Check for existing violations
+  const violationRecord = await getViolationRecord(identifier);
+  const backoffMultiplier = getBackoffMultiplier(violationRecord.count);
+  
+  // Check if currently blocked
+  const now = Date.now();
+  if (violationRecord.blocked && violationRecord.blockedUntil) {
+    if (now < violationRecord.blockedUntil) {
+      return {
+        success: false,
+        limit: baseLimit,
+        remaining: 0,
+        reset: violationRecord.blockedUntil,
+        violations: violationRecord.count,
+        backoffMultiplier,
+        blockedUntil: violationRecord.blockedUntil,
+      };
+    }
+  }
+
+  // Apply backoff to limit
+  const effectiveLimit = Math.max(1, Math.floor(baseLimit / backoffMultiplier));
+
+  // If Redis not configured
+  if (!isRedisConfigured() || !redis) {
+    return {
+      success: true,
+      limit: effectiveLimit,
+      remaining: effectiveLimit,
+      reset: now + window * 1000,
+      violations: 0,
+      backoffMultiplier: 1,
+    };
+  }
+
+  try {
+    const key = `ratelimit:${preset}:${role}:${identifier}`;
+    const windowMs = window * 1000;
+
+    // Count existing requests
+    await redis.zremrangebyscore(key, 0, now - windowMs);
+    const count = await redis.zcard(key);
+
+    // Get oldest timestamp for reset calculation
+    const oldestTimestamp = await redis.zrange(key, 0, 0, {
+      withScores: true,
+    });
+    const resetTime =
+      oldestTimestamp.length > 0
+        ? Number(oldestTimestamp[1]) + windowMs
+        : now + windowMs;
+
+    return {
+      success: count < effectiveLimit,
+      limit: effectiveLimit,
+      remaining: Math.max(0, effectiveLimit - count),
+      reset: resetTime,
+      violations: violationRecord.count,
+      backoffMultiplier,
+    };
+  } catch (error) {
+    log.error("Rate limit status check failed", error);
+    return {
+      success: true,
+      limit: effectiveLimit,
+      remaining: effectiveLimit,
+      reset: now + window * 1000,
+      violations: 0,
+      backoffMultiplier: 1,
+    };
+  }
+}
+
+/**
  * Reset violations for an identifier (admin action)
  */
 export async function resetViolations(identifier: string): Promise<void> {

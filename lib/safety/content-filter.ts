@@ -176,18 +176,32 @@ export class PIIDetector {
       masked = masked.replace(phoneRegex, "[TELEFON]");
     }
 
-    // Adrese (approximate)
-    const addressRegex = /\b\d+\s+[A-Za-zА-Жа-ж\s]+ulica\b/gi;
+    // Adrese (Enhanced regex for Serbian addresses)
+    // Matches: "Bulevar kralja Aleksandra 123", "Ulica lipa 5", "Kneza Mihaila 10a"
+    const addressRegex = /\b(ulica|ul\.|bulevar|bul\.|trg|put)\s+[A-ZČĆŽŠĐ][a-zčćžšđ]+(\s+[A-ZČĆŽŠĐa-zčćžšđ]+)*\s+\d+[a-z]?\b/gi;
     if (addressRegex.test(text)) {
       types.push("address");
       masked = masked.replace(addressRegex, "[ADRESA]");
     }
 
-    // JMBG (Serbian personal ID)
+    // JMBG (Serbian personal ID) - Strict 13 digits
     const jmbgRegex = /\b\d{13}\b/g;
     if (jmbgRegex.test(text)) {
+      // Validate JMBG checksum if needed, but for now just detect 13 digits
       types.push("jmbg");
       masked = masked.replace(jmbgRegex, "[JMBG]");
+    }
+
+    // Credit Card Numbers (Luhn algorithm check would be better, but regex for now)
+    // Improved regex: 13-19 digits, optional separators, must look like a card number
+    const ccRegex = /\b(?:\d{4}[-\s]?){3}\d{4}\b/g;
+    if (ccRegex.test(text)) {
+      // Simple check to avoid matching years like 2024-2025
+      const matches = text.match(ccRegex);
+      if (matches && matches.some(m => m.replace(/\D/g, '').length >= 13)) {
+        types.push("credit_card");
+        masked = masked.replace(ccRegex, "[KARTICA]");
+      }
     }
 
     return {

@@ -2,7 +2,7 @@
 // Sprečava kreiranje previše konekcija u development-u
 // Production-ready sa connection pooling i optimizacijama
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { configurePrismaLogging } from "./query-monitor";
 import { log } from "@/lib/logger";
 
@@ -91,6 +91,101 @@ export async function checkDatabaseConnection(): Promise<{
       error instanceof Error ? error.message : 'Unknown error';
     log.error('Database connection check failed', { error: errorMessage, latency });
     return { connected: false, latency, error: errorMessage };
+  }
+}
+
+/**
+ * Alias for checkDatabaseConnection to match connection-pool interface
+ */
+export async function checkDatabaseHealth(): Promise<{
+  healthy: boolean;
+  latency: number;
+  error?: string;
+}> {
+  const result = await checkDatabaseConnection();
+  return {
+    healthy: result.connected,
+    latency: result.latency || 0,
+    error: result.error,
+  };
+}
+
+/**
+ * Transaction helper with retry logic
+ */
+export async function executeTransaction<T>(
+  callback: (tx: PrismaClient) => Promise<T>,
+  maxRetries = 3
+): Promise<T> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        return await callback(tx as PrismaClient);
+      }, {
+        maxWait: 5000, // 5 seconds max wait to start transaction
+        timeout: 10000, // 10 seconds max transaction time
+      });
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Check if error is retryable (deadlock, serialization failure, etc.)
+      const isRetryable = 
+        lastError.message.includes('deadlock') ||
+        lastError.message.includes('serialization') ||
+        lastError.message.includes('lock timeout');
+
+      if (!isRetryable || attempt === maxRetries) {
+        throw lastError;
+      }
+
+      // Exponential backoff
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      log.warn('Transaction retry', {
+        attempt,
+        maxRetries,
+        error: lastError.message,
+        nextDelay: `${delay}ms`,
+      });
+    }
+  }
+
+  throw lastError as Error;
+}
+
+/**
+ * Batch operation helper
+ */
+export async function executeBatch<T>(
+  operations: Array<Promise<T>>,
+  batchSize = 10
+): Promise<T[]> {
+  const results: T[] = [];
+  
+  for (let i = 0; i < operations.length; i += batchSize) {
+    const batch = operations.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch);
+    results.push(...batchResults);
+    
+    // Small delay between batches to prevent overwhelming the database
+    if (i + batchSize < operations.length) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Graceful shutdown
+ */
+export async function disconnectDatabase() {
+  if (globalForPrisma.prisma) {
+    await globalForPrisma.prisma.$disconnect();
+    log.info('Database connection closed');
   }
 }
 

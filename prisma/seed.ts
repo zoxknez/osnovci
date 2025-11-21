@@ -41,6 +41,7 @@ async function main() {
 
   // 1) Čišćenje (u transakciji)
   await prisma.$transaction([
+    prisma.sticker.deleteMany({}), // Add this
     prisma.link.deleteMany({}),
     prisma.homework.deleteMany({}),
     prisma.scheduleEntry.deleteMany({}),
@@ -453,6 +454,19 @@ async function main() {
     ],
   });
   console.log("✅ Kompletan nedeljni raspored kreiran (25 časova)");
+
+  // 10) Stickers
+  await prisma.sticker.createMany({
+    data: [
+      { code: "THUMBS_UP", name: "Bravo!", icon: "👍", cost: 10, minLevel: 1 },
+      { code: "STAR", name: "Zvezda", icon: "⭐", cost: 20, minLevel: 2 },
+      { code: "ROCKET", name: "Raketa", icon: "🚀", cost: 50, minLevel: 5 },
+      { code: "TROPHY", name: "Pehar", icon: "🏆", cost: 100, minLevel: 10 },
+      { code: "HEART", name: "Srce", icon: "❤️", cost: 15, minLevel: 1 },
+      { code: "FIRE", name: "Vatra", icon: "🔥", cost: 30, minLevel: 3 },
+    ]
+  });
+  console.log("✅ Stikeri kreirani (6)");
 
   // 9) Izveštaj
   console.log("\n🎉 Seed završen!\n");

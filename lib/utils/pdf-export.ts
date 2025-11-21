@@ -46,7 +46,7 @@ export function exportGradesToPDF(
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.text("Izvještaj o ocjenama", 105, 23, { align: "center" });
+      doc.text('Izveštaj o ocenama', 105, 20, { align: 'center' });
 
   // ========================================
   // INFO SEKCIJA
@@ -79,13 +79,13 @@ export function exportGradesToPDF(
     startY: 60,
     head: [["Metrika", "Vrednost"]],
     body: [
-      ["Opšti prosjek", stats.average.toFixed(2)],
-      ["Ukupno ocjena", stats.total.toString()],
+      ["Opšti prosek", stats.average.toFixed(2)],
+      ["Ukupno ocena", stats.total.toString()],
       [
         "Najbolji predmet",
         stats.bySubject.length > 0
           ? stats.bySubject.reduce((max, s) =>
-              s.average > max.average ? s : max,
+              (s?.average ?? 0) > (max?.average ?? 0) ? s : max,
             ).subject
           : "N/A",
       ],
@@ -105,15 +105,15 @@ export function exportGradesToPDF(
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Prosjeci po predmetu", 20, nextY);
+  doc.text("Proseci po predmetu", 20, nextY);
 
   autoTable(doc, {
     startY: nextY + 5,
-    head: [["Predmet", "Prosjek", "Broj ocjena"]],
+    head: [["Predmet", "Prosek", "Broj ocena"]],
     body: stats.bySubject.map((s) => [
-      s.subject,
-      s.average.toFixed(2),
-      s.count.toString(),
+      s?.subject || "",
+      s?.average?.toFixed(2) || "0.00",
+      s?.count?.toString() || "0",
     ]),
     theme: "striped",
     headStyles: { fillColor: [139, 92, 246], textColor: 255 }, // Purple

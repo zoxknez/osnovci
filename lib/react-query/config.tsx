@@ -126,6 +126,11 @@ export function invalidateCalendarQueries(queryClient: QueryClient, studentId: s
   queryClient.invalidateQueries({ queryKey: ["schedule", studentId] });
 }
 
+import { getHomeworkByIdAction } from "@/app/actions/homework";
+import { getCalendarViewAction } from "@/app/actions/calendar";
+
+// ...existing code...
+
 // Prefetch helpers (for hover/navigation)
 export async function prefetchHomeworkDetail(
   queryClient: QueryClient,
@@ -133,7 +138,11 @@ export async function prefetchHomeworkDetail(
 ) {
   await queryClient.prefetchQuery({
     queryKey: queryKeys.homeworkDetail(homeworkId),
-    queryFn: () => fetch(`/api/homework/${homeworkId}`).then((res) => res.json()),
+    queryFn: async () => {
+        const res = await getHomeworkByIdAction(homeworkId);
+        if (res.success) return res.data;
+        throw new Error(res.error);
+    },
     staleTime: STALE_TIMES.FREQUENT,
   });
 }
@@ -146,10 +155,11 @@ export async function prefetchCalendarView(
 ) {
   await queryClient.prefetchQuery({
     queryKey: queryKeys.calendarView(studentId, view, date),
-    queryFn: () =>
-      fetch(`/api/calendar?studentId=${studentId}&view=${view}&date=${date}`).then(
-        (res) => res.json()
-      ),
+    queryFn: async () => {
+        const res = await getCalendarViewAction({ studentId, view: view as any, date });
+        if (res.success) return res.data;
+        throw new Error(res.error);
+    },
     staleTime: STALE_TIMES.FREQUENT,
   });
 }

@@ -77,12 +77,17 @@ export function Leaderboard({
   const loadData = React.useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `/api/gamification/leaderboard/${activePeriod}`,
-      );
-      if (!response.ok) throw new Error("Failed to load leaderboard");
-      const result = await response.json();
-      setData(result);
+      const result = await getLeaderboardAction(activePeriod);
+      if (result.success && result.data) {
+        setData({
+            entries: result.data.leaderboard,
+            currentUserRank: result.data.currentUserRank?.rank,
+            totalPlayers: result.data.totalPlayers,
+            nextResetTime: result.data.resetsAt?.toISOString(),
+        });
+      } else {
+         throw new Error(result.error);
+      }
     } catch (error) {
       console.error("Failed to load leaderboard:", error);
     } finally {

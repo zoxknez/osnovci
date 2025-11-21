@@ -34,6 +34,7 @@ const registerSchema = z
     school: safeStringSchema.max(200).optional(),
     grade: z.number().int().min(1).max(8).optional(),
     class: safeStringSchema.max(10).optional(),
+    parentEmail: emailSchema.optional(),
   })
   .refine((data) => data.email || data.phone, {
     message: "Mora postojati email ili telefon",
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
       school,
       grade,
       class: className,
+      parentEmail,
     } = validated.data;
 
     // 🔒 COPPA COMPLIANCE - Age Verification
@@ -127,6 +129,17 @@ export async function POST(request: NextRequest) {
           age: ageVerificationResult.age,
           needsConsent: needsParentalConsent,
         });
+
+        if (needsParentalConsent && !parentEmail) {
+          return NextResponse.json(
+            {
+              error: "Email roditelja je obavezan",
+              message:
+                "Za učenike mlađe od 13 godina potreban je email roditelja radi saglasnosti.",
+            },
+            { status: 400 },
+          );
+        }
       }
     }
 
@@ -206,17 +219,20 @@ export async function POST(request: NextRequest) {
 
     // 🔒 COPPA Parental Consent - kreiraj consent request i pošalji email
     let parentalConsentEmailSent = false;
-    
-    if (needsParentalConsent && email && user.student) {
+    const consentEmailTarget = parentEmail || email;
+
+    if (needsParentalConsent && consentEmailTarget && user.student) {
       try {
         // Import consent helper
-        const { createConsentRequest } = await import("@/lib/auth/parental-consent");
+        const { createConsentRequest } = await import(
+          "@/lib/auth/parental-consent"
+        );
         const { markEmailSent } = await import("@/lib/auth/parental-consent");
-        
+
         // Create consent request in database
         const consentResult = await createConsentRequest({
           studentId: user.student.id,
-          parentEmail: email, // TODO: Add separate parent email field in registration
+          parentEmail: consentEmailTarget,
           parentName: "Poštovani roditelju/staratelju", // TODO: Add parent name field
           expiresInHours: 6,
         });
@@ -226,26 +242,28 @@ export async function POST(request: NextRequest) {
           await sendParentalConsentEmail({
             childName: name,
             childAge: ageVerificationResult?.age || 0,
-            parentEmail: email,
+            parentEmail: consentEmailTarget,
             parentName: "Poštovani roditelju/staratelju",
             consentToken: consentResult.code,
             consentUrl: `${process.env["NEXT_PUBLIC_APP_URL"]}/consent-verify`,
           });
-          
+
           // Mark email as sent
           if (consentResult.consentId) {
             await markEmailSent(consentResult.consentId);
           }
-          
+
           parentalConsentEmailSent = true;
           log.info("Parental consent request created and email sent", {
             studentId: user.student.id,
             consentId: consentResult.consentId,
-            parentEmail: email,
+            parentEmail: consentEmailTarget,
           });
         }
       } catch (emailError) {
-        log.error("Failed to create consent request or send email", { emailError });
+        log.error("Failed to create consent request or send email", {
+          emailError,
+        });
       }
     }
 

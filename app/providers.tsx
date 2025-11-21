@@ -35,12 +35,12 @@ function makeQueryClient() {
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 
         // Network mode
-        networkMode: "online", // Only run queries when online
+        networkMode: "offlineFirst", // Allow queries to run without network (from cache)
       },
       mutations: {
         // Retry failed mutations
         retry: 0, // Ne retryuj mutations
-        networkMode: "online",
+        networkMode: "offlineFirst",
       },
     },
   });

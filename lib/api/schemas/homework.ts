@@ -26,10 +26,15 @@ export const CreateHomeworkSchema = z.object({
     .max(2000, "Opis može biti najviše 2000 karaktera")
     .transform(sanitizeRichText) // Sanitize description (allow safe HTML)
     .optional(),
-  subjectId: z.string().uuid("Predmet je obavezan"),
+  notes: z
+    .string()
+    .max(1000, "Beleške mogu biti najviše 1000 karaktera")
+    .transform(sanitizePlainText)
+    .optional(),
+  subjectId: z.string().cuid("Predmet je obavezan"),
   dueDate: z
     .string()
-    .datetime("Rok mora biti validan datum i vrijeme")
+    .datetime("Rok mora biti validan datum i vreme")
     .or(z.date()),
   priority: HomeworkPriority.default("NORMAL"),
   status: HomeworkStatus.default("ASSIGNED"),
@@ -63,11 +68,11 @@ export type QueryHomeworkInput = z.infer<typeof QueryHomeworkSchema>;
 
 // Response schema
 export const HomeworkResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   title: z.string(),
   description: z.string().optional(),
   subject: z.object({
-    id: z.string().uuid(),
+    id: z.string().cuid(),
     name: z.string(),
     color: z.string().optional(),
   }),

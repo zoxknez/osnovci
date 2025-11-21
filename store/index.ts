@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Notification, Student, User } from "@/types";
+import { useSettingsStore } from "./settings";
 
 // ============================================
 // AUTH STORE
@@ -15,22 +16,14 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
-      isLoading: true,
-      setUser: (user) =>
-        set({ user, isAuthenticated: !!user, isLoading: false }),
-      logout: () => set({ user: null, isAuthenticated: false }),
-    }),
-    {
-      name: "auth-storage",
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
-);
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  setUser: (user) =>
+    set({ user, isAuthenticated: !!user, isLoading: false }),
+  logout: () => set({ user: null, isAuthenticated: false }),
+}));
 
 // ============================================
 // STUDENT STORE (Aktivan učenik za roditelje sa više dece)
@@ -103,13 +96,32 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       notifications,
       unreadCount: notifications.filter((n) => !n.isRead).length,
     }),
-  addNotification: (notification) =>
+  addNotification: (notification) => {
+    const settings = useSettingsStore.getState().notifications;
+    
+    // Map notification types to settings keys
+    let shouldShow = true;
+    const type = notification.type.toUpperCase();
+    
+    if (type.includes("GRADE") || type.includes("OCEN")) {
+        shouldShow = settings.grades;
+    } else if (type.includes("HOMEWORK") || type.includes("DOMAC")) {
+        shouldShow = settings.homework;
+    } else if (type.includes("SCHEDULE") || type.includes("RASPORED")) {
+        shouldShow = settings.schedule;
+    } else if (type.includes("MESSAGE") || type.includes("PORUK")) {
+        shouldShow = settings.messages;
+    }
+    
+    if (!shouldShow) return;
+
     set((state) => ({
       notifications: [notification, ...state.notifications],
       unreadCount: notification.isRead
         ? state.unreadCount
         : state.unreadCount + 1,
-    })),
+    }));
+  },
   markAsRead: (id) =>
     set((state) => ({
       notifications: state.notifications.map((n) =>

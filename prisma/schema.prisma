@@ -20,17 +20,17 @@ generator client {
 // by commenting/uncommenting the appropriate datasource block
 
 // Development: SQLite (uncomment for local development)
-// datasource db {
-//   provider = "sqlite"
-//   url      = env("DATABASE_URL")
-// }
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
 
 // Production: PostgreSQL (currently active)
-datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
-}
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("DATABASE_URL")
+//   directUrl = env("DATABASE_URL_UNPOOLED")
+// }
 
 // Development fallback: SQLite (set DATABASE_URL="file:./dev.db")
 // For local dev without PostgreSQL:
@@ -64,7 +64,7 @@ model User {
   id            String    @id @default(cuid())
   email         String?   @unique
   phone         String?   @unique
-  password      String? // Hashed with bcrypt
+  password      String    // Hashed with bcrypt (Required for Credentials auth)
   role          UserRole
   locale        Language  @default(SR_LATN)
   theme         Theme     @default(AUTO)
@@ -242,6 +242,22 @@ model Student {
   grades          Grade[]
   gamification    Gamification?
   parentalConsent ParentalConsent[] // Consent requests for this student
+  
+  // New Features Relations
+  focusSessions   FocusSession[]
+  aiTutorSessions AiTutorSession[]
+  sentStickers    StickerLog[]      @relation("SentStickers")
+  receivedStickers StickerLog[]     @relation("ReceivedStickers")
+  
+  // Feature Set 2 Relations
+  flashcardDecks  FlashcardDeck[]
+  inventory       UserInventory[]
+  knowledgeResources KnowledgeResource[]
+  
+  // Shift Management
+  shiftSystemEnabled Boolean @default(false)
+  shiftReferenceDate DateTime? // Date when a specific shift started
+  shiftReferenceType String?   // "A" or "B"
 
   @@index([userId])
   @@index([school, grade, class])
@@ -425,6 +441,14 @@ model Subject {
   homework Homework[]
   schedule ScheduleEntry[]
   grades   Grade[]
+  
+  // New Features Relations
+  focusSessions FocusSession[]
+  aiTutorSessions AiTutorSession[]
+  
+  // Feature Set 2 Relations
+  flashcardDecks FlashcardDeck[]
+  knowledgeResources KnowledgeResource[]
 
   @@map("subjects")
 }
@@ -720,6 +744,8 @@ enum NotificationType {
   EVENT_REMINDER
   SCHEDULE_CHANGE
   LINK_REQUEST
+  ACHIEVEMENT_UNLOCKED
+  LEVEL_UP
 }
 
 model Notification {
@@ -810,8 +836,8 @@ enum AchievementType {
   // Grade Achievements
   FIRST_GRADE_5         // Prva petica
   GRADE_5_STREAK_3      // 3 petice zaredom
-  GRADE_5_STREAK_5      // 5 petica zaredom
-  GRADE_5_STREAK_10     // 10 petica zaredom
+  GRADE_5_STREAK_5      // 5 petice zaredom
+  GRADE_5_STREAK_10     // 10 petice zaredom
   PERFECT_WEEK          // Sve petice u nedelji
   PERFECT_MONTH         // Sve petice u mesecu
   GRADE_AVG_45          // Prosek 4.5
@@ -1129,4 +1155,201 @@ model ModerationLog {
   @@index([status, flagged])
   @@index([notifyParent, parentNotified])
   @@map("moderation_logs")
+}
+
+// ============================================
+// FOCUS MODE (Productivity)
+// ============================================
+
+enum FocusStatus {
+  ACTIVE
+  COMPLETED
+  ABORTED
+}
+
+model FocusSession {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String?
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  duration  Int?     // in minutes
+  status    FocusStatus @default(ACTIVE)
+  xpEarned  Int      @default(0)
+  
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+
+  @@index([studentId])
+  @@index([status])
+  @@index([startTime])
+  @@map("focus_sessions")
+}
+
+// ============================================
+// AI TUTOR (Edu-Tech)
+// ============================================
+
+model AiTutorSession {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String?
+  query     String?  // Text query
+  imageUrl  String?  // Image of the problem
+  response  String   // AI explanation (markdown)
+  createdAt DateTime @default(now())
+  
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+
+  @@index([studentId])
+  @@index([createdAt])
+  @@map("ai_tutor_sessions")
+}
+
+// ============================================
+// SOCIAL / COMMUNITY (Safe)
+// ============================================
+
+model Sticker {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g. "THUMBS_UP"
+  name      String
+  icon      String   // Emoji or URL
+  cost      Int      @default(0) // XP cost
+  minLevel  Int      @default(1) // Min level to unlock
+  
+  logs      StickerLog[]
+
+  @@map("stickers")
+}
+
+model StickerLog {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  stickerId  String
+  message    String?  // Predefined message only!
+  createdAt  DateTime @default(now())
+
+  sender     Student  @relation("SentStickers", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   Student  @relation("ReceivedStickers", fields: [receiverId], references: [id], onDelete: Cascade)
+  sticker    Sticker  @relation(fields: [stickerId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@map("sticker_logs")
+}
+
+// ============================================
+// DIGITALNA PERNICA (Flashcards)
+// ============================================
+
+model FlashcardDeck {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String
+  title     String
+  color     String   @default("#3b82f6")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  cards     Flashcard[]
+
+  @@index([studentId])
+  @@index([subjectId])
+  @@map("flashcard_decks")
+}
+
+model Flashcard {
+  id        String   @id @default(cuid())
+  deckId    String
+  front     String   // Question
+  back      String   // Answer
+  createdAt DateTime @default(now())
+
+  deck      FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@index([deckId])
+  @@map("flashcards")
+}
+
+// ============================================
+// PRODAVNICA AVATARA (Shop)
+// ============================================
+
+enum ShopItemType {
+  AVATAR_ACCESSORY
+  THEME
+  BADGE
+  FRAME
+}
+
+model ShopItem {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  cost        Int
+  type        ShopItemType
+  assetUrl    String       // URL to image/resource
+  previewUrl  String?      // Thumbnail
+  minLevel    Int          @default(1)
+  isPremium   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  
+  purchases   UserInventory[]
+
+  @@map("shop_items")
+}
+
+model UserInventory {
+  id        String   @id @default(cuid())
+  studentId String
+  itemId    String
+  equipped  Boolean  @default(false)
+  purchasedAt DateTime @default(now())
+
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item      ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, itemId])
+  @@index([studentId])
+  @@index([itemId])
+  @@map("user_inventory")
+}
+
+// ============================================
+// BIBLIOTEKA ZNANJA (Knowledge Library)
+// ============================================
+
+enum ResourceType {
+  NOTE
+  IMAGE
+  LINK
+  PDF
+}
+
+model KnowledgeResource {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String
+  title     String
+  type      ResourceType
+  content   String   // Text content or URL
+  metadata  Json?    // Additional info (e.g. image dimensions, link preview)
+  tags      String?  // JSON array of tags
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([subjectId])
+  @@index([type])
+  @@map("knowledge_resources")
 }

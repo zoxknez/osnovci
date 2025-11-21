@@ -22,6 +22,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { 
+  getNotificationPreferencesAction, 
+  updateNotificationPreferenceAction, 
+  bulkUpdateNotificationPreferencesAction, 
+  resetNotificationPreferencesAction 
+} from "@/app/actions/notifications";
 
 interface NotificationPreference {
   eventType: string;
@@ -104,11 +110,10 @@ export function NotificationPreferencesSettings() {
 
   const loadPreferences = async () => {
     try {
-      const response = await fetch("/api/notifications/preferences?grouped=true");
-      const data = await response.json();
+      const result = await getNotificationPreferencesAction(true);
 
-      if (data.success) {
-        setPreferences(data.preferences);
+      if (result.success && result.data) {
+        setPreferences(result.data);
       }
     } catch (error) {
       toast.error("Greška pri učitavanju podešavanja");
@@ -125,18 +130,12 @@ export function NotificationPreferencesSettings() {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/notifications/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventType,
-          [channel]: !currentValue,
-        }),
+      const result = await updateNotificationPreferenceAction({
+        eventType: eventType as any,
+        [channel]: !currentValue,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (result.success) {
         await loadPreferences();
         toast.success("Podešavanje sačuvano", { duration: 1000 });
       } else {
@@ -156,19 +155,13 @@ export function NotificationPreferencesSettings() {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/notifications/preferences", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          [channel]: value,
-        }),
+      const result = await bulkUpdateNotificationPreferencesAction({
+        [channel]: value,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (result.success) {
         await loadPreferences();
-        toast.success(`${data.count} podešavanja ažuriranih`, { duration: 2000 });
+        toast.success(`${result.data.count} podešavanja ažuriranih`, { duration: 2000 });
       } else {
         toast.error("Greška pri bulk ažuriranju");
       }
@@ -187,13 +180,9 @@ export function NotificationPreferencesSettings() {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/notifications/preferences", {
-        method: "PUT",
-      });
+      const result = await resetNotificationPreferencesAction();
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (result.success) {
         await loadPreferences();
         toast.success("Podešavanja vraćena na default", { duration: 2000 });
       } else {

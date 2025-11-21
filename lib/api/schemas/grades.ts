@@ -24,7 +24,7 @@ export type Period = z.infer<typeof Period>;
 
 // Create grade schema (za nastavnike) - with sanitization
 export const CreateGradeSchema = z.object({
-  subjectId: z.string().uuid("Predmet je obavezan"),
+  subjectId: z.string().cuid("Predmet je obavezan"),
   grade: GradeValue,
   category: GradeCategory,
   description: z
@@ -42,7 +42,7 @@ export type CreateGradeInput = z.infer<typeof CreateGradeSchema>;
 export const QueryGradesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  subjectId: z.string().uuid().optional(),
+  subjectId: z.string().cuid().optional(),
   category: GradeCategory.optional(),
   period: Period.optional(),
   sortBy: z.enum(["date", "subject", "grade"]).default("date"),
@@ -53,9 +53,9 @@ export type QueryGradesInput = z.infer<typeof QueryGradesSchema>;
 
 // Grade response schema
 export const GradeResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   subject: z.object({
-    id: z.string().uuid(),
+    id: z.string().cuid(),
     name: z.string(),
     color: z.string().optional(),
   }),

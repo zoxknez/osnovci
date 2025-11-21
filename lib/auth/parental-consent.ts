@@ -4,6 +4,7 @@
 import { ConsentStatus } from "@prisma/client";
 import prisma from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import { randomInt } from "node:crypto";
 
 // ============================================
 // CONSENT CODE GENERATION
@@ -14,7 +15,7 @@ import { log } from "@/lib/logger";
  * Format: 123456 (all digits)
  */
 export function generateConsentCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }
 
 // ============================================

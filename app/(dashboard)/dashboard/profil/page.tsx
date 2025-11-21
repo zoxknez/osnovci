@@ -2,8 +2,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Loader } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader, Wifi, WifiOff } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/features/page-header";
 import { LastUpdatedNotice } from "@/components/features/profile/last-updated";
@@ -14,85 +14,23 @@ import {
   ActivitiesSection,
   BasicInfoSection,
   ContactsSection,
+  GamificationSection,
   HealthSection,
   PhysicalSection,
 } from "@/components/features/profile/sections";
 import type {
-  ProfileData,
   ProfileUpdateHandler,
 } from "@/components/features/profile/types";
 import { calculateAge } from "@/components/features/profile/utils";
 import { staggerContainer } from "@/lib/animations/variants";
-import { apiGet, apiPatch } from "@/lib/utils/api";
-
-// Default values za prazne fieldove
-const DEFAULT_PROFILE: ProfileData = {
-  name: "",
-  birthDate: "",
-  address: "",
-  school: "",
-  grade: 1,
-  class: "",
-  height: 0,
-  weight: 0,
-  clothingSize: "",
-  hasGlasses: false,
-  bloodType: "Nepoznata",
-  allergies: [],
-  chronicIllnesses: [],
-  medications: [],
-  healthNotes: "",
-  specialNeeds: "",
-  vaccinations: [],
-  primaryDoctor: "",
-  primaryDoctorPhone: "",
-  dentist: "",
-  dentistPhone: "",
-  emergencyContact1: "",
-  emergencyContact1Phone: "",
-  emergencyContact2: "",
-  emergencyContact2Phone: "",
-  hobbies: "",
-  sports: "",
-  activities: "",
-  notes: "",
-};
+import { apiPatch } from "@/lib/utils/api";
+import { useOfflineProfile } from "@/hooks/use-offline-profile";
 
 export default function ProfilPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<ProfileData>(DEFAULT_PROFILE);
-
-  // Fetch profile data na mount
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const data = await apiGet("/api/profile", { showErrorToast: false });
-
-        // Map API data to profile format
-        if (data?.profile) {
-          setProfile({
-            ...DEFAULT_PROFILE,
-            name: data.profile.name || "",
-            school: data.profile.school || "",
-            grade: data.profile.grade || 1,
-            class: data.profile.class || "",
-            birthDate: data.profile.birthDate || null,
-            address: data.profile.address || "",
-          });
-        }
-      } catch (error) {
-        log.error("Failed to fetch profile", error);
-        toast.error("Greška pri učitavanju profila");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
+  
+  const { profile, setProfile, stats, loading, isOffline } = useOfflineProfile();
 
   const handleFieldChange: ProfileUpdateHandler = (key, value) => {
     setProfile((previous) => ({
@@ -100,8 +38,14 @@ export default function ProfilPage() {
       [key]: value,
     }));
   };
+// ...existing code...
 
   const handleSave = async () => {
+    if (isOffline) {
+      toast.error("Nije moguće sačuvati izmene dok ste offline.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -147,13 +91,29 @@ export default function ProfilPage() {
         title="👤 Moj profil"
         description="Lični podaci, zdravstvene informacije i sve što trebaju odrasli da znaju o tebi"
         variant="purple"
-        badge="Privatno"
+        badge={
+          isOffline ? (
+            <span className="flex items-center gap-1">
+              <WifiOff className="h-3 w-3" /> Offline
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <Wifi className="h-3 w-3" /> Online
+            </span>
+          )
+        }
       />
 
       <ProfileHeader
         isEditing={isEditing}
         isSaving={isSaving}
-        onEdit={() => setIsEditing(true)}
+        onEdit={() => {
+          if (isOffline) {
+            toast.error("Izmena profila nije dostupna u offline režimu.");
+            return;
+          }
+          setIsEditing(true);
+        }}
         onCancel={() => setIsEditing(false)}
         onSave={handleSave}
       />
@@ -166,6 +126,8 @@ export default function ProfilPage() {
         initial="initial"
         animate="animate"
       >
+        <GamificationSection stats={stats} />
+
         <BasicInfoSection
           profile={profile}
           isEditing={isEditing}

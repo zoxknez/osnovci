@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { resendMyConsentEmailAction } from "@/app/actions/parental-consent";
 
 export default function ConsentRequiredPage() {
   return (
@@ -48,14 +49,15 @@ export default function ConsentRequiredPage() {
               onClick={async () => {
                 // Trigger resend consent email
                 try {
-                  const response = await fetch("/api/parental-consent/resend", {
-                    method: "POST",
-                  });
+                  const response = await resendMyConsentEmailAction();
 
-                  if (response.ok) {
+                  if (response.success) {
                     alert("Email poslat roditelju!");
                   } else {
-                    alert("Greška pri slanju emaila. Pokušaj ponovo.");
+                    alert(
+                      response.error ||
+                        "Greška pri slanju emaila. Pokušaj ponovo."
+                    );
                   }
                 } catch {
                   // Failed to send consent email

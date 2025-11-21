@@ -1200,7 +1200,7 @@ async function sendAchievementNotification(
     await prisma.notification.create({
       data: {
         userId: student.userId,
-        type: "INFO" as NotificationType,
+        type: "ACHIEVEMENT_UNLOCKED" as NotificationType,
         title: `🏆 Novo Postignuće: ${getAchievementTitle(type)}`,
         message: getAchievementDescription(type),
       },

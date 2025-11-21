@@ -27,7 +27,7 @@ export function SkipLink({ href, children, className }: SkipLinkProps) {
     <a
       href={href}
       style={{
-        // Koristi CSS umjesto Tailwind da bude 100% siguran
+        // Koristi CSS umesto Tailwind da bude 100% siguran
         position: "fixed",
         top: "-9999px",
         left: "-9999px",

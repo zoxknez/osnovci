@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,16 @@ import {
   Lock,
   CheckCircle2,
   RefreshCw,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { toast } from "sonner";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
+import { useOfflineAchievements } from "@/hooks/use-offline-achievements";
+import { Celebration } from "@/components/ui/celebration";
+import { checkAchievementsAction } from "@/app/actions/achievements";
 
 interface Achievement {
   id: string;
@@ -31,7 +36,7 @@ interface Achievement {
   title: string;
   description: string;
   xpReward: number;
-  unlockedAt: Date;
+  unlockedAt: string | Date;
 }
 
 interface AchievementProgress {
@@ -102,44 +107,32 @@ const ACHIEVEMENT_COLORS: Record<string, string> = {
 };
 
 export default function AchievementsDashboard() {
-  const [data, setData] = useState<AchievementsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, isOnline, refresh } = useOfflineAchievements();
   const [checking, setChecking] = useState(false);
-
-  useEffect(() => {
-    fetchAchievements();
-  }, []);
-
-  const fetchAchievements = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/achievements");
-      if (!response.ok) throw new Error("Failed to fetch achievements");
-      const result = await response.json();
-      setData(result);
-    } catch (error) {
-      console.error("Error fetching achievements:", error);
-      toast.error("Greška pri učitavanju postignuća");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const checkAchievements = async () => {
+    if (!isOnline) {
+      toast.error("Provera postignuća zahteva internet konekciju");
+      return;
+    }
+
     try {
       setChecking(true);
-      const response = await fetch("/api/achievements", { method: "POST" });
-      if (!response.ok) throw new Error("Failed to check achievements");
+      const result = await checkAchievementsAction();
       
-      const result = await response.json();
+      if (result.error) {
+        throw new Error(result.error);
+      }
       
-      if (result.newUnlocks > 0) {
-        toast.success(`🏆 Otključano ${result.newUnlocks} novih postignuća!`);
+      if (result.data && result.data.newUnlocks > 0) {
+        toast.success(`🏆 Otključano ${result.data.newUnlocks} novih postignuća!`);
+        setShowCelebration(true);
       } else {
         toast.info("Nema novih postignuća");
       }
       
-      await fetchAchievements();
+      await refresh();
     } catch (error) {
       console.error("Error checking achievements:", error);
       toast.error("Greška pri proveri postignuća");
@@ -166,12 +159,18 @@ export default function AchievementsDashboard() {
     );
   }
 
-  const { achievements, progress, stats } = data;
+  // Cast data to AchievementsData to match the interface if needed, 
+  // though the hook should return compatible structure.
+  // The hook returns StoredGamificationData which has string dates, 
+  // while the component expects Date objects in some places.
+  // We handle the date formatting in the render.
+  const { achievements, progress, stats } = data as unknown as AchievementsData;
 
   return (
     <div className="container py-8 space-y-6">
+      <Celebration trigger={showCelebration} onComplete={() => setShowCelebration(false)} />
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Trophy className="w-8 h-8 text-yellow-500" />
@@ -181,18 +180,40 @@ export default function AchievementsDashboard() {
             Prati svoj napredak i otključavaj nagrade
           </p>
         </div>
-        <Button
-          onClick={checkAchievements}
-          disabled={checking}
-          className="flex items-center gap-2"
-        >
-          {checking ? (
-            <Loader className="w-4 h-4 animate-spin" />
-          ) : (
-            <RefreshCw className="w-4 h-4" />
-          )}
-          Proveri Nova Postignuća
-        </Button>
+        <div className="flex items-center gap-2">
+          <div
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+              isOnline
+                ? "bg-green-100 text-green-700"
+                : "bg-amber-100 text-amber-700"
+            }`}
+          >
+            {isOnline ? (
+              <>
+                <Wifi className="h-4 w-4" />
+                <span className="hidden sm:inline">Online</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-4 w-4" />
+                <span className="hidden sm:inline">Offline</span>
+              </>
+            )}
+          </div>
+          <Button
+            onClick={checkAchievements}
+            disabled={checking || !isOnline}
+            className="flex items-center gap-2"
+          >
+            {checking ? (
+              <Loader className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">Proveri Nova Postignuća</span>
+            <span className="sm:hidden">Proveri</span>
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

@@ -18,21 +18,13 @@ interface DeviceInfo {
 
 /**
  * Generate unique session token using Web Crypto API
- * Edge-compatible alternative to Node.js crypto module
+ * Uses nanoid for cryptographically secure random string generation
  */
+import { nanoid } from "nanoid";
+
 export function generateSessionToken(): string {
-  const array = new Uint8Array(32);
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    crypto.getRandomValues(array);
-  } else {
-    // Fallback for environments without Web Crypto
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-  }
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
+  // Use nanoid for secure, URL-friendly token (32 chars)
+  return nanoid(32);
 }
 
 /**
@@ -161,6 +153,7 @@ export async function validateSession(
         id: true,
         userId: true,
         expiresAt: true,
+        lastActivityAt: true,
       },
     });
 
@@ -176,11 +169,18 @@ export async function validateSession(
       return { valid: false };
     }
 
-    // Update last activity
-    await prisma.session.update({
-      where: { id: session.id },
-      data: { lastActivityAt: new Date() },
-    });
+    // Update last activity (Throttled: max once per 5 minutes)
+    // Reduces database writes by ~99% for active users
+    const now = Date.now();
+    const lastActivity = new Date(session.lastActivityAt).getTime();
+    const THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+
+    if (now - lastActivity > THROTTLE_MS) {
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { lastActivityAt: new Date() },
+      });
+    }
 
     return {
       valid: true,

@@ -15,12 +15,16 @@ import { createParentalConsentTemplate } from './templates/parental-consent';
 import { createActivityNotificationTemplate } from './templates/activity-notification';
 import { createFlaggedContentTemplate } from './templates/flagged-content';
 import { createWeeklyReportTemplate } from './templates/weekly-report';
+import { createParentalAlertTemplate } from './templates/parental-alert';
 import type { WeeklyReportData } from '@/lib/reports/weekly-report-generator';
 
 /**
  * Get email from address with fallback
  */
 function getEmailFrom(): string {
+  if (!env.EMAIL_FROM && process.env.NODE_ENV === 'production') {
+    log.error('EMAIL_FROM environment variable is missing in production!');
+  }
   return env.EMAIL_FROM || 'noreply@osnovci.app';
 }
 
@@ -385,6 +389,58 @@ export async function sendWeeklyReport(
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     log.error('Failed to send weekly report email', {
+      to: toEmail,
+      error: errorMessage,
+    });
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Send parental alert email (security incidents, lockouts, etc.)
+ */
+export async function sendParentalAlert(
+  toEmail: string,
+  alertType: string,
+  metadata: Record<string, string>,
+): Promise<EmailResult> {
+  try {
+    const sanitizedEmail = sanitizeEmail(toEmail);
+    if (!isValidEmail(sanitizedEmail)) {
+      return {
+        success: false,
+        error: 'Invalid email address',
+      };
+    }
+
+    const transporter = createTransporter();
+    const template = createParentalAlertTemplate(alertType, metadata);
+
+    const result = await sendEmailWithRetry(transporter, {
+      from: getEmailFrom(),
+      to: sanitizedEmail,
+      subject: template.subject,
+      text: template.text,
+      html: template.html,
+      priority: 'high',
+    });
+
+    if (result.success) {
+      log.info('Parental alert email sent', {
+        to: sanitizedEmail,
+        alertType,
+      });
+    }
+
+    return result;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    log.error('Failed to send parental alert email', {
       to: toEmail,
       error: errorMessage,
     });

@@ -306,7 +306,7 @@ export default function Home() {
       <footer className="relative px-4 py-10 sm:py-12 sm:px-6 lg:px-8 bg-gray-50 border-t border-gray-200">
         <div className="mx-auto max-w-7xl text-center">
           <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-3 sm:mb-4">
-            © 2025 Osnovci. o0o0o0o
+            © 2025 Osnovci. Sva prava zadržana.
           </p>
           <p className="text-xs sm:text-sm text-gray-500">
             Sigurna, privatna i inovativna.

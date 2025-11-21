@@ -13,11 +13,24 @@ import {
   Search,
   Wifi,
   WifiOff,
+  Play,
+  MoreVertical,
+  Calendar as CalendarIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { HomeworkCelebration } from "@/components/features/homework-celebration";
 import { PageHeader } from "@/components/features/page-header";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 // Lazy load heavy components (Camera uses MediaStream API)
 const ModernCamera = lazy(() => 
@@ -32,8 +45,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useOfflineHomework } from "@/hooks/use-offline-homework";
 import { useSyncStore } from "@/store";
+import { useCreateHomework, useMarkHomeworkComplete } from "@/hooks/use-homework";
+import { useHomeworkList } from "@/hooks/use-homework-list";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,101 +61,56 @@ export default function DomaciPage() {
   );
   const [showCelebration, setShowCelebration] = useState(false);
 
-  // API state
-  const [homework, setHomework] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Pagination state
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
 
-  // Offline sync
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+
+  // Unified Homework Hook
   const {
-    offlineItems,
+    data: filteredHomework,
+    pagination,
+    isLoading,
+    error,
     saveOffline,
     syncOfflineItems,
     hasOfflineItems,
     unsyncedCount,
-  } = useOfflineHomework();
+  } = useHomeworkList(page, searchQuery, filterStatus);
+  
+  const createHomeworkMutation = useCreateHomework();
+  const markCompleteMutation = useMarkHomeworkComplete();
   const { isOnline, isSyncing } = useSyncStore();
 
-  const getRandomColor = useCallback(() => {
-    const colors = ["#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b"];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }, []);
-
-  // Fetch homework na mount i kada se promijeni stranica
-  useEffect(() => {
-    const fetchHomework = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `/api/homework?page=${page}&limit=20&sortBy=dueDate&order=asc`,
-          {
-            credentials: "include",
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error("Greška pri učitavanju domaćih zadataka");
-        }
-
-        const data = await response.json();
-
-        // Mapiraj podatke sa API-ja na format koji frontend očekuje
-        const homeworkData = Array.isArray(data.data) ? data.data : [];
-        const mapped = homeworkData.map((hw: Record<string, unknown>) => ({
-          id: hw["id"],
-          subject:
-            (hw["subject"] as Record<string, unknown> | undefined)?.["name"] || "Nepoznat predmet",
-          title: hw["title"],
-          description: hw["description"],
-          dueDate: new Date(hw["dueDate"] as string),
-          status: (hw["status"] as string).toLowerCase(),
-          priority: (hw["priority"] as string).toLowerCase(),
-          attachments: hw["attachmentsCount"],
-          color:
-            (hw["subject"] as Record<string, unknown> | undefined)?.["color"] || getRandomColor(),
-        }));
-
-        setHomework(mapped);
-        setTotal(data.pagination?.total || 0);
-        setError(null);
-      } catch (_err) {
-        const errorMessage =
-          _err instanceof Error ? _err.message : "Nepoznata greška";
-        setError(errorMessage);
-        toast.error("Greška pri učitavanju", { description: errorMessage });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHomework();
-  }, [page, getRandomColor]);
+  // Group homework for Kanban
+  const kanbanColumns = {
+    todo: filteredHomework.filter(h => h.status === "ASSIGNED" || h.status === "IN_PROGRESS"),
+    done: filteredHomework.filter(h => h.status === "DONE" || h.status === "SUBMITTED")
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "done":
       case "submitted":
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
-            <CheckCircle2 className="h-3 w-3" />
+          <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
             Urađeno
-          </span>
+          </Badge>
         );
       case "in_progress":
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
-            <Clock className="h-3 w-3" />
+          <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+            <Clock className="h-3 w-3 mr-1" />
             Radim
-          </span>
+          </Badge>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full">
-            <FileText className="h-3 w-3" />
+          <Badge variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200">
+            <FileText className="h-3 w-3 mr-1" />
             Novo
-          </span>
+          </Badge>
         );
     }
   };
@@ -155,44 +124,6 @@ export default function DomaciPage() {
     if (diff === 1) return "Sutra";
     return `Za ${diff} dana`;
   };
-
-  // Kombiniuj online i offline zadatke
-  const allHomework = useMemo(() => {
-    // Mapiraj offline items u isti format kao API data
-    const offlineMapped = offlineItems.map((item) => ({
-      id: item.id,
-      subject: item.subjectId, // Subject ID is stored in offline storage
-      title: item.title,
-      description: item.description,
-      dueDate: item.dueDate,
-      status: item.status.toLowerCase(),
-      priority: item.priority.toLowerCase(),
-      attachments: 0,
-      color: getRandomColor(),
-      isOffline: true,
-      synced: item.synced,
-    }));
-
-    return [...homework, ...offlineMapped];
-  }, [homework, offlineItems, getRandomColor]);
-
-  const filteredHomework = allHomework.filter((task) => {
-    const subjectName =
-      typeof task.subject === "string"
-        ? task.subject
-        : task.subject?.name || "";
-    const matchesSearch =
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      subjectName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" ||
-      (filterStatus === "active" &&
-        task.status !== "done" &&
-        task.status !== "submitted") ||
-      (filterStatus === "done" &&
-        (task.status === "done" || task.status === "submitted"));
-    return matchesSearch && matchesFilter;
-  });
 
   const handleOpenCamera = (homeworkId: string) => {
     setSelectedHomeworkId(homeworkId);
@@ -209,9 +140,10 @@ export default function DomaciPage() {
       // Upload to API
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("homeworkId", selectedHomeworkId);
 
       const response = await fetch(
-        `/api/homework/${selectedHomeworkId}/attachments`,
+        `/api/upload`,
         {
           method: "POST",
           body: formData,
@@ -235,22 +167,16 @@ export default function DomaciPage() {
     }
   };
 
-  const handleMarkComplete = async (hwId: string) => {
-    try {
-      // Update homework status
-      const hw = homework.find((h) => h.id === hwId);
-      if (hw) {
-        hw.status = "done";
-        setHomework([...homework]);
+  const handleMarkComplete = (hwId: string) => {
+    markCompleteMutation.mutate(hwId, {
+      onSuccess: () => {
+        setShowCelebration(true);
+        toast.success("✅ Zadatak je označen kao urađen!");
+      },
+      onError: () => {
+        toast.error("Greška pri ažuriranju zadatka");
       }
-
-      // Show celebration animation
-      setShowCelebration(true);
-
-      toast.success("✅ Zadatak je označen kao urađen!");
-    } catch (_err) {
-      toast.error("Greška pri ažuriranju zadatka");
-    }
+    });
   };
 
   const handleAddHomework = async (data: HomeworkFormData) => {
@@ -273,55 +199,32 @@ export default function DomaciPage() {
       }
 
       // Pokušaj online
-      const response = await fetch("/api/homework", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(data),
+      createHomeworkMutation.mutate({
+        ...data,
+        dueDate: new Date(data.dueDate),
+        status: "ASSIGNED",
+      }, {
+        onSuccess: () => {
+          // Reset page to 1 to see new item
+          setPage(1);
+        },
+        onError: async () => {
+           // Ako API ne uspije, sačuvaj offline kao fallback
+           await saveOffline({
+            title: data.title,
+            subjectId: data.subjectId,
+            description: data.description,
+            dueDate: new Date(data.dueDate),
+            priority: data.priority,
+            status: "ASSIGNED",
+          });
+          toast.warning("⚠️ Sačuvano offline", {
+            description:
+              "API nije dostupan - zadatak će biti sinhronizovan kasnije",
+          });
+        }
       });
 
-      if (!response.ok) {
-        // Ako API ne uspije, sačuvaj offline kao fallback
-        await saveOffline({
-          title: data.title,
-          subjectId: data.subjectId,
-          description: data.description,
-          dueDate: new Date(data.dueDate),
-          priority: data.priority,
-          status: "ASSIGNED",
-        });
-        toast.warning("⚠️ Sačuvano offline", {
-          description:
-            "API nije dostupan - zadatak će biti sinhronizovan kasnije",
-        });
-        return;
-      }
-
-      // Osvježi listu
-      setPage(1);
-
-      const newResponse = await fetch(
-        `/api/homework?page=1&limit=20&sortBy=dueDate&order=asc`,
-        { credentials: "include" },
-      );
-      const newData = await newResponse.json();
-
-      const mapped = newData.data.map((hw: any) => ({
-        id: hw.id,
-        subject: hw.subject.name,
-        title: hw.title,
-        description: hw.description,
-        dueDate: new Date(hw.dueDate),
-        status: hw.status.toLowerCase(),
-        priority: hw.priority.toLowerCase(),
-        attachments: hw.attachmentsCount,
-        color: hw.subject.color || getRandomColor(),
-      }));
-
-      setHomework(mapped);
-      setTotal(newData.pagination.total);
-
-      toast.success("✅ Zadatak kreiran");
     } catch (_err) {
       throw new Error(
         _err instanceof Error ? _err.message : "Nepoznata greška",
@@ -329,7 +232,7 @@ export default function DomaciPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto space-y-6">
         <PageHeader
@@ -343,6 +246,8 @@ export default function DomaciPage() {
       </div>
     );
   }
+
+  const total = pagination?.total || 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -408,234 +313,202 @@ export default function DomaciPage() {
         }
       />
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="flex-1 relative">
+      {/* Filters & View Toggle */}
+      <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between">
+            <div className="flex-1 relative max-w-md">
               <Input
                 type="text"
                 placeholder="Pretraži zadatke..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                leftIcon={<Search className="h-5 w-5" />}
-                aria-label="Pretraži domaće zadatke po nazivu ili predmetu"
+                leftIcon={<Search className="h-4 w-4 text-gray-400" />}
+                className="bg-white border-gray-200 focus:border-blue-500 transition-all"
               />
             </div>
-            <fieldset className="flex gap-2" aria-label="Filteri za zadatke">
-              <legend className="sr-only">Filteri za zadatke</legend>
-              <Button
-                variant={filterStatus === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterStatus("all")}
-                aria-label="Prikaži sve zadatke"
-                aria-pressed={filterStatus === "all"}
-              >
-                Sve
-              </Button>
-              <Button
-                variant={filterStatus === "active" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterStatus("active")}
-                aria-label="Prikaži samo aktivne zadatke"
-                aria-pressed={filterStatus === "active"}
-              >
-                Aktivni
-              </Button>
-              <Button
-                variant={filterStatus === "done" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterStatus("done")}
-                aria-label="Prikaži samo završene zadatke"
-                aria-pressed={filterStatus === "done"}
-              >
-                Urađeni
-              </Button>
-            </fieldset>
+            
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 sm:pb-0">
+              <div className="flex bg-gray-100/80 p-1 rounded-lg">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={cn(
+                    "p-2 rounded-md transition-all text-sm font-medium flex items-center gap-2",
+                    viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"
+                  )}
+                >
+                  <MoreVertical className="h-4 w-4 rotate-90" />
+                  Lista
+                </button>
+                <button
+                  onClick={() => setViewMode("kanban")}
+                  className={cn(
+                    "p-2 rounded-md transition-all text-sm font-medium flex items-center gap-2",
+                    viewMode === "kanban" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"
+                  )}
+                >
+                  <div className="flex gap-0.5">
+                    <div className="w-1 h-3 bg-current rounded-full" />
+                    <div className="w-1 h-3 bg-current rounded-full" />
+                  </div>
+                  Tabla
+                </button>
+              </div>
+
+              <div className="h-6 w-px bg-gray-200 mx-1" />
+
+              <div className="flex gap-1">
+                <Button
+                  variant={filterStatus === "all" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setFilterStatus("all")}
+                  className={filterStatus === "all" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : ""}
+                >
+                  Sve
+                </Button>
+                <Button
+                  variant={filterStatus === "active" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setFilterStatus("active")}
+                  className={filterStatus === "active" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : ""}
+                >
+                  Aktivni
+                </Button>
+                <Button
+                  variant={filterStatus === "done" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setFilterStatus("done")}
+                  className={filterStatus === "done" ? "bg-green-100 text-green-700 hover:bg-green-200" : ""}
+                >
+                  Urađeni
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">
-                {
-                  allHomework.filter(
-                    (h) => h.status !== "done" && h.status !== "submitted",
-                  ).length
-                }
-              </p>
-              <p className="text-sm text-gray-600 mt-1">Aktivni zadaci</p>
-              {unsyncedCount > 0 && (
-                <p className="text-xs text-amber-600 mt-1">
-                  ({unsyncedCount} offline)
-                </p>
+      {/* Stats - Compact */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-blue-700">
+            {filteredHomework.filter(h => h.status !== "done" && h.status !== "submitted").length}
+          </span>
+          <span className="text-xs font-medium text-blue-600 uppercase tracking-wider mt-1">Aktivni</span>
+        </div>
+        <div className="bg-green-50 rounded-xl p-4 border border-green-100 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-green-700">
+            {filteredHomework.filter(h => h.status === "done" || h.status === "submitted").length}
+          </span>
+          <span className="text-xs font-medium text-green-600 uppercase tracking-wider mt-1">Urađeni</span>
+        </div>
+        <div className="bg-red-50 rounded-xl p-4 border border-red-100 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-red-700">
+            {filteredHomework.filter(h => h.priority === "urgent" && h.status !== "done").length}
+          </span>
+          <span className="text-xs font-medium text-red-600 uppercase tracking-wider mt-1">Hitni</span>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      {viewMode === "kanban" ? (
+        <div className="grid md:grid-cols-2 gap-6 h-full min-h-[500px]">
+          {/* To Do Column */}
+          <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h3 className="font-bold text-gray-700 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                Za uraditi
+                <Badge variant="secondary" className="ml-2 bg-white">{kanbanColumns.todo.length}</Badge>
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {kanbanColumns.todo.map(task => (
+                <HomeworkCard 
+                  key={task.id} 
+                  task={task} 
+                  compact 
+                  onComplete={() => handleMarkComplete(task.id)}
+                  onCamera={() => handleOpenCamera(task.id)}
+                />
+              ))}
+              {kanbanColumns.todo.length === 0 && (
+                <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
+                  <p>Nema aktivnih zadataka 🎉</p>
+                </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-green-700">
-                {
-                  allHomework.filter(
-                    (h) => h.status === "done" || h.status === "submitted",
-                  ).length
-                }
-              </p>
-              <p className="text-sm text-gray-600 mt-1">Urađeno</p>
+          </div>
+
+          {/* Done Column */}
+          <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h3 className="font-bold text-gray-700 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                Završeno
+                <Badge variant="secondary" className="ml-2 bg-white">{kanbanColumns.done.length}</Badge>
+              </h3>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-red-600">
-                {
-                  allHomework.filter(
-                    (h) =>
-                      h.priority === "urgent" &&
-                      h.status !== "done" &&
-                      h.status !== "submitted",
-                  ).length
-                }
-              </p>
-              <p className="text-sm text-gray-600 mt-1">Hitno</p>
+            <div className="space-y-3">
+              {kanbanColumns.done.map(task => (
+                <HomeworkCard 
+                  key={task.id} 
+                  task={task} 
+                  compact 
+                  isDone
+                  onComplete={() => {}}
+                  onCamera={() => handleOpenCamera(task.id)}
+                />
+              ))}
+              {kanbanColumns.done.length === 0 && (
+                <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
+                  <p>Još ništa nije završeno</p>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Homework List */}
-      <div className="space-y-4">
-        {error && (
-          <Card className="border-red-300 bg-red-50">
-            <CardContent className="p-6">
-              <p className="text-red-600">{error}</p>
-            </CardContent>
-          </Card>
-        )}
-        {filteredHomework.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <p className="text-gray-500">
-                Nema zadataka koji odgovaraju pretrazi
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredHomework.map((task) => {
-            const isOverdue =
-              task.dueDate < new Date() &&
-              task.status !== "done" &&
-              task.status !== "submitted";
-            return (
-              <Card
-                key={task.id}
-                className={`transition-all hover:shadow-lg ${
-                  isOverdue ? "border-red-300 bg-red-50/30" : ""
-                }`}
-              >
-                <CardContent className="p-6">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex gap-4 flex-1">
-                      {/* Subject color indicator */}
-                      <div
-                        className="w-1 h-full rounded-full"
-                        style={{ backgroundColor: task.color }}
-                      />
-
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {task.title}
-                              </h3>
-                              {task.isOffline && !task.synced && (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                                  <WifiOff className="h-3 w-3" />
-                                  Offline
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600">
-                              {typeof task.subject === "string"
-                                ? task.subject
-                                : task.subject?.name || "Predmet"}
-                            </p>
-                          </div>
-                          {task.priority === "urgent" && !isOverdue && (
-                            <span className="ml-2 text-red-600">
-                              <AlertCircle className="h-5 w-5" />
-                            </span>
-                          )}
-                        </div>
-
-                        {task.description && (
-                          <p className="text-sm text-gray-700 mb-3">
-                            {task.description}
-                          </p>
-                        )}
-
-                        <div className="flex flex-wrap items-center gap-3">
-                          {getStatusBadge(task.status)}
-
-                          <span
-                            className={`text-xs font-medium ${
-                              isOverdue ? "text-red-600" : "text-gray-600"
-                            }`}
-                          >
-                            📅 {getDaysUntil(task.dueDate)}
-                          </span>
-
-                          {task.attachments > 0 && (
-                            <span className="text-xs text-gray-600 flex items-center gap-1">
-                              <Camera className="h-3 w-3" />
-                              {task.attachments}{" "}
-                              {task.attachments === 1 ? "dokaz" : "dokaza"}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 sm:flex-col">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 sm:flex-initial"
-                        onClick={() => handleOpenCamera(task.id)}
-                        leftIcon={<Camera className="h-4 w-4" />}
-                        aria-label={`${task.attachments > 0 ? "Dodaj još jedan dokaz" : "Snimi prvi dokaz"} za zadatak ${task.title}`}
-                      >
-                        {task.attachments > 0 ? "Dodaj dokaz" : "Uslikaj dokaz"}
-                      </Button>
-                      {task.status !== "done" &&
-                        task.status !== "submitted" && (
-                          <Button
-                            size="sm"
-                            variant="success"
-                            className="flex-1 sm:flex-initial"
-                            aria-label={`Označi zadatak ${task.title} kao urađen`}
-                            onClick={() => handleMarkComplete(task.id)}
-                          >
-                            Označi urađeno
-                          </Button>
-                        )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
+          </div>
+        </div>
+      ) : (
+        /* List View */
+        <div className="space-y-4">
+          {error && (
+            <Card className="border-red-300 bg-red-50">
+              <CardContent className="p-6">
+                <p className="text-red-600">{error instanceof Error ? error.message : "Došlo je do greške"}</p>
+              </CardContent>
+            </Card>
+          )}
+          
+          {filteredHomework.length === 0 ? (
+            <Card className="border-dashed border-2 bg-gray-50/50">
+              <CardContent className="p-12 text-center flex flex-col items-center justify-center">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                  <Search className="h-8 w-8 text-gray-300" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Nema zadataka</h3>
+                <p className="text-gray-500 mt-1 max-w-xs mx-auto">
+                  {searchQuery ? "Nismo našli ništa za tvoju pretragu." : "Trenutno nemaš domaćih zadataka. Uživaj u slobodnom vremenu! 🎉"}
+                </p>
+                <Button 
+                  className="mt-6"
+                  onClick={() => setShowAddModal(true)}
+                >
+                  Dodaj novi zadatak
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredHomework.map((task) => (
+              <HomeworkCard 
+                key={task.id} 
+                task={task} 
+                onComplete={() => handleMarkComplete(task.id)}
+                onCamera={() => handleOpenCamera(task.id)}
+              />
+            ))
+          )}
+        </div>
+      )}
 
       {/* Pagination */}
       {total > 20 && (
@@ -691,5 +564,236 @@ export default function DomaciPage() {
         onSubmit={handleAddHomework}
       />
     </div>
+  );
+}
+
+function HomeworkCard({ 
+  task, 
+  compact = false, 
+  isDone = false,
+  onComplete, 
+  onCamera 
+}: { 
+  task: any, 
+  compact?: boolean, 
+  isDone?: boolean,
+  onComplete: () => void, 
+  onCamera: () => void 
+}) {
+  const router = useRouter();
+  const isOverdue =
+    task.dueDate < new Date() &&
+    task.status !== "done" &&
+    task.status !== "submitted";
+  
+  const isUrgent = task.priority === "urgent";
+
+  const getDaysUntil = (date: Date) => {
+    const diff = Math.ceil(
+      (date.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    );
+    if (diff < 0) return "Rok prošao";
+    if (diff === 0) return "Danas";
+    if (diff === 1) return "Sutra";
+    return `Za ${diff} dana`;
+  };
+
+  if (compact) {
+    return (
+      <Card className={cn(
+        "group relative overflow-hidden transition-all hover:shadow-md border-l-4",
+        isDone ? "border-l-green-500 opacity-75 hover:opacity-100" :
+        isOverdue ? "border-l-red-500 bg-red-50/30" : 
+        isUrgent ? "border-l-red-500" : "border-l-blue-500"
+      )}>
+        <CardContent className="p-3">
+          <div className="flex justify-between items-start mb-2">
+            <Badge variant="outline" className="text-[10px] px-1.5 h-5" style={{ 
+              backgroundColor: task.color ? `${task.color}20` : '#eff6ff',
+              color: task.color || '#1d4ed8',
+              borderColor: task.color ? `${task.color}40` : '#dbeafe'
+            }}>
+              {task.subject || "Predmet"}
+            </Badge>
+            {!isDone && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2 text-gray-400">
+                    <MoreVertical className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onCamera}>
+                    <Camera className="h-3 w-3 mr-2" />
+                    Prilog
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onComplete}>
+                    <CheckCircle2 className="h-3 w-3 mr-2" />
+                    Završi
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+          
+          <h4 className={cn("font-bold text-sm mb-1 line-clamp-2", isDone && "line-through text-gray-500")}>
+            {task.title}
+          </h4>
+          
+          <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+            <span className={cn("flex items-center gap-1", isOverdue && !isDone && "text-red-600 font-bold")}>
+              <CalendarIcon className="h-3 w-3" />
+              {getDaysUntil(task.dueDate)}
+            </span>
+            {task.attachments > 0 && (
+              <span className="flex items-center gap-1">
+                <Camera className="h-3 w-3" />
+                {task.attachments}
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      className={cn(
+        "transition-all hover:shadow-md group relative overflow-hidden border-l-4",
+        isOverdue ? "border-l-red-500 bg-red-50/10" : 
+        isUrgent ? "border-l-red-500" : 
+        task.priority === "medium" ? "border-l-amber-500" : "border-l-blue-500"
+      )}
+    >
+      <CardContent className="p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-4 flex-1">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0"
+              style={{ backgroundColor: task.color || "#3b82f6" }}
+            >
+              <span className="text-lg font-bold">
+                {(task.subject || "P").charAt(0).toUpperCase()}
+              </span>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between mb-1">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                      {task.title}
+                    </h3>
+                    {task.isOffline && !task.synced && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                        <WifiOff className="h-3 w-3" />
+                        Offline
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                    {task.subject || "Predmet"}
+                    <span className="text-gray-300">•</span>
+                    <span className={cn("flex items-center gap-1", isOverdue ? "text-red-600 font-bold" : "")}>
+                      <CalendarIcon className="h-3 w-3" />
+                      {getDaysUntil(task.dueDate)}
+                    </span>
+                  </p>
+                </div>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 text-gray-400 hover:text-gray-600">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={onCamera}>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Dodaj prilog
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      if (task.subjectId) {
+                        router.push(`/dashboard/fokus?subjectId=${task.subjectId}`);
+                      } else {
+                        toast.error("Predmet nije definisan za ovaj zadatak");
+                      }
+                    }}>
+                      <Play className="h-4 w-4 mr-2" />
+                      Pokreni tajmer
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {task.description && (
+                <div className="mt-2 mb-3 text-sm text-gray-600 bg-gray-50/50 p-2 rounded-md border border-gray-100">
+                  <p className="line-clamp-2">{task.description}</p>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3 mt-3">
+                {/* Status Badge Logic duplicated for component isolation */}
+                {(() => {
+                  switch (task.status) {
+                    case "done":
+                    case "submitted":
+                      return <Badge variant="secondary" className="bg-green-100 text-green-700">Urađeno</Badge>;
+                    case "in_progress":
+                      return <Badge variant="secondary" className="bg-blue-100 text-blue-700">Radim</Badge>;
+                    default:
+                      return <Badge variant="secondary" className="bg-gray-100 text-gray-700">Novo</Badge>;
+                  }
+                })()}
+
+                {task.priority === "urgent" && (
+                  <Badge variant="outline" className="border-red-200 text-red-700 bg-red-50">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Hitno
+                  </Badge>
+                )}
+
+                {task.attachments > 0 && (
+                  <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
+                    <Camera className="h-3 w-3 mr-1" />
+                    {task.attachments}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-row sm:flex-col gap-2 mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0">
+            {task.status !== "done" && task.status !== "submitted" ? (
+              <>
+                <Button
+                  size="sm"
+                  className="flex-1 sm:w-32 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-sm"
+                  onClick={onComplete}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Završi
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:w-32"
+                  onClick={onCamera}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Uslikaj
+                </Button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full min-h-[80px] w-full sm:w-32 bg-green-50 rounded-lg border border-green-100">
+                <span className="text-2xl">🎉</span>
+                <span className="text-xs font-bold text-green-700 mt-1">Bravo!</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

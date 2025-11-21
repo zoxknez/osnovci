@@ -13,6 +13,23 @@ const connection = new Redis({
   port: parseInt(process.env['REDIS_PORT'] || '6379', 10),
   maxRetriesPerRequest: null, // Required for BullMQ
   enableReadyCheck: false,
+  // Prevent infinite retries in development to avoid log spam
+  retryStrategy: (times) => {
+    if (process.env.NODE_ENV === 'development' && times > 3) {
+      log.warn('Redis connection failed too many times - disabling BullMQ connection retries');
+      return null; // Stop retrying
+    }
+    return Math.min(times * 50, 2000);
+  },
+});
+
+// Handle connection errors to prevent crash/spam
+connection.on('error', (err) => {
+  // In development, suppress ECONNREFUSED after we've logged the warning
+  if (process.env.NODE_ENV === 'development' && (err as any).code === 'ECONNREFUSED') {
+    return;
+  }
+  log.error('Redis connection error', err);
 });
 
 // Queue options with retry strategy
@@ -111,13 +128,13 @@ export const createNotificationWorker = () => {
 
       try {
         try {
-          const { sendNotificationToUser } = await import('@/lib/notifications/push');
-          await sendNotificationToUser(
-            job.data.userId,
-            job.data.title,
-            job.data.body,
-            job.data.data
-          );
+          const { sendPushNotification } = await import('@/lib/notifications/push-server');
+          await sendPushNotification({
+            userId: job.data.userId,
+            title: job.data.title,
+            body: job.data.body,
+            data: job.data.data
+          });
         } catch (importError) {
           log.warn('Notification module not available, skipping notification', { error: importError });
           return { success: true, sentAt: new Date().toISOString(), skipped: true };

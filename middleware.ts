@@ -1,12 +1,55 @@
 // middleware.ts
-// Enhanced Security: Auth Check + CSP nonce injection + Security Headers
+// Enhanced Security: Auth Check + CSP nonce injection + Security Headers + Rate Limiting
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { buildCSP, generateNonce } from "@/lib/security/csp";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+// Initialize Redis for Rate Limiting (Edge-compatible)
+const redis =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    : null;
+
+// Global Rate Limiter: 100 requests per 10 seconds per IP
+const ratelimit = redis
+  ? new Ratelimit({
+      redis: redis,
+      limiter: Ratelimit.slidingWindow(100, "10 s"),
+      analytics: true,
+      prefix: "@upstash/ratelimit/middleware",
+    })
+  : null;
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const ip = request.ip ?? "127.0.0.1";
+
+  // 1. Rate Limiting (Skip for static assets)
+  if (
+    ratelimit &&
+    !pathname.startsWith("/_next") &&
+    !pathname.startsWith("/favicon.ico") &&
+    !pathname.startsWith("/icons")
+  ) {
+    const { success, limit, reset, remaining } = await ratelimit.limit(ip);
+    
+    if (!success) {
+      return new NextResponse("Too Many Requests", {
+        status: 429,
+        headers: {
+          "X-RateLimit-Limit": limit.toString(),
+          "X-RateLimit-Remaining": remaining.toString(),
+          "X-RateLimit-Reset": reset.toString(),
+        },
+      });
+    }
+  }
 
   // Define public pages that don't require authentication
   const publicPages = [
@@ -82,6 +125,6 @@ export async function middleware(request: NextRequest) {
 // Matcher — exclude Next.js static files
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

@@ -1,7 +1,6 @@
 // Ultra-modern Camera Component sa document scanning
 "use client";
 
-import imageCompression from "browser-image-compression";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Camera,
@@ -12,10 +11,12 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useCamera } from "@/hooks/use-camera";
+import { useImageProcessor } from "@/hooks/use-image-processor";
 
 interface CameraProps {
   onCapture: (file: File) => void;
@@ -30,90 +31,13 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
     autoFocus: true,
     restoreFocus: true,
   });
-  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  const { videoRef, stream, facingMode, flipCamera, stopCamera } = useCamera();
+  const { enhanceDocument, processAndCompressImage, isProcessing } = useImageProcessor();
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [facingMode, setFacingMode] = useState<"user" | "environment">(
-    "environment",
-  );
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  // AI Document enhancement (contrast + brightness)
-  const enhanceDocument = useCallback((imageData: ImageData): ImageData => {
-    const data = imageData.data;
-    const contrast = 1.2;
-    const brightness = 10;
-
-    for (let i = 0; i < data.length; i += 4) {
-      // Apply contrast (with nullish check for TypeScript strict mode)
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      if (r !== undefined) data[i] = (r - 128) * contrast + 128 + brightness;
-      if (g !== undefined) data[i + 1] = (g - 128) * contrast + 128 + brightness;
-      if (b !== undefined) data[i + 2] = (b - 128) * contrast + 128 + brightness;
-    }
-
-    return imageData;
-  }, []);
-
-  // Convert data URL to File
-  const dataURLtoFile = useCallback(
-    (dataUrl: string, filename: string): File => {
-      const arr = dataUrl.split(",");
-      const firstPart = arr[0];
-      const secondPart = arr[1];
-      
-      if (!firstPart || !secondPart) {
-        throw new Error('Invalid data URL');
-      }
-      
-      const mime = firstPart.match(/:(.*?);/)?.[1] || "image/jpeg";
-      const bstr = atob(secondPart);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-
-      return new File([u8arr], filename, { type: mime });
-    },
-    [],
-  );
-
-  // Start camera
-  const startCamera = useCallback(async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        setStream(mediaStream);
-      }
-    } catch (error) {
-      console.error("Camera error:", error);
-      toast.error("Ne mogu da pristupim kameri. Proveri dozvole u browser-u.");
-    }
-  }, [facingMode]);
-
-  // Stop camera
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach((track) => {
-        track.stop();
-      });
-      setStream(null);
-    }
-  }, [stream]);
 
   // Capture photo with AI enhancement
   const capturePhoto = useCallback(async () => {
@@ -148,52 +72,17 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
     if ("vibrate" in navigator) {
       navigator.vibrate(50);
     }
-  }, [enhanceDocument]);
+  }, [enhanceDocument, videoRef]);
 
   // Confirm and save with compression
   const handleConfirm = useCallback(async () => {
     if (!capturedImage) return;
 
-    setIsProcessing(true);
-
-    try {
-      // Convert to file
-      const file = dataURLtoFile(capturedImage, `dokaz-${Date.now()}.jpg`);
-
-      // Compress image for mobile optimization
-      const options = {
-        maxSizeMB: 1, // Max 1MB
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-        fileType: "image/jpeg",
-      };
-
-      const compressedFile = await imageCompression(file, options);
-
-      // Log compression results
-      const originalSizeKB = (file.size / 1024).toFixed(2);
-      const compressedSizeKB = (compressedFile.size / 1024).toFixed(2);
-      console.log(
-        `📸 Image compressed: ${originalSizeKB}KB → ${compressedSizeKB}KB (${((1 - compressedFile.size / file.size) * 100).toFixed(1)}% reduction)`,
-      );
-
+    const compressedFile = await processAndCompressImage(capturedImage);
+    if (compressedFile) {
       onCapture(compressedFile);
-      toast.success("Dokaz sačuvan! 📸", {
-        description: `Kompresovano: ${originalSizeKB}KB → ${compressedSizeKB}KB`,
-      });
-    } catch (error) {
-      console.error("Image compression error:", error);
-      toast.error("Greška pri čuvanju");
-    } finally {
-      setIsProcessing(false);
     }
-  }, [capturedImage, onCapture, dataURLtoFile]);
-
-  // Flip camera
-  const flipCamera = useCallback(() => {
-    stopCamera();
-    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
-  }, [stopCamera]);
+  }, [capturedImage, onCapture, processAndCompressImage]);
 
   // Retake photo
   const retakePhoto = useCallback(() => {
@@ -215,11 +104,6 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
     };
     input.click();
   }, [onCapture]);
-
-  useEffect(() => {
-    startCamera();
-    return () => stopCamera();
-  }, [startCamera, stopCamera]);
 
   return (
     <AnimatePresence>

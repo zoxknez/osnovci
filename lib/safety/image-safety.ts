@@ -172,12 +172,16 @@ export async function moderateImage(filePath: string): Promise<{
 
   // Fallback: Use basic safety checks (current implementation)
   // This works reliably without external dependencies
-  log.info("Using fallback image moderation (no AI API configured)", {
+  log.warn("Using fallback image moderation (no AI API configured) - Flagging for review", {
     filePath,
   });
 
+  // FAIL-SECURE: If AI is not configured, we cannot guarantee safety for children.
+  // We mark it as requiring review but technically "safe" enough to not block immediately 
+  // if basic checks passed, but with high alert.
+  
   return {
-    safe: true, // Basic checks passed in checkImageSafety()
+    safe: false, // Fail secure - treat as unsafe until reviewed if we can't verify
     adult: 0,
     violence: 0,
     racy: 0,

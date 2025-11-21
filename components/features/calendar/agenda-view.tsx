@@ -1,5 +1,6 @@
 "use client";
 
+import { getCalendarViewAction } from "@/app/actions/calendar";
 import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { sr } from "date-fns/locale";
@@ -37,16 +38,16 @@ export function AgendaView({ studentId, onEventClick }: AgendaViewProps) {
   const fetchAgendaView = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
+      const result = await getCalendarViewAction({
         studentId,
         view: "agenda",
       });
 
-      const response = await fetch(`/api/calendar?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch agenda view");
-
-      const result = await response.json();
-      setData(result);
+      if (result.success && result.data) {
+        setData(result.data as any);
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error("Agenda view error:", error);
     } finally {

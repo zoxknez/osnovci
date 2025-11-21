@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { log } from '@/lib/logger';
-import { checkDatabaseHealth } from '@/lib/database/connection-pool';
+import { checkDatabaseHealth, disconnectDatabase } from '@/lib/db/prisma';
 
 // Server instance ID (unique per container/process)
 export const SERVER_ID = process.env['SERVER_ID'] || `server-${Date.now()}`;
@@ -197,7 +197,6 @@ export async function initiateShutdown(signal: string): Promise<void> {
 
   // Close database connections
   try {
-    const { disconnectDatabase } = await import('@/lib/database/connection-pool');
     await disconnectDatabase();
   } catch (error) {
     log.error('Error closing database', error as Error);

@@ -101,7 +101,7 @@ export default async function RootLayout({
   const nonce = await getNonce();
 
   return (
-    <html lang="sr" data-scroll-behavior="smooth">
+    <html lang="sr" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link
           rel="icon"
@@ -112,7 +112,6 @@ export default async function RootLayout({
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><text y='60' font-size='120'>📚</text></svg>"
         />
         {/* Mobile Optimizations */}
-        <meta name="theme-color" content="#3b82f6" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

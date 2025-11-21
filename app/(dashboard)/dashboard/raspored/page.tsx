@@ -23,18 +23,24 @@ import {
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
-import { useSchedule } from "@/lib/hooks/use-react-query";
+import { useSchedule } from "@/hooks/use-schedule";
+import { useOfflineSchedule } from "@/hooks/use-offline-schedule";
+import { useSyncStore, useAuthStore } from "@/store";
+import { Wifi, WifiOff, Download } from "lucide-react";
+import { exportScheduleToPDF } from "@/lib/utils/schedule-pdf-export";
 
 interface ScheduleEntry {
   id: string;
   dayOfWeek: string;
   startTime: string;
   endTime: string;
-  subject: { id: string; name: string; color: string; icon: string | null };
-  classroom: string | null;
+  subject?: { id: string; name: string; color?: string; icon?: string | null } | null;
+  room: string | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+  customTitle?: string | null;
+  customColor?: string | null;
 }
 
 const DAYS = [
@@ -53,6 +59,23 @@ export default function RasporedPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedDayRef = useRef<HTMLButtonElement>(null);
 
+  // Offline support
+  const { offlineSchedule, cacheSchedule, hasOfflineSchedule } = useOfflineSchedule();
+  const { isOnline } = useSyncStore();
+  const { user } = useAuthStore();
+
+  const handleExportPDF = () => {
+    try {
+      const fileName = exportScheduleToPDF(schedule, user?.student?.name || "Učenik");
+      toast.success("PDF je generisan!", {
+        description: `Sačuvano kao ${fileName}`,
+      });
+    } catch (error) {
+      toast.error("Greška pri generisanju PDF-a");
+      console.error(error);
+    }
+  };
+
   // React Query hook - automatic caching and refetching
   const {
     data: scheduleData,
@@ -62,12 +85,28 @@ export default function RasporedPage() {
     limit: 100,
   });
 
-  // Show error toast if query fails
-  if (error) {
+  // Cache schedule when loaded online
+  useEffect(() => {
+    if (scheduleData?.data && Array.isArray(scheduleData.data)) {
+      cacheSchedule(scheduleData.data as any);
+    }
+  }, [scheduleData, cacheSchedule]);
+
+  // Determine which schedule to use
+  const schedule = useMemo(() => {
+    if (isOnline && scheduleData?.data) {
+      return scheduleData.data;
+    }
+    if (!isOnline && hasOfflineSchedule) {
+      return offlineSchedule;
+    }
+    return Array.isArray(scheduleData?.data) ? scheduleData.data : [];
+  }, [isOnline, scheduleData, offlineSchedule, hasOfflineSchedule]);
+
+  // Show error toast if query fails and no offline data
+  if (error && !hasOfflineSchedule) {
     toast.error("Greška pri učitavanju rasporeda");
   }
-
-  const schedule = Array.isArray(scheduleData?.data) ? scheduleData.data : [];
 
   // Get current week start
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday
@@ -87,6 +126,24 @@ export default function RasporedPage() {
   const isLessonActive = (lesson: ScheduleEntry) => {
     if (lesson.dayOfWeek !== currentDayKey) return false;
     return currentTime >= lesson.startTime && currentTime <= lesson.endTime;
+  };
+
+  // Calculate lesson progress
+  const getLessonProgress = (lesson: ScheduleEntry) => {
+    if (!isLessonActive(lesson)) return 0;
+    
+    const [startH, startM] = lesson.startTime.split(':').map(Number);
+    const [endH, endM] = lesson.endTime.split(':').map(Number);
+    const [nowH, nowM] = currentTime.split(':').map(Number);
+    
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const nowMinutes = nowH * 60 + nowM;
+    
+    const totalDuration = endMinutes - startMinutes;
+    const elapsed = nowMinutes - startMinutes;
+    
+    return Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
   };
 
   // Get lessons for selected day
@@ -118,7 +175,7 @@ export default function RasporedPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) {
+  if (loading && !hasOfflineSchedule) {
     return (
       <div className="max-w-7xl mx-auto space-y-6">
         <PageHeader
@@ -139,9 +196,46 @@ export default function RasporedPage() {
       {/* PageHeader - Hero sekcija */}
       <PageHeader
         title="📅 Raspored časova"
-        description="Pregled svih tvojih časova u nedelji. Organizuj se i nikad ne zakasni!"
+        description={
+          isOnline
+            ? "Pregled svih tvojih časova u nedelji. Organizuj se i nikad ne zakasni!"
+            : "Offline režim - prikazujem sačuvani raspored"
+        }
         variant="orange"
         badge="Aktuelno"
+        action={
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+                isOnline
+                  ? "bg-green-100 text-green-700"
+                  : "bg-amber-100 text-amber-700"
+              }`}
+            >
+              {isOnline ? (
+                <>
+                  <Wifi className="h-4 w-4" />
+                  <span className="hidden sm:inline">Online</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-4 w-4" />
+                  <span className="hidden sm:inline">Offline</span>
+                </>
+              )}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPDF}
+              className="hidden sm:flex"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+          </div>
+        }
       />
 
       {/* Header - Mobile optimized */}
@@ -378,31 +472,42 @@ export default function RasporedPage() {
                                   UŽIVO
                                 </motion.div>
                               )}
+                              
+                              {isActive && (
+                                <div className="mt-3 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                  <motion.div 
+                                    className="bg-green-500 h-full rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${getLessonProgress(lesson)}%` }}
+                                    transition={{ duration: 1 }}
+                                  />
+                                </div>
+                              )}
                             </div>
 
                             {/* Subject Card */}
                             <div
                               className="flex-1 p-4 rounded-lg"
                               style={{
-                                backgroundColor: `${lesson.subject.color}15`,
+                                backgroundColor: `${lesson.subject?.color || lesson.customColor || "#3b82f6"}15`,
                               }}
                             >
                               <div className="flex items-start justify-between gap-4">
                                 <div>
                                   <div className="flex items-center gap-2 mb-2">
-                                    {lesson.subject.icon && (
+                                    {lesson.subject?.icon && (
                                       <span className="text-2xl">
                                         {lesson.subject.icon}
                                       </span>
                                     )}
                                     <h3 className="text-xl font-bold text-gray-900">
-                                      {lesson.subject.name}
+                                      {lesson.subject?.name || lesson.customTitle || "Događaj"}
                                     </h3>
                                   </div>
                                   <div className="space-y-1 text-sm text-gray-600">
                                     <div className="flex items-center gap-2">
                                       <BookOpen className="h-4 w-4" />
-                                      {lesson.classroom ||
+                                      {lesson.room ||
                                         "Učionica nije određena"}
                                     </div>
                                     {lesson.notes && (
@@ -418,7 +523,7 @@ export default function RasporedPage() {
                                 <div
                                   className="text-center px-4 py-2 rounded-lg font-bold text-white"
                                   style={{
-                                    backgroundColor: lesson.subject.color,
+                                    backgroundColor: lesson.subject?.color || lesson.customColor || "#3b82f6",
                                   }}
                                 >
                                   <div className="text-xs">Čas</div>
@@ -476,18 +581,18 @@ export default function RasporedPage() {
                               ${isActive ? "ring-2 ring-green-500 shadow-lg" : ""}
                             `}
                             style={{
-                              backgroundColor: `${lesson.subject.color}10`,
+                              backgroundColor: `${lesson.subject?.color || lesson.customColor || "#3b82f6"}10`,
                             }}
                           >
                             <div className="flex items-center gap-3">
-                              {lesson.subject.icon && (
+                              {lesson.subject?.icon && (
                                 <span className="text-2xl">
                                   {lesson.subject.icon}
                                 </span>
                               )}
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-900">
-                                  {lesson.subject.name}
+                                  {lesson.subject?.name || lesson.customTitle || "Događaj"}
                                 </div>
                                 <div className="text-xs text-gray-600">
                                   {lesson.startTime} - {lesson.endTime}

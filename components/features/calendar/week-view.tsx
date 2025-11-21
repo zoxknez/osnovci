@@ -1,5 +1,6 @@
 "use client";
 
+import { getCalendarViewAction } from "@/app/actions/calendar";
 import { useEffect, useState } from "react";
 import { format, startOfWeek, addDays } from "date-fns";
 import { CalendarEvent } from "./calendar-event";
@@ -40,17 +41,17 @@ export function WeekView({ studentId, date, onEventClick }: WeekViewProps) {
   const fetchWeekView = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
+      const result = await getCalendarViewAction({
         studentId,
         view: "week",
         date: date.toISOString(),
       });
 
-      const response = await fetch(`/api/calendar?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch week view");
-
-      const result = await response.json();
-      setData(result);
+      if (result.success && result.data) {
+        setData(result.data as any);
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error("Week view error:", error);
     } finally {

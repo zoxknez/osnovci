@@ -11,6 +11,15 @@ export async function register() {
   // Only run on server-side (not in edge runtime)
   if (process.env["NEXT_RUNTIME"] === "nodejs") {
     await import("./sentry.server.config");
+
+    // Initialize BullMQ workers for background job processing
+    // This enables email sending, notifications, and report generation to run asynchronously
+    try {
+      const { initializeWorkers } = await import("@/lib/queue/bullmq-config");
+      initializeWorkers();
+    } catch (error) {
+      console.error("Failed to initialize background workers:", error);
+    }
   }
 
   // Edge runtime initialization

@@ -1,7 +1,7 @@
 // Service Worker - PWA Support
 // Modern, optimized Service Worker for offline functionality
 
-const CACHE_NAME = "osnovci-v4";
+const CACHE_NAME = "osnovci-v5";
 const urlsToCache = ["/", "/favicon.ico"];
 
 // Install event - cache resources
@@ -172,46 +172,44 @@ async function processPendingAction(action) {
     return { success: false, error: "Max retries exceeded" };
   }
 
-  let endpoint = "";
+  let endpoint = "/api/sync";
   let method = "POST";
   let body = null;
+  let headers = { "Content-Type": "application/json" };
 
-  switch (entity) {
-    case "homework":
-      endpoint = actionType === "delete" ? `/api/homework/${data.id}` : "/api/homework";
-      method = actionType === "delete" ? "DELETE" : actionType === "update" ? "PUT" : "POST";
-      body = JSON.stringify(data);
-      break;
-
-    case "attachment":
-      endpoint = "/api/upload";
-      method = "POST";
-      const formData = new FormData();
-      formData.append("file", data.file);
-      formData.append("homeworkId", data.homeworkId);
-      body = formData;
-      break;
-
-    case "note":
-      endpoint = `/api/homework/${data.homeworkId}`;
-      method = "PUT";
-      body = JSON.stringify({ notes: data.notes });
-      break;
-
-    default:
-      return { success: false, error: "Unknown entity type" };
+  if (entity === "attachment") {
+    endpoint = "/api/upload";
+    const formData = new FormData();
+    
+    if (data.file) {
+        formData.append("file", data.file);
+    } else if (data.blob) {
+        formData.append("file", data.blob, data.fileName || "upload.jpg");
+    }
+    
+    formData.append("homeworkId", data.homeworkId);
+    body = formData;
+    headers = {}; // Let browser set boundary
+  } else {
+    // For homework and notes, we send to /api/sync
+    body = JSON.stringify({
+      action: actionType,
+      entity: entity,
+      data: data
+    });
   }
 
   try {
     const response = await fetch(endpoint, {
       method,
-      headers: body instanceof FormData ? {} : { "Content-Type": "application/json" },
+      headers,
       body,
       credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const text = await response.text();
+      throw new Error(`API error: ${response.status} - ${text}`);
     }
 
     return { success: true };

@@ -29,7 +29,7 @@ export default function VerifyPendingPage() {
     try {
       await apiPost("/api/auth/verify-email", { email });
       setResendStatus("success");
-      setResendMessage("✅ Email je ponovo poslat! Provjeri svoju poštu.");
+      setResendMessage("✅ Email je ponovo poslat! Proveri svoju poštu.");
     } catch (_error) {
       // Obrada greške pri slanju
       setResendStatus("error");
@@ -56,7 +56,7 @@ export default function VerifyPendingPage() {
 
         {/* Title */}
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          📧 Provjeri svoj email!
+          📧 Proveri svoj email!
         </h1>
 
         {/* Email Display */}
@@ -73,7 +73,7 @@ export default function VerifyPendingPage() {
           <p className="text-sm text-gray-700">
             ✅ Klikni na link u email-u da verificiraš nalog.
             <br />✅ Link istekava za 24 sata.
-            <br />✅ Provjeri spam folder ako ne vidis email.
+            <br />✅ Proveri spam folder ako ne vidis email.
           </p>
         </div>
 

@@ -19,7 +19,7 @@ import { Star, Zap } from "lucide-react";
 import {
   getLevelProgress,
   getXPForNextLevel,
-} from "@/lib/gamification/xp-system-v2";
+} from "@/lib/gamification/xp-system";
 import { cn } from "@/lib/utils";
 
 interface LevelProgressBarProps {

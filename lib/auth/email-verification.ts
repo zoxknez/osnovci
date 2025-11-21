@@ -100,7 +100,7 @@ export async function verifyEmailToken(token: string) {
       throw new Error("Invalid verification token");
     }
 
-    // 3. Provjeri da li je istekao
+    // 3. Proveri da li je istekao
     if (verificationToken.expires < new Date()) {
       log.warn("Token expired", {
         email: verificationToken.email,
@@ -177,7 +177,7 @@ export async function resendVerificationEmail(email: string) {
       throw new Error("User not found");
     }
 
-    // 2. Provjeri da li je već verificiran
+    // 2. Proveri da li je već verificiran
     if (user.emailVerified) {
       log.warn("Email already verified", { email });
       throw new Error("Email already verified");
@@ -200,7 +200,7 @@ export async function resendVerificationEmail(email: string) {
 }
 
 /**
- * Provjeri je li email verificiran
+ * Proveri je li email verificiran
  */
 export async function isEmailVerified(userId: string): Promise<boolean> {
   try {

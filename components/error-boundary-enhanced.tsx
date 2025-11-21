@@ -14,6 +14,7 @@ import { Component, type ReactNode } from "react";
 import { captureError } from "@/lib/monitoring/sentry-utils";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Home, RefreshCw, Send } from "lucide-react";
+import { submitErrorFeedbackAction } from "@/app/actions/feedback";
 
 interface Props {
   children: ReactNode;
@@ -99,16 +100,12 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
     try {
       // Send feedback to server
-      await fetch("/api/error-feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          error: error?.message,
-          stack: error?.stack,
-          feedback,
-          url: window.location.href,
-          timestamp: new Date().toISOString(),
-        }),
+      await submitErrorFeedbackAction({
+        error: error?.message,
+        stack: error?.stack,
+        feedback,
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
       });
 
       this.setState({ feedbackSent: true });

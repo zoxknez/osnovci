@@ -8,6 +8,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { getHomeworkAction } from "@/app/actions/homework";
+import { getScheduleAction } from "@/app/actions/schedule";
+import { getGradesAction } from "@/app/actions/grades";
+import { getEventsAction } from "@/app/actions/events";
 import {
   initOfflineDB,
   cacheHomework,
@@ -153,31 +157,27 @@ export function useOfflineMode() {
 
     try {
       // Fetch and cache homework
-      const homeworkRes = await fetch("/api/homework");
-      if (homeworkRes.ok) {
-        const homework = await homeworkRes.json();
-        await cacheHomework(homework);
+      const homeworkRes = await getHomeworkAction({ page: 1, limit: 50, sortBy: "dueDate", order: "asc" });
+      if (homeworkRes.success && homeworkRes.data?.data) {
+        await cacheHomework(homeworkRes.data.data);
       }
 
       // Fetch and cache schedule
-      const scheduleRes = await fetch("/api/schedule");
-      if (scheduleRes.ok) {
-        const schedule = await scheduleRes.json();
-        await cacheSchedule(schedule);
+      const scheduleRes = await getScheduleAction();
+      if (scheduleRes.success && scheduleRes.data) {
+        await cacheSchedule(scheduleRes.data);
       }
 
       // Fetch and cache grades
-      const gradesRes = await fetch("/api/grades");
-      if (gradesRes.ok) {
-        const grades = await gradesRes.json();
-        await cacheGrades(grades);
+      const gradesRes = await getGradesAction();
+      if (gradesRes.success && gradesRes.data) {
+        await cacheGrades(gradesRes.data);
       }
 
       // Fetch and cache events
-      const eventsRes = await fetch("/api/events");
-      if (eventsRes.ok) {
-        const events = await eventsRes.json();
-        await cacheEvents(events);
+      const eventsRes = await getEventsAction();
+      if (eventsRes.success && eventsRes.events) {
+        await cacheEvents(eventsRes.events);
       }
 
       await updateStorageUsage();

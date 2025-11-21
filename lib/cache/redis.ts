@@ -202,6 +202,25 @@ export async function invalidateHomeworkCache(studentId: string) {
 }
 
 /**
+ * Generic homework list cache (for pagination/filtering)
+ */
+export async function getCachedHomeworkList(studentId: string, keySuffix: string) {
+  return cacheGet(`${CACHE_PREFIXES.HOMEWORK}${studentId}:${keySuffix}`);
+}
+
+export async function setCachedHomeworkList(
+  studentId: string,
+  keySuffix: string,
+  data: unknown
+) {
+  return cacheSet(
+    `${CACHE_PREFIXES.HOMEWORK}${studentId}:${keySuffix}`,
+    data,
+    CACHE_TTL.HOMEWORK
+  );
+}
+
+/**
  * Schedule cache (weekly view)
  */
 export async function getCachedSchedule(studentId: string) {

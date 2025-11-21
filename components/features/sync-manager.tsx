@@ -5,6 +5,7 @@ import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { offlineStorage } from "@/lib/db/offline-storage";
 import { useSyncStore } from "@/store";
+import { syncHomeworkAction } from "@/app/actions/homework";
 
 export function SyncManager() {
   const {
@@ -32,7 +33,17 @@ export function SyncManager() {
     };
   }, [setOnline]);
 
-  const processSyncItem = useCallback(async (item: Record<string, unknown>) => {
+  const processSyncItem = useCallback(async (item: any) => {
+    if (item.entity === "homework") {
+        const result = await syncHomeworkAction({
+            type: item.type,
+            data: item.data
+        });
+        if (result.error) throw new Error(result.error);
+        return result.data;
+    }
+
+    // Fallback for legacy API routes if needed
     const endpoint = `/api/${item["entity"]}/sync`;
 
     const response = await fetch(endpoint, {
@@ -81,9 +92,10 @@ export function SyncManager() {
               retries: item.retries + 1,
             });
           } else {
-            // Max retries reached, remove from queue
-            await offlineStorage.removeSyncItem(item.id);
-            toast.error(`Sinhronizacija nije uspela: ${item.entity}`);
+            // Max retries reached, BUT DO NOT DELETE DATA!
+            // Just notify user and leave it in queue for manual retry or later sync
+            // await offlineStorage.removeSyncItem(item.id); <--- PREVENT DATA LOSS
+            toast.error(`Sinhronizacija nije uspela: ${item.entity}. Pokušaćemo ponovo kasnije.`);
           }
         }
       }

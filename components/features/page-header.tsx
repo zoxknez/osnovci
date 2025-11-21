@@ -14,7 +14,7 @@ export interface PageHeaderProps {
   /** Optional decoration background variant */
   variant?: "blue" | "purple" | "green" | "orange" | "gradient" | "pink";
   /** Optional badge/tag */
-  badge?: string;
+  badge?: ReactNode;
 }
 
 const variantStyles = {
@@ -100,7 +100,7 @@ export function PageHeader({
                   <span className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${styles.dot}`} />
                   <span className="hidden sm:inline">{badge}</span>
                   <span className="inline sm:hidden text-xs">
-                    {badge?.slice(0, 8)}
+                    {typeof badge === 'string' ? badge.slice(0, 8) : badge}
                   </span>
                 </span>
               </div>

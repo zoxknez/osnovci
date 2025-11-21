@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { resetPeriodicXP } from '@/lib/gamification/xp-system-v2';
+import { resetPeriodicXP } from '@/lib/gamification/xp-system';
 import { log } from '@/lib/logger';
 
 // Security: Verify cron secret

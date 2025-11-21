@@ -7,7 +7,7 @@ export type Gender = z.infer<typeof Gender>;
 
 // Get profile schema
 export const GetProfileSchema = z.object({
-  studentId: z.string().uuid().optional(),
+  studentId: z.string().cuid().optional(),
 });
 
 export type GetProfileInput = z.infer<typeof GetProfileSchema>;
@@ -68,7 +68,7 @@ export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
 
 // Profile response schema
 export const ProfileResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   name: z.string(),
   email: z.string().email(),
   avatar: z.string().url().optional(),

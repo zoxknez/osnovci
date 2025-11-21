@@ -6,7 +6,7 @@
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { redirect } from "next/navigation";
-import { ParentalAnalytics } from "@/components/reports/parental-analytics";
+import dynamic from "next/dynamic";
 import {
   Select,
   SelectContent,
@@ -14,6 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const ParentalAnalytics = dynamic(
+  () => import("@/components/reports/parental-analytics").then((mod) => mod.ParentalAnalytics),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export const metadata = {
   title: "Roditeljski Dashboard - Osnovci",

@@ -2,7 +2,7 @@
  * Core XP System - NO external dependencies (no achievements.ts import)
  *
  * This module contains the foundational XP and leveling logic.
- * It is imported by both xp-system-v2.ts and achievements.ts to avoid circular dependencies.
+ * It is imported by both xp-system.ts and achievements.ts to avoid circular dependencies.
  */
 
 import { prisma } from "@/lib/db/prisma";
@@ -10,95 +10,82 @@ import { log } from "@/lib/logger";
 import { createNotification } from "@/lib/notifications/create";
 
 // ============================================
-// XP REWARDS (Enhanced)
+// XP REWARDS (Enhanced V3)
 // ============================================
 
 export const XP_REWARDS = {
-  // Base rewards
-  HOMEWORK_COMPLETED: 10,
-  HOMEWORK_EARLY: 15, // 3+ days before due date
-  HOMEWORK_VERY_EARLY: 25, // 7+ days before due date
+  // Base rewards (reduced from v2)
+  HOMEWORK_COMPLETED: 8,        // Was 10
+  HOMEWORK_EARLY: 12,           // Was 15
+  HOMEWORK_VERY_EARLY: 18,      // Was 25
 
-  // Time-based bonuses
-  WEEKEND_BONUS: 5, // Weekend completion
-  NIGHT_OWL_BONUS: 3, // Completed after 8 PM
-  MORNING_BONUS: 3, // Completed before 8 AM
+  // Time-based bonuses (reduced)
+  WEEKEND_BONUS: 3,             // Was 5
+  NIGHT_OWL_BONUS: 2,           // Was 3
+  MORNING_BONUS: 2,             // Was 3
 
-  // Quality bonuses
-  PERFECT_SCORE: 20, // No mistakes
-  FAST_COMPLETION: 10, // < 30 minutes
-  DETAILED_NOTES: 5, // Added detailed notes
+  // Quality bonuses (harder to get)
+  PERFECT_SCORE: 15,            // Was 20
+  FAST_COMPLETION: 5,           // Was 10
+  DETAILED_NOTES: 3,            // Was 5
 
-  // Streaks & consistency
-  STREAK_DAY: 5, // Each day in streak
-  STREAK_MULTIPLIER: 0.1, // 10% bonus per streak day (max 50%)
+  // Streaks (with diminishing returns)
+  STREAK_DAY: 3,                // Was 5
+  STREAK_MULTIPLIER: 0.05,      // Was 0.1 (5% instead of 10%)
+  STREAK_CAP: 10,               // Max 10 days streak bonus (50% max)
 
-  // Milestones
+  // Milestones (keep high for motivation)
   PERFECT_WEEK: 50,
   LEVEL_UP: 20,
-
-  // Social
-  HELPED_PEER: 15, // Helped another student
-
-  // Special
-  COMEBACK: 30, // Returned after 7+ days break
-};
+  
+  // Social & Special
+  HELPED_PEER: 15,
+  COMEBACK: 30,
+} as const;
 
 // ============================================
-// LEVEL THRESHOLDS (Refined progression curve)
+// ANTI-GAMING MEASURES
+// ============================================
+
+export const XP_LIMITS = {
+  MAX_DAILY_XP: 100,            // 100 XP per day max
+  MAX_WEEKLY_XP: 500,           // 500 XP per week max
+  MAX_HOMEWORK_PER_DAY: 10,     // Max 10 homework submissions per day
+  COOLDOWN_MINUTES: 5,          // 5 min cooldown between submissions
+} as const;
+
+// ============================================
+// LEVEL THRESHOLDS (Refined progression curve V3)
 // ============================================
 
 export const LEVEL_THRESHOLDS = [
-  0, // Level 1
-  50, // Level 2
-  150, // Level 3
-  300, // Level 4
-  500, // Level 5
-  750, // Level 6
-  1050, // Level 7
-  1400, // Level 8
-  1800, // Level 9
-  2300, // Level 10
-  2900, // Level 11
-  3600, // Level 12
-  4400, // Level 13
-  5300, // Level 14
-  6300, // Level 15
-  7400, // Level 16
-  8600, // Level 17
-  9900, // Level 18
-  11300, // Level 19
-  12800, // Level 20
-  14500, // Level 21
-  16300, // Level 22
-  18200, // Level 23
-  20200, // Level 24
-  22300, // Level 25
-  24500, // Level 26
-  26800, // Level 27
-  29200, // Level 28
-  31700, // Level 29
-  34300, // Level 30
-  37000, // Level 31
-  39800, // Level 32
-  42700, // Level 33
-  45700, // Level 34
-  48800, // Level 35
-  52000, // Level 36
-  55300, // Level 37
-  58700, // Level 38
-  62200, // Level 39
-  65800, // Level 40
-  69500, // Level 41
-  73300, // Level 42
-  77200, // Level 43
-  81200, // Level 44
-  85300, // Level 45
-  89500, // Level 46
-  93800, // Level 47
-  98200, // Level 48
-  102700, // Level 49
-  107300, // Level 50 (MAX)
+  0,      // Level 1
+  100,    // Level 2  (+50 from v2)
+  250,    // Level 3  (+100)
+  450,    // Level 4  (+150)
+  700,    // Level 5  (+200)
+  1000,   // Level 6  (+250)
+  1350,   // Level 7  (+300)
+  1750,   // Level 8  (+350)
+  2200,   // Level 9  (+400)
+  2700,   // Level 10 (+400)
+  3250,   // Level 11 (+350)
+  3850,   // Level 12 (+250)
+  4500,   // Level 13 (+100)
+  5200,   // Level 14 (-100)
+  5950,   // Level 15 (-350)
+  6750,   // Level 16 (-650)
+  7600,   // Level 17 (-1000)
+  8500,   // Level 18 (-1400)
+  9450,   // Level 19 (-1850)
+  10450,  // Level 20 (-2350)
+  // Levels 21-50 follow exponential curve
+  11550, 12750, 14050, 15450, 16950,  // 21-25
+  18550, 20250, 22050, 23950, 25950,  // 26-30
+  28050, 30250, 32550, 34950, 37450,  // 31-35
+  40050, 42750, 45550, 48450, 51450,  // 36-40
+  54550, 57750, 61050, 64450, 67950,  // 41-45
+  71550, 75250, 79050, 82950, 86950,  // 46-50
 ];
 
 // ============================================
@@ -127,62 +114,41 @@ export async function addXPCore(
   options?: {
     skipLevelUpNotification?: boolean;
     onLevelUp?: (newLevel: number, gamificationId: string) => Promise<void>;
+    tx?: any; // Prisma Transaction Client
   },
 ) {
   try {
+    const db = options?.tx || prisma;
+
     // Get or create gamification record
-    let gamif = await prisma.gamification.findUnique({
+    let gamif = await db.gamification.findUnique({
       where: { studentId },
     });
 
     if (!gamif) {
-      gamif = await prisma.gamification.create({
+      gamif = await db.gamification.create({
         data: { studentId },
       });
     }
 
     // Calculate bonus multipliers
-    let totalAmount = baseAmount;
-    const bonuses: string[] = [];
+    const { totalXP, bonuses, capped, capReason } = calculateXP({
+      baseAmount,
+      streak: gamif.streak,
+      isWeekend: metadata?.isWeekend ?? false,
+      isNight: metadata?.isNight ?? false,
+      isMorning: metadata?.isMorning ?? false,
+      isPerfect: metadata?.isPerfect ?? false,
+      isFast: metadata?.isFast ?? false,
+      hasDetailedNotes: metadata?.hasDetailedNotes ?? false,
+      currentDailyXP: 0, // TODO: Track daily XP in DB if needed, for now we rely on weekly cap
+      currentWeeklyXP: gamif.weeklyXP,
+    });
 
-    // Time-based bonuses
-    if (metadata?.isWeekend) {
-      totalAmount += XP_REWARDS.WEEKEND_BONUS;
-      bonuses.push("Weekend Warrior +5");
-    }
-    if (metadata?.isNight) {
-      totalAmount += XP_REWARDS.NIGHT_OWL_BONUS;
-      bonuses.push("Night Owl +3");
-    }
-    if (metadata?.isMorning) {
-      totalAmount += XP_REWARDS.MORNING_BONUS;
-      bonuses.push("Early Riser +3");
-    }
+    const totalAmount = totalXP;
 
-    // Quality bonuses
-    if (metadata?.isPerfect) {
-      totalAmount += XP_REWARDS.PERFECT_SCORE;
-      bonuses.push("Perfect! +20");
-    }
-    if (metadata?.isFast) {
-      totalAmount += XP_REWARDS.FAST_COMPLETION;
-      bonuses.push("Speed Demon +10");
-    }
-    if (metadata?.hasDetailedNotes) {
-      totalAmount += XP_REWARDS.DETAILED_NOTES;
-      bonuses.push("Detailed Notes +5");
-    }
-
-    // Streak multiplier (max 50% bonus)
-    if (metadata?.applyStreakMultiplier && gamif.streak > 0) {
-      const streakBonus = Math.min(
-        Math.floor(baseAmount * gamif.streak * XP_REWARDS.STREAK_MULTIPLIER),
-        Math.floor(baseAmount * 0.5),
-      );
-      if (streakBonus > 0) {
-        totalAmount += streakBonus;
-        bonuses.push(`Streak x${gamif.streak} +${streakBonus}`);
-      }
+    if (capped && capReason) {
+      bonuses.push(`(Capped: ${capReason})`);
     }
 
     const newXP = gamif.xp + totalAmount;
@@ -192,7 +158,7 @@ export async function addXPCore(
     const leveledUp = newLevel > gamif.level;
 
     // Update gamification
-    const updated = await prisma.gamification.update({
+    const updated = await db.gamification.update({
       where: { id: gamif.id },
       data: {
         xp: newXP,
@@ -218,7 +184,7 @@ export async function addXPCore(
     // Level up notification & rewards
     if (leveledUp) {
       const bonusXP = XP_REWARDS.LEVEL_UP;
-      await prisma.gamification.update({
+      await db.gamification.update({
         where: { id: gamif.id },
         data: {
           xp: newXP + bonusXP,
@@ -227,15 +193,17 @@ export async function addXPCore(
       });
 
       if (!options?.skipLevelUpNotification) {
-        const student = await prisma.student.findUnique({
+        const student = await db.student.findUnique({
           where: { id: studentId },
           include: { user: true },
         });
 
         if (student) {
+          // Note: Notifications might need to be outside transaction if they use external services
+          // But here we just create a record in DB usually
           await createNotification({
             userId: student.user.id,
-            type: "HOMEWORK_SUBMITTED",
+            type: "LEVEL_UP" as any, // Cast to any until types are regenerated
             title: `🎉 Level Up! Level ${newLevel}!`,
             message: `Čestitamo! Dostigao si Level ${newLevel}! +${bonusXP} XP bonus!`,
             data: { level: newLevel, xp: newXP, bonusXP },
@@ -243,7 +211,7 @@ export async function addXPCore(
 
           // Award streak freeze power-up every 5 levels
           if (newLevel % 5 === 0) {
-            await prisma.gamification.update({
+            await db.gamification.update({
               where: { id: gamif.id },
               data: {
                 streakFreezes: gamif.streakFreezes + 1,
@@ -315,4 +283,173 @@ export function getLevelProgress(currentXP: number): number {
   const requiredXP = nextLevelXP - currentLevelXP;
 
   return Math.floor((progressXP / requiredXP) * 100);
+}
+
+// ============================================
+// XP CALCULATION HELPERS
+// ============================================
+
+/**
+ * Calculate XP with all bonuses and caps applied
+ */
+export function calculateXP(params: {
+  baseAmount: number;
+  streak?: number;
+  isWeekend?: boolean;
+  isNight?: boolean;
+  isMorning?: boolean;
+  isPerfect?: boolean;
+  isFast?: boolean;
+  hasDetailedNotes?: boolean;
+  currentDailyXP?: number;
+  currentWeeklyXP?: number;
+}): {
+  totalXP: number;
+  bonuses: string[];
+  capped: boolean;
+  capReason?: string;
+} {
+  const {
+    baseAmount,
+    streak = 0,
+    isWeekend = false,
+    isNight = false,
+    isMorning = false,
+    isPerfect = false,
+    isFast = false,
+    hasDetailedNotes = false,
+    currentDailyXP = 0,
+    currentWeeklyXP = 0,
+  } = params;
+
+  let totalXP = baseAmount;
+  const bonuses: string[] = [];
+
+  // Time-based bonuses
+  if (isWeekend) {
+    totalXP += XP_REWARDS.WEEKEND_BONUS;
+    bonuses.push(`Weekend +${XP_REWARDS.WEEKEND_BONUS}`);
+  }
+  if (isNight) {
+    totalXP += XP_REWARDS.NIGHT_OWL_BONUS;
+    bonuses.push(`Night Owl +${XP_REWARDS.NIGHT_OWL_BONUS}`);
+  }
+  if (isMorning) {
+    totalXP += XP_REWARDS.MORNING_BONUS;
+    bonuses.push(`Early Bird +${XP_REWARDS.MORNING_BONUS}`);
+  }
+
+  // Quality bonuses
+  if (isPerfect) {
+    totalXP += XP_REWARDS.PERFECT_SCORE;
+    bonuses.push(`Perfect +${XP_REWARDS.PERFECT_SCORE}`);
+  }
+  if (isFast) {
+    totalXP += XP_REWARDS.FAST_COMPLETION;
+    bonuses.push(`Speed +${XP_REWARDS.FAST_COMPLETION}`);
+  }
+  if (hasDetailedNotes) {
+    totalXP += XP_REWARDS.DETAILED_NOTES;
+    bonuses.push(`Detailed +${XP_REWARDS.DETAILED_NOTES}`);
+  }
+
+  // Streak multiplier (capped at 10 days = 50% max bonus)
+  if (streak > 0) {
+    const effectiveStreak = Math.min(streak, XP_REWARDS.STREAK_CAP);
+    const streakBonus = Math.floor(
+      baseAmount * effectiveStreak * XP_REWARDS.STREAK_MULTIPLIER
+    );
+    
+    if (streakBonus > 0) {
+      totalXP += streakBonus;
+      bonuses.push(`Streak x${effectiveStreak} +${streakBonus}`);
+    }
+  }
+
+  // Apply caps
+  let capped = false;
+  let capReason: string | undefined;
+
+  // Daily cap
+  if (currentDailyXP + totalXP > XP_LIMITS.MAX_DAILY_XP) {
+    const remaining = Math.max(0, XP_LIMITS.MAX_DAILY_XP - currentDailyXP);
+    totalXP = remaining;
+    capped = true;
+    capReason = 'Daily XP limit reached';
+  }
+
+  // Weekly cap
+  if (currentWeeklyXP + totalXP > XP_LIMITS.MAX_WEEKLY_XP) {
+    const remaining = Math.max(0, XP_LIMITS.MAX_WEEKLY_XP - currentWeeklyXP);
+    totalXP = remaining;
+    capped = true;
+    capReason = 'Weekly XP limit reached';
+  }
+
+  return {
+    totalXP,
+    bonuses,
+    capped,
+    ...(capReason && { capReason }),
+  };
+}
+
+/**
+ * Validate homework submission (anti-gaming checks)
+ */
+export async function validateHomeworkSubmission(
+  studentId: string
+): Promise<{
+  allowed: boolean;
+  reason?: string;
+  cooldownRemaining?: number;
+}> {
+  // Check: Max homework COMPLETED per day
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const homeworkCompletedToday = await prisma.homework.count({
+    where: {
+      studentId,
+      completedAt: {
+        gte: today,
+      },
+    },
+  });
+
+  if (homeworkCompletedToday >= XP_LIMITS.MAX_HOMEWORK_PER_DAY) {
+    return {
+      allowed: false,
+      reason: `Dostigao si limit od ${XP_LIMITS.MAX_HOMEWORK_PER_DAY} završenih zadataka dnevno`,
+    };
+  }
+
+  // Check: Cooldown between submissions (completions)
+  const lastCompletedHomework = await prisma.homework.findFirst({
+    where: {
+      studentId,
+      completedAt: { not: null },
+    },
+    orderBy: { completedAt: "desc" },
+    select: { completedAt: true },
+  });
+
+  if (lastCompletedHomework && lastCompletedHomework.completedAt) {
+    const cooldownMs = XP_LIMITS.COOLDOWN_MINUTES * 60 * 1000;
+    const timeSinceLastMs =
+      Date.now() - lastCompletedHomework.completedAt.getTime();
+
+    if (timeSinceLastMs < cooldownMs) {
+      const remainingMs = cooldownMs - timeSinceLastMs;
+      const remainingMin = Math.ceil(remainingMs / 60000);
+
+      return {
+        allowed: false,
+        reason: `Sačekaj ${remainingMin} minuta pre sledećeg zadatka`,
+        cooldownRemaining: remainingMs,
+      };
+    }
+  }
+
+  return { allowed: true };
 }

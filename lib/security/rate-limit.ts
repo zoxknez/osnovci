@@ -137,7 +137,7 @@ export async function rateLimit(
     }
 
     // Add current request
-    const requestId = `${now}:${Math.random()}`;
+    const requestId = `${now}:${crypto.randomUUID()}`;
     await redis.zadd(key, { score: now, member: requestId });
 
     // Set expiry on the key (cleanup)

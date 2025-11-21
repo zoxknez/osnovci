@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { AchievementBadge } from "./AchievementBadge";
 import { LevelProgressBar } from "./LevelProgressBar";
 import { StreakDisplay } from "./StreakDisplay";
+import { getGamificationAction, updateGamificationSettingsAction } from "@/app/actions/gamification";
 
 interface GamificationData {
   level: number;
@@ -77,10 +78,11 @@ export function GamificationDashboard({
   const loadGamificationData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/gamification/student/${studentId}`);
-      if (response.ok) {
-        const result = await response.json();
-        setData(result);
+      const result = await getGamificationAction(studentId);
+      if (result.success && result.data) {
+        setData(result.data);
+      } else {
+        console.error("Failed to load gamification data:", result.error);
       }
     } catch (error) {
       console.error("Failed to load gamification data:", error);
@@ -97,20 +99,13 @@ export function GamificationDashboard({
 
   const toggleLeaderboardVisibility = async () => {
     try {
-      const response = await fetch(
-        `/api/gamification/student/${studentId}/settings`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            showOnLeaderboard: !data?.showOnLeaderboard,
-          }),
-        },
-      );
+      const result = await updateGamificationSettingsAction(studentId, {
+        showOnLeaderboard: !data?.showOnLeaderboard,
+      });
 
-      if (response.ok) {
+      if (result.success && result.data) {
         setData((prev) =>
-          prev ? { ...prev, showOnLeaderboard: !prev.showOnLeaderboard } : null,
+          prev ? { ...prev, showOnLeaderboard: result.data.showOnLeaderboard } : null,
         );
       }
     } catch (error) {

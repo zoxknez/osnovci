@@ -5,6 +5,7 @@
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -29,7 +30,7 @@ export function CsrfProvider({ children }: { children: ReactNode }) {
   const [secret, setSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchToken = async () => {
+  const fetchToken = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch("/api/csrf");
@@ -50,7 +51,7 @@ export function CsrfProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchToken();

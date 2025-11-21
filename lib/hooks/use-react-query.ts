@@ -102,6 +102,16 @@ function customRetry(failureCount: number, error: any): boolean {
   return false;
 }
 
+import { 
+  getHomeworkAction, 
+  getHomeworkByIdAction, 
+  createHomeworkAction, 
+  updateHomeworkAction, 
+  deleteHomeworkAction 
+} from "@/app/actions/homework";
+
+// ...
+
 /**
  * useHomework - Fetch all homework with pagination
  */
@@ -123,19 +133,19 @@ export function useHomework(params?: {
   order?: string;
   status?: string;
 }) {
-  const searchParams = new URLSearchParams();
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
-  if (params?.order) searchParams.append("order", params.order);
-  if (params?.status) searchParams.append("status", params.status);
-
-  const queryString = searchParams.toString();
-  const url = queryString ? `/api/homework?${queryString}` : "/api/homework";
-
+  // ... (keep params logic if needed for query key, but action takes object)
+  
   return useQuery({
     queryKey: [...queryKeys.homework, params],
-    queryFn: () => fetchApi<HomeworkResponse>(url),
+    queryFn: async () => {
+        const result = await getHomeworkAction(params as any);
+        if (result.error) throw new Error(result.error);
+        // Result data structure matches HomeworkResponse (data, pagination)
+        // But getHomeworkAction returns { success: true, data: { data: ..., pagination: ... } }
+        // So result.data is { data: ..., pagination: ... }
+        // We need to return { success: true, ...result.data } to match HomeworkResponse interface
+        return { success: true, ...result.data } as HomeworkResponse;
+    },
     retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 5, // 5 min
     gcTime: 1000 * 60 * 15, // Keep in cache for 15 minutes
@@ -150,7 +160,11 @@ export function useHomework(params?: {
 export function useHomeworkById(id: string) {
   return useQuery({
     queryKey: queryKeys.homeworkById(id),
-    queryFn: () => fetchApi<Homework>(`/api/homework/${id}`),
+    queryFn: async () => {
+        const result = await getHomeworkByIdAction(id);
+        if (result.error) throw new Error(result.error);
+        return result.data as Homework;
+    },
     enabled: !!id, // Only run if ID exists
     staleTime: 1000 * 60 * 5,
   });
@@ -163,11 +177,11 @@ export function useCreateHomework() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Homework>) =>
-      fetchApi<Homework>("/api/homework", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+    mutationFn: async (data: Partial<Homework>) => {
+        const result = await createHomeworkAction(data as any);
+        if (result.error) throw new Error(result.error);
+        return result.data as Homework;
+    },
     onSuccess: () => {
       // Invalidate homework list to refetch
       queryClient.invalidateQueries({ queryKey: queryKeys.homework });
@@ -182,11 +196,11 @@ export function useUpdateHomework(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Homework>) =>
-      fetchApi<Homework>(`/api/homework/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      }),
+    mutationFn: async (data: Partial<Homework>) => {
+        const result = await updateHomeworkAction(id, data as any);
+        if (result.error) throw new Error(result.error);
+        return result.data as Homework;
+    },
     onSuccess: () => {
       // Invalidate specific homework and list
       queryClient.invalidateQueries({ queryKey: queryKeys.homeworkById(id) });
@@ -202,15 +216,25 @@ export function useDeleteHomework() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      fetchApi(`/api/homework/${id}`, {
-        method: "DELETE",
-      }),
+    mutationFn: async (id: string) => {
+        const result = await deleteHomeworkAction(id);
+        if (result.error) throw new Error(result.error);
+        return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.homework });
     },
   });
 }
+
+import { 
+  getGradesAction, 
+  createGradeAction, 
+  updateGradeAction, 
+  deleteGradeAction 
+} from "@/app/actions/grades";
+
+// ...
 
 /**
  * useGrades - Fetch all grades with stats
@@ -240,21 +264,19 @@ export function useGrades(params?: {
   category?: string;
   period?: string;
 }) {
-  const searchParams = new URLSearchParams();
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
-  if (params?.order) searchParams.append("order", params.order);
-  if (params?.subjectId) searchParams.append("subjectId", params.subjectId);
-  if (params?.category) searchParams.append("category", params.category);
-  if (params?.period) searchParams.append("period", params.period);
-
-  const queryString = searchParams.toString();
-  const url = queryString ? `/api/grades?${queryString}` : "/api/grades";
-
+  // ... (keep params logic if needed for query key)
+  
   return useQuery({
     queryKey: [...queryKeys.grades, params],
-    queryFn: () => fetchApi<GradesResponse>(url),
+    queryFn: async () => {
+        const result = await getGradesAction(params as any);
+        if (result.error) throw new Error(result.error);
+        // Result data structure matches GradesResponse (data, stats, pagination)
+        // But getGradesAction returns { success: true, data: { data: ..., stats: ..., pagination: ... } }
+        // So result.data is { data: ..., stats: ..., pagination: ... }
+        // We need to return { success: true, ...result.data } to match GradesResponse interface
+        return { success: true, ...result.data } as GradesResponse;
+    },
     retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 10, // 10 min (grades change less frequently)
     gcTime: 1000 * 60 * 30, // Cache for 30 minutes (was cacheTime)
@@ -269,10 +291,30 @@ export function useGrades(params?: {
 export function useSubjects() {
   return useQuery({
     queryKey: queryKeys.subjects,
-    queryFn: () => fetchApi<Subject[]>("/api/subjects"),
+    queryFn: async () => {
+      const result = await getSubjectsAction();
+      if (result.error) throw new Error(result.error);
+      return result.data as Subject[];
+    },
     staleTime: 1000 * 60 * 30, // 30 min (subjects rarely change)
   });
 }
+
+import { 
+  getScheduleAction, 
+  createScheduleAction, 
+  updateScheduleAction, 
+  deleteScheduleAction 
+} from "@/app/actions/schedule";
+
+import { getSubjectsAction } from "@/app/actions/subjects";
+
+import { 
+  getNotificationsAction, 
+  markNotificationsAsReadAction 
+} from "@/app/actions/notifications";
+
+// ...
 
 /**
  * useSchedule - Fetch schedule
@@ -301,19 +343,26 @@ interface ScheduleResponse {
 }
 
 export function useSchedule(params?: { dayOfWeek?: string; limit?: number }) {
-  const searchParams = new URLSearchParams();
-  if (params?.dayOfWeek) searchParams.append("dayOfWeek", params.dayOfWeek);
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-
-  const queryString = searchParams.toString();
-  const url = queryString ? `/api/schedule?${queryString}` : "/api/schedule";
+  // ... (keep params logic if needed for query key)
 
   return useQuery({
     queryKey: [...queryKeys.schedule, params],
-    queryFn: () => fetchApi<ScheduleResponse>(url),
+    queryFn: async () => {
+        const result = await getScheduleAction(params as any);
+        if (result.error) throw new Error(result.error);
+        // Result data structure matches ScheduleResponse (data, pagination)
+        // But getScheduleAction returns { success: true, data: { data: ..., pagination: ... } }
+        // So result.data is { data: ..., pagination: ... }
+        // We need to return { success: true, ...result.data } to match ScheduleResponse interface
+        return { success: true, ...result.data } as ScheduleResponse;
+    },
     staleTime: 1000 * 60 * 30, // 30 min
   });
 }
+
+import { getProfileAction } from "@/app/actions/profile";
+
+// ...
 
 /**
  * useProfile - Fetch user profile
@@ -336,7 +385,27 @@ interface ProfileResponse {
 export function useProfile() {
   return useQuery({
     queryKey: queryKeys.profile,
-    queryFn: () => fetchApi<ProfileResponse>("/api/profile"),
+    queryFn: async () => {
+      const result = await getProfileAction();
+      if (result.error) throw new Error(result.error);
+      // Return data in the structure expected by consumers of this hook
+      // or just return result.data if consumers are flexible.
+      // Since I don't see usages of this specific hook, I'll return result.data
+      // but cast it or wrap it to match ProfileResponse if needed.
+      // Actually, result.data is { profile: ..., stats: ... }
+      // ProfileResponse expects { success: boolean, profile: ..., stats: ... }
+      // But usually useQuery data is just the data payload.
+      // The fetchApi implementation returns res.json().
+      // If the API returned { success: true, profile: ..., stats: ... }
+      // Then data would be that object.
+      
+      // I'll construct the object to be safe.
+      return {
+        success: true,
+        profile: result.data?.profile,
+        stats: result.data?.stats
+      } as unknown as ProfileResponse;
+    },
     retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 10, // 10 min
   });
@@ -348,7 +417,11 @@ export function useProfile() {
 export function useNotifications() {
   return useQuery({
     queryKey: queryKeys.notifications,
-    queryFn: () => fetchApi("/api/notifications"),
+    queryFn: async () => {
+      const result = await getNotificationsAction();
+      if (result.error) throw new Error(result.error);
+      return result.data;
+    },
     staleTime: 1000 * 60 * 1, // 1 min (fresh notifications)
     refetchInterval: 1000 * 60 * 1, // Refetch every minute
   });
@@ -361,10 +434,11 @@ export function useMarkNotificationAsRead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      fetchApi(`/api/notifications/${id}/read`, {
-        method: "PATCH",
-      }),
+    mutationFn: async (id: string) => {
+      const result = await markNotificationsAsReadAction([id]);
+      if (result.error) throw new Error(result.error);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
     },

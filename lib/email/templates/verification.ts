@@ -46,7 +46,7 @@ Trebam da potvrdiš svoj email adresu. Klikni na link ispod:
 
 ${verificationUrl}
 
-Ili kopiraj i zalijepi URL iznad u pretraživač.
+Ili kopiraj i zalepi URL iznad u pretraživač.
 
 VAŽNO: Ovaj link je validan samo 24 sata.
 

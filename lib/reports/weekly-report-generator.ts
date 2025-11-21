@@ -65,48 +65,48 @@ export async function generateWeeklyReport(
 
     log.info("Generating weekly report", { studentId, weekStart, weekEnd });
 
-    // Fetch student
+    // Fetch all data in a single optimized query
     const student = await prisma.student.findUnique({
       where: { id: studentId },
+      include: {
+        gamification: {
+          include: {
+            achievements: {
+              where: {
+                unlockedAt: {
+                  gte: weekStart,
+                  lte: weekEnd,
+                },
+              },
+            },
+          },
+        },
+        homework: {
+          where: {
+            dueDate: {
+              gte: weekStart,
+              lte: weekEnd,
+            },
+          },
+          include: {
+            subject: true,
+          },
+        },
+      },
     });
 
     if (!student) {
       throw new Error(`Student not found: ${studentId}`);
     }
 
-    // Fetch gamification
-    const gamif = await prisma.gamification.findUnique({
-      where: { studentId },
-      include: {
-        achievements: {
-          where: {
-            unlockedAt: {
-              gte: weekStart,
-              lte: weekEnd,
-            },
-          },
-        },
-      },
-    });
+    const gamif = student.gamification;
+    const homework = student.homework;
 
-    // Get previous week gamification for comparison
+    // Get previous week gamification for comparison (still needs separate query as it's historical data)
+    // Optimization: We could store history in a separate table to avoid this, but for now it's one extra query
     const prevGamif = await prisma.gamification.findUnique({
       where: { studentId },
       select: { weeklyXP: true },
-    });
-
-    // Fetch homework for this week
-    const homework = await prisma.homework.findMany({
-      where: {
-        studentId,
-        dueDate: {
-          gte: weekStart,
-          lte: weekEnd,
-        },
-      },
-      include: {
-        subject: true,
-      },
     });
 
     // Calculate homework stats
@@ -238,6 +238,8 @@ function generateRecommendations(data: {
   return recommendations;
 }
 
+import { executeBatch } from "@/lib/db/prisma";
+
 /**
  * Generate weekly reports for all active students
  */
@@ -255,7 +257,8 @@ export async function generateAllWeeklyReports(): Promise<
       select: { id: true },
     });
 
-    const reports = await Promise.all(
+    // Use executeBatch to process in chunks and prevent DB overload
+    const reports = await executeBatch(
       students.map(async (student) => {
         try {
           const report = await generateWeeklyReport(student.id);
@@ -267,6 +270,7 @@ export async function generateAllWeeklyReports(): Promise<
           return null;
         }
       }),
+      10 // Process 10 students at a time
     );
 
     const successful = reports.filter((r) => r !== null) as Array<{

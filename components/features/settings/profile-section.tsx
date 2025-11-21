@@ -14,6 +14,7 @@ interface ProfileSectionProps {
   onAvatarUpload: () => Promise<void>;
   onFieldChange: (field: keyof ProfileSettings, value: string) => Promise<void>;
   onFieldInput: (field: keyof ProfileSettings, value: string) => void;
+  isOffline?: boolean;
 }
 
 export function ProfileSection({
@@ -22,6 +23,7 @@ export function ProfileSection({
   onAvatarUpload,
   onFieldChange,
   onFieldInput,
+  isOffline = false,
 }: ProfileSectionProps) {
   const studentLabel = useMemo(
     () => `Učenik, ${profile.class}`,
@@ -49,7 +51,7 @@ export function ProfileSection({
               </motion.div>
               <motion.button
                 onClick={onAvatarUpload}
-                disabled={isSavingAvatar}
+                disabled={isSavingAvatar || isOffline}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 className="absolute bottom-0 right-0 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
@@ -78,9 +80,10 @@ export function ProfileSection({
               <p className="text-sm text-gray-600">{studentLabel}</p>
               <motion.button
                 onClick={onAvatarUpload}
+                disabled={isOffline}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="mt-2 px-4 py-1.5 text-sm border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all touch-manipulation"
+                className="mt-2 px-4 py-1.5 text-sm border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSavingAvatar ? "Uploading..." : "Promeni sliku"}
               </motion.button>
@@ -95,6 +98,7 @@ export function ProfileSection({
               value={profile.email}
               onChange={(value) => onFieldInput("email", value)}
               onBlur={(value) => onFieldChange("email", value)}
+              disabled={isOffline}
             />
             <AutoSaveInput
               label="Telefon"
@@ -103,6 +107,7 @@ export function ProfileSection({
               value={profile.phone}
               onChange={(value) => onFieldInput("phone", value)}
               onBlur={(value) => onFieldChange("phone", value)}
+              disabled={isOffline}
             />
             <AutoSaveInput
               label="Škola"
@@ -110,12 +115,14 @@ export function ProfileSection({
               value={profile.school}
               onChange={(value) => onFieldInput("school", value)}
               onBlur={(value) => onFieldChange("school", value)}
+              disabled={isOffline}
             />
             <AutoSaveInput
               label="Razred"
               value={profile.class}
               onChange={(value) => onFieldInput("class", value)}
               onBlur={(value) => onFieldChange("class", value)}
+              disabled={isOffline}
             />
           </div>
         </CardContent>
@@ -131,6 +138,7 @@ interface AutoSaveInputProps {
   onBlur: (value: string) => Promise<void>;
   type?: string;
   icon?: React.ReactNode;
+  disabled?: boolean;
 }
 
 function AutoSaveInput({
@@ -140,6 +148,7 @@ function AutoSaveInput({
   onBlur,
   type = "text",
   icon,
+  disabled = false,
 }: AutoSaveInputProps) {
   const inputId = useId();
   return (
@@ -164,6 +173,7 @@ function AutoSaveInput({
           onChange={(event) => onChange(event.target.value)}
           onBlur={(event) => void onBlur(event.target.value)}
           className={icon ? "pl-10" : undefined}
+          disabled={disabled}
         />
       </div>
     </div>

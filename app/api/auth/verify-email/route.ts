@@ -21,6 +21,7 @@ import {
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 import { emailSchema } from "@/lib/security/validators";
+import { rateLimit, RateLimitPresets } from "@/lib/security/rate-limit";
 
 /**
  * GET /api/auth/verify-email?token=XXX
@@ -29,7 +30,7 @@ import { emailSchema } from "@/lib/security/validators";
  */
 export async function GET(request: NextRequest) {
   try {
-    // 1. Provjeri token
+    // 1. Proveri token
     const token = request.nextUrl.searchParams.get("token");
 
     if (!token) {
@@ -77,6 +78,23 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate Limiting
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.strict,
+      prefix: "verify-email-resend",
+    });
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Too Many Requests",
+          message: "Previše zahteva. Pokušaj ponovo za par minuta.",
+        },
+        { status: 429 },
+      );
+    }
+
     // CSRF Protection
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
