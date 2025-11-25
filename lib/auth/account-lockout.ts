@@ -1,10 +1,12 @@
 // Account Lockout - Prevent brute-force attacks
 // Uses Redis for persistent storage (production-ready)
+// Enhanced with exponential backoff and progressive lockouts
 import { log } from "@/lib/logger";
 import { isRedisConfigured, redis } from "@/lib/upstash";
 
 const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MINUTES = 30;
+const BASE_LOCKOUT_MINUTES = 5; // Starting lockout duration
+const MAX_LOCKOUT_MINUTES = 1440; // Maximum 24 hours
 
 interface LoginAttempt {
   email: string;
@@ -12,11 +14,24 @@ interface LoginAttempt {
   ip?: string;
 }
 
+interface LockoutInfo {
+  count: number;
+  lockedUntil?: Date;
+  lockoutCount: number; // Number of times account has been locked
+}
+
 // Fallback in-memory store for development (when Redis not configured)
-const fallbackAttempts = new Map<
-  string,
-  { count: number; lockedUntil?: Date }
->();
+const fallbackAttempts = new Map<string, LockoutInfo>();
+
+/**
+ * Calculate lockout duration with exponential backoff
+ * 1st lockout: 5 min, 2nd: 15 min, 3rd: 45 min, 4th: 135 min, etc.
+ * Capped at 24 hours (1440 minutes)
+ */
+function calculateLockoutDuration(lockoutCount: number): number {
+  const duration = BASE_LOCKOUT_MINUTES * Math.pow(3, lockoutCount);
+  return Math.min(duration, MAX_LOCKOUT_MINUTES);
+}
 
 /**
  * Get Redis key for email
@@ -27,17 +42,23 @@ function getRedisKey(email: string, suffix = "count"): string {
 
 /**
  * Record a login attempt (Redis-based with fallback)
+ * Enhanced with progressive lockouts using exponential backoff
  */
 export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
   const key = email.toLowerCase();
 
   if (success) {
-    // Clear failed attempts on successful login
+    // Clear failed attempts on successful login (but keep lockout history for progressive penalties)
     if (redis) {
       await redis.del(getRedisKey(key));
       await redis.del(getRedisKey(key, "locked"));
+      // Note: we don't delete lockoutCount to maintain history for progressive lockouts
     } else {
-      fallbackAttempts.delete(key);
+      const current = fallbackAttempts.get(key);
+      if (current) {
+        // Keep lockoutCount but reset other fields
+        fallbackAttempts.set(key, { count: 0, lockoutCount: current.lockoutCount });
+      }
     }
 
     log.info("Login successful - cleared failed attempts", { email });
@@ -48,40 +69,50 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
   if (redis) {
     // Redis implementation (persistent)
     const count = await redis.incr(getRedisKey(key));
+    const lockoutCount = (await redis.get<number>(getRedisKey(key, "lockoutCount"))) || 0;
 
-    // Set expiration on first failure (auto-cleanup)
+    // Set expiration on first failure (auto-cleanup after 24h)
     if (count === 1) {
-      await redis.expire(getRedisKey(key), LOCKOUT_DURATION_MINUTES * 60);
+      await redis.expire(getRedisKey(key), 24 * 60 * 60);
     }
 
     log.warn("Failed login attempt", {
       email,
       attemptCount: count,
+      previousLockouts: lockoutCount,
       ip,
     });
 
     // Lock account if threshold exceeded
     if (count >= MAX_FAILED_ATTEMPTS) {
-      const lockedUntil = new Date(
-        Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000,
-      );
+      const lockoutDuration = calculateLockoutDuration(lockoutCount);
+      const lockedUntil = new Date(Date.now() + lockoutDuration * 60 * 1000);
+      
+      // Increment lockout count for next time
+      const newLockoutCount = lockoutCount + 1;
+      await redis.set(getRedisKey(key, "lockoutCount"), newLockoutCount, { 
+        ex: 7 * 24 * 60 * 60 // Keep lockout history for 7 days
+      });
 
       await redis.set(
         getRedisKey(key, "locked"),
-        lockedUntil.getTime().toString(),
-        { ex: LOCKOUT_DURATION_MINUTES * 60 },
+        JSON.stringify({ timestamp: lockedUntil.getTime(), lockoutCount: newLockoutCount }),
+        { ex: lockoutDuration * 60 },
       );
 
       log.warn("Account locked due to too many failed attempts", {
         email,
         lockedUntil,
         attemptCount: count,
+        lockoutNumber: newLockoutCount,
+        lockoutDurationMinutes: lockoutDuration,
       });
 
       return {
         locked: true,
         lockedUntil,
-        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${LOCKOUT_DURATION_MINUTES} minuta.`,
+        lockoutNumber: newLockoutCount,
+        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${lockoutDuration} minuta.${newLockoutCount > 1 ? ` Ovo je ${newLockoutCount}. zaključavanje.` : ''}`,
       };
     }
 
@@ -91,26 +122,30 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
     };
   } else {
     // Fallback in-memory implementation (development only)
-    const current = fallbackAttempts.get(key) || { count: 0 };
+    const current = fallbackAttempts.get(key) || { count: 0, lockoutCount: 0 };
     current.count += 1;
 
     log.warn("Failed login attempt (in-memory fallback)", {
       email,
       attemptCount: current.count,
+      previousLockouts: current.lockoutCount,
       ip,
     });
 
     // Lock account if threshold exceeded
     if (current.count >= MAX_FAILED_ATTEMPTS) {
-      const lockedUntil = new Date(
-        Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000,
-      );
+      const lockoutDuration = calculateLockoutDuration(current.lockoutCount);
+      const lockedUntil = new Date(Date.now() + lockoutDuration * 60 * 1000);
+      
       current.lockedUntil = lockedUntil;
+      current.lockoutCount += 1;
 
       log.warn("Account locked (in-memory fallback)", {
         email,
         lockedUntil,
         attemptCount: current.count,
+        lockoutNumber: current.lockoutCount,
+        lockoutDurationMinutes: lockoutDuration,
       });
 
       fallbackAttempts.set(key, current);
@@ -118,7 +153,8 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
       return {
         locked: true,
         lockedUntil,
-        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${LOCKOUT_DURATION_MINUTES} minuta.`,
+        lockoutNumber: current.lockoutCount,
+        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${lockoutDuration} minuta.${current.lockoutCount > 1 ? ` Ovo je ${current.lockoutCount}. zaključavanje.` : ''}`,
       };
     }
 
@@ -133,23 +169,36 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
 
 /**
  * Check if account is locked
+ * Enhanced to parse JSON stored lockout info
  */
 export async function isAccountLocked(email: string): Promise<{
   locked: boolean;
   lockedUntil?: Date;
   message?: string;
+  lockoutNumber?: number;
 }> {
   const key = email.toLowerCase();
 
   if (redis) {
     // Redis implementation
-    const lockedTimestamp = await redis.get<string>(getRedisKey(key, "locked"));
+    const lockedData = await redis.get<string>(getRedisKey(key, "locked"));
 
-    if (!lockedTimestamp) {
+    if (!lockedData) {
       return { locked: false };
     }
 
-    const lockedUntil = new Date(parseInt(lockedTimestamp, 10));
+    // Parse the locked data (can be old format or new JSON format)
+    let lockedUntil: Date;
+    let lockoutNumber = 1;
+    
+    try {
+      const parsed = JSON.parse(lockedData);
+      lockedUntil = new Date(parsed.timestamp);
+      lockoutNumber = parsed.lockoutCount || 1;
+    } catch {
+      // Old format: just a timestamp string
+      lockedUntil = new Date(parseInt(lockedData, 10));
+    }
 
     // Check if lockout has expired
     if (new Date() > lockedUntil) {
@@ -167,7 +216,8 @@ export async function isAccountLocked(email: string): Promise<{
     return {
       locked: true,
       lockedUntil,
-      message: `Nalog je zaključan. Pokušaj ponovo za ${minutesRemaining} minuta.`,
+      lockoutNumber,
+      message: `Nalog je zaključan. Pokušaj ponovo za ${minutesRemaining} minuta.${lockoutNumber > 1 ? ` (${lockoutNumber}. zaključavanje)` : ''}`,
     };
   } else {
     // Fallback in-memory implementation
