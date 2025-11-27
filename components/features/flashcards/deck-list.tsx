@@ -15,10 +15,18 @@ import { toast } from "sonner";
 import { AddCardDialog } from "./add-card-dialog";
 import { StudyMode } from "./study-mode";
 
+interface FlashcardDeck {
+  id: string;
+  title: string;
+  subject: { name: string; icon: string | null; color: string | null };
+  _count: { cards: number };
+  updatedAt: Date;
+}
+
 export function DeckList() {
   const { data: decks, isLoading } = useFlashcardDecks();
   const { mutate: deleteDeck } = useDeleteDeck();
-  const [studyingDeck, setStudyingDeck] = useState<any>(null);
+  const [studyingDeck, setStudyingDeck] = useState<FlashcardDeck | null>(null);
 
   if (isLoading) {
     return <div className="text-center py-8">Učitavanje špilova...</div>;
@@ -46,7 +54,7 @@ export function DeckList() {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {decks.map((deck) => (
+        {(decks as FlashcardDeck[]).map((deck) => (
           <Card key={deck.id} className="flex flex-col hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
               <div className="space-y-1">

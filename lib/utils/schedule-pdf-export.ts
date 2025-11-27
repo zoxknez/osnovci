@@ -7,9 +7,10 @@ interface ScheduleEntry {
   dayOfWeek: string;
   startTime: string;
   endTime: string;
-  subject: { id: string; name: string; color: string; icon: string | null };
-  classroom: string | null;
-  notes: string | null;
+  subject?: { id: string; name: string; color?: string | undefined; icon?: string | null | undefined } | null | undefined;
+  classroom?: string | null | undefined;
+  room?: string | null | undefined;
+  notes?: string | null | undefined;
 }
 
 const DAYS = [
@@ -90,7 +91,9 @@ export function exportScheduleToPDF(
       const lesson = dayLessons[i];
       
       if (lesson) {
-        row.push(`${lesson.subject.name}\n${lesson.startTime}-${lesson.endTime}\n${lesson.classroom || ''}`);
+        const subjectName = lesson.subject?.name || "Nepoznat predmet";
+        const location = lesson.classroom || lesson.room || "";
+        row.push(`${subjectName}\n${lesson.startTime}-${lesson.endTime}\n${location}`);
       } else {
         row.push("");
       }

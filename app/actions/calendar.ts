@@ -23,7 +23,7 @@ const getCalendarSchema = z.object({
   studentId: z.string().cuid(),
   view: z.enum(["day", "week", "month", "agenda"]).default("week"),
   date: z.string().optional(),
-  agendaDays: z.number().optional().default(7),
+  agendaDays: z.number().optional(),
 });
 
 const createCustomEventSchema = z.object({
@@ -82,7 +82,7 @@ export async function getCalendarViewAction(params: z.infer<typeof getCalendarSc
     const validated = getCalendarSchema.safeParse(params);
     if (!validated.success) return { success: false, error: "Validation error" };
 
-    const { studentId, view, date: dateStr, agendaDays } = validated.data;
+    const { studentId, view, date: dateStr, agendaDays = 7 } = validated.data;
     const date = dateStr ? new Date(dateStr) : new Date();
 
     let data;
@@ -119,8 +119,12 @@ export async function createCustomEventAction(data: z.infer<typeof createCustomE
     const { studentId, title, notes, color, specificDate, startTime: startTimeStr, endTime: endTimeStr } = validated.data;
 
     const baseDate = specificDate ? new Date(specificDate) : new Date();
-    const [startHour, startMinute] = startTimeStr.split(':').map(Number);
-    const [endHour, endMinute] = endTimeStr.split(':').map(Number);
+    const startParts = startTimeStr.split(':').map(Number);
+    const endParts = endTimeStr.split(':').map(Number);
+    const startHour = startParts[0] ?? 0;
+    const startMinute = startParts[1] ?? 0;
+    const endHour = endParts[0] ?? 0;
+    const endMinute = endParts[1] ?? 0;
     
     const startTime = new Date(baseDate);
     startTime.setHours(startHour, startMinute, 0, 0);
@@ -177,8 +181,12 @@ export async function updateEventTimeAction(data: z.infer<typeof updateEventTime
     const { eventId, eventType, newDate, newStartTime, newEndTime } = validated.data;
 
     const baseDate = newDate ? new Date(newDate) : new Date();
-    const [startHour, startMinute] = newStartTime.split(':').map(Number);
-    const [endHour, endMinute] = newEndTime.split(':').map(Number);
+    const startParts = newStartTime.split(':').map(Number);
+    const endParts = newEndTime.split(':').map(Number);
+    const startHour = startParts[0] ?? 0;
+    const startMinute = startParts[1] ?? 0;
+    const endHour = endParts[0] ?? 0;
+    const endMinute = endParts[1] ?? 0;
     
     const startTime = new Date(baseDate);
     startTime.setHours(startHour, startMinute, 0, 0);

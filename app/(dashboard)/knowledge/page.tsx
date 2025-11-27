@@ -45,9 +45,8 @@ export default function KnowledgePage() {
   return (
     <div className="space-y-6 pb-20">
       <PageHeader
-        title="Biblioteka Znanja"
+        title="📚 Biblioteka Znanja"
         description="Tvoja lična baza beleški, linkova i materijala za učenje."
-        icon={BookOpen}
         action={<AddResourceDialog />}
       />
 

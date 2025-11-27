@@ -41,6 +41,7 @@ export function AgendaView({ studentId, onEventClick }: AgendaViewProps) {
       const result = await getCalendarViewAction({
         studentId,
         view: "agenda",
+        agendaDays: 7,
       });
 
       if (result.success && result.data) {

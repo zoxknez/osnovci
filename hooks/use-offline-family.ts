@@ -15,7 +15,12 @@ export function useOfflineFamily() {
 
       if (online) {
         try {
-          const result = await getFamilyMembersAction({ page: 1, limit: 100 });
+          const result = await getFamilyMembersAction({ 
+            page: 1, 
+            limit: 100,
+            sortBy: "createdAt",
+            order: "desc"
+          });
           
           if (result.success && result.data) {
             const members = result.data;

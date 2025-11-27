@@ -123,10 +123,10 @@ function VerifyErrorContent() {
           </button>
 
           <Link
-            href="/auth/prijava"
+            href="/prijava"
             className="border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition"
           >
-            Vrati se na Login
+            Vrati se na Prijavu
           </Link>
         </div>
 

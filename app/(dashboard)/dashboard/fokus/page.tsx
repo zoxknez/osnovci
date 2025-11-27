@@ -55,7 +55,7 @@ export default async function FocusPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
         <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
           <div className="text-2xl font-bold text-blue-700">
-            {Math.round(recentSessions.reduce((acc, s) => acc + s.duration, 0) / 60 * 10) / 10}h
+            {Math.round(recentSessions.reduce((acc, s) => acc + (s.duration ?? 0), 0) / 60 * 10) / 10}h
           </div>
           <div className="text-xs text-blue-600 uppercase font-bold tracking-wider">Ove nedelje</div>
         </div>
@@ -73,7 +73,7 @@ export default async function FocusPage() {
         </div>
         <div className="bg-green-50 p-4 rounded-xl border border-green-100 text-center">
           <div className="text-2xl font-bold text-green-700">
-            {recentSessions.length > 0 ? Math.round(recentSessions.reduce((acc, s) => acc + s.duration, 0) / recentSessions.length) : 0}m
+            {recentSessions.length > 0 ? Math.round(recentSessions.reduce((acc, s) => acc + (s.duration ?? 0), 0) / recentSessions.length) : 0}m
           </div>
           <div className="text-xs text-green-600 uppercase font-bold tracking-wider">Prosek</div>
         </div>

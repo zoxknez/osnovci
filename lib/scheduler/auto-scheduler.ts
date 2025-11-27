@@ -4,7 +4,8 @@
  */
 
 import { prisma } from "@/lib/db/prisma";
-import { addMinutes, isWithinInterval, format, isSameDay } from "date-fns";
+import { addMinutes, isWithinInterval, format, isSameDay, getDay } from "date-fns";
+import { DayOfWeek } from "@prisma/client";
 
 interface StudySession {
   homeworkId: string;
@@ -26,6 +27,94 @@ interface ConflictResolution {
   type: "overlap" | "insufficient_time" | "too_close";
   description: string;
   suggestions: string[];
+}
+
+/**
+ * Convert JavaScript Date to Prisma DayOfWeek enum
+ */
+function dateToDayOfWeek(date: Date): DayOfWeek {
+  const dayIndex = getDay(date); // 0 = Sunday, 1 = Monday, etc.
+  const dayMap: Record<number, DayOfWeek> = {
+    0: DayOfWeek.SUNDAY,
+    1: DayOfWeek.MONDAY,
+    2: DayOfWeek.TUESDAY,
+    3: DayOfWeek.WEDNESDAY,
+    4: DayOfWeek.THURSDAY,
+    5: DayOfWeek.FRIDAY,
+    6: DayOfWeek.SATURDAY,
+  };
+  return dayMap[dayIndex] ?? DayOfWeek.MONDAY;
+}
+
+/**
+ * Parse time string (HH:MM) to Date object for a specific day
+ */
+function parseTimeToDate(timeString: string, baseDate: Date): Date {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const result = new Date(baseDate);
+  result.setHours(hours ?? 0, minutes ?? 0, 0, 0);
+  return result;
+}
+
+/**
+ * Get schedule entries for a specific date
+ */
+async function getScheduleForDate(studentId: string, targetDate: Date) {
+  const dayOfWeek = dateToDayOfWeek(targetDate);
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // Get regular schedule entries for this day of week
+  const regularEntries = await prisma.scheduleEntry.findMany({
+    where: {
+      studentId,
+      dayOfWeek,
+      isCustomEvent: false,
+    },
+    select: {
+      startTime: true,
+      endTime: true,
+      customTitle: true,
+      subject: {
+        select: { name: true },
+      },
+    },
+  });
+
+  // Get custom events for this specific date
+  const customEntries = await prisma.scheduleEntry.findMany({
+    where: {
+      studentId,
+      isCustomEvent: true,
+      customDate: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
+    },
+    select: {
+      startTime: true,
+      endTime: true,
+      customTitle: true,
+    },
+  });
+
+  // Convert to unified format with Date objects
+  const allEntries = [
+    ...regularEntries.map(entry => ({
+      startTime: parseTimeToDate(entry.startTime, targetDate),
+      endTime: parseTimeToDate(entry.endTime, targetDate),
+      title: entry.subject?.name || entry.customTitle || "Čas",
+    })),
+    ...customEntries.map(entry => ({
+      startTime: parseTimeToDate(entry.startTime, targetDate),
+      endTime: parseTimeToDate(entry.endTime, targetDate),
+      title: entry.customTitle || "Događaj",
+    })),
+  ];
+
+  return allEntries;
 }
 
 /**
@@ -70,12 +159,14 @@ export async function autoScheduleStudySessions(
     dueDate: hw.dueDate,
   }));
 
-  // TODO: Reimplement with ScheduleEntry model (dayOfWeek + customDate instead of date)
-  // Get existing schedule for the day
-  const existingSchedule: any[] = []; // Placeholder
+  // Get existing schedule for the day using proper query
+  const existingSchedule = await getScheduleForDate(studentId, targetDate);
 
   // Generate free time slots
-  const freeSlots = generateFreeTimeSlots(existingSchedule, targetDate);
+  const freeSlots = generateFreeTimeSlots(
+    existingSchedule.map(e => ({ startTime: e.startTime, endTime: e.endTime })), 
+    targetDate
+  );
 
   // Schedule sessions into free slots
   const scheduled: Array<{
@@ -277,9 +368,9 @@ function updateFreeSlots(slots: ScheduleSlot[], startTime: Date, durationMinutes
  * Detect scheduling conflicts
  */
 export async function detectScheduleConflicts(
-  _studentId: string,
-  _startDate: Date,
-  _endDate: Date
+  studentId: string,
+  startDate: Date,
+  endDate: Date
 ): Promise<Array<{
   date: Date;
   conflicts: Array<{
@@ -288,39 +379,31 @@ export async function detectScheduleConflicts(
     resolution: string;
   }>;
 }>> {
-  // TODO: Fix ScheduleEntry query - model uses dayOfWeek + customDate, not date field
-  // const schedule = await prisma.scheduleEntry.findMany({
-  //   where: {
-  //     studentId,
-  //     date: { gte: startDate, lte: endDate },
-  //   },
-  //   orderBy: [{ date: "asc" }, { startTime: "asc" }],
-  // });
-  const schedule: any[] = [];
-
   const conflictsByDay = new Map<string, Array<{
     time: string;
     items: string[];
     resolution: string;
   }>>();
 
-  // Group by day
-  const byDay = new Map<string, typeof schedule>();
-  schedule.forEach(item => {
-    const dayKey = format(item.date, "yyyy-MM-dd");
-    if (!byDay.has(dayKey)) {
-      byDay.set(dayKey, []);
-    }
-    byDay.get(dayKey)!.push(item);
-  });
-
-  // Check for overlaps within each day
-  byDay.forEach((items, dayKey) => {
-    const sorted = items.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  // Iterate through each day in the range
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    const dayKey = format(currentDate, "yyyy-MM-dd");
     
+    // Get schedule for this day
+    const scheduleEntries = await getScheduleForDate(studentId, currentDate);
+    
+    // Sort by start time
+    const sorted = scheduleEntries.sort((a, b) => 
+      a.startTime.getTime() - b.startTime.getTime()
+    );
+
+    // Check for overlaps
     for (let i = 0; i < sorted.length - 1; i++) {
       const current = sorted[i];
       const next = sorted[i + 1];
+      
+      if (!current || !next) continue;
 
       // Check for overlap
       if (current.endTime > next.startTime) {
@@ -335,7 +418,10 @@ export async function detectScheduleConflicts(
         });
       }
     }
-  });
+
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
 
   return Array.from(conflictsByDay.entries()).map(([dateStr, conflicts]) => ({
     date: new Date(dateStr),

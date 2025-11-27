@@ -34,14 +34,20 @@ interface ScheduleEntry {
   dayOfWeek: string;
   startTime: string;
   endTime: string;
-  subject?: { id: string; name: string; color?: string; icon?: string | null } | null;
-  room: string | null;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-  customTitle?: string | null;
-  customColor?: string | null;
+  subject?: { id: string; name: string; color?: string | undefined; icon?: string | null | undefined } | null | undefined;
+  room?: string | null | undefined;
+  notes?: string | null | undefined;
+  createdAt?: string | Date | undefined;
+  updatedAt?: string | Date | undefined;
+  customTitle?: string | null | undefined;
+  customColor?: string | null | undefined;
 }
+
+// Helper to safely get lesson properties that might not exist on all types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getLessonProp = <T,>(lesson: any, prop: string, fallback: T): T => {
+  return prop in lesson ? lesson[prop] ?? fallback : fallback;
+};
 
 const DAYS = [
   { key: "MONDAY", label: "Ponedeljak", short: "Pon" },
@@ -132,9 +138,16 @@ export default function RasporedPage() {
   const getLessonProgress = (lesson: ScheduleEntry) => {
     if (!isLessonActive(lesson)) return 0;
     
-    const [startH, startM] = lesson.startTime.split(':').map(Number);
-    const [endH, endM] = lesson.endTime.split(':').map(Number);
-    const [nowH, nowM] = currentTime.split(':').map(Number);
+    const startParts = lesson.startTime.split(':').map(Number);
+    const endParts = lesson.endTime.split(':').map(Number);
+    const nowParts = currentTime.split(':').map(Number);
+    
+    const startH = startParts[0] ?? 0;
+    const startM = startParts[1] ?? 0;
+    const endH = endParts[0] ?? 0;
+    const endM = endParts[1] ?? 0;
+    const nowH = nowParts[0] ?? 0;
+    const nowM = nowParts[1] ?? 0;
     
     const startMinutes = startH * 60 + startM;
     const endMinutes = endH * 60 + endM;
@@ -489,7 +502,7 @@ export default function RasporedPage() {
                             <div
                               className="flex-1 p-4 rounded-lg"
                               style={{
-                                backgroundColor: `${lesson.subject?.color || lesson.customColor || "#3b82f6"}15`,
+                                backgroundColor: `${lesson.subject?.color || ("customColor" in lesson ? lesson.customColor : null) || "#3b82f6"}15`,
                               }}
                             >
                               <div className="flex items-start justify-between gap-4">
@@ -501,13 +514,14 @@ export default function RasporedPage() {
                                       </span>
                                     )}
                                     <h3 className="text-xl font-bold text-gray-900">
-                                      {lesson.subject?.name || lesson.customTitle || "Događaj"}
+                                      {lesson.subject?.name || ("customTitle" in lesson ? lesson.customTitle : null) || "Događaj"}
                                     </h3>
                                   </div>
                                   <div className="space-y-1 text-sm text-gray-600">
                                     <div className="flex items-center gap-2">
                                       <BookOpen className="h-4 w-4" />
-                                      {lesson.room ||
+                                      {("room" in lesson ? lesson.room : null) ||
+                                       ("classroom" in lesson ? lesson.classroom : null) ||
                                         "Učionica nije određena"}
                                     </div>
                                     {lesson.notes && (
@@ -523,7 +537,7 @@ export default function RasporedPage() {
                                 <div
                                   className="text-center px-4 py-2 rounded-lg font-bold text-white"
                                   style={{
-                                    backgroundColor: lesson.subject?.color || lesson.customColor || "#3b82f6",
+                                    backgroundColor: lesson.subject?.color || getLessonProp(lesson, "customColor", "#3b82f6"),
                                   }}
                                 >
                                   <div className="text-xs">Čas</div>
@@ -581,7 +595,7 @@ export default function RasporedPage() {
                               ${isActive ? "ring-2 ring-green-500 shadow-lg" : ""}
                             `}
                             style={{
-                              backgroundColor: `${lesson.subject?.color || lesson.customColor || "#3b82f6"}10`,
+                              backgroundColor: `${lesson.subject?.color || getLessonProp(lesson, "customColor", "#3b82f6")}10`,
                             }}
                           >
                             <div className="flex items-center gap-3">
@@ -592,7 +606,7 @@ export default function RasporedPage() {
                               )}
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-900">
-                                  {lesson.subject?.name || lesson.customTitle || "Događaj"}
+                                  {lesson.subject?.name || getLessonProp(lesson, "customTitle", "Događaj")}
                                 </div>
                                 <div className="text-xs text-gray-600">
                                   {lesson.startTime} - {lesson.endTime}

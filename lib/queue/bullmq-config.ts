@@ -133,7 +133,7 @@ export const createNotificationWorker = () => {
             userId: job.data.userId,
             title: job.data.title,
             body: job.data.body,
-            data: job.data.data
+            ...(job.data.data && { data: job.data.data })
           });
         } catch (importError) {
           log.warn('Notification module not available, skipping notification', { error: importError });
@@ -183,13 +183,17 @@ export const createReportWorker = () => {
         let reportUrl: string;
         try {
           const { generateReport } = await import('@/lib/reports/generator');
-          reportUrl = await generateReport({
+          const reportResult = await generateReport({
             studentId: job.data.studentId,
             reportType: job.data.reportType,
             startDate: job.data.startDate,
             endDate: job.data.endDate,
             format: job.data.format,
           });
+          // Extract URL from report result or use placeholder
+          reportUrl = reportResult.success && reportResult.filename 
+            ? `/reports/${reportResult.filename}` 
+            : '/reports/placeholder.pdf';
         } catch (importError) {
           log.warn('Report generator not available, returning placeholder', { error: importError });
           reportUrl = '/reports/placeholder.pdf';

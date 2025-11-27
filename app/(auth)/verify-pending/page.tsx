@@ -112,7 +112,7 @@ export default function VerifyPendingPage() {
 
         {/* Login Link */}
         <Link
-          href="/auth/prijava"
+          href="/prijava"
           className="block w-full py-3 px-4 rounded-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors text-center"
         >
           🚪 Nazad na prijavu

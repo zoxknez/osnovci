@@ -5,8 +5,6 @@ import {
   AlertCircle,
   Camera,
   CheckCircle2,
-  Clock,
-  FileText,
   Loader,
   Plus,
   RefreshCw,
@@ -22,7 +20,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { HomeworkCelebration } from "@/components/features/homework-celebration";
 import { PageHeader } from "@/components/features/page-header";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -86,43 +83,6 @@ export default function DomaciPage() {
   const kanbanColumns = {
     todo: filteredHomework.filter(h => h.status === "ASSIGNED" || h.status === "IN_PROGRESS"),
     done: filteredHomework.filter(h => h.status === "DONE" || h.status === "SUBMITTED")
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "done":
-      case "submitted":
-        return (
-          <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            Urađeno
-          </Badge>
-        );
-      case "in_progress":
-        return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
-            <Clock className="h-3 w-3 mr-1" />
-            Radim
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200">
-            <FileText className="h-3 w-3 mr-1" />
-            Novo
-          </Badge>
-        );
-    }
-  };
-
-  const getDaysUntil = (date: Date) => {
-    const diff = Math.ceil(
-      (date.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-    );
-    if (diff < 0) return "Rok prošao";
-    if (diff === 0) return "Danas";
-    if (diff === 1) return "Sutra";
-    return `Za ${diff} dana`;
   };
 
   const handleOpenCamera = (homeworkId: string) => {

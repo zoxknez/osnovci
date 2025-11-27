@@ -36,6 +36,11 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
   }
 
   const currentCard = cards[currentIndex];
+  
+  if (!currentCard) {
+    return null;
+  }
+  
   const progress = ((currentIndex + 1) / cards.length) * 100;
 
   const handleNext = () => {

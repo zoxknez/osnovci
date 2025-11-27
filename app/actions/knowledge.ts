@@ -12,9 +12,10 @@ const createResourceSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-type ActionResponse<T = any> = {
+type ActionResponse<T = unknown> = {
   data?: T;
   error?: string;
+  success?: boolean;
 };
 
 export async function getKnowledgeResourcesAction(

@@ -10,10 +10,80 @@ import {
   Sparkles,
   Trophy,
   Users,
+  BookOpen,
+  Star,
+  Zap,
+  Facebook,
+  Instagram,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 
 export default function Home() {
+  const features = useMemo(() => [
+    {
+      icon: Camera,
+      emoji: "📸",
+      title: "Domaći sa dokazima",
+      description:
+        "Fotografiši urađeni domaći i pošalji roditeljima. AI automatski poboljšava kvalitet slike. Sve ostaje sačuvano i offline.",
+      gradient: "from-blue-500 to-cyan-500",
+      delay: 0,
+    },
+    {
+      icon: Calendar,
+      emoji: "📅",
+      title: "Raspored časova",
+      description:
+        "Nedeljni raspored, automatski podsetnici i notifikacije za sve časove i kontrolne. Nikad više propuštenih časova!",
+      gradient: "from-purple-500 to-pink-500",
+      delay: 0.1,
+    },
+    {
+      icon: BarChart3,
+      emoji: "📊",
+      title: "Analitika i izveštaji",
+      description:
+        "Prati svoj napredak kroz intuitivne grafikone. Roditelji dobijaju nedeljne izveštaje i preporuke.",
+      gradient: "from-orange-500 to-red-500",
+      delay: 0.2,
+    },
+    {
+      icon: Users,
+      emoji: "👨‍👩‍👧",
+      title: "Povezivanje sa roditeljima",
+      description:
+        "QR kod povezivanje sa roditeljima. Oni vide tvoj napredak, ti dobijaš podršku. Svi su na istoj strani!",
+      gradient: "from-green-500 to-emerald-500",
+      delay: 0.3,
+    },
+    {
+      icon: Trophy,
+      emoji: "🏆",
+      title: "Gamifikacija i motivacija",
+      description:
+        "Skupljaj XP, dižiš levele, otključavaj bedževe. Učenje postaje zabavno i motivišuće svaki dan!",
+      gradient: "from-yellow-500 to-orange-500",
+      delay: 0.4,
+    },
+    {
+      icon: Shield,
+      emoji: "🔒",
+      title: "Potpuna sigurnost",
+      description:
+        "Tvoji podaci su šifrovani i sigurni. Nema reklama, nema praćenja. Dizajnirano sa brigom o privatnosti.",
+      gradient: "from-indigo-500 to-purple-500",
+      delay: 0.5,
+    },
+  ], []);
+
+  const stats = useMemo(() => [
+    { value: "10,000+", label: "Aktivnih učenika", icon: Users },
+    { value: "50,000+", label: "Završenih zadataka", icon: BookOpen },
+    { value: "4.9", label: "Prosečna ocena", icon: Star },
+    { value: "99.9%", label: "Uptime", icon: Zap },
+  ], []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
       {/* Hero Section - Optimizovano za mobilne */}
@@ -131,6 +201,26 @@ export default function Home() {
             </motion.div>
 
             {/* Social Proof - Mobile optimized */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto px-4"
+            >
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-100"
+                >
+                  <stat.icon className="h-5 w-5 text-blue-500 mx-auto mb-2" />
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">{stat.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
@@ -155,62 +245,7 @@ export default function Home() {
           </motion.div>
 
           <div className="grid gap-5 sm:gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-3 text-left">
-            {[
-              {
-                icon: Camera,
-                emoji: "📸",
-                title: "Domaći sa dokazima",
-                description:
-                  "Fotografiši urađeni domaći i pošalji roditeljima. AI automatski poboljšava kvalitet slike. Sve ostaje sačuvano i offline.",
-                gradient: "from-blue-500 to-cyan-500",
-                delay: 0,
-              },
-              {
-                icon: Calendar,
-                emoji: "📅",
-                title: "Raspored časova",
-                description:
-                  "Nedeljni raspored, automatski podsetnici i notifikacije za sve časove i kontrolne. Nikad više propuštenih časova!",
-                gradient: "from-purple-500 to-pink-500",
-                delay: 0.1,
-              },
-              {
-                icon: BarChart3,
-                emoji: "📊",
-                title: "Analitika i izveštaji",
-                description:
-                  "Prati svoj napredak kroz intuitivne grafikone. Roditelji dobijaju nedeljne izveštaje i preporuke.",
-                gradient: "from-orange-500 to-red-500",
-                delay: 0.2,
-              },
-              {
-                icon: Users,
-                emoji: "👨‍👩‍👧",
-                title: "Povezivanje sa roditeljima",
-                description:
-                  "QR kod povezivanje sa roditeljima. Oni vide tvoj napredak, ti dobijaš podršku. Svi su na istoj strani!",
-                gradient: "from-green-500 to-emerald-500",
-                delay: 0.3,
-              },
-              {
-                icon: Trophy,
-                emoji: "🏆",
-                title: "Gamifikacija i motivacija",
-                description:
-                  "Skupljaj XP, dižiš levele, otključavaj bedževe. Učenje postaje zabavno i motivišuće svaki dan!",
-                gradient: "from-yellow-500 to-orange-500",
-                delay: 0.4,
-              },
-              {
-                icon: Shield,
-                emoji: "🔒",
-                title: "Potpuna sigurnost",
-                description:
-                  "Tvoji podaci su šifrovani i sigurni. Nema reklama, nema praćenja. Dizajnirano sa brigom o privatnosti.",
-                gradient: "from-indigo-500 to-purple-500",
-                delay: 0.5,
-              },
-            ].map((feature) => (
+            {features.map((feature) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 30 }}
@@ -303,14 +338,63 @@ export default function Home() {
       </section>
 
       {/* Footer - Mobile friendly */}
-      <footer className="relative px-4 py-10 sm:py-12 sm:px-6 lg:px-8 bg-gray-50 border-t border-gray-200">
-        <div className="mx-auto max-w-7xl text-center">
-          <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-3 sm:mb-4">
-            © 2025 Osnovci. Sva prava zadržana.
-          </p>
-          <p className="text-xs sm:text-sm text-gray-500">
-            Sigurna, privatna i inovativna.
-          </p>
+      <footer className="relative px-4 py-12 sm:py-16 sm:px-6 lg:px-8 bg-gray-900 text-white">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-8 md:grid-cols-4 mb-8">
+            {/* Brand */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-3xl">🎓</span>
+                <span className="text-2xl font-bold">Osnovci</span>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed max-w-md">
+                Moderna obrazovna platforma za osnovce i njihove roditelje. 
+                Sigurna, zabavna i efikasna.
+              </p>
+              <div className="flex gap-4 mt-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
+                  <Facebook className="h-5 w-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
+                  <Instagram className="h-5 w-5" />
+                </a>
+                <a href="mailto:info@osnovci.app" className="text-gray-400 hover:text-white transition-colors" aria-label="Email">
+                  <Mail className="h-5 w-5" />
+                </a>
+              </div>
+            </div>
+
+            {/* Links */}
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Aplikacija</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</Link></li>
+                <li><Link href="/registracija" className="text-gray-400 hover:text-white transition-colors">Registracija</Link></li>
+                <li><Link href="/prijava" className="text-gray-400 hover:text-white transition-colors">Prijava</Link></li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Pravno</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/privatnost" className="text-gray-400 hover:text-white transition-colors">Politika privatnosti</Link></li>
+                <li><Link href="/uslovi" className="text-gray-400 hover:text-white transition-colors">Uslovi korišćenja</Link></li>
+                <li><Link href="/cookies" className="text-gray-400 hover:text-white transition-colors">Kolačići</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-400">
+              © 2025 Osnovci. Sva prava zadržana.
+            </p>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Shield className="h-4 w-4 text-green-500" />
+              <span>COPPA & GDPR usklađeno</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

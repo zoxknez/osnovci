@@ -2,11 +2,8 @@
 
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { generateWeeklyReportEmail } from "@/lib/email/templates/weekly-report";
 import { log } from "@/lib/logger";
 import { generateWeeklyReport } from "@/lib/reports/weekly-report-generator";
-import { idSchema } from "@/lib/security/validators";
-import { z } from "zod";
 
 type ActionResponse<T = any> = {
   data?: T;
@@ -129,13 +126,6 @@ export async function generateAndSendWeeklyReportAction(studentId: string, sendE
       const emailResults = await Promise.all(
         guardians.map(async (link) => {
           try {
-            // Generate email content
-            const { subject, html, text } = generateWeeklyReportEmail(
-              link.guardian.name || "Roditelju",
-              report,
-              `${process.env["NEXTAUTH_URL"]}/reports/${studentId}/weekly`,
-            );
-
             // Send weekly report email
             const { sendWeeklyReportEmail } = await import(
               "@/lib/email/templates"

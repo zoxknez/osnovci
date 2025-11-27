@@ -122,11 +122,18 @@ export async function updateNotificationPreferenceAction(data: z.infer<typeof up
 
   try {
     const { eventType, ...updates } = validated.data;
+    // Filter out undefined values
+    const filteredUpdates: Record<string, boolean | number | null> = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        filteredUpdates[key] = value;
+      }
+    }
     const result = await updateNotificationPreference({
       userId: session.user.id,
       eventType,
-      ...updates,
-    });
+      ...filteredUpdates,
+    } as Parameters<typeof updateNotificationPreference>[0]);
 
     if (!result.success) {
       return { error: result.error || "Greška prilikom ažuriranja" };
@@ -158,7 +165,13 @@ export async function bulkUpdateNotificationPreferencesAction(data: z.infer<type
   }
 
   try {
-    const result = await bulkUpdatePreferences(session.user.id, validated.data);
+    // Filter out undefined values
+    const filteredData: { emailEnabled?: boolean; pushEnabled?: boolean; inAppEnabled?: boolean } = {};
+    if (validated.data.emailEnabled !== undefined) filteredData.emailEnabled = validated.data.emailEnabled;
+    if (validated.data.pushEnabled !== undefined) filteredData.pushEnabled = validated.data.pushEnabled;
+    if (validated.data.inAppEnabled !== undefined) filteredData.inAppEnabled = validated.data.inAppEnabled;
+    
+    const result = await bulkUpdatePreferences(session.user.id, filteredData);
 
     if (!result.success) {
       return { error: result.error || "Greška prilikom ažuriranja" };

@@ -80,6 +80,8 @@ export async function createSubjectAction(data: z.infer<typeof createSubjectSche
       return { error: "Korisnik nije učenik" };
     }
 
+    const studentId = user.student.id;
+
     // Transaction to create subject and link it to student
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create Subject
@@ -94,7 +96,7 @@ export async function createSubjectAction(data: z.infer<typeof createSubjectSche
       // 2. Link to Student
       await tx.studentSubject.create({
         data: {
-          studentId: user.student.id,
+          studentId,
           subjectId: subject.id,
         },
       });

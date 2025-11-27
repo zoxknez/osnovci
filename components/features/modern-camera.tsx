@@ -32,7 +32,7 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
     restoreFocus: true,
   });
   
-  const { videoRef, stream, facingMode, flipCamera, stopCamera } = useCamera();
+  const { videoRef, stream: _stream, facingMode, flipCamera, stopCamera: _stopCamera } = useCamera();
   const { enhanceDocument, processAndCompressImage, isProcessing } = useImageProcessor();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);

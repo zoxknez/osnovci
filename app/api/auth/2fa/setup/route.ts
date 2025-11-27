@@ -3,6 +3,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { compare } from "bcryptjs";
 import { auth } from "@/lib/auth/config";
 import { setupTwoFactorAuth, verifyTOTPToken } from "@/lib/auth/two-factor";
 import { prisma } from "@/lib/db/prisma";
@@ -77,7 +78,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Verify password with bcrypt.compare(validated.data.password, user.password)
+    // Verify password before allowing 2FA setup
+    if (!user.password) {
+      return NextResponse.json(
+        { error: "Nalog nema postavljenu lozinku" },
+        { status: 400 },
+      );
+    }
+
+    const isPasswordValid = await compare(validated.data.password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { error: "Netačna lozinka" },
+        { status: 401 },
+      );
+    }
 
     // Generate 2FA setup
     const userName = user.email || user.phone || user.id;
@@ -241,7 +256,26 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // TODO: Verify password before disabling
+    // Verify password before disabling 2FA
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { password: true },
+    });
+
+    if (!user?.password) {
+      return NextResponse.json(
+        { error: "Nalog nema postavljenu lozinku" },
+        { status: 400 },
+      );
+    }
+
+    const isPasswordValid = await compare(validated.data.password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { error: "Netačna lozinka" },
+        { status: 401 },
+      );
+    }
 
     // Disable 2FA
     await prisma.user.update({

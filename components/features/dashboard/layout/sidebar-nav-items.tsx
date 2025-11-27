@@ -17,7 +17,7 @@ export function SidebarNavItems({ pathname, onItemClick, variant = "desktop" }: 
           <li key={item.name}>
             <Link
               href={item.href}
-              onClick={onItemClick}
+              {...(onItemClick && { onClick: onItemClick })}
               className={cn(
                 "group flex items-center gap-x-3 rounded-xl px-4 transition-all",
                 variant === "mobile" ? "py-4 text-base font-medium" : "py-3 text-sm font-medium",

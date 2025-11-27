@@ -15,6 +15,26 @@ import { sendParentalConsentEmail } from "@/lib/email/parental-consent";
 import { log } from "@/lib/logger";
 import { headers } from "next/headers";
 
+/**
+ * Calculate age from birth date
+ * @param birthDate - The birth date to calculate age from
+ * @returns Age in years, or 0 if birthDate is null/undefined
+ */
+function calculateAge(birthDate: Date | null | undefined): number {
+  if (!birthDate) return 0;
+  
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  // Adjust age if birthday hasn't occurred this year
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return Math.max(0, age); // Ensure non-negative
+}
+
 type ActionResponse<T = any> = {
   data?: T;
   error?: string;
@@ -137,14 +157,14 @@ export async function createConsentRequestAction(data: z.infer<typeof createCons
     // Send email
     const student = await prisma.student.findUnique({
       where: { id: studentId },
-      select: { name: true },
+      select: { name: true, birthDate: true },
     });
 
     if (student && result.code) {
       try {
         await sendParentalConsentEmail({
           childName: student.name,
-          childAge: 0, // TODO: Calculate from student.birthDate
+          childAge: calculateAge(student.birthDate),
           parentEmail,
           parentName: parentName || "Poštovani roditelju/staratelju",
           consentToken: result.code,
@@ -283,7 +303,7 @@ export async function resendConsentEmailAction(data: z.infer<typeof resendEmailS
       where: { id: consentId },
       include: {
         student: {
-          select: { name: true },
+          select: { name: true, birthDate: true },
         },
       },
     });
@@ -299,7 +319,7 @@ export async function resendConsentEmailAction(data: z.infer<typeof resendEmailS
     // Resend email
     await sendParentalConsentEmail({
       childName: consent.student.name,
-      childAge: 0, // TODO: Calculate from birthDate
+      childAge: calculateAge(consent.student.birthDate),
       parentEmail: consent.parentEmail,
       parentName: consent.parentName || "Poštovani roditelju/staratelju",
       consentToken: consent.code,
@@ -363,7 +383,7 @@ export async function resendMyConsentEmailAction(): Promise<ActionResponse> {
     // Resend email
     await sendParentalConsentEmail({
       childName: user.student.name,
-      childAge: 0,
+      childAge: calculateAge(user.student.birthDate),
       parentEmail: consent.parentEmail,
       parentName: consent.parentName || "Poštovani roditelju/staratelju",
       consentToken: consent.code,

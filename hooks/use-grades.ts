@@ -16,7 +16,7 @@ export const gradeKeys = {
 };
 
 // Fetch grades (keeping API route for fetching for now as it supports complex filtering/pagination efficiently)
-async function fetchGrades(filters: Record<string, unknown> = {}): Promise<PaginatedGrades> {
+async function fetchGrades(_filters: Record<string, unknown> = {}): Promise<PaginatedGrades> {
   // Use Server Action
   const result = await import("@/app/actions/grades").then(mod => mod.getGradesAction());
   if (result.error) throw new Error(result.error);
@@ -24,6 +24,12 @@ async function fetchGrades(filters: Record<string, unknown> = {}): Promise<Pagin
   // Adapt to PaginatedGrades structure
   return {
     data: result.data,
+    stats: {
+      average: 0,
+      total: result.data.length,
+      byCategory: {},
+      bySubject: []
+    },
     pagination: {
       page: 1,
       limit: result.data.length,

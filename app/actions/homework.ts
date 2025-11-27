@@ -46,9 +46,12 @@ export async function createHomeworkAction(data: z.infer<typeof CreateHomeworkSc
     }
 
     // Create homework
+    const { description, notes, ...restData } = validated.data;
     const homework = await prisma.homework.create({
       data: {
-        ...validated.data,
+        ...restData,
+        description: description ?? null,
+        notes: notes ?? null,
         studentId: user.student.id,
         status: "ASSIGNED",
       },
@@ -111,9 +114,20 @@ export async function updateHomeworkAction(id: string, data: z.infer<typeof Upda
       return { error: "Zadatak nije pronađen ili nemate pristup" };
     }
 
+    // Transform undefined to null for optional fields
+    const updateData: Record<string, unknown> = {};
+    const validData = validated.data;
+    if (validData.title !== undefined) updateData["title"] = validData.title;
+    if (validData.description !== undefined) updateData["description"] = validData.description ?? null;
+    if (validData.notes !== undefined) updateData["notes"] = validData.notes ?? null;
+    if (validData.subjectId !== undefined) updateData["subjectId"] = validData.subjectId;
+    if (validData.dueDate !== undefined) updateData["dueDate"] = validData.dueDate;
+    if (validData.priority !== undefined) updateData["priority"] = validData.priority;
+    if (validData.status !== undefined) updateData["status"] = validData.status;
+
     const homework = await prisma.homework.update({
       where: { id },
-      data: validated.data,
+      data: updateData,
     });
 
     // Invalidate cache

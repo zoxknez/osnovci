@@ -9,10 +9,10 @@ import { Redis } from "@upstash/redis";
 
 // Initialize Redis for Rate Limiting (Edge-compatible)
 const redis =
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  process.env["UPSTASH_REDIS_REST_URL"] && process.env["UPSTASH_REDIS_REST_TOKEN"]
     ? new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        url: process.env["UPSTASH_REDIS_REST_URL"],
+        token: process.env["UPSTASH_REDIS_REST_TOKEN"],
       })
     : null;
 
@@ -28,7 +28,8 @@ const ratelimit = redis
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const ip = request.ip ?? "127.0.0.1";
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const ip = forwardedFor?.split(",")[0]?.trim() ?? request.headers.get("x-real-ip") ?? "127.0.0.1";
 
   // 1. Rate Limiting (Skip for static assets)
   if (

@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Lock, Send } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Celebration } from "@/components/ui/celebration";
 import { sendStickerAction } from "@/app/actions/social";
 
@@ -38,7 +37,6 @@ export function StickerShop({ stickers, classmates, currentXp, currentLevel }: S
   const [isSending, setIsSending] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const router = useRouter();
 
   const handleSend = async () => {
     if (!selectedSticker || !selectedStudent) return;

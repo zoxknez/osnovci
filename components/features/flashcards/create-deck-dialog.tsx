@@ -43,7 +43,7 @@ export function CreateDeckDialog() {
       {
         title,
         subjectId,
-        color: selectedSubject?.color,
+        ...(selectedSubject?.color && { color: selectedSubject.color }),
       },
       {
         onSuccess: () => {

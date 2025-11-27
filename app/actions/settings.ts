@@ -59,8 +59,8 @@ export async function updateShiftSettingsAction(data: z.infer<typeof shiftSettin
       where: { id: student.id },
       data: {
         shiftSystemEnabled: validated.enabled,
-        shiftReferenceDate: validated.referenceDate ? new Date(validated.referenceDate) : undefined,
-        shiftReferenceType: validated.referenceType,
+        shiftReferenceDate: validated.referenceDate ? new Date(validated.referenceDate) : null,
+        shiftReferenceType: validated.referenceType ?? null,
       },
     });
 

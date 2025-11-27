@@ -1,11 +1,11 @@
 // Prijava stranica - moderna, child-friendly, dark mode support
 "use client";
 
-import { motion } from "framer-motion";
+import { type Easing, motion, useReducedMotion } from "framer-motion";
 import { LogIn, Shield, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 import { log } from "@/lib/logger";
@@ -28,6 +28,16 @@ export default function PrijavaPage() {
     email: "",
     password: "",
   });
+  
+  // Accessibility: respect reduced motion preferences
+  const prefersReducedMotion = useReducedMotion();
+  
+  const backgroundAnimation = useMemo(() => 
+    prefersReducedMotion ? {} : {
+      animate: { x: [0, 100, 0], y: [0, 50, 0] },
+      transition: { duration: 20, repeat: Infinity, ease: "easeInOut" as Easing }
+    }
+  , [prefersReducedMotion]);
 
   // Auto-focus prvi input
   useEffect(() => {
@@ -178,27 +188,14 @@ export default function PrijavaPage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute top-10 sm:top-20 -left-10 sm:left-10 w-48 h-48 sm:w-72 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          {...backgroundAnimation}
         />
         <motion.div
           className="absolute bottom-10 sm:bottom-20 -right-10 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-          animate={{
-            x: [0, -100, 0],
-            y: [0, -50, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          {...(prefersReducedMotion ? {} : {
+            animate: { x: [0, -100, 0], y: [0, -50, 0] },
+            transition: { duration: 15, repeat: Infinity, ease: "easeInOut" }
+          })}
         />
       </div>
 

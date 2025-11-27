@@ -27,6 +27,7 @@ import {
 import Image from "next/image";
 import React from "react";
 import { cn } from "@/lib/utils";
+import { getLeaderboardAction } from "@/app/actions/gamification";
 
 type LeaderboardPeriod = "all-time" | "weekly" | "monthly";
 

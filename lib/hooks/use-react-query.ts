@@ -227,12 +227,7 @@ export function useDeleteHomework() {
   });
 }
 
-import { 
-  getGradesAction, 
-  createGradeAction, 
-  updateGradeAction, 
-  deleteGradeAction 
-} from "@/app/actions/grades";
+import { getGradesAction } from "@/app/actions/grades";
 
 // ...
 
@@ -269,7 +264,7 @@ export function useGrades(params?: {
   return useQuery({
     queryKey: [...queryKeys.grades, params],
     queryFn: async () => {
-        const result = await getGradesAction(params as any);
+        const result = await getGradesAction();
         if (result.error) throw new Error(result.error);
         // Result data structure matches GradesResponse (data, stats, pagination)
         // But getGradesAction returns { success: true, data: { data: ..., stats: ..., pagination: ... } }
@@ -300,12 +295,7 @@ export function useSubjects() {
   });
 }
 
-import { 
-  getScheduleAction, 
-  createScheduleAction, 
-  updateScheduleAction, 
-  deleteScheduleAction 
-} from "@/app/actions/schedule";
+import { getScheduleAction } from "@/app/actions/schedule";
 
 import { getSubjectsAction } from "@/app/actions/subjects";
 
@@ -348,7 +338,7 @@ export function useSchedule(params?: { dayOfWeek?: string; limit?: number }) {
   return useQuery({
     queryKey: [...queryKeys.schedule, params],
     queryFn: async () => {
-        const result = await getScheduleAction(params as any);
+        const result = await getScheduleAction();
         if (result.error) throw new Error(result.error);
         // Result data structure matches ScheduleResponse (data, pagination)
         // But getScheduleAction returns { success: true, data: { data: ..., pagination: ... } }

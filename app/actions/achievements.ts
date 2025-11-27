@@ -46,8 +46,9 @@ export async function getAchievementsAction(studentIdParam?: string): Promise<Ac
       studentId = studentIdParam;
     } else {
       // If guardian but no studentIdParam, try to get first student
-      if (user?.guardian && user.guardian.links.length > 0) {
-        studentId = user.guardian.links[0].studentId;
+      const firstLink = user?.guardian?.links?.[0];
+      if (firstLink) {
+        studentId = firstLink.studentId;
       } else {
         return { error: "Nije pronađen učenik" };
       }

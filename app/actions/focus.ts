@@ -6,9 +6,9 @@ import { log } from "@/lib/logger";
 import { FocusStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
-type ActionResponse<T = any> = {
+type ActionResponse<T = unknown> = {
   data?: T;
-  error?: string;
+  error?: string | undefined;
 };
 
 async function getStudent() {

@@ -4,14 +4,36 @@ import { Card } from "@/components/ui/card";
 import { useInventory } from "@/lib/hooks/use-shop";
 import { motion } from "framer-motion";
 
+interface ShopItem {
+  id: string;
+  name: string;
+  description: string | null;
+  cost: number;
+  type: string;
+  assetUrl: string;
+  previewUrl: string | null;
+  minLevel: number;
+  isPremium: boolean;
+  createdAt: Date;
+}
+
+interface InventoryItem {
+  id: string;
+  studentId: string;
+  itemId: string;
+  equipped: boolean;
+  purchasedAt: Date;
+  item: ShopItem;
+}
+
 interface AvatarPreviewProps {
-  previewItem?: any; // Item being previewed from shop
+  previewItem?: ShopItem | null;
 }
 
 export function AvatarPreview({ previewItem }: AvatarPreviewProps) {
   const { data: inventory } = useInventory();
 
-  const equippedItems = inventory?.filter((i) => i.equipped) || [];
+  const equippedItems = (inventory as InventoryItem[] | undefined)?.filter((i: InventoryItem) => i.equipped) || [];
   
   // If previewing an item, filter out any equipped item of the same type (if we had types)
   // For now, just add it to the list for display
@@ -19,9 +41,9 @@ export function AvatarPreview({ previewItem }: AvatarPreviewProps) {
   
   if (previewItem) {
     // Check if we already own/equipped it to avoid duplicates
-    const isEquipped = equippedItems.some(i => i.itemId === previewItem.id);
+    const isEquipped = equippedItems.some((i: InventoryItem) => i.itemId === previewItem.id);
     if (!isEquipped) {
-      displayItems.push({ id: "preview", item: previewItem, equipped: true } as any);
+      displayItems.push({ id: "preview", item: previewItem, equipped: true } as InventoryItem);
     }
   }
 

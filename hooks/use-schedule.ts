@@ -21,7 +21,7 @@ export const scheduleKeys = {
 };
 
 // Fetch schedule
-async function fetchSchedule(filters: Record<string, unknown> = {}): Promise<PaginatedSchedule> {
+async function fetchSchedule(_filters: Record<string, unknown> = {}): Promise<PaginatedSchedule> {
   // Use Server Action
   const result = await import("@/app/actions/schedule").then(mod => mod.getScheduleAction());
   if (result.error) throw new Error(result.error);

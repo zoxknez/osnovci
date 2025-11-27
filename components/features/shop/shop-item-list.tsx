@@ -11,6 +11,28 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AvatarPreview } from "./avatar-preview";
 
+interface ShopItem {
+  id: string;
+  name: string;
+  description: string | null;
+  cost: number;
+  type: string;
+  assetUrl: string;
+  previewUrl: string | null;
+  minLevel: number;
+  isPremium: boolean;
+  createdAt: Date;
+}
+
+interface InventoryItem {
+  id: string;
+  studentId: string;
+  itemId: string;
+  equipped: boolean;
+  purchasedAt: Date;
+  item: ShopItem;
+}
+
 export function ShopItemList() {
   const { data: items, isLoading: itemsLoading } = useShopItems();
   const { data: inventory, isLoading: inventoryLoading } = useInventory();
@@ -19,13 +41,13 @@ export function ShopItemList() {
   const { mutate: buyItem, isPending: isBuying } = useBuyItem();
   const { mutate: equipItem, isPending: isEquipping } = useEquipItem();
 
-  const [previewItem, setPreviewItem] = useState<any>(null);
+  const [previewItem, setPreviewItem] = useState<ShopItem | null>(null);
 
   if (itemsLoading || inventoryLoading) {
     return <div className="text-center py-8">Učitavanje prodavnice...</div>;
   }
 
-  const handleBuy = (item: any) => {
+  const handleBuy = (item: ShopItem) => {
     if (!profile?.profile) return;
     
     if (profile.profile.xp < item.cost) {
@@ -43,7 +65,7 @@ export function ShopItemList() {
     });
   };
 
-  const handleEquip = (inventoryItem: any) => {
+  const handleEquip = (inventoryItem: InventoryItem) => {
     equipItem({
       itemId: inventoryItem.item.id,
       equipped: !inventoryItem.equipped,
@@ -57,17 +79,20 @@ export function ShopItemList() {
     { id: "other", label: "Ostalo" },
   ];
 
-  const filterItems = (category: string) => {
-    if (!items) return [];
-    if (category === "all") return items;
+  const filterItems = (category: string): ShopItem[] => {
+    const typedItems = items as ShopItem[] | undefined;
+    if (!typedItems) return [];
+    if (category === "all") return typedItems;
     
-    return items.filter(item => {
+    return typedItems.filter((item: ShopItem) => {
       const name = item.name.toLowerCase();
       if (category === "head") return name.includes("kapa") || name.includes("šešir") || name.includes("kruna") || name.includes("kaciga");
       if (category === "face") return name.includes("naočare");
       return !name.includes("kapa") && !name.includes("šešir") && !name.includes("kruna") && !name.includes("kaciga") && !name.includes("naočare");
     });
   };
+
+  const typedInventory = inventory as InventoryItem[] | undefined;
 
   return (
     <>
@@ -82,7 +107,7 @@ export function ShopItemList() {
           <TabsContent key={cat.id} value={cat.id}>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filterItems(cat.id).map((item) => {
-                const ownedItem = inventory?.find((i) => i.itemId === item.id);
+                const ownedItem = typedInventory?.find((i: InventoryItem) => i.itemId === item.id);
                 const isLocked = (profile?.profile?.level || 0) < item.minLevel;
                 const canAfford = (profile?.profile?.xp || 0) >= item.cost;
 
@@ -163,10 +188,12 @@ export function ShopItemList() {
             <Button variant="outline" onClick={() => setPreviewItem(null)}>Zatvori</Button>
             <Button 
               onClick={() => {
-                handleBuy(previewItem);
-                setPreviewItem(null);
+                if (previewItem) {
+                  handleBuy(previewItem);
+                  setPreviewItem(null);
+                }
               }}
-              disabled={!profile?.profile || profile.profile.xp < (previewItem?.cost || 0)}
+              disabled={!profile?.profile || !previewItem || profile.profile.xp < previewItem.cost}
             >
               Kupi za {previewItem?.cost} XP
             </Button>

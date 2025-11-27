@@ -63,8 +63,11 @@ export function FocusTimer({ subjects }: FocusTimerProps) {
       const result = await startFocusSessionAction(selectedSubject);
 
       if (result.error) throw new Error(result.error);
+      
+      const sessionData = result.data as { id: string } | undefined;
+      if (!sessionData) throw new Error("No session data returned");
 
-      setSessionId(result.data.id);
+      setSessionId(sessionData.id);
       setIsActive(true);
       
       // If countdown, set seconds to target
@@ -88,8 +91,10 @@ export function FocusTimer({ subjects }: FocusTimerProps) {
       const result = await endFocusSessionAction(sessionId, "COMPLETED");
 
       if (result.error) throw new Error(result.error);
+      
+      const resultData = result.data as { xpEarned?: number } | undefined;
 
-      toast.success(`Sesija završena! Osvojio si ${result.data.xpEarned} XP! 🎉`);
+      toast.success(`Sesija završena! Osvojio si ${resultData?.xpEarned ?? 0} XP! 🎉`);
       setIsActive(false);
       setSessionId(null);
       setShowCelebration(true);

@@ -106,7 +106,7 @@ export async function checkDatabaseHealth(): Promise<{
   return {
     healthy: result.connected,
     latency: result.latency || 0,
-    error: result.error,
+    ...(result.error && { error: result.error }),
   };
 }
 

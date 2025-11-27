@@ -24,9 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
-import { apiDelete, apiPost } from "@/lib/utils/api";
 import { useOfflineFamily } from "@/hooks/use-offline-family";
-import { initiateLinkByQRAction, approveLinkAction, removeFamilyMemberAction } from "@/app/actions/family";
+import { approveLinkAction, removeFamilyMemberAction } from "@/app/actions/family";
 
 interface FamilyMember {
   id: string;
@@ -49,7 +48,7 @@ const PERMISSION_OPTIONS = [
 export default function PorodicaPage() {
   const { familyMembers: storedMembers, loading, isOnline, refresh } = useOfflineFamily();
   const [showQR, setShowQR] = useState(false);
-  const [linkCode, setLinkCode] = useState("");
+  const [linkCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [manualCode, setManualCode] = useState("");
 
