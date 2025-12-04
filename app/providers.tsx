@@ -13,6 +13,7 @@ import { CsrfProvider } from "@/lib/security/csrf-provider";
 import { ShortcutsProvider } from "@/components/providers/shortcuts-provider";
 import { AdvancedErrorBoundary } from "@/components/ui/advanced-error-boundary";
 import { useWebVitals } from "@/lib/performance/monitoring";
+import { ReducedMotionProvider } from "@/components/features/accessibility/reduced-motion";
 
 /**
  * Create QueryClient with default options
@@ -75,7 +76,7 @@ function PerformanceMonitor() {
  */
 export function Providers({
   children,
-  nonce,
+  nonce: _nonce,
 }: {
   children: React.ReactNode;
   nonce?: string;

@@ -6,7 +6,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Wifi, WifiOff, AlertCircle } from "lucide-react";
+import { Wifi, WifiOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSyncStore } from "@/store";
 import { cn } from "@/lib/utils";

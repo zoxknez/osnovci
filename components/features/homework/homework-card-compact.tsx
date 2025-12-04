@@ -22,12 +22,12 @@ interface HomeworkCardCompactProps {
   task: {
     id: string;
     title: string;
-    subject?: string;
+    subject?: string | undefined;
     dueDate: Date;
     status: string;
-    priority?: string;
-    color?: string;
-    attachments?: number;
+    priority?: string | undefined;
+    color?: string | undefined;
+    attachments?: number | undefined;
   };
   isDone?: boolean;
   onComplete: () => void;

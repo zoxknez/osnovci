@@ -6,7 +6,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { AlertCircle, Camera, CheckCircle2, MoreVertical, Play, Calendar as CalendarIcon, WifiOff } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, MoreVertical, Play, Calendar as CalendarIcon, WifiOff, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,16 +24,16 @@ interface HomeworkCardProps {
   task: {
     id: string;
     title: string;
-    subject?: string;
-    subjectId?: string;
+    subject?: string | undefined;
+    subjectId?: string | undefined;
     dueDate: Date;
-    description?: string;
+    description?: string | undefined;
     status: string;
-    priority?: string;
-    color?: string;
-    attachments?: number;
-    isOffline?: boolean;
-    synced?: boolean;
+    priority?: string | undefined;
+    color?: string | undefined;
+    attachments?: number | undefined;
+    isOffline?: boolean | undefined;
+    synced?: boolean | undefined;
   };
   onComplete: () => void;
   onCamera: () => void;

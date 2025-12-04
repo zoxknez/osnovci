@@ -12,7 +12,6 @@ import { useState, lazy, Suspense } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 import { showErrorToast, showSuccessToast } from "@/components/features/error-toast";
-import { LoadingWithRetry } from "@/components/features/loading-states";
 import { HomeworkCelebration } from "@/components/features/homework-celebration";
 import { PageHeader } from "@/components/features/page-header";
 import { HomeworkCard } from "@/components/features/homework/homework-card";
@@ -23,12 +22,9 @@ import { HomeworkEmptyState } from "@/components/features/homework/homework-empt
 import { HomeworkBulkSelection } from "@/components/features/homework/homework-bulk-selection";
 import { HomeworkBulkActions } from "@/components/features/homework/homework-bulk-actions";
 import { HomeworkItemCheckbox } from "@/components/features/homework/homework-bulk-selection";
-import { HomeworkHelper } from "@/components/features/ai/homework-helper";
-import { BreakReminder } from "@/components/features/wellness/break-reminder";
 import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
-import { Card, CardContent } from "@/components/ui/card";
-import { exportHomeworkToPDF, exportHomeworkToCSV } from "@/lib/utils/homework-export";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoadingWithRetry } from "@/components/features/loading-states";
+import { exportHomeworkToPDF } from "@/lib/utils/homework-export";
 import { 
   bulkCompleteHomeworkAction, 
   bulkDeleteHomeworkAction, 
@@ -71,9 +67,9 @@ export default function DomaciPage() {
 
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [showHelper, setShowHelper] = useState(false);
-  const [selectedHomeworkForHelper, setSelectedHomeworkForHelper] = useState<string | null>(null);
-  const [studyStartTime] = useState(new Date());
+  const [_showHelper, _setShowHelper] = useState(false);
+  const [_selectedHomeworkForHelper, _setSelectedHomeworkForHelper] = useState<string | null>(null);
+  const [_studyStartTime] = useState(new Date());
 
   // Unified Homework Hook
   const {
@@ -178,7 +174,7 @@ export default function DomaciPage() {
     }
   };
 
-  const handleBulkUpdatePriority = async (ids: string[], priority: "LOW" | "NORMAL" | "URGENT") => {
+  const handleBulkUpdatePriority = async (ids: string[], priority: "LOW" | "NORMAL" | "HIGH") => {
     try {
       await bulkUpdatePriorityAction(ids, priority);
       // Refresh data
@@ -416,8 +412,8 @@ export default function DomaciPage() {
                         onComplete={() => handleMarkComplete(task.id)}
                         onCamera={() => handleOpenCamera(task.id)}
                         onGetHelp={() => {
-                          setSelectedHomeworkForHelper(task.id);
-                          setShowHelper(true);
+                          _setSelectedHomeworkForHelper(task.id);
+                          _setShowHelper(true);
                         }}
                       />
                     </div>

@@ -20,7 +20,7 @@ export function GradesFiltersBar({
   gradesCount,
   onFilterClick,
   onSimulatorToggle,
-  showSimulator,
+  showSimulator: _showSimulator,
   onExportClick,
 }: GradesFiltersBarProps) {
   return (

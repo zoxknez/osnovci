@@ -11,6 +11,7 @@ import { TodaySchedule } from "@/components/features/dashboard/today-schedule";
 import { ActiveHomework } from "@/components/features/dashboard/active-homework";
 import { DashboardSkeleton } from "@/components/features/dashboard/dashboard-skeleton";
 import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
+import { AdaptiveLearningWidget } from "@/components/features/dashboard/adaptive-learning-widget";
 
 export default function DashboardPage() {
   const {
@@ -25,10 +26,9 @@ export default function DashboardPage() {
     currentStreak,
     completedHomeworkCount,
     isOnline,
-    now
+    now,
+    currentUser
   } = useDashboardData();
-  
-  const { data: currentUser } = useCurrentUser();
 
   if (loading) {
     return <DashboardSkeleton />;

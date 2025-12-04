@@ -80,6 +80,7 @@ export async function analyzeLearningProfile(
     // Calculate averages
     Object.keys(subjectStats).forEach((subject) => {
       const stats = subjectStats[subject];
+      if (!stats) return;
       if (stats.count > 0) {
         stats.average = stats.average / stats.count;
       }

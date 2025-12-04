@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     } else if (session.user.role === "GUARDIAN") {
-      const link = await prisma.guardianLink.findFirst({
+      const link = await prisma.link.findFirst({
         where: {
           guardianId,
           studentId,
@@ -64,8 +64,14 @@ export async function GET(request: NextRequest) {
       include: {
         sender: {
           select: {
-            name: true,
+            id: true,
             role: true,
+            student: {
+              select: { name: true },
+            },
+            guardian: {
+              select: { name: true },
+            },
           },
         },
       },
@@ -89,7 +95,7 @@ export async function GET(request: NextRequest) {
       messages: messages.map((m) => ({
         id: m.id,
         senderId: m.senderId,
-        senderName: m.sender.name,
+        senderName: m.sender.student?.name ?? m.sender.guardian?.name ?? "Unknown",
         senderRole: m.sender.role,
         content: m.content,
         timestamp: m.createdAt,
@@ -121,7 +127,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     } else if (session.user.role === "GUARDIAN") {
-      const link = await prisma.guardianLink.findFirst({
+      const link = await prisma.link.findFirst({
         where: {
           guardianId: validated.guardianId,
           studentId: validated.studentId,
@@ -136,8 +142,9 @@ export async function POST(request: NextRequest) {
     // Content moderation
     const moderation = await moderateContent({
       text: validated.content,
+      contentType: "HOMEWORK_NOTE",
+      contentId: `message-${validated.studentId}-${validated.guardianId}`,
       userId: session.user.id,
-      context: "messaging",
     });
 
     if (moderation.severity === "critical" || moderation.severity === "severe") {
@@ -159,8 +166,14 @@ export async function POST(request: NextRequest) {
       include: {
         sender: {
           select: {
-            name: true,
+            id: true,
             role: true,
+            student: {
+              select: { name: true },
+            },
+            guardian: {
+              select: { name: true },
+            },
           },
         },
       },
@@ -177,7 +190,7 @@ export async function POST(request: NextRequest) {
       message: {
         id: message.id,
         senderId: message.senderId,
-        senderName: message.sender.name,
+        senderName: message.sender.student?.name ?? message.sender.guardian?.name ?? "Unknown",
         senderRole: message.sender.role,
         content: message.content,
         timestamp: message.createdAt,

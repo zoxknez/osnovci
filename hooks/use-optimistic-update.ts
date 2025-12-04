@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef } from "react";
-import { showSuccessToast, showErrorToast } from "@/components/features/error-toast";
+import { showErrorToast } from "@/components/features/error-toast";
 
 interface OptimisticUpdateOptions<T> {
   onSuccess?: (data: T) => void;
@@ -52,7 +52,7 @@ export function useOptimisticUpdate<T>(
 
         showErrorToast({
           error: err,
-          retry: () => update(optimisticData, currentData),
+          retry: async () => { await update(optimisticData, currentData); },
         });
 
         return { success: false, error: err };

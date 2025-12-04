@@ -10,11 +10,11 @@ import { showSuccessToast, showErrorToast } from "@/components/features/error-to
 interface HomeworkItem {
   id: string;
   title: string;
-  subject?: string;
-  description?: string;
+  subject?: string | undefined;
+  description?: string | undefined;
   dueDate: Date | string;
   status: string;
-  priority?: string;
+  priority?: string | undefined;
 }
 
 /**

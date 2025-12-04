@@ -6,8 +6,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { AlertCircle, RefreshCw, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
 import { getChildFriendlyError } from "@/lib/utils/child-friendly-errors";
 
 interface ErrorToastOptions {

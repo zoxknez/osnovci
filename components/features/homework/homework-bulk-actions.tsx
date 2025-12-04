@@ -21,7 +21,7 @@ interface HomeworkBulkActionsProps {
   selectedIds: string[];
   onComplete: (ids: string[]) => Promise<void>;
   onDelete: (ids: string[]) => Promise<void>;
-  onUpdatePriority: (ids: string[], priority: "LOW" | "NORMAL" | "URGENT") => Promise<void>;
+  onUpdatePriority: (ids: string[], priority: "LOW" | "NORMAL" | "HIGH") => Promise<void>;
   onUpdateDueDate: (ids: string[], date: Date) => Promise<void>;
   onExport: (ids: string[]) => Promise<void>;
   onClearSelection: () => void;
@@ -83,7 +83,7 @@ export function HomeworkBulkActions({
     );
   };
 
-  const handlePriorityChange = (priority: "LOW" | "NORMAL" | "URGENT") => {
+  const handlePriorityChange = (priority: "LOW" | "NORMAL" | "HIGH") => {
     handleAction(
       () => onUpdatePriority(selectedIds, priority),
       `📌 Prioritet ažuriran za ${selectedIds.length} zadataka!`
@@ -144,7 +144,7 @@ export function HomeworkBulkActions({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handlePriorityChange("URGENT")}>
+            <DropdownMenuItem onClick={() => handlePriorityChange("HIGH")}>
               🔴 Visok prioritet
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handlePriorityChange("NORMAL")}>

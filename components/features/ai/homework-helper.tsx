@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Camera, Loader, Lightbulb, CheckCircle2, ArrowRight, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,7 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { showErrorToast, showSuccessToast } from "@/components/features/error-toast";
-import { cn } from "@/lib/utils";
 import { ModernCamera } from "@/components/features/modern-camera";
 
 interface Step {

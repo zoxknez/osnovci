@@ -149,7 +149,7 @@ async function analyzeProblem(
  */
 async function generateLearningSteps(
   analysis: Awaited<ReturnType<typeof analyzeProblem>>,
-  grade: number
+  _grade: number
 ): Promise<Step[]> {
   const steps: Step[] = [];
 
@@ -339,13 +339,13 @@ function getEncouragement(): string {
     "Učenje je put, ne destinacija. Ti si na dobrom putu! 📚",
     "Svaki zadatak je prilika da naučiš nešto novo! 🚀",
   ];
-  return encouragements[Math.floor(Math.random() * encouragements.length)];
+  return encouragements[Math.floor(Math.random() * encouragements.length)] ?? "Super si!";
 }
 
 /**
  * Dobija learning tips za predmet
  */
-function getLearningTips(subject: string, problemType: string): string[] {
+function getLearningTips(subject: string, _problemType: string): string[] {
   const tips: string[] = [];
 
   if (subject.toLowerCase().includes("matematik")) {

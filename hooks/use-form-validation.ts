@@ -3,7 +3,7 @@
  * Provides real-time validation feedback
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { z } from "zod";
 import { showErrorToast } from "@/components/features/error-toast";
 
@@ -31,17 +31,18 @@ export function useFormValidation<T extends Record<string, any>>({
    * Validate single field
    */
   const validateField = useCallback(
-    (field: keyof T, value: any): string | null => {
+    (field: keyof T, value: unknown): string | null => {
       try {
-        // Create a partial schema for this field
-        const fieldSchema = schema.shape?.[field as string];
+        // Create a partial schema for this field - only works for ZodObject schemas
+        const schemaAny = schema as unknown as { shape?: Record<string, z.ZodTypeAny> };
+        const fieldSchema = schemaAny.shape?.[field as string];
         if (!fieldSchema) return null;
 
         fieldSchema.parse(value);
         return null;
       } catch (error) {
         if (error instanceof z.ZodError) {
-          return error.errors[0]?.message || "Neispravna vrednost";
+          return error.issues[0]?.message || "Neispravna vrednost";
         }
         return "Neispravna vrednost";
       }
@@ -63,7 +64,7 @@ export function useFormValidation<T extends Record<string, any>>({
           const fieldErrors: Record<string, string> = {};
           const validationErrors: ValidationError[] = [];
 
-          error.errors.forEach((err) => {
+          error.issues.forEach((err) => {
             const field = err.path.join(".");
             const message = err.message;
             fieldErrors[field] = message;

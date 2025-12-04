@@ -28,7 +28,7 @@ export default function KnowledgePage() {
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const { resources, isLoading } = useKnowledge(subjectFilter, typeFilter as "all" | "NOTE" | "LINK");
+  const { resources, isLoading } = useKnowledge(subjectFilter, typeFilter === "all" ? undefined : typeFilter as "NOTE" | "LINK");
 
   const { data: subjects } = useQuery({
     queryKey: ["subjects"],

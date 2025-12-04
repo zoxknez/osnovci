@@ -17,7 +17,7 @@ export function BundleMonitor() {
   } | null>(null);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
+    if (process.env['NODE_ENV'] !== "development") return;
 
     const measureBundle = () => {
       const scripts = Array.from(document.querySelectorAll("script[src]"));
@@ -54,13 +54,14 @@ export function BundleMonitor() {
 
     if (document.readyState === "complete") {
       measureBundle();
-    } else {
-      window.addEventListener("load", measureBundle);
-      return () => window.removeEventListener("load", measureBundle);
+      return;
     }
+    
+    window.addEventListener("load", measureBundle);
+    return () => window.removeEventListener("load", measureBundle);
   }, []);
 
-  if (process.env.NODE_ENV !== "development" || !metrics) {
+  if (process.env['NODE_ENV'] !== "development" || !metrics) {
     return null;
   }
 

@@ -17,12 +17,6 @@ interface Alert {
   studentId: string;
 }
 
-interface AlertRule {
-  type: Alert["type"];
-  check: (studentId: string) => Promise<boolean>;
-  generateAlert: (studentId: string, data: any) => Promise<Alert>;
-}
-
 /**
  * Check for grade drops
  */

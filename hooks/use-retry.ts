@@ -62,7 +62,7 @@ export function useRetry<T extends (...args: any[]) => Promise<any>>(
 
             showErrorToast({
               error: lastError,
-              retry: () => executeWithRetry(...args),
+              retry: async () => { await executeWithRetry(...args); },
             });
 
             return null;

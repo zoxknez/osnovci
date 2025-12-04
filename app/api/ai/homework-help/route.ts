@@ -37,11 +37,24 @@ export async function POST(request: NextRequest) {
     // Get student grade
     const studentGrade = session.user.student?.grade || validated.grade;
 
-    // Get homework help
-    const help = await getHomeworkHelp({
-      ...validated,
+    // Build request object, only including optional props if defined
+    const helpRequest: {
+      subject: string;
+      grade: number;
+      photoUrl?: string;
+      text?: string;
+      homeworkId?: string;
+    } = {
+      subject: validated.subject,
       grade: studentGrade,
-    });
+    };
+    
+    if (validated.photoUrl) helpRequest.photoUrl = validated.photoUrl;
+    if (validated.text) helpRequest.text = validated.text;
+    if (validated.homeworkId) helpRequest.homeworkId = validated.homeworkId;
+
+    // Get homework help
+    const help = await getHomeworkHelp(helpRequest);
 
     log.info("Homework help provided", {
       userId: session.user.id,

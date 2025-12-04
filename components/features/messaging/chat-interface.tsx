@@ -5,9 +5,8 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useDebounce } from "@/hooks/use-debounce";
-import { Send, Paperclip, Smile, Loader } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Send, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";

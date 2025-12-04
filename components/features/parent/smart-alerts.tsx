@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, TrendingDown, Clock, BookOpen, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface Alert {
@@ -27,7 +26,7 @@ interface SmartAlertsProps {
   guardianId: string;
 }
 
-export function SmartAlerts({ studentId, guardianId }: SmartAlertsProps) {
+export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

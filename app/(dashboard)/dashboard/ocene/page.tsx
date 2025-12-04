@@ -4,9 +4,7 @@
 import { motion } from "framer-motion";
 import { Loader, Wifi, WifiOff } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import { toast } from "sonner";
-import { showErrorToast, showSuccessToast } from "@/components/features/error-toast";
-import { LoadingWithRetry } from "@/components/features/loading-states";
+import { showErrorToast } from "@/components/features/error-toast";
 import dynamic from "next/dynamic";
 import { PageHeader } from "@/components/features/page-header";
 import {
@@ -206,7 +204,7 @@ export default function OcenePage() {
                 bySubject: subjectGrades.map(sg => ({
                   subject: sg.subject,
                   average: sg.average || 0,
-                  count: sg.totalGrades
+                  count: sg.totalGrades ?? 0
                 }))
               };
               const { exportGradesToPDF } = await import("@/lib/utils/pdf-export");

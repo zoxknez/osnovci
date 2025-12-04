@@ -6,29 +6,28 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { HomeworkCardCompact } from "./homework-card-compact";
 
 interface HomeworkKanbanViewProps {
   todo: Array<{
     id: string;
     title: string;
-    subject?: string;
+    subject?: string | undefined;
     dueDate: Date;
     status: string;
-    priority?: string;
-    color?: string;
-    attachments?: number;
+    priority?: string | undefined;
+    color?: string | undefined;
+    attachments?: number | undefined;
   }>;
   done: Array<{
     id: string;
     title: string;
-    subject?: string;
+    subject?: string | undefined;
     dueDate: Date;
     status: string;
-    priority?: string;
-    color?: string;
-    attachments?: number;
+    priority?: string | undefined;
+    color?: string | undefined;
+    attachments?: number | undefined;
   }>;
   onComplete: (id: string) => void;
   onCamera: (id: string) => void;
@@ -56,7 +55,6 @@ export function HomeworkKanbanView({
             <HomeworkCardCompact 
               key={task.id} 
               task={task} 
-              compact 
               onComplete={() => onComplete(task.id)}
               onCamera={() => onCamera(task.id)}
             />
@@ -83,7 +81,6 @@ export function HomeworkKanbanView({
             <HomeworkCardCompact 
               key={task.id} 
               task={task} 
-              compact 
               isDone
               onComplete={() => {}}
               onCamera={() => onCamera(task.id)}

@@ -91,6 +91,8 @@ import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { getNonce } from "@/lib/security/csp";
 import { Providers } from "./providers";
+import { SkipToContent } from "@/components/features/accessibility/skip-to-content";
+import { ConnectionStatus } from "@/components/features/performance/connection-status";
 
 export default async function RootLayout({
   children,

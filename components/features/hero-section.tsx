@@ -6,8 +6,15 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Users, BookOpen, Star, Zap } from "lucide-react";
 import Link from "next/link";
+
+const STATS = [
+  { value: "10,000+", label: "Aktivnih učenika", icon: Users },
+  { value: "50,000+", label: "Završenih zadataka", icon: BookOpen },
+  { value: "4.9", label: "Prosečna ocena", icon: Star },
+  { value: "99.9%", label: "Uptime", icon: Zap },
+];
 
 export function HeroSection() {
   const prefersReducedMotion = useReducedMotion();

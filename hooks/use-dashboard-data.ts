@@ -5,6 +5,7 @@ import { useSchedule } from "@/hooks/use-schedule";
 import { useOfflineSchedule } from "@/hooks/use-offline-schedule";
 import { useOfflineHomework } from "@/hooks/use-offline-homework";
 import { useOfflineProfile } from "@/hooks/use-offline-profile";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { useSyncStore } from "@/store";
 import { log } from "@/lib/logger";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ export function useDashboardData() {
   const { offlineItems: offlineHomework, hasOfflineItems: hasOfflineHomework } = useOfflineHomework();
   const { profile: offlineProfile, stats: offlineStats } = useOfflineProfile();
 
+  const { data: currentUser } = useCurrentUser();
   const {
     data: profileData,
     isLoading: profileLoading,
@@ -124,6 +126,7 @@ export function useDashboardData() {
     currentStreak,
     completedHomeworkCount,
     isOnline,
-    now
+    now,
+    currentUser
   };
 }

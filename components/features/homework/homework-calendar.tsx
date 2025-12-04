@@ -12,7 +12,6 @@
  * - WCAG 2.1 AAA compliant
  */
 
-import * as React from "react";
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {

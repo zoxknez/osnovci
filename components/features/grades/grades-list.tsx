@@ -15,11 +15,11 @@ interface Grade {
   grade: string | number;
   subject: {
     name: string;
-    color: string;
+    color?: string | undefined;
   };
   category: string;
   date: string | Date;
-  description?: string;
+  description?: string | undefined;
 }
 
 interface GradesListProps {

@@ -28,6 +28,7 @@ export function AriaLiveRegion({
       const timer = setTimeout(() => setAnnouncement(""), 1000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [message]);
 
   return (

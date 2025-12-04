@@ -8,7 +8,6 @@
 import { useState } from "react";
 import { Eye, Palette, Ruler, Volume2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -165,7 +164,7 @@ export function DyslexiaSettings() {
               </div>
               <Slider
                 value={[settings.letterSpacing]}
-                onValueChange={([value]) => handleSettingChange("letterSpacing", value)}
+                onValueChange={([value]) => handleSettingChange("letterSpacing", value ?? 0)}
                 min={0}
                 max={5}
                 step={0.5}
@@ -180,7 +179,7 @@ export function DyslexiaSettings() {
               </div>
               <Slider
                 value={[settings.wordSpacing]}
-                onValueChange={([value]) => handleSettingChange("wordSpacing", value)}
+                onValueChange={([value]) => handleSettingChange("wordSpacing", value ?? 0)}
                 min={0}
                 max={10}
                 step={0.5}
@@ -195,7 +194,7 @@ export function DyslexiaSettings() {
               </div>
               <Slider
                 value={[settings.lineHeight]}
-                onValueChange={([value]) => handleSettingChange("lineHeight", value)}
+                onValueChange={([value]) => handleSettingChange("lineHeight", value ?? 1.5)}
                 min={1.2}
                 max={2.0}
                 step={0.1}
@@ -210,7 +209,7 @@ export function DyslexiaSettings() {
               </div>
               <Slider
                 value={[settings.fontSize]}
-                onValueChange={([value]) => handleSettingChange("fontSize", value)}
+                onValueChange={([value]) => handleSettingChange("fontSize", value ?? 16)}
                 min={16}
                 max={24}
                 step={1}

@@ -87,7 +87,8 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             aria-describedby={
               hasError ? `${props.id}-error` : helperText ? `${props.id}-helper` : undefined
             }
-            {...props}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            {...(props as any)}
           />
 
           {(rightIcon || isPassword) && (

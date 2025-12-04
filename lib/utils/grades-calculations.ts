@@ -23,7 +23,7 @@ export interface Insight {
 /**
  * Organize grades by subject
  */
-export function organizeGradesBySubject(grades: Array<{ grade: string | number; subject?: { name: string; color?: string } }>): Record<string, GradeBySubject> {
+export function organizeGradesBySubject(grades: Array<{ grade: string | number; subject?: { name: string; color?: string | undefined } | undefined }>): Record<string, GradeBySubject> {
   return grades.reduce(
     (acc: Record<string, GradeBySubject>, grade: any) => {
       const subjectName = grade.subject?.name || "Unknown";
@@ -50,7 +50,7 @@ export function calculateSubjectStats(subjectGrades: Record<string, GradeBySubje
     const avg = sg.grades.reduce((a, b) => a + b, 0) / sg.grades.length;
     const firstGrade = sg.grades[0];
     const lastGrade = sg.grades[sg.grades.length - 1];
-    const trend =
+    const trend: "up" | "down" | "stable" =
       sg.grades.length > 1 && firstGrade !== undefined && lastGrade !== undefined
         ? firstGrade > lastGrade
           ? "up"
@@ -59,13 +59,18 @@ export function calculateSubjectStats(subjectGrades: Record<string, GradeBySubje
             : "stable"
         : "stable";
 
-    return {
+    const result: GradeBySubject = {
       ...sg,
       average: Math.round(avg * 100) / 100,
       trend,
-      lastGrade: firstGrade,
       totalGrades: sg.grades.length,
     };
+    
+    if (firstGrade !== undefined) {
+      result.lastGrade = firstGrade;
+    }
+    
+    return result;
   });
 }
 
@@ -106,10 +111,13 @@ export function calculateInsights(subjectGrades: GradeBySubject[]): Insight[] {
 export function getBestSubject(subjectGrades: GradeBySubject[]): string {
   if (subjectGrades.length === 0) return "N/A";
   
+  const first = subjectGrades[0];
+  if (!first) return "N/A";
+  
   return subjectGrades
     .reduce(
       (max, s) => ((s.average ?? 0) > (max.average ?? 0) ? s : max),
-      subjectGrades[0],
+      first,
     )
     .subject;
 }

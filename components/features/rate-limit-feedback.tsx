@@ -158,10 +158,15 @@ export function showRateLimitToast(
       : `Previše zahteva. Pokušaj ponovo za ${formatTimeRemaining(timeRemaining)}.`
   );
 
-  showErrorToast({
+  const options: { error: Error; retry?: () => void } = {
     error: new Error(friendlyError.message),
-    retry: timeRemaining === 0 ? () => window.location.reload() : undefined,
-  });
+  };
+  
+  if (timeRemaining === 0) {
+    options.retry = () => window.location.reload();
+  }
+
+  showErrorToast(options);
 }
 
 /**
@@ -173,11 +178,13 @@ export function parseRateLimitHeaders(headers: Headers): RateLimitFeedbackProps 
   const reset = headers.get("X-RateLimit-Reset");
   const retryAfter = headers.get("Retry-After");
 
-  return {
-    limit: limit ? parseInt(limit, 10) : undefined,
-    remaining: remaining ? parseInt(remaining, 10) : undefined,
-    retryAfter: retryAfter ? parseInt(retryAfter, 10) : undefined,
-    blockedUntil: reset ? parseInt(reset, 10) * 1000 : undefined,
-  };
+  const result: RateLimitFeedbackProps = {};
+  
+  if (limit) result.limit = parseInt(limit, 10);
+  if (remaining) result.remaining = parseInt(remaining, 10);
+  if (retryAfter) result.retryAfter = parseInt(retryAfter, 10);
+  if (reset) result.blockedUntil = parseInt(reset, 10) * 1000;
+  
+  return result;
 }
 

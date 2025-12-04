@@ -10,7 +10,7 @@ import { BookOpen, TrendingUp, Clock, ArrowRight, Loader } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "next/link";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface LearningRecommendation {
@@ -91,7 +91,7 @@ export function AdaptiveLearningWidget({
     );
   }
 
-  const topRecommendation = recommendations[0];
+  const topRecommendation = recommendations[0]!;
 
   return (
     <Card>

@@ -120,7 +120,7 @@ export function BreakReminder({
         // Regular break every 45 minutes
         const activities = BREAK_ACTIVITIES.filter((a) => a.type !== "full_break");
         const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-        setCurrentActivity(randomActivity);
+        setCurrentActivity(randomActivity ?? null);
         setShowBreak(true);
       }
     }, 1000);
@@ -129,23 +129,25 @@ export function BreakReminder({
   }, [studyStartTime]);
 
   useEffect(() => {
-    if (breakActive && currentActivity) {
-      const interval = setInterval(() => {
-        setBreakTimeRemaining((prev) => {
-          if (prev <= 1) {
-            setBreakActive(false);
-            setShowBreak(false);
-            setCurrentActivity(null);
-            onBreakComplete?.();
-            showSuccessToast("Pauza završena! Vrati se na učenje osvežen/na! 💪");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(interval);
+    if (!breakActive || !currentActivity) {
+      return;
     }
+    
+    const interval = setInterval(() => {
+      setBreakTimeRemaining((prev) => {
+        if (prev <= 1) {
+          setBreakActive(false);
+          setShowBreak(false);
+          setCurrentActivity(null);
+          onBreakComplete?.();
+          showSuccessToast("Pauza završena! Vrati se na učenje osvežen/na! 💪");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [breakActive, currentActivity, onBreakComplete]);
 
   const handleStartBreak = () => {

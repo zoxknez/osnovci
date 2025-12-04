@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useMemo, useRef, useEffect, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface VirtualListProps<T> {

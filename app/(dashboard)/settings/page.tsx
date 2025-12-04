@@ -9,7 +9,7 @@ import { DyslexiaSettings } from "@/components/features/accessibility/dyslexia-s
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/features/page-header";
-import { Settings, Eye, Bell, Shield, User } from "lucide-react";
+import { Eye, Bell, Shield, User } from "lucide-react";
 
 export default async function SettingsPage() {
   const session = await auth();

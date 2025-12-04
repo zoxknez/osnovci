@@ -117,7 +117,10 @@ export async function safeAsync<T>(
     return { data };
   } catch (error) {
     const appError = logError(error);
-    return { error: appError, data: fallback };
+    if (fallback !== undefined) {
+      return { error: appError, data: fallback };
+    }
+    return { error: appError };
   }
 }
 

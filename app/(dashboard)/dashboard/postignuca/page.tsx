@@ -13,9 +13,9 @@ const AchievementsDashboard = lazy(() =>
 );
 
 export default function AchievementsPage() {
-  const { data: session, isLoading } = useSession();
+  const { data: session, status } = useSession();
 
-  if (isLoading) {
+  if (status === "loading") {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader className="h-8 w-8 animate-spin text-blue-600" />

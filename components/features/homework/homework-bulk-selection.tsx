@@ -5,7 +5,6 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { CheckSquare2, Square } from "lucide-react";
@@ -32,14 +31,6 @@ export function HomeworkBulkSelection({
       onSelectionChange([]);
     } else {
       onSelectionChange(items.map((item) => item.id));
-    }
-  };
-
-  const handleToggleItem = (id: string) => {
-    if (selectedIds.includes(id)) {
-      onSelectionChange(selectedIds.filter((selectedId) => selectedId !== id));
-    } else {
-      onSelectionChange([...selectedIds, id]);
     }
   };
 

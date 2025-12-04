@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SmartAlerts } from "@/components/features/parent/smart-alerts";
 import { ChatInterface } from "@/components/features/messaging/chat-interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, MessageSquare, TrendingUp, BookOpen } from "lucide-react";
+import { Bell, MessageSquare, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ParentalDashboardEnhancedProps {
@@ -27,8 +27,8 @@ export function ParentalDashboardEnhanced({
   studentName,
 }: ParentalDashboardEnhancedProps) {
   const [activeTab, setActiveTab] = useState("alerts");
-  const [unreadAlerts, setUnreadAlerts] = useState(0);
-  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadAlerts] = useState(0);
+  const [unreadMessages] = useState(0);
 
   return (
     <div className="space-y-6">
