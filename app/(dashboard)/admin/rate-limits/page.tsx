@@ -12,7 +12,7 @@ export default async function AdminRateLimitsPage() {
 
   // Check authentication
   if (!session?.user) {
-    redirect("/login");
+    redirect("/prijava");
   }
 
   // Check admin role

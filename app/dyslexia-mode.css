@@ -309,3 +309,43 @@
     font-family: "OpenDyslexic", system-ui, "Comic Sans MS", cursive;
   }
 }
+
+/* === COLOR OVERLAYS === */
+.dyslexia-overlay-yellow {
+  background-color: rgba(255, 255, 0, 0.1) !important;
+}
+
+.dyslexia-overlay-blue {
+  background-color: rgba(173, 216, 230, 0.15) !important;
+}
+
+.dyslexia-overlay-green {
+  background-color: rgba(144, 238, 144, 0.1) !important;
+}
+
+.dyslexia-overlay-pink {
+  background-color: rgba(255, 192, 203, 0.1) !important;
+}
+
+/* === READING RULER === */
+.dyslexia-reading-ruler {
+  position: relative;
+}
+
+.dyslexia-reading-ruler::before {
+  content: "";
+  position: fixed;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(59, 130, 246, 0.3);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translateY(-50%);
+}
+
+/* Reading ruler toggle - show/hide on hover */
+.dyslexia-reading-ruler:hover::before {
+  background: rgba(59, 130, 246, 0.5);
+}

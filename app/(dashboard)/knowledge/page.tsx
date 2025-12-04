@@ -1,8 +1,16 @@
 "use client";
 
-import { AddResourceDialog } from "@/components/features/knowledge/add-resource-dialog";
+import { lazy, Suspense, useState } from "react";
+import { Loader } from "lucide-react";
 import { ResourceCard } from "@/components/features/knowledge/resource-card";
 import { PageHeader } from "@/components/features/page-header";
+
+// Lazy load AddResourceDialog - only needed when user clicks "Add"
+const AddResourceDialog = lazy(() => 
+  import("@/components/features/knowledge/add-resource-dialog").then((mod) => ({ 
+    default: mod.AddResourceDialog 
+  }))
+);
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,14 +22,13 @@ import {
 import { useKnowledge } from "@/hooks/use-knowledge";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Search } from "lucide-react";
-import { useState } from "react";
 
 export default function KnowledgePage() {
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const { resources, isLoading } = useKnowledge(subjectFilter, typeFilter as any);
+  const { resources, isLoading } = useKnowledge(subjectFilter, typeFilter as "all" | "NOTE" | "LINK");
 
   const { data: subjects } = useQuery({
     queryKey: ["subjects"],
@@ -47,7 +54,11 @@ export default function KnowledgePage() {
       <PageHeader
         title="📚 Biblioteka Znanja"
         description="Tvoja lična baza beleški, linkova i materijala za učenje."
-        action={<AddResourceDialog />}
+        action={
+          <Suspense fallback={<Loader className="h-4 w-4 animate-spin" />}>
+            <AddResourceDialog />
+          </Suspense>
+        }
       />
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -66,7 +77,7 @@ export default function KnowledgePage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Svi predmeti</SelectItem>
-            {subjects?.map((s: any) => (
+            {subjects?.map((s: { id: string; name: string }) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.name}
               </SelectItem>

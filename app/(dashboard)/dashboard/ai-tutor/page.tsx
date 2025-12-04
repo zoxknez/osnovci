@@ -1,7 +1,15 @@
 import { auth } from "@/lib/auth/config";
-import { AiChat } from "@/components/features/ai/ai-chat";
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
+import { lazy, Suspense } from "react";
+import { Loader } from "lucide-react";
+
+// Lazy load AI Chat component - heavy component with AI functionality
+const AiChat = lazy(() => 
+  import("@/components/features/ai/ai-chat").then((mod) => ({ 
+    default: mod.AiChat 
+  }))
+);
 
 export const metadata: Metadata = {
   title: "AI Nastavnik | Osnovci",
@@ -22,7 +30,13 @@ export default async function AiTutorPage() {
         <p className="text-gray-600">Zaglavio si se na zadatku? Pitaj AI nastavnika za pomoć!</p>
       </div>
 
-      <AiChat />
+      <Suspense fallback={
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }>
+        <AiChat />
+      </Suspense>
 
       <div className="grid md:grid-cols-3 gap-4 mt-8">
         <div className="bg-blue-50 p-4 rounded-lg text-center">

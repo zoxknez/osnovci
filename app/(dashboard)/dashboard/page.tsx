@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader, Wifi, WifiOff, Trophy } from "lucide-react";
+import { Wifi, WifiOff, Trophy } from "lucide-react";
 import { PageHeader } from "@/components/features/page-header";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { DemoModeBanner } from "@/components/features/dashboard/demo-mode-banner";
@@ -9,6 +9,8 @@ import { DailyTip } from "@/components/features/dashboard/daily-tip";
 import { QuickStats } from "@/components/features/dashboard/quick-stats";
 import { TodaySchedule } from "@/components/features/dashboard/today-schedule";
 import { ActiveHomework } from "@/components/features/dashboard/active-homework";
+import { DashboardSkeleton } from "@/components/features/dashboard/dashboard-skeleton";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 
 export default function DashboardPage() {
   const {
@@ -25,21 +27,11 @@ export default function DashboardPage() {
     isOnline,
     now
   } = useDashboardData();
+  
+  const { data: currentUser } = useCurrentUser();
 
   if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto space-y-8">
-        <PageHeader
-          title="Dobar dan! 👋"
-          description="Tvoj pregled aktivnosti za danas"
-          variant="gradient"
-          badge="Današnjih napredaka"
-        />
-        <div className="flex items-center justify-center py-12">
-          <Loader className="h-8 w-8 animate-spin text-blue-600" />
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -104,19 +96,39 @@ export default function DashboardPage() {
         }
       />
 
-      <StreakBanner currentStreak={currentStreak} />
+      <SectionErrorBoundary sectionName="Streak Banner">
+        <StreakBanner currentStreak={currentStreak} />
+      </SectionErrorBoundary>
 
-      <DailyTip />
+      <SectionErrorBoundary sectionName="Daily Tip">
+        <DailyTip />
+      </SectionErrorBoundary>
 
-      <QuickStats 
-        todayClassesCount={todayClasses.length}
-        activeHomeworkCount={homework.filter((h) => h.status !== "DONE" && h.status !== "SUBMITTED").length}
-        completedHomeworkCount={completedHomeworkCount}
-      />
+      {/* Adaptive Learning Recommendations */}
+      {currentUser?.student?.id && (
+        <SectionErrorBoundary sectionName="Adaptive Learning">
+          <AdaptiveLearningWidget
+            studentId={currentUser.student.id}
+            compact={true}
+          />
+        </SectionErrorBoundary>
+      )}
+
+      <SectionErrorBoundary sectionName="Quick Stats">
+        <QuickStats 
+          todayClassesCount={todayClasses.length}
+          activeHomeworkCount={homework.filter((h) => h.status !== "DONE" && h.status !== "SUBMITTED").length}
+          completedHomeworkCount={completedHomeworkCount}
+        />
+      </SectionErrorBoundary>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <TodaySchedule todayClasses={todayClasses} now={now} />
-        <ActiveHomework homework={homework} now={now} />
+        <SectionErrorBoundary sectionName="Today Schedule">
+          <TodaySchedule todayClasses={todayClasses} now={now} />
+        </SectionErrorBoundary>
+        <SectionErrorBoundary sectionName="Active Homework">
+          <ActiveHomework homework={homework} now={now} />
+        </SectionErrorBoundary>
       </div>
     </div>
   );

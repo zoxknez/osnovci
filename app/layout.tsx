@@ -128,11 +128,16 @@ export default async function RootLayout({
       >
         <Providers nonce={nonce}>
           <ErrorBoundary>
+            {/* Skip to Content - Accessibility */}
+            <SkipToContent />
             {/* Main Content */}
-            <main id="main-content">{children}</main>
+            <main id="main-content" tabIndex={-1}>{children}</main>
 
             {/* Toast Notifications */}
             <Toaster position="top-center" />
+
+            {/* Connection Status */}
+            <ConnectionStatus />
 
             {/* Analytics */}
             <Analytics />

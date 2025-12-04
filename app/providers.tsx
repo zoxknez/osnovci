@@ -75,6 +75,7 @@ function PerformanceMonitor() {
  */
 export function Providers({
   children,
+  nonce,
 }: {
   children: React.ReactNode;
   nonce?: string;
@@ -94,7 +95,10 @@ export function Providers({
               {/* Performance monitoring */}
               <PerformanceMonitor />
               
-              {children}
+              {/* Reduced motion support */}
+              <ReducedMotionProvider>
+                {children}
+              </ReducedMotionProvider>
             </ShortcutsProvider>
           </CsrfProvider>
         </ThemeProvider>

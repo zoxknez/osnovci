@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { redirect } from "next/navigation";
 import { ParentalAnalyticsWrapper } from "./parental-analytics-wrapper";
+import { ParentalDashboardEnhanced } from "./parental-dashboard-enhanced";
 import {
   Select,
   SelectContent,
@@ -107,6 +108,15 @@ export default async function ParentalDashboardPage({
         )}
       </div>
 
+      {/* Enhanced Dashboard with Alerts and Messaging */}
+      <ParentalDashboardEnhanced
+        studentId={selectedStudentId}
+        guardianId={guardian.id}
+        currentUserId={session.user.id}
+        studentName={selectedLink.student.name}
+      />
+
+      {/* Analytics */}
       <ParentalAnalyticsWrapper
         studentId={selectedStudentId}
         studentName={selectedLink.student.name}

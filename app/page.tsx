@@ -18,10 +18,9 @@ import {
   Mail,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
 
-export default function Home() {
-  const features = useMemo(() => [
+// Static data - no need for useMemo
+const FEATURES = [
     {
       icon: Camera,
       emoji: "📸",
@@ -76,16 +75,26 @@ export default function Home() {
       gradient: "from-indigo-500 to-purple-500",
       delay: 0.5,
     },
-  ], []);
+  ];
 
-  const stats = useMemo(() => [
+const STATS = [
     { value: "10,000+", label: "Aktivnih učenika", icon: Users },
     { value: "50,000+", label: "Završenih zadataka", icon: BookOpen },
     { value: "4.9", label: "Prosečna ocena", icon: Star },
     { value: "99.9%", label: "Uptime", icon: Zap },
-  ], []);
+  ];
+
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+    <>
+      {/* Skip to main content link for accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Preskoči na glavni sadržaj
+      </a>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
       {/* Hero Section - Optimizovano za mobilne */}
       <section className="relative px-4 py-12 sm:py-16 md:py-20 sm:px-6 lg:px-8">
         {/* Animated background elements */}
@@ -207,7 +216,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto px-4"
             >
-              {stats.map((stat, index) => (
+              {STATS.map((stat, index) => (
                 <motion.div
                   key={stat.label}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -245,7 +254,7 @@ export default function Home() {
           </motion.div>
 
           <div className="grid gap-5 sm:gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-3 text-left">
-            {features.map((feature) => (
+            {FEATURES.map((feature) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 30 }}
@@ -397,6 +406,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }

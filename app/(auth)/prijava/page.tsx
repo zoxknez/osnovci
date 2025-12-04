@@ -4,6 +4,7 @@
 import { type Easing, motion, useReducedMotion } from "framer-motion";
 import { LogIn, Shield, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -20,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 export default function PrijavaPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
@@ -83,7 +85,7 @@ export default function PrijavaPage() {
       // Step 4: No 2FA - Complete login
       toast.success("Dobrodošli nazad! 🎉");
       await new Promise((resolve) => setTimeout(resolve, 100));
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     } catch (error) {
       log.error("Login failed", error, { email: formData.email });
       toast.error("Došlo je do greške. Pokušajte ponovo.");
@@ -129,7 +131,7 @@ export default function PrijavaPage() {
 
       toast.success("Dobrodošao Marko! Istraži aplikaciju! 🎉");
       await new Promise((resolve) => setTimeout(resolve, 100));
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     } catch (error) {
       console.error("Demo login exception:", error);
       log.error("Demo login failed", error);
@@ -166,7 +168,7 @@ export default function PrijavaPage() {
       }
 
       await new Promise((resolve) => setTimeout(resolve, 100));
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
       return true;
     } catch (error) {
       log.error("2FA verification failed", error);

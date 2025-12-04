@@ -90,6 +90,7 @@ model User {
   sessions Session[]
   biometricCredentials BiometricCredential[] // WebAuthn credentials
   pushSubscriptions PushSubscription[] // Web Push Notifications
+  sentMessages Message[] @relation("MessageSender")
 
   @@index([email])
   @@index([phone])
@@ -392,6 +393,32 @@ model Link {
   @@index([linkCode, expiresAt]) // Za active link code validation
   @@index([guardianId, studentId, isActive]) // Za active links filter
   @@map("links")
+}
+
+// ============================================
+// MESSAGING (Parent-Child Communication)
+// ============================================
+
+model Message {
+  id         String   @id @default(cuid())
+  studentId  String
+  guardianId String
+  senderId   String   // User ID (student or guardian)
+  content    String   @db.Text
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  sender   User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, guardianId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([read])
+  @@map("messages")
 }
 
 // Link Verification for Stranger Danger Protection

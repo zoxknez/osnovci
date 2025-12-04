@@ -6,6 +6,7 @@ import {
   Clock,
   Home,
   Users,
+  Settings,
 } from "lucide-react";
 
 export const navigation = [
@@ -32,5 +33,11 @@ export const navigation = [
     href: "/dashboard/profil",
     icon: Users,
     emoji: "👤",
+  },
+  {
+    name: "Podešavanja",
+    href: "/settings",
+    icon: Settings,
+    emoji: "⚙️",
   },
 ];
