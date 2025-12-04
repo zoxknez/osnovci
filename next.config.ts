@@ -175,12 +175,11 @@ const nextConfig: NextConfig = {
         : false,
   },
 
+  // React Compiler (React 19) - Automatic memoization (moved to top-level)
+  reactCompiler: true,
+
   // Experimental features
   experimental: {
-    // Partial Prerendering (PPR) - State of the art rendering
-    // ppr: "incremental",
-    // React Compiler (React 19) - Automatic memoization
-    reactCompiler: true,
     // Optimize package imports
     optimizePackageImports: [
       "lucide-react",
@@ -198,26 +197,26 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
-    // Turbopack optimizations (when using --turbopack)
-    turbo: {
-      rules: {
-        "*.svg": {
-          loaders: ["@svgr/webpack"],
-          as: "*.js",
-        },
-      },
-    },
     // Client Trace Metadata for better debugging
     clientTraceMetadata: ["environment", "nextjs"],
   },
+
+  // Turbopack optimizations (moved to top-level)
+  turbo: {
+    rules: {
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
+      },
+    },
+  },
+
+  // Server external packages - exclude problematic packages from bundling
+  // This prevents Turbopack from trying to bundle test files and dependencies
+  serverExternalPackages: ["pino", "thread-stream", "bullmq", "ioredis"],
   
   // Output standalone for better Docker builds
   ...(process.env.NODE_ENV === "production" && { output: "standalone" }),
-
-  // Reduce build output
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
   typescript: {
     ignoreBuildErrors: false,
   },

@@ -1,4 +1,5 @@
 // Structured Logging sa Pino (Next.js 15 compatible)
+// Using dynamic import to avoid bundling issues with thread-stream test files
 import pino from "pino";
 
 // Create logger instance
