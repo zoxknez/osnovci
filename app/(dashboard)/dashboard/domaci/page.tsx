@@ -8,7 +8,7 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
-import { useState, lazy, Suspense, useMemo, useCallback } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { toast } from "sonner";
 import { showErrorToast, showSuccessToast } from "@/components/features/error-toast";
@@ -85,7 +85,7 @@ export default function DomaciPage() {
     syncOfflineItems,
     hasOfflineItems,
     unsyncedCount,
-  } = useHomeworkList(page, searchQuery, filterStatus);
+  } = useHomeworkList(page, debouncedSearchQuery, filterStatus);
   
   const createHomeworkMutation = useCreateHomework();
   const markCompleteMutation = useMarkHomeworkComplete();

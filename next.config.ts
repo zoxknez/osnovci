@@ -199,15 +199,6 @@ const nextConfig: NextConfig = {
     },
     // Client Trace Metadata for better debugging
     clientTraceMetadata: ["environment", "nextjs"],
-    // Turbopack optimizations (for Next.js 16)
-    turbo: {
-      rules: {
-        "*.svg": {
-          loaders: ["@svgr/webpack"],
-          as: "*.js",
-        },
-      },
-    },
   },
 
   // Server external packages - exclude problematic packages from bundling
