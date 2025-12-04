@@ -64,7 +64,7 @@ model User {
   id            String    @id @default(cuid())
   email         String?   @unique
   phone         String?   @unique
-  password      String    // Hashed with bcrypt (Required for Credentials auth)
+  password      String // Hashed with bcrypt (Required for Credentials auth)
   role          UserRole
   locale        Language  @default(SR_LATN)
   theme         Theme     @default(AUTO)
@@ -72,25 +72,25 @@ model User {
   biometric     Boolean   @default(false)
   emailVerified DateTime? // NULL = nije verificiran, DateTime = verificiran
   dateOfBirth   DateTime? // COPPA compliance - age verification
-  
+
   // Two-Factor Authentication (2FA/TOTP)
-  twoFactorEnabled Boolean   @default(false)
+  twoFactorEnabled Boolean @default(false)
   twoFactorSecret  String? // Encrypted TOTP secret
   backupCodes      String? // Encrypted JSON array of backup codes
-  
+
   // Notification Preferences (JSON)
   notificationSettings Json? // { homeworkReminders: true, emailNotifications: true, pushNotifications: true }
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  student  Student?
-  guardian Guardian?
-  sessions Session[]
+  student              Student?
+  guardian             Guardian?
+  sessions             Session[]
   biometricCredentials BiometricCredential[] // WebAuthn credentials
-  pushSubscriptions PushSubscription[] // Web Push Notifications
-  sentMessages Message[] @relation("MessageSender")
+  pushSubscriptions    PushSubscription[] // Web Push Notifications
+  sentMessages         Message[]             @relation("MessageSender")
 
   @@index([email])
   @@index([phone])
@@ -106,7 +106,7 @@ model Session {
   expiresAt      DateTime
   createdAt      DateTime @default(now())
   lastActivityAt DateTime @default(now())
-  
+
   // Device tracking
   deviceType String? // "mobile", "tablet", "desktop"
   deviceName String? // "iPhone 15 Pro", "Chrome on Windows"
@@ -128,26 +128,26 @@ model Session {
 // Biometric Credentials (WebAuthn)
 // For passwordless authentication via Face ID, Fingerprint, Windows Hello
 model BiometricCredential {
-  id        String   @id @default(cuid())
-  userId    String
-  
+  id     String @id @default(cuid())
+  userId String
+
   // WebAuthn credential data
   credentialID        String @unique // Base64URL encoded
-  credentialPublicKey Bytes          // Public key for verification
+  credentialPublicKey Bytes // Public key for verification
   counter             BigInt @default(0) // Signature counter (prevents replay attacks)
-  
+
   // Device info
   deviceType String? // "platform" (Face ID, Touch ID) or "cross-platform" (YubiKey)
   deviceName String? // "iPhone 15 Pro", "MacBook Pro M3"
-  
+
   // Metadata
   transports String? // Comma-separated: "usb,nfc,ble,internal"
-  
+
   createdAt  DateTime @default(now())
   lastUsedAt DateTime @default(now())
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([credentialID])
   @@index([userId, lastUsedAt]) // For "recently used" queries
@@ -234,7 +234,7 @@ model Student {
   notes      String? // Opšte napomene
 
   // Relations
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   links           Link[]
   homework        Homework[]
   schedule        ScheduleEntry[]
@@ -243,22 +243,25 @@ model Student {
   grades          Grade[]
   gamification    Gamification?
   parentalConsent ParentalConsent[] // Consent requests for this student
-  
+
   // New Features Relations
-  focusSessions   FocusSession[]
-  aiTutorSessions AiTutorSession[]
-  sentStickers    StickerLog[]      @relation("SentStickers")
+  focusSessions    FocusSession[]
+  aiTutorSessions  AiTutorSession[]
+  sentStickers     StickerLog[]     @relation("SentStickers")
   receivedStickers StickerLog[]     @relation("ReceivedStickers")
-  
+
   // Feature Set 2 Relations
-  flashcardDecks  FlashcardDeck[]
-  inventory       UserInventory[]
+  flashcardDecks     FlashcardDeck[]
+  inventory          UserInventory[]
   knowledgeResources KnowledgeResource[]
-  
+
+  // Messaging Relations
+  messages Message[]
+
   // Shift Management
-  shiftSystemEnabled Boolean @default(false)
+  shiftSystemEnabled Boolean   @default(false)
   shiftReferenceDate DateTime? // Date when a specific shift started
-  shiftReferenceType String?   // "A" or "B"
+  shiftReferenceType String? // "A" or "B"
 
   @@index([userId])
   @@index([school, grade, class])
@@ -271,41 +274,41 @@ model Student {
 // ============================================
 
 enum ConsentStatus {
-  PENDING   // Čeka verifikaciju
-  VERIFIED  // Verifikovan od strane roditelja
-  EXPIRED   // Istekao (6h)
-  REVOKED   // Povučen
+  PENDING // Čeka verifikaciju
+  VERIFIED // Verifikovan od strane roditelja
+  EXPIRED // Istekao (6h)
+  REVOKED // Povučen
 }
 
 model ParentalConsent {
-  id        String   @id @default(cuid())
-  studentId String   // ID učenika koji čeka pristanak
-  
+  id        String @id @default(cuid())
+  studentId String // ID učenika koji čeka pristanak
+
   // Kod za verifikaciju (6-digit)
-  code      String   @unique // Format: "123456"
-  
+  code String @unique // Format: "123456"
+
   // Roditelj koji daje pristanak
-  parentEmail String  // Email roditelja
+  parentEmail String // Email roditelja
   parentName  String? // Ime roditelja (opciono)
-  
+
   // Status i vremena
-  status      ConsentStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  expiresAt   DateTime      // Auto-expire nakon 6h
-  verifiedAt  DateTime?     // Kada je verifikovan
-  revokedAt   DateTime?     // Kada je povučen
-  
+  status     ConsentStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  expiresAt  DateTime // Auto-expire nakon 6h
+  verifiedAt DateTime? // Kada je verifikovan
+  revokedAt  DateTime? // Kada je povučen
+
   // Tracking
-  ipAddress   String?  // IP adresa pri verifikaciji
-  userAgent   String?  // User agent pri verifikaciji
-  
+  ipAddress String? // IP adresa pri verifikaciji
+  userAgent String? // User agent pri verifikaciji
+
   // Metadata
   emailSentAt DateTime? // Kada je email poslat
   attempts    Int       @default(0) // Broj pokušaja verifikacije
-  
+
   // Relation
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  
+
   @@index([studentId])
   @@index([code])
   @@index([parentEmail])
@@ -362,8 +365,9 @@ model Guardian {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  links Link[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links    Link[]
+  messages Message[]
 
   @@index([userId])
   @@map("guardians")
@@ -403,8 +407,8 @@ model Message {
   id         String   @id @default(cuid())
   studentId  String
   guardianId String
-  senderId   String   // User ID (student or guardian)
-  content    String   @db.Text
+  senderId   String // User ID (student or guardian)
+  content    String
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -425,17 +429,17 @@ model Message {
 // Multi-step QR verification process
 model LinkVerification {
   id String @id @default(cuid())
-  
+
   studentId  String
   guardianId String
   linkCode   String @unique // 6-char code
   emailCode  String // 8-char email verification code
-  
+
   step VerificationStep @default(QR_SCANNED)
-  
+
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
+
   @@index([linkCode])
   @@index([studentId])
   @@index([guardianId])
@@ -445,10 +449,10 @@ model LinkVerification {
 }
 
 enum VerificationStep {
-  QR_SCANNED     // Step 1: Guardian scanned QR
+  QR_SCANNED // Step 1: Guardian scanned QR
   CHILD_APPROVED // Step 2: Child approved on device
-  EMAIL_SENT     // Step 3: Email sent to guardian
-  VERIFIED       // Step 4: Email code verified (ready to create Link)
+  EMAIL_SENT // Step 3: Email sent to guardian
+  VERIFIED // Step 4: Email code verified (ready to create Link)
 }
 
 // ============================================
@@ -468,13 +472,13 @@ model Subject {
   homework Homework[]
   schedule ScheduleEntry[]
   grades   Grade[]
-  
+
   // New Features Relations
-  focusSessions FocusSession[]
+  focusSessions   FocusSession[]
   aiTutorSessions AiTutorSession[]
-  
+
   // Feature Set 2 Relations
-  flashcardDecks FlashcardDeck[]
+  flashcardDecks     FlashcardDeck[]
   knowledgeResources KnowledgeResource[]
 
   @@map("subjects")
@@ -559,34 +563,39 @@ model Homework {
   reviewNote  String? // Roditeljska napomena
   reviewedAt  DateTime?
   version     Int            @default(1) // Optimistic locking version
-  
+
   // Task Management++ fields
-  parentId    String? // Parent task for subtasks
-  order       Int            @default(0) // Order within parent
-  isTemplate  Boolean        @default(false) // Is this a task template?
-  templateId  String? // Created from template
-  isRecurring Boolean        @default(false) // Recurring task
-  recurrenceRule String? // RRULE format (daily, weekly, etc.)
+  parentId         String? // Parent task for subtasks
+  order            Int     @default(0) // Order within parent
+  isTemplate       Boolean @default(false) // Is this a task template?
+  templateId       String? // Created from template
+  isRecurring      Boolean @default(false) // Recurring task
+  recurrenceRule   String? // RRULE format (daily, weekly, etc.)
   estimatedMinutes Int? // Estimated duration
   actualMinutes    Int? // Actual time spent
-  tags        String? // JSON array of tags ["math", "urgent"]
-  
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  tags             String? // JSON array of tags ["math", "urgent"]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   completedAt DateTime? // When task was completed
 
   // Relations
   student     Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   subject     Subject      @relation(fields: [subjectId], references: [id])
   attachments Attachment[]
-  
+
   // Subtasks relations
-  parent      Homework?    @relation("HomeworkSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
-  subtasks    Homework[]   @relation("HomeworkSubtasks")
-  
+  parent   Homework?  @relation("HomeworkSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks Homework[] @relation("HomeworkSubtasks")
+
   // Task dependencies
-  dependsOn   TaskDependency[] @relation("DependentTask")
-  blockedBy   TaskDependency[] @relation("BlockingTask")
+  dependsOn TaskDependency[] @relation("DependentTask")
+  blockedBy TaskDependency[] @relation("BlockingTask")
+
+  // PostgreSQL full-text search (pg_trgm extension required) - ONLY FOR POSTGRESQL
+  // Run: CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  // @@index([title(ops: raw("gin_trgm_ops"))], type: Gist)
+  // @@index([description(ops: raw("gin_trgm_ops"))], type: Gist)
 
   @@index([studentId])
   @@index([subjectId])
@@ -603,22 +612,16 @@ model Homework {
   @@index([priority, status, dueDate]) // Za globalni "sve urgentne" query
   @@index([studentId, parentId, order]) // For ordered subtasks
   @@index([isTemplate, subjectId]) // For template library
-  
-  // PostgreSQL full-text search (pg_trgm extension required) - ONLY FOR POSTGRESQL
-  // Run: CREATE EXTENSION IF NOT EXISTS pg_trgm;
-  // @@index([title(ops: raw("gin_trgm_ops"))], type: Gist)
-  // @@index([description(ops: raw("gin_trgm_ops"))], type: Gist)
-  
   @@map("homework")
 }
 
 // Task Dependencies (for "can't start B until A is done")
 model TaskDependency {
-  id            String   @id @default(cuid())
-  taskId        String // Dependent task (blocked)
-  dependsOnId   String // Blocking task (must be completed first)
+  id             String         @id @default(cuid())
+  taskId         String // Dependent task (blocked)
+  dependsOnId    String // Blocking task (must be completed first)
   dependencyType DependencyType @default(FINISH_TO_START)
-  createdAt     DateTime @default(now())
+  createdAt      DateTime       @default(now())
 
   task          Homework @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
   dependsOnTask Homework @relation("BlockingTask", fields: [dependsOnId], references: [id], onDelete: Cascade)
@@ -631,7 +634,7 @@ model TaskDependency {
 
 enum DependencyType {
   FINISH_TO_START // B can't start until A is finished (most common)
-  START_TO_START  // B can't start until A starts
+  START_TO_START // B can't start until A starts
   FINISH_TO_FINISH // B can't finish until A finishes
 }
 
@@ -688,7 +691,7 @@ enum DayOfWeek {
 model ScheduleEntry {
   id            String    @id @default(cuid())
   studentId     String
-  subjectId     String?   // Optional for custom events
+  subjectId     String? // Optional for custom events
   dayOfWeek     DayOfWeek
   startTime     String // "08:00"
   endTime       String // "08:45"
@@ -829,86 +832,86 @@ model WeeklyReport {
 
 enum AchievementType {
   // Homework Achievements
-  FIRST_HOMEWORK        // Prvi domaći zadatak
-  HOMEWORK_5            // 5 domaćih zadataka
-  HOMEWORK_10           // 10 domaćih zadataka
-  HOMEWORK_25           // 25 domaćih zadataka
-  HOMEWORK_50           // 50 domaćih zadataka
-  HOMEWORK_100          // 100 domaćih zadataka
-  ALL_HOMEWORK_WEEK     // Svi domaći u nedelji
-  ALL_HOMEWORK_MONTH    // Svi domaći u mesecu
-  
+  FIRST_HOMEWORK // Prvi domaći zadatak
+  HOMEWORK_5 // 5 domaćih zadataka
+  HOMEWORK_10 // 10 domaćih zadataka
+  HOMEWORK_25 // 25 domaćih zadataka
+  HOMEWORK_50 // 50 domaćih zadataka
+  HOMEWORK_100 // 100 domaćih zadataka
+  ALL_HOMEWORK_WEEK // Svi domaći u nedelji
+  ALL_HOMEWORK_MONTH // Svi domaći u mesecu
+
   // Streak Achievements
-  STREAK_3              // 3 dana streak
-  STREAK_7              // 7 dana streak
-  STREAK_14             // 14 dana streak
-  STREAK_30             // 30 dana streak
-  STREAK_60             // 60 dana streak
-  STREAK_100            // 100 dana streak
-  
+  STREAK_3 // 3 dana streak
+  STREAK_7 // 7 dana streak
+  STREAK_14 // 14 dana streak
+  STREAK_30 // 30 dana streak
+  STREAK_60 // 60 dana streak
+  STREAK_100 // 100 dana streak
+
   // Level Achievements
-  LEVEL_5               // Nivo 5
-  LEVEL_10              // Nivo 10
-  LEVEL_20              // Nivo 20
-  LEVEL_30              // Nivo 30
-  LEVEL_50              // Nivo 50
-  
+  LEVEL_5 // Nivo 5
+  LEVEL_10 // Nivo 10
+  LEVEL_20 // Nivo 20
+  LEVEL_30 // Nivo 30
+  LEVEL_50 // Nivo 50
+
   // XP Achievements
-  XP_500                // 500 XP
-  XP_1000               // 1000 XP
-  XP_2500               // 2500 XP
-  XP_5000               // 5000 XP
-  XP_10000              // 10000 XP
-  
+  XP_500 // 500 XP
+  XP_1000 // 1000 XP
+  XP_2500 // 2500 XP
+  XP_5000 // 5000 XP
+  XP_10000 // 10000 XP
+
   // Grade Achievements
-  FIRST_GRADE_5         // Prva petica
-  GRADE_5_STREAK_3      // 3 petice zaredom
-  GRADE_5_STREAK_5      // 5 petice zaredom
-  GRADE_5_STREAK_10     // 10 petice zaredom
-  PERFECT_WEEK          // Sve petice u nedelji
-  PERFECT_MONTH         // Sve petice u mesecu
-  GRADE_AVG_45          // Prosek 4.5
-  GRADE_AVG_48          // Prosek 4.8
-  GRADE_AVG_50          // Prosek 5.0
-  
+  FIRST_GRADE_5 // Prva petica
+  GRADE_5_STREAK_3 // 3 petice zaredom
+  GRADE_5_STREAK_5 // 5 petice zaredom
+  GRADE_5_STREAK_10 // 10 petice zaredom
+  PERFECT_WEEK // Sve petice u nedelji
+  PERFECT_MONTH // Sve petice u mesecu
+  GRADE_AVG_45 // Prosek 4.5
+  GRADE_AVG_48 // Prosek 4.8
+  GRADE_AVG_50 // Prosek 5.0
+
   // Time-based Achievements
-  EARLY_BIRD            // Rano jutro (pre 7h)
-  NIGHT_OWL             // Kasno uveče (posle 22h)
-  WEEKEND_WARRIOR       // Vikend aktivnost
-  EARLY_SUBMISSION      // Rana predaja
-  EARLY_SUBMISSION_10   // 10 ranih predaja
-  EARLY_SUBMISSION_25   // 25 ranih predaja
-  
+  EARLY_BIRD // Rano jutro (pre 7h)
+  NIGHT_OWL // Kasno uveče (posle 22h)
+  WEEKEND_WARRIOR // Vikend aktivnost
+  EARLY_SUBMISSION // Rana predaja
+  EARLY_SUBMISSION_10 // 10 ranih predaja
+  EARLY_SUBMISSION_25 // 25 ranih predaja
+
   // Speed Achievements
-  SPEED_DEMON           // Brzo završavanje
-  SPEEDRUNNER_5         // 5 brzih završetaka
-  SPEEDRUNNER_10        // 10 brzih završetaka
-  LIGHTNING_FAST        // Munja brz
-  
+  SPEED_DEMON // Brzo završavanje
+  SPEEDRUNNER_5 // 5 brzih završetaka
+  SPEEDRUNNER_10 // 10 brzih završetaka
+  LIGHTNING_FAST // Munja brz
+
   // Subject Achievements
-  SUBJECT_MASTER        // Majstor predmeta
-  ALL_SUBJECTS_5        // Sve petice iz svih predmeta
-  SUBJECT_SPECIALIST    // Specialist za predmet
-  
+  SUBJECT_MASTER // Majstor predmeta
+  ALL_SUBJECTS_5 // Sve petice iz svih predmeta
+  SUBJECT_SPECIALIST // Specialist za predmet
+
   // Social Achievements
-  HELPER                // Pomoćnik
-  SOCIAL_BUTTERFLY      // Druželjubiv
-  TEAM_PLAYER           // Timski igrač
-  
+  HELPER // Pomoćnik
+  SOCIAL_BUTTERFLY // Druželjubiv
+  TEAM_PLAYER // Timski igrač
+
   // Consistency Achievements
-  CONSISTENT_7          // 7 dana konzistentnosti
-  CONSISTENT_30         // 30 dana konzistentnosti
-  CONSISTENT_90         // 90 dana konzistentnosti
-  PERFECTIONIST         // Perfekcionist
-  
+  CONSISTENT_7 // 7 dana konzistentnosti
+  CONSISTENT_30 // 30 dana konzistentnosti
+  CONSISTENT_90 // 90 dana konzistentnosti
+  PERFECTIONIST // Perfekcionist
+
   // Special Achievements
-  COMEBACK_KID          // Povratak posle pauze
-  EXPLORER              // Istraživač
-  OVERACHIEVER          // Prekoračivač
-  COLLECTOR             // Kolekcionar
-  TOP_STUDENT           // Najbolji učenik
-  LEADERBOARD_TOP_3     // Top 3 na leaderboard-u
-  LEADERBOARD_TOP_10    // Top 10 na leaderboard-u
+  COMEBACK_KID // Povratak posle pauze
+  EXPLORER // Istraživač
+  OVERACHIEVER // Prekoračivač
+  COLLECTOR // Kolekcionar
+  TOP_STUDENT // Najbolji učenik
+  LEADERBOARD_TOP_3 // Top 3 na leaderboard-u
+  LEADERBOARD_TOP_10 // Top 10 na leaderboard-u
 }
 
 enum AchievementRarity {
@@ -928,27 +931,27 @@ model Gamification {
   streak            Int       @default(0)
   longestStreak     Int       @default(0)
   lastActivityDate  DateTime?
-  
+
   // Enhanced tracking
-  weeklyXP          Int       @default(0)
-  monthlyXP         Int       @default(0)
-  lastWeekReset     DateTime  @default(now())
-  lastMonthReset    DateTime  @default(now())
-  perfectWeeks      Int       @default(0)
-  earlySubmissions  Int       @default(0)
-  weekendTasks      Int       @default(0)
-  nightTasks        Int       @default(0)
-  fastCompletions   Int       @default(0)
-  
+  weeklyXP         Int      @default(0)
+  monthlyXP        Int      @default(0)
+  lastWeekReset    DateTime @default(now())
+  lastMonthReset   DateTime @default(now())
+  perfectWeeks     Int      @default(0)
+  earlySubmissions Int      @default(0)
+  weekendTasks     Int      @default(0)
+  nightTasks       Int      @default(0)
+  fastCompletions  Int      @default(0)
+
   // Streak freeze power-up
-  streakFreezes     Int       @default(0)
-  lastStreakFreeze  DateTime?
-  
+  streakFreezes    Int       @default(0)
+  lastStreakFreeze DateTime?
+
   // Privacy & preferences
-  showOnLeaderboard Boolean   @default(true)
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  showOnLeaderboard Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   achievements Achievement[]
@@ -972,12 +975,12 @@ model Achievement {
   xpReward       Int               @default(0)
   rarity         AchievementRarity @default(COMMON)
   unlockedAt     DateTime          @default(now())
-  
+
   // Enhanced progress tracking
-  progress       Int?              @default(0) // Current progress towards achievement
-  target         Int?              // Target value to unlock (if applicable)
-  isHidden       Boolean           @default(false) // Secret achievements
-  category       String?           // Grouping (e.g., "Homework", "Social", "Streak")
+  progress Int?    @default(0) // Current progress towards achievement
+  target   Int? // Target value to unlock (if applicable)
+  isHidden Boolean @default(false) // Secret achievements
+  category String? // Grouping (e.g., "Homework", "Social", "Streak")
 
   gamification Gamification @relation(fields: [gamificationId], references: [id], onDelete: Cascade)
 
@@ -1014,8 +1017,8 @@ model PushSubscription {
   id        String   @id @default(cuid())
   userId    String
   endpoint  String   @unique
-  p256dh    String   // Public key for encryption
-  auth      String   // Auth secret for encryption
+  p256dh    String // Public key for encryption
+  auth      String // Auth secret for encryption
   isActive  Boolean  @default(true)
   lastUsed  DateTime @default(now())
   createdAt DateTime @default(now())
@@ -1034,65 +1037,65 @@ model PushSubscription {
 // ============================================
 
 enum NotificationChannel {
-  EMAIL      // Email notifikacije
-  PUSH       // Browser push notifications
-  IN_APP     // In-app notifikacije (UI bell icon)
+  EMAIL // Email notifikacije
+  PUSH // Browser push notifications
+  IN_APP // In-app notifikacije (UI bell icon)
 }
 
 enum NotificationEventType {
   // Homework events
-  HOMEWORK_ASSIGNED      // Novi domaći zadatak dodeljen
-  HOMEWORK_DUE_SOON      // Domaći uskoro ističe (24h)
-  HOMEWORK_OVERDUE       // Domaći je prekoračen
-  HOMEWORK_SUBMITTED     // Domaći predat (za roditelje)
-  HOMEWORK_REVIEWED      // Domaći pregledan i ocenjen
-  
+  HOMEWORK_ASSIGNED // Novi domaći zadatak dodeljen
+  HOMEWORK_DUE_SOON // Domaći uskoro ističe (24h)
+  HOMEWORK_OVERDUE // Domaći je prekoračen
+  HOMEWORK_SUBMITTED // Domaći predat (za roditelje)
+  HOMEWORK_REVIEWED // Domaći pregledan i ocenjen
+
   // Grade events
-  GRADE_ADDED            // Nova ocena dodata
-  GRADE_UPDATED          // Ocena izmenjena
-  
+  GRADE_ADDED // Nova ocena dodata
+  GRADE_UPDATED // Ocena izmenjena
+
   // Schedule events
-  SCHEDULE_CHANGED       // Raspored promenjen
-  EVENT_REMINDER         // Podsetnik za događaj (kontrolni, sastanak)
-  
+  SCHEDULE_CHANGED // Raspored promenjen
+  EVENT_REMINDER // Podsetnik za događaj (kontrolni, sastanak)
+
   // Family events
-  LINK_REQUEST           // Zahtev za povezivanje roditelj-dete
-  LINK_APPROVED          // Veza odobrena
-  
+  LINK_REQUEST // Zahtev za povezivanje roditelj-dete
+  LINK_APPROVED // Veza odobrena
+
   // Safety & moderation
-  CONTENT_MODERATION     // Neprikladan sadržaj detektovan
-  SAFETY_ALERT           // Bezbednosni alert
-  
+  CONTENT_MODERATION // Neprikladan sadržaj detektovan
+  SAFETY_ALERT // Bezbednosni alert
+
   // Account events
-  LOGIN_NEW_DEVICE       // Prijava sa novog uređaja
-  PASSWORD_CHANGED       // Lozinka promenjena
-  TWO_FACTOR_ENABLED     // 2FA omogućen
+  LOGIN_NEW_DEVICE // Prijava sa novog uređaja
+  PASSWORD_CHANGED // Lozinka promenjena
+  TWO_FACTOR_ENABLED // 2FA omogućen
 }
 
 model NotificationPreference {
-  id        String                  @id @default(cuid())
-  userId    String                  // User ID (student ili guardian)
-  
+  id     String @id @default(cuid())
+  userId String // User ID (student ili guardian)
+
   // Event type
   eventType NotificationEventType
-  
+
   // Channels (per-event granular control)
-  emailEnabled  Boolean @default(true)
-  pushEnabled   Boolean @default(true)
-  inAppEnabled  Boolean @default(true)
-  
+  emailEnabled Boolean @default(true)
+  pushEnabled  Boolean @default(true)
+  inAppEnabled Boolean @default(true)
+
   // Timing preferences (optional)
   quietHoursStart Int? // Start hour (0-23) for quiet hours
   quietHoursEnd   Int? // End hour (0-23) for quiet hours
-  
+
   // Frequency control
-  digest        Boolean @default(false) // Group notifications into daily digest
-  instantOnly   Boolean @default(false) // Only instant notifications (no digest)
-  
+  digest      Boolean @default(false) // Group notifications into daily digest
+  instantOnly Boolean @default(false) // Only instant notifications (no digest)
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([userId, eventType]) // One preference per event type per user
   @@index([userId])
   @@index([eventType])
@@ -1127,46 +1130,46 @@ model ModerationLog {
   id String @id @default(cuid())
 
   // Content details
-  contentType  ContentType
-  contentId    String // ID of homework, grade, etc.
-  originalText String // Original content
+  contentType   ContentType
+  contentId     String // ID of homework, grade, etc.
+  originalText  String // Original content
   moderatedText String? // Filtered/moderated version
 
   // User context
-  userId   String
+  userId    String
   studentId String?
-  
+
   // Moderation results
   status       ModerationStatus @default(PENDING)
   flagged      Boolean          @default(false)
-  severity     String?          // none, mild, moderate, severe, critical
-  flaggedWords String?          // JSON array of flagged words
-  categories   Json?            // AI moderation categories
+  severity     String? // none, mild, moderate, severe, critical
+  flaggedWords String? // JSON array of flagged words
+  categories   Json? // AI moderation categories
 
   // AI moderation scores
-  aiProvider      String? // openai, aws-rekognition
-  aiConfidence    Float?  // 0-100
-  aiCategories    Json?   // Detailed AI results
-  
+  aiProvider   String? // openai, aws-rekognition
+  aiConfidence Float? // 0-100
+  aiCategories Json? // Detailed AI results
+
   // Personal info detection
-  hasPII          Boolean @default(false)
-  piiTypes        String? // email, phone, address, jmbg
+  hasPII   Boolean @default(false)
+  piiTypes String? // email, phone, address, jmbg
 
   // Actions taken
-  actionTaken     String? // allow, warn, filter, block, flag
-  notifyParent    Boolean @default(false)
-  parentNotified  Boolean @default(false)
+  actionTaken      String? // allow, warn, filter, block, flag
+  notifyParent     Boolean   @default(false)
+  parentNotified   Boolean   @default(false)
   parentNotifiedAt DateTime?
 
   // Review tracking
-  reviewedBy   String? // Admin user ID
-  reviewedAt   DateTime?
-  reviewNotes  String?
+  reviewedBy  String? // Admin user ID
+  reviewedAt  DateTime?
+  reviewNotes String?
 
   // Metadata
-  ipAddress    String?
-  userAgent    String?
-  metadata     Json? // Additional context
+  ipAddress String?
+  userAgent String?
+  metadata  Json? // Additional context
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1195,17 +1198,17 @@ enum FocusStatus {
 }
 
 model FocusSession {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   studentId String
   subjectId String?
-  startTime DateTime @default(now())
+  startTime DateTime    @default(now())
   endTime   DateTime?
-  duration  Int?     // in minutes
+  duration  Int? // in minutes
   status    FocusStatus @default(ACTIVE)
-  xpEarned  Int      @default(0)
-  
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subject   Subject? @relation(fields: [subjectId], references: [id])
+  xpEarned  Int         @default(0)
+
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id])
 
   @@index([studentId])
   @@index([status])
@@ -1221,13 +1224,13 @@ model AiTutorSession {
   id        String   @id @default(cuid())
   studentId String
   subjectId String?
-  query     String?  // Text query
-  imageUrl  String?  // Image of the problem
-  response  String   // AI explanation (markdown)
+  query     String? // Text query
+  imageUrl  String? // Image of the problem
+  response  String // AI explanation (markdown)
   createdAt DateTime @default(now())
-  
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subject   Subject? @relation(fields: [subjectId], references: [id])
+
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id])
 
   @@index([studentId])
   @@index([createdAt])
@@ -1239,14 +1242,14 @@ model AiTutorSession {
 // ============================================
 
 model Sticker {
-  id        String   @id @default(cuid())
-  code      String   @unique // e.g. "THUMBS_UP"
-  name      String
-  icon      String   // Emoji or URL
-  cost      Int      @default(0) // XP cost
-  minLevel  Int      @default(1) // Min level to unlock
-  
-  logs      StickerLog[]
+  id       String @id @default(cuid())
+  code     String @unique // e.g. "THUMBS_UP"
+  name     String
+  icon     String // Emoji or URL
+  cost     Int    @default(0) // XP cost
+  minLevel Int    @default(1) // Min level to unlock
+
+  logs StickerLog[]
 
   @@map("stickers")
 }
@@ -1256,12 +1259,12 @@ model StickerLog {
   senderId   String
   receiverId String
   stickerId  String
-  message    String?  // Predefined message only!
+  message    String? // Predefined message only!
   createdAt  DateTime @default(now())
 
-  sender     Student  @relation("SentStickers", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver   Student  @relation("ReceivedStickers", fields: [receiverId], references: [id], onDelete: Cascade)
-  sticker    Sticker  @relation(fields: [stickerId], references: [id], onDelete: Cascade)
+  sender   Student @relation("SentStickers", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver Student @relation("ReceivedStickers", fields: [receiverId], references: [id], onDelete: Cascade)
+  sticker  Sticker @relation(fields: [stickerId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
   @@index([receiverId])
@@ -1282,9 +1285,9 @@ model FlashcardDeck {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  cards     Flashcard[]
+  student Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  cards   Flashcard[]
 
   @@index([studentId])
   @@index([subjectId])
@@ -1294,11 +1297,11 @@ model FlashcardDeck {
 model Flashcard {
   id        String   @id @default(cuid())
   deckId    String
-  front     String   // Question
-  back      String   // Answer
+  front     String // Question
+  back      String // Answer
   createdAt DateTime @default(now())
 
-  deck      FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  deck FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
 
   @@index([deckId])
   @@map("flashcards")
@@ -1321,26 +1324,26 @@ model ShopItem {
   description String?
   cost        Int
   type        ShopItemType
-  assetUrl    String       // URL to image/resource
-  previewUrl  String?      // Thumbnail
+  assetUrl    String // URL to image/resource
+  previewUrl  String? // Thumbnail
   minLevel    Int          @default(1)
   isPremium   Boolean      @default(false)
   createdAt   DateTime     @default(now())
-  
-  purchases   UserInventory[]
+
+  purchases UserInventory[]
 
   @@map("shop_items")
 }
 
 model UserInventory {
-  id        String   @id @default(cuid())
-  studentId String
-  itemId    String
-  equipped  Boolean  @default(false)
+  id          String   @id @default(cuid())
+  studentId   String
+  itemId      String
+  equipped    Boolean  @default(false)
   purchasedAt DateTime @default(now())
 
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  item      ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item    ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, itemId])
   @@index([studentId])
@@ -1360,20 +1363,20 @@ enum ResourceType {
 }
 
 model KnowledgeResource {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   studentId String
   subjectId String
   title     String
   type      ResourceType
-  content   String   // Text content or URL
-  metadata  Json?    // Additional info (e.g. image dimensions, link preview)
-  tags      String?  // JSON array of tags
-  isPinned  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  content   String // Text content or URL
+  metadata  Json? // Additional info (e.g. image dimensions, link preview)
+  tags      String? // JSON array of tags
+  isPinned  Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([subjectId])
