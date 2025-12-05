@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { X, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarNavItems } from "./sidebar-nav-items";
+import { clearOfflineData } from "@/lib/offline/indexeddb";
+import { toast } from "sonner";
 
 interface MobileSidebarProps {
   sidebarOpen: boolean;
@@ -10,6 +16,24 @@ interface MobileSidebarProps {
 }
 
 export function MobileSidebar({ sidebarOpen, setSidebarOpen, pathname }: MobileSidebarProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    setSidebarOpen(false);
+    try {
+      // Očisti offline cache pre odjave
+      await clearOfflineData();
+      // Odjavi korisnika
+      await signOut({ redirect: false });
+      toast.success("Uspešno ste se odjavili");
+      router.push("/prijava");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Greška pri odjavljivanju");
+      router.push("/prijava");
+    }
+  };
+
   return (
     <>
       {/* Mobile sidebar overlay */}
@@ -28,7 +52,7 @@ export function MobileSidebar({ sidebarOpen, setSidebarOpen, pathname }: MobileS
         id="mobile-sidebar"
         role="dialog"
         aria-label="Navigacioni meni"
-        aria-modal="false"
+        aria-modal={sidebarOpen}
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-72 transform bg-gradient-to-b from-blue-50/50 to-white/90 backdrop-blur-sm shadow-xl transition-transform duration-300 ease-in-out lg:hidden border-r border-gray-100",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
@@ -72,10 +96,7 @@ export function MobileSidebar({ sidebarOpen, setSidebarOpen, pathname }: MobileS
 
             <button
               type="button"
-              onClick={() => {
-                setSidebarOpen(false);
-                /* Logout logic */
-              }}
+              onClick={handleLogout}
               aria-label="Odjavi se sa naloga"
               className="w-full group flex items-center gap-x-3 rounded-xl px-4 py-4 text-base font-medium text-red-600 hover:bg-red-50 active:scale-95 transition-all mt-1 focus:ring-2 focus:ring-red-500 focus:outline-none"
             >

@@ -3,18 +3,40 @@
  * Runs every 6 hours
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
+import {
+  checkParentalAlerts,
+  sendParentalAlert,
+} from "@/lib/ai/parental-alerts";
 import { prisma } from "@/lib/db/prisma";
-import { checkParentalAlerts, sendParentalAlert } from "@/lib/ai/parental-alerts";
 import { log } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     // Verify cron secret (if using Vercel Cron)
     const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env['CRON_SECRET']}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const cronSecret = process.env["CRON_SECRET"];
+
+    if (!cronSecret) {
+      log.error("CRON_SECRET not configured", { requestId });
+      return NextResponse.json(
+        { error: "CRON_SECRET nije podešen", requestId },
+        { status: 500 },
+      );
     }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      log.warn("Unauthorized parental-alerts cron attempt", { requestId });
+      return NextResponse.json(
+        { error: "Nemate pristup", requestId },
+        { status: 401 },
+      );
+    }
+
+    log.info("Starting parental alerts cron", { requestId });
 
     // Get all active students
     const students = await prisma.student.findMany({
@@ -47,19 +69,20 @@ export async function GET(request: NextRequest) {
     log.info("Parental alerts cron completed", {
       studentsChecked: students.length,
       totalAlerts,
+      requestId,
     });
 
     return NextResponse.json({
       success: true,
+      requestId,
       studentsChecked: students.length,
       totalAlerts,
     });
   } catch (error) {
-    log.error("Error in parental alerts cron", error);
+    log.error("Error in parental alerts cron", { error, requestId });
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "Greška pri proveri upozorenja", requestId },
+      { status: 500 },
     );
   }
 }
-

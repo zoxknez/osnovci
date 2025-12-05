@@ -4,35 +4,83 @@
  */
 
 import type { AuthenticationResponseJSON } from "@simplewebauthn/types";
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
   generateBiometricAuthenticationOptions,
   verifyBiometricAuthentication,
 } from "@/lib/auth/biometric-server";
 import { log } from "@/lib/logger";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
+import { logActivity } from "@/lib/tracking/activity-logger";
+
+const challengeSchema = z.object({
+  userId: z.string().min(1, "UserId je obavezan"),
+});
+
+const verifySchema = z.object({
+  credential: z.object({
+    id: z.string(),
+    rawId: z.string(),
+    response: z.object({
+      clientDataJSON: z.string(),
+      authenticatorData: z.string(),
+      signature: z.string(),
+    }),
+    type: z.literal("public-key"),
+    clientExtensionResults: z.record(z.string(), z.unknown()).optional(),
+  }),
+});
 
 /**
- * POST /api/auth/biometric/verify/challenge
+ * GET /api/auth/biometric/verify
  * Generate authentication challenge for existing biometric credentials
  */
 export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.moderate,
+      prefix: "biometric-auth-challenge",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        { error: "Previše zahteva", requestId },
+        { status: 429, headers },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    if (!userId) {
+    const validated = challengeSchema.safeParse({ userId });
+    if (!validated.success) {
       return NextResponse.json(
-        { error: "Bad Request", message: "UserId je obavezan" },
+        { error: "UserId je obavezan", requestId },
         { status: 400 },
       );
     }
 
     // Generate authentication options
-    const options = await generateBiometricAuthenticationOptions(userId);
+    const options = await generateBiometricAuthenticationOptions(
+      validated.data.userId,
+    );
 
     // Store challenge in cookie
     const response = NextResponse.json({
       success: true,
+      requestId,
       options,
     });
 
@@ -44,15 +92,21 @@ export async function GET(request: NextRequest) {
       path: "/",
     });
 
-    log.info("Authentication challenge generated", { userId });
+    log.info("Authentication challenge generated", {
+      userId: validated.data.userId,
+      requestId,
+    });
 
     return response;
   } catch (error) {
-    log.error("Failed to generate authentication challenge", { error });
+    log.error("Failed to generate authentication challenge", {
+      error,
+      requestId,
+    });
     return NextResponse.json(
       {
-        error: "Internal Server Error",
-        message: "Greška pri generisanju challenge-a",
+        error: "Greška pri generisanju challenge-a",
+        requestId,
       },
       { status: 500 },
     );
@@ -64,30 +118,54 @@ export async function GET(request: NextRequest) {
  * Verify biometric authentication and create session
  */
 export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Strict rate limiting - prevent brute force
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.strict,
+      prefix: "biometric-verify",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        {
+          error: "Previše pokušaja. Pokušajte ponovo za par minuta.",
+          requestId,
+        },
+        { status: 429, headers },
+      );
+    }
+
     // Get challenge from cookie
     const challenge = request.cookies.get("webauthn-auth-challenge")?.value;
 
     if (!challenge) {
       return NextResponse.json(
         {
-          error: "Bad Request",
-          message: "Challenge nije pronađen ili je istekao",
+          error: "Challenge nije pronađen ili je istekao",
+          requestId,
         },
         { status: 400 },
       );
     }
 
-    // Get authentication response from client
+    // Get and validate authentication response from client
     const body = await request.json();
-    const authenticationResponse: AuthenticationResponseJSON = body.credential;
+    const validated = verifySchema.safeParse(body);
 
-    if (!authenticationResponse) {
+    if (!validated.success) {
       return NextResponse.json(
-        { error: "Bad Request", message: "Credential podaci nisu validni" },
+        { error: "Nevažeći credential podaci", requestId },
         { status: 400 },
       );
     }
+
+    const authenticationResponse = validated.data
+      .credential as AuthenticationResponseJSON;
 
     // Verify authentication
     const result = await verifyBiometricAuthentication(
@@ -98,30 +176,38 @@ export async function POST(request: NextRequest) {
     if (!result.success || !result.userId) {
       log.warn("Biometric authentication failed", {
         error: result.error,
+        requestId,
       });
 
       return NextResponse.json(
         {
-          error: "Authentication Failed",
+          error: "Autentifikacija nije uspela",
           message: result.error || "Autentifikacija nije uspela",
+          requestId,
         },
         { status: 401 },
       );
     }
 
-    // Authentication successful - create session via NextAuth
-    // Note: This is a simplified approach. In production, you'd want to:
-    // 1. Generate JWT token manually
-    // 2. Or integrate with NextAuth's session creation
-
+    // Authentication successful
     log.info("Biometric authentication successful", {
       userId: result.userId,
+      requestId,
+    });
+
+    // COPPA: Log biometric login
+    await logActivity({
+      userId: result.userId,
+      type: "LOGIN",
+      description: "Uspešna biometrijska prijava",
+      request,
     });
 
     // Clear challenge cookie
     const response = NextResponse.json({
       success: true,
       userId: result.userId,
+      requestId,
       message: "Uspešna prijava! 🎉",
     });
 
@@ -129,9 +215,12 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    log.error("Failed to verify biometric authentication", { error });
+    log.error("Failed to verify biometric authentication", {
+      error,
+      requestId,
+    });
     return NextResponse.json(
-      { error: "Internal Server Error", message: "Greška pri verifikaciji" },
+      { error: "Greška pri verifikaciji", requestId },
       { status: 500 },
     );
   }

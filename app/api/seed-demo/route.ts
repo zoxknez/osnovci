@@ -1,14 +1,33 @@
-// API endpoint za kreiranje demo naloga u produkciji
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+/**
+ * API endpoint za kreiranje demo naloga u produkciji
+ * Zaštićen ADMIN_SECRET-om
+ */
+
 import bcrypt from "bcryptjs";
+import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Zaštita: samo sa ADMIN_SECRET
+    const adminSecret = request.headers.get("x-admin-secret");
+    const envSecret = process.env["ADMIN_SECRET"];
+
+    if (!envSecret || adminSecret !== envSecret) {
+      log.warn("Unauthorized seed-demo access attempt", { requestId });
+      return NextResponse.json(
+        { error: "Nemate pristup", requestId },
+        { status: 403 },
+      );
+    }
+
     // Check if demo user already exists
     const existing = await prisma.user.findUnique({
       where: { email: "marko@demo.rs" },
@@ -17,6 +36,7 @@ export async function GET() {
     if (existing) {
       return NextResponse.json({
         success: true,
+        requestId,
         message: "Demo nalog već postoji",
         email: "marko@demo.rs",
       });
@@ -127,19 +147,25 @@ export async function GET() {
     log.info("Demo account created successfully", {
       email: "marko@demo.rs",
       userId: user.id,
+      requestId,
     });
 
     return NextResponse.json({
       success: true,
+      requestId,
       message: "Demo nalog uspešno kreiran",
       email: "marko@demo.rs",
       password: "marko123",
     });
   } catch (error) {
-    log.error("Failed to create demo account", error);
+    log.error("Failed to create demo account", { error, requestId });
     return NextResponse.json(
-      { error: "Failed to create demo account", details: String(error) },
-      { status: 500 }
+      {
+        error: "Greška pri kreiranju demo naloga",
+        details: error instanceof Error ? error.message : "Nepoznata greška",
+        requestId,
+      },
+      { status: 500 },
     );
   }
 }

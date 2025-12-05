@@ -1,12 +1,9 @@
+"use client";
+
+import { SectionErrorBoundary } from "@/components/error-boundary";
 import { PageHeader } from "@/components/features/page-header";
 import { AvatarPreview } from "@/components/features/shop/avatar-preview";
 import { ShopItemList } from "@/components/features/shop/shop-item-list";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Prodavnica | Osnovci",
-  description: "Troši XP na super dodatke za svog avatara!",
-};
 
 export default function ProdavnicaPage() {
   return (
@@ -19,10 +16,14 @@ export default function ProdavnicaPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
-          <AvatarPreview />
+          <SectionErrorBoundary sectionName="Avatar pregled">
+            <AvatarPreview />
+          </SectionErrorBoundary>
         </div>
         <div className="lg:col-span-2">
-          <ShopItemList />
+          <SectionErrorBoundary sectionName="Prodavnica">
+            <ShopItemList />
+          </SectionErrorBoundary>
         </div>
       </div>
     </div>

@@ -3,9 +3,11 @@
 
 import { motion } from "framer-motion";
 import { Loader, Wifi, WifiOff } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/features/page-header";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 import { AppInfoCard } from "@/components/features/settings/app-info-card";
 import { AppearanceSection } from "@/components/features/settings/appearance-section";
 import { NotificationsSection } from "@/components/features/settings/notifications-section";
@@ -18,11 +20,10 @@ import type {
   NotificationKey,
   ProfileSettings,
 } from "@/components/features/settings/types";
-import { staggerContainer } from "@/lib/animations/variants";
-import { useSettingsStore } from "@/store/settings";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
-import { signOut } from "next-auth/react";
+import { staggerContainer } from "@/lib/animations/variants";
+import { useSettingsStore } from "@/store/settings";
 
 const DEFAULT_PROFILE: ProfileSettings = {
   name: "",
@@ -34,10 +35,13 @@ const DEFAULT_PROFILE: ProfileSettings = {
 
 export default function PodjesavanjaPage() {
   // Global settings store
-  const { 
-    language, setLanguage,
-    notifications, toggleNotification,
-    biometricEnabled, setBiometric 
+  const {
+    language,
+    setLanguage,
+    notifications,
+    toggleNotification,
+    biometricEnabled,
+    setBiometric,
   } = useSettingsStore();
 
   const { data: profile, isLoading: isProfileLoading } = useProfile();
@@ -46,8 +50,12 @@ export default function PodjesavanjaPage() {
   const [profileData, setProfileData] =
     useState<ProfileSettings>(DEFAULT_PROFILE);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
-  
+  const [isTogglingBiometric, setIsTogglingBiometric] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+
   const isOnline = useNetworkStatus();
+  const toastShownRef = useRef(false);
 
   // Debounce timer za input polja
   const saveTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -75,20 +83,30 @@ export default function PodjesavanjaPage() {
   }, []);
 
   // Auto-save funkcija za profil
-  const saveProfileField = useCallback((field: string, value: string) => {
-    if (!navigator.onLine) {
-        toast.error("Nije moguće sačuvati profil dok ste offline.");
+  const saveProfileField = useCallback(
+    (field: string, value: string) => {
+      if (!isOnline) {
+        if (!toastShownRef.current) {
+          toast.error("Nije moguće sačuvati profil dok ste offline.");
+          toastShownRef.current = true;
+          setTimeout(() => {
+            toastShownRef.current = false;
+          }, 3000);
+        }
         return;
-    }
-    // Mapiramo polja koja backend podržava
-    if (['name', 'email', 'school'].includes(field)) {
+      }
+      // Mapiramo polja koja backend podržava
+      if (["name", "email", "school"].includes(field)) {
         updateProfile({ [field]: value });
-    }
-  }, [updateProfile]);
+        setStatusMessage("Profil sačuvan");
+      }
+    },
+    [updateProfile, isOnline],
+  );
 
   const handleLanguageChange = async (newLanguage: LanguageOption) => {
     setLanguage(newLanguage);
-    // Diskretan toast - brzo nestaje
+    setStatusMessage("Jezik promenjen");
     toast.success("🌍 Sačuvano", { duration: 1000 });
   };
 
@@ -106,8 +124,14 @@ export default function PodjesavanjaPage() {
     value: string,
   ) => {
     if (!isOnline) {
+      if (!toastShownRef.current) {
         toast.error("Izmena profila nije dostupna u offline režimu.");
-        return;
+        toastShownRef.current = true;
+        setTimeout(() => {
+          toastShownRef.current = false;
+        }, 3000);
+      }
+      return;
     }
 
     // Debounce - čeka 800ms pre slanja na API
@@ -117,19 +141,26 @@ export default function PodjesavanjaPage() {
 
     saveTimerRef.current = setTimeout(() => {
       saveProfileField(field, value);
-      // Mini diskretan toast
+      setStatusMessage("Profil ažuriran");
       toast.success("✓", { duration: 800 });
     }, 800);
   };
 
   const handleAvatarUpload = async () => {
     if (!isOnline) {
+      if (!toastShownRef.current) {
         toast.error("Nije moguće menjati sliku dok ste offline.");
-        return;
+        toastShownRef.current = true;
+        setTimeout(() => {
+          toastShownRef.current = false;
+        }, 3000);
+      }
+      return;
     }
     setIsSavingAvatar(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSavingAvatar(false);
+    setStatusMessage("Avatar ažuriran");
     toast.success("📸 Slika promenjena!", {
       description: "Avatar je uspešno ažuriran",
       duration: 2000,
@@ -137,16 +168,27 @@ export default function PodjesavanjaPage() {
   };
 
   const handleBiometricToggle = async () => {
-    const next = !biometricEnabled;
-    setBiometric(next);
-    // Mini toast samo za sigurnosne opcije
-    toast.success(next ? "✓ Uključeno" : "✓ Isključeno", { duration: 1000 });
+    setIsTogglingBiometric(true);
+    try {
+      const next = !biometricEnabled;
+      setBiometric(next);
+      setStatusMessage(next ? "Biometrija uključena" : "Biometrija isključena");
+      toast.success(next ? "✓ Uključeno" : "✓ Isključeno", { duration: 1000 });
+    } finally {
+      setIsTogglingBiometric(false);
+    }
   };
 
   const handlePasswordChange = () => {
     if (!isOnline) {
+      if (!toastShownRef.current) {
         toast.error("Promena lozinke nije moguća offline.");
-        return;
+        toastShownRef.current = true;
+        setTimeout(() => {
+          toastShownRef.current = false;
+        }, 3000);
+      }
+      return;
     }
     toast.info("🔐 Otvaranje forme...", {
       description: "Unesi trenutnu i novu lozinku",
@@ -155,6 +197,13 @@ export default function PodjesavanjaPage() {
   };
 
   const handleLogout = async () => {
+    if (!showLogoutConfirm) {
+      setShowLogoutConfirm(true);
+      toast.warning("Klikni ponovo za potvrdu odjave", { duration: 3000 });
+      setTimeout(() => setShowLogoutConfirm(false), 3000);
+      return;
+    }
+    setStatusMessage("Odjavljivanje...");
     toast.success("👋 Odjavio si se!", {
       description: "Vidimo se uskoro!",
       duration: 2000,
@@ -186,19 +235,24 @@ export default function PodjesavanjaPage() {
         description="Sve promene se automatski čuvaju ✨"
         variant="green"
         badge={
-            !isOnline ? (
-              <span className="flex items-center gap-1">
-                <WifiOff className="h-3 w-3" /> Offline
-              </span>
-            ) : (
-              <span className="flex items-center gap-1">
-                <Wifi className="h-3 w-3" /> Online
-              </span>
-            )
-          }
+          !isOnline ? (
+            <span className="flex items-center gap-1">
+              <WifiOff className="h-3 w-3" /> Offline
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <Wifi className="h-3 w-3" /> Online
+            </span>
+          )
+        }
       />
 
       <SettingsHeader />
+
+      {/* Aria-live region za screen reader korisnike */}
+      <output aria-live="polite" className="sr-only">
+        {statusMessage}
+      </output>
 
       <motion.div
         className="space-y-6"
@@ -206,33 +260,50 @@ export default function PodjesavanjaPage() {
         initial="initial"
         animate="animate"
       >
-        <ProfileSection
-          profile={profileData}
-          isSavingAvatar={isSavingAvatar}
-          onAvatarUpload={handleAvatarUpload}
-          onFieldInput={handleProfileInput}
-          onFieldChange={handleProfileSave}
-        />
+        <SectionErrorBoundary sectionName="Profil">
+          <ProfileSection
+            profile={profileData}
+            isSavingAvatar={isSavingAvatar}
+            onAvatarUpload={handleAvatarUpload}
+            onFieldInput={handleProfileInput}
+            onFieldChange={handleProfileSave}
+            isOffline={!isOnline}
+          />
+        </SectionErrorBoundary>
 
-        <AppearanceSection
-          language={language}
-          onLanguageChange={handleLanguageChange}
-        />
+        <SectionErrorBoundary sectionName="Izgled">
+          <AppearanceSection
+            language={language}
+            onLanguageChange={handleLanguageChange}
+          />
+        </SectionErrorBoundary>
 
-        <NotificationsSection
-          notifications={notifications}
-          onToggle={handleNotificationToggle}
-        />
+        <SectionErrorBoundary sectionName="Notifikacije">
+          <NotificationsSection
+            notifications={notifications}
+            onToggle={handleNotificationToggle}
+          />
+        </SectionErrorBoundary>
 
-        <SecuritySection
-          biometricEnabled={biometricEnabled}
-          onPasswordChange={handlePasswordChange}
-          onToggleBiometric={handleBiometricToggle}
-        />
+        <SectionErrorBoundary sectionName="Sigurnost">
+          <SecuritySection
+            biometricEnabled={biometricEnabled}
+            isTogglingBiometric={isTogglingBiometric}
+            onPasswordChange={handlePasswordChange}
+            onToggleBiometric={handleBiometricToggle}
+          />
+        </SectionErrorBoundary>
 
-        <SettingsActions onLogout={handleLogout} />
+        <SectionErrorBoundary sectionName="Akcije">
+          <SettingsActions
+            onLogout={handleLogout}
+            isLoggingOut={showLogoutConfirm}
+          />
+        </SectionErrorBoundary>
 
-        <AppInfoCard />
+        <SectionErrorBoundary sectionName="Info">
+          <AppInfoCard />
+        </SectionErrorBoundary>
       </motion.div>
     </div>
   );

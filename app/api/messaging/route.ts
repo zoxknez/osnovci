@@ -1,14 +1,22 @@
 /**
  * API Route: Parent-Child Messaging
  * In-app messaging između roditelja i deteta
+ * COPPA: Sva komunikacija dete-roditelj se loguje
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { z } from "zod";
 import { moderateContent } from "@/lib/safety/moderation-service";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
+import { logActivity } from "@/lib/tracking/activity-logger";
 
 const sendMessageSchema = z.object({
   studentId: z.string(),
@@ -17,10 +25,31 @@ const sendMessageSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.moderate,
+      prefix: "messaging-get",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        { error: "Previše zahteva", requestId },
+        { status: 429, headers },
+      );
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Niste prijavljeni", requestId },
+        { status: 401 },
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -29,15 +58,18 @@ export async function GET(request: NextRequest) {
 
     if (!studentId || !guardianId) {
       return NextResponse.json(
-        { error: "Missing studentId or guardianId" },
-        { status: 400 }
+        { error: "Nedostaje studentId ili guardianId", requestId },
+        { status: 400 },
       );
     }
 
     // Verify user has access to this conversation
     if (session.user.role === "STUDENT") {
       if (session.user.student?.id !== studentId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return NextResponse.json(
+          { error: "Nemate pristup", requestId },
+          { status: 403 },
+        );
       }
     } else if (session.user.role === "GUARDIAN") {
       const link = await prisma.link.findFirst({
@@ -48,7 +80,10 @@ export async function GET(request: NextRequest) {
         },
       });
       if (!link) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return NextResponse.json(
+          { error: "Nemate pristup", requestId },
+          { status: 403 },
+        );
       }
     }
 
@@ -92,10 +127,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      requestId,
       messages: messages.map((m) => ({
         id: m.id,
         senderId: m.senderId,
-        senderName: m.sender.student?.name ?? m.sender.guardian?.name ?? "Unknown",
+        senderName:
+          m.sender.student?.name ?? m.sender.guardian?.name ?? "Nepoznato",
         senderRole: m.sender.role,
         content: m.content,
         timestamp: m.createdAt,
@@ -103,19 +140,40 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (error) {
-    log.error("Error fetching messages", error);
+    log.error("Error fetching messages", { error, requestId });
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "Greška pri učitavanju poruka", requestId },
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Rate limiting - strict for sending messages
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.strict,
+      prefix: "messaging-send",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        { error: "Previše zahteva", requestId },
+        { status: 429, headers },
+      );
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Niste prijavljeni", requestId },
+        { status: 401 },
+      );
     }
 
     const body = await request.json();
@@ -124,7 +182,10 @@ export async function POST(request: NextRequest) {
     // Verify user has access
     if (session.user.role === "STUDENT") {
       if (session.user.student?.id !== validated.studentId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return NextResponse.json(
+          { error: "Nemate pristup", requestId },
+          { status: 403 },
+        );
       }
     } else if (session.user.role === "GUARDIAN") {
       const link = await prisma.link.findFirst({
@@ -135,7 +196,10 @@ export async function POST(request: NextRequest) {
         },
       });
       if (!link) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return NextResponse.json(
+          { error: "Nemate pristup", requestId },
+          { status: 403 },
+        );
       }
     }
 
@@ -147,10 +211,21 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
     });
 
-    if (moderation.severity === "critical" || moderation.severity === "severe") {
+    if (
+      moderation.severity === "critical" ||
+      moderation.severity === "severe"
+    ) {
+      // COPPA: Log blocked content attempt
+      await logActivity({
+        userId: session.user.id,
+        type: "CONTENT_MODERATION",
+        description: `Poruka blokirana zbog neprikladnog sadržaja (severity: ${moderation.severity})`,
+        request,
+      });
+
       return NextResponse.json(
-        { error: "Poruka sadrži neprikladan sadržaj" },
-        { status: 400 }
+        { error: "Poruka sadrži neprikladan sadržaj", requestId },
+        { status: 400 },
       );
     }
 
@@ -179,18 +254,37 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // COPPA: Log messaging activity (student-parent communication)
+    await logActivity({
+      userId: session.user.id,
+      type: "MESSAGE_SENT",
+      description: `Poruka poslata u konverzaciji roditelj-dete`,
+      metadata: {
+        messageId: message.id,
+        studentId: validated.studentId,
+        guardianId: validated.guardianId,
+        senderRole: session.user.role,
+      },
+      request,
+    });
+
     log.info("Message sent", {
       messageId: message.id,
       senderId: session.user.id,
       studentId: validated.studentId,
+      requestId,
     });
 
     return NextResponse.json({
       success: true,
+      requestId,
       message: {
         id: message.id,
         senderId: message.senderId,
-        senderName: message.sender.student?.name ?? message.sender.guardian?.name ?? "Unknown",
+        senderName:
+          message.sender.student?.name ??
+          message.sender.guardian?.name ??
+          "Nepoznato",
         senderRole: message.sender.role,
         content: message.content,
         timestamp: message.createdAt,
@@ -198,19 +292,18 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error("Error sending message", error);
-    
+    log.error("Error sending message", { error, requestId });
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Neispravni podaci", issues: error.issues },
-        { status: 400 }
+        { error: "Neispravni podaci", issues: error.issues, requestId },
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "Greška pri slanju poruke", requestId },
+      { status: 500 },
     );
   }
 }
-

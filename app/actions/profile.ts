@@ -56,21 +56,41 @@ export async function getProfileAction(): Promise<ActionState> {
     if (user.student) {
       const studentId = user.student.id;
       
-      const homework = await prisma.homework.findMany({
-        where: { studentId },
-      });
+      // Optimizovani query - kombinovan umesto N+1
+      const [homeworkStats, grades, scheduleCount, gamification] = await Promise.all([
+        // Aggregacija homework-a umesto fetch svih pa filter
+        prisma.homework.groupBy({
+          by: ['status'],
+          where: { studentId },
+          _count: { id: true },
+        }),
+        // Samo ocene - potrebne za prosek
+        prisma.grade.findMany({
+          where: { studentId },
+          select: { grade: true },
+        }),
+        // Samo count za schedule
+        prisma.scheduleEntry.count({
+          where: { studentId },
+        }),
+        // Gamifikacija sa achievements
+        prisma.gamification.findUnique({
+          where: { studentId },
+          include: {
+            achievements: {
+              orderBy: { unlockedAt: "desc" },
+              take: 10,
+              select: { title: true },
+            },
+          },
+        }),
+      ]);
 
-      const grades = await prisma.grade.findMany({
-        where: { studentId },
-      });
-
-      const schedule = await prisma.scheduleEntry.findMany({
-        where: { studentId },
-      });
-
-      const completedHomework = homework.filter(
-        (h) => h.status === "DONE" || h.status === "SUBMITTED",
-      ).length;
+      // Izračunaj statistiku iz agregiranih podataka
+      const totalHomework = homeworkStats.reduce((sum, s) => sum + s._count.id, 0);
+      const completedHomework = homeworkStats
+        .filter((s) => s.status === "DONE" || s.status === "SUBMITTED")
+        .reduce((sum, s) => sum + s._count.id, 0);
 
       const gradeValues = grades
         .map((g) => parseFloat(g.grade))
@@ -80,21 +100,11 @@ export async function getProfileAction(): Promise<ActionState> {
           ? gradeValues.reduce((a, b) => a + b) / gradeValues.length
           : 0;
 
-      const gamification = await prisma.gamification.findUnique({
-        where: { studentId },
-        include: {
-          achievements: {
-            orderBy: { unlockedAt: "desc" },
-            take: 10,
-          },
-        },
-      });
-
       stats = {
-        totalHomework: homework.length,
-        completedHomework: completedHomework,
+        totalHomework,
+        completedHomework,
         averageGrade: Math.round(averageGrade * 100) / 100,
-        totalClasses: schedule.length,
+        totalClasses: scheduleCount,
         attendanceRate: 95,
         xpThisMonth: gamification?.totalXPEarned || 0,
         achievements: gamification?.achievements.map(a => a.title) || [],
@@ -102,6 +112,7 @@ export async function getProfileAction(): Promise<ActionState> {
 
       profileData.xp = gamification?.xp || 0;
       profileData.level = gamification?.level || 1;
+      profileData.streak = gamification?.streak || 0;
     }
 
     return { success: true, data: { profile: profileData, stats } };

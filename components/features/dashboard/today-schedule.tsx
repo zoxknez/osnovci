@@ -3,8 +3,25 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Clock, CheckCircle2 } from "lucide-react";
 
+// Tip za schedule item koji dolazi iz API-ja ili offline storage-a
+interface ScheduleItem {
+  id: string;
+  startTime: string;
+  endTime: string;
+  subject?: {
+    id?: string;
+    name: string;
+    color?: string | null | undefined;
+    icon?: string | null | undefined;
+  } | null | undefined;
+  room?: string | null;
+  isCustomEvent?: boolean;
+  customTitle?: string | null;
+  dayOfWeek?: string;
+}
+
 interface TodayScheduleProps {
-  todayClasses: any[];
+  todayClasses: ScheduleItem[];
   now: Date | null;
 }
 
@@ -92,10 +109,12 @@ export function TodaySchedule({ todayClasses, now }: TodayScheduleProps) {
 
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900">
-                            {(classItem as any).subject.name}
+                            {classItem.isCustomEvent 
+                              ? classItem.customTitle 
+                              : classItem.subject?.name || "Nepoznat predmet"}
                           </h4>
                           <p className="text-sm text-gray-600">
-                            {(classItem as any).classroom || "Nema učionice"}
+                            {classItem.room || "Nema učionice"}
                           </p>
                         </div>
 

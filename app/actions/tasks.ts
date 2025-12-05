@@ -254,7 +254,7 @@ export async function bulkCompleteHomeworkAction(homeworkIds: string[]): Promise
 
 export async function bulkUpdatePriorityAction(
   homeworkIds: string[],
-  priority: "LOW" | "NORMAL" | "HIGH"
+  priority: "NORMAL" | "IMPORTANT" | "URGENT"
 ): Promise<ActionResponse> {
   try {
     await getSession();

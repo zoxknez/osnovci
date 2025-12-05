@@ -1,5 +1,34 @@
 import type { BloodType, ProfileData } from "./types";
 
+/**
+ * Checks if a date string is valid and parseable
+ */
+export const isValidDate = (dateString: string | null | undefined): boolean => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  return !Number.isNaN(date.getTime());
+};
+
+/**
+ * Formats a date string safely, returning null if invalid
+ */
+export const formatDateSafe = (dateString: string | null | undefined): string | null => {
+  if (!isValidDate(dateString) || !dateString) return null;
+  return new Date(dateString).toISOString().split("T")[0] ?? null;
+};
+
+/**
+ * Gets display value for a date with age calculation
+ */
+export const getDateDisplayValue = (
+  dateString: string | null | undefined,
+  calculateAge: (date: string) => number
+): string => {
+  if (!isValidDate(dateString) || !dateString) return "Nije postavljeno";
+  const date = new Date(dateString);
+  return `${date.toLocaleDateString("sr-RS")} (${calculateAge(dateString)} godina)`;
+};
+
 export const BLOOD_TYPE_OPTIONS: BloodType[] = [
   "A+",
   "A-",

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useHomework } from "@/hooks/use-homework";
 import { useProfile } from "@/hooks/use-profile";
 import { useSchedule } from "@/hooks/use-schedule";
@@ -9,6 +9,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { useSyncStore } from "@/store";
 import { log } from "@/lib/logger";
 import { toast } from "sonner";
+import { getXPProgress } from "@/lib/gamification/xp-calculator";
 
 export function useDashboardData() {
   const [dayOfWeek, setDayOfWeek] = useState<string | undefined>(undefined);
@@ -105,14 +106,40 @@ export function useDashboardData() {
   const studentName = (isOnline ? profileData?.profile?.name : offlineProfile?.name)?.split(" ")[0] || "Učeniče";
   const xp = (isOnline ? profileData?.profile?.xp : offlineStats?.xp) || 0;
   const level = (isOnline ? profileData?.profile?.level : offlineStats?.level) || 1;
-  const nextLevelXP = level * 1000;
-  const xpProgress = (xp / nextLevelXP) * 100;
-  const currentStreak = (isOnline ? (profileData?.profile as any)?.streak : offlineStats?.streak) || 5;
-  const completedHomeworkCount = (isOnline ? (profileData?.stats as any)?.completedHomework : offlineStats?.completedHomework) || 0;
+  
+  // Koristi centralizovanu XP kalkulaciju
+  const xpProgressData = useMemo(() => getXPProgress(xp), [xp]);
+  const nextLevelXP = xpProgressData.requiredXP + (xpProgressData.currentLevel > 1 ? xp - xpProgressData.currentXP : 0);
+  const xpProgress = Math.round(xpProgressData.progress * 100);
+  const xpToNextLevel = xpProgressData.requiredXP - xpProgressData.currentXP;
+  
+  // Popravljeni tipovi - izbegavamo 'any'
+  const profileWithStreak = profileData?.profile as { streak?: number } | undefined;
+  const statsWithHomework = profileData?.stats as { completedHomework?: number } | undefined;
+  const currentStreak = (isOnline ? profileWithStreak?.streak : offlineStats?.streak) || 0;
+  const completedHomeworkCount = (isOnline ? statsWithHomework?.completedHomework : offlineStats?.completedHomework) || 0;
 
-  if (profileError && isOnline) toast.error("Greška pri učitavanju profila");
-  if (homeworkError && isOnline && !hasOfflineHomework) toast.error("Greška pri učitavanju domaćih zadataka");
-  if (scheduleError && isOnline && !hasOfflineSchedule) toast.error("Greška pri učitavanju rasporeda");
+  // Prikaži greške u useEffect da izbegnemo pozive toasta tokom renderovanja
+  const errorShownRef = useRef<{ profile: boolean; homework: boolean; schedule: boolean }>({
+    profile: false,
+    homework: false,
+    schedule: false,
+  });
+
+  useEffect(() => {
+    if (profileError && isOnline && !errorShownRef.current.profile) {
+      toast.error("Greška pri učitavanju profila");
+      errorShownRef.current.profile = true;
+    }
+    if (homeworkError && isOnline && !hasOfflineHomework && !errorShownRef.current.homework) {
+      toast.error("Greška pri učitavanju domaćih zadataka");
+      errorShownRef.current.homework = true;
+    }
+    if (scheduleError && isOnline && !hasOfflineSchedule && !errorShownRef.current.schedule) {
+      toast.error("Greška pri učitavanju rasporeda");
+      errorShownRef.current.schedule = true;
+    }
+  }, [profileError, homeworkError, scheduleError, isOnline, hasOfflineHomework, hasOfflineSchedule]);
 
   return {
     loading,
@@ -123,6 +150,7 @@ export function useDashboardData() {
     level,
     nextLevelXP,
     xpProgress,
+    xpToNextLevel,
     currentStreak,
     completedHomeworkCount,
     isOnline,

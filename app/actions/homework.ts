@@ -2,7 +2,8 @@
 
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { CreateHomeworkSchema, UpdateHomeworkSchema, QueryHomeworkSchema } from "@/lib/api/schemas/homework";
+import { Prisma } from "@prisma/client";
+import { CreateHomeworkSchema, UpdateHomeworkSchema, QueryHomeworkSchema, HomeworkStatus } from "@/lib/api/schemas/homework";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { trackHomeworkCompletion } from "@/lib/gamification/xp-system";
@@ -252,15 +253,15 @@ export async function getHomeworkAction(params: z.infer<typeof QueryHomeworkSche
     }
 
     // Build filter
-    const where: any = {
+    const where: Prisma.HomeworkWhereInput = {
       studentId: { in: studentIds },
     };
 
     if (status) {
-      where["status"] = Array.isArray(status) ? { in: status } : status;
+      where.status = Array.isArray(status) ? { in: status as HomeworkStatus[] } : status as HomeworkStatus;
     }
     if (priority) {
-      where["priority"] = priority;
+      where.priority = priority;
     }
 
     // Get total count

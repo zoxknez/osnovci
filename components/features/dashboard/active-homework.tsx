@@ -2,9 +2,26 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Plus, AlertCircle } from "lucide-react";
+import type { HomeworkPriority, HomeworkStatus } from "@/lib/api/schemas/homework";
+
+// Tip za homework item
+interface HomeworkItem {
+  id: string;
+  title: string;
+  description?: string | null | undefined;
+  dueDate: string | Date;
+  priority: HomeworkPriority;
+  status: HomeworkStatus;
+  subject: {
+    id?: string;
+    name: string;
+    color?: string | undefined;
+  };
+  isOffline?: boolean;
+}
 
 interface ActiveHomeworkProps {
-  homework: any[];
+  homework: HomeworkItem[];
   now: Date | null;
 }
 
@@ -85,7 +102,7 @@ export function ActiveHomework({ homework, now }: ActiveHomeworkProps) {
                               )}
                             </div>
                             <p className="text-sm text-gray-600 mb-2">
-                              {(task as any).subject.name}
+                              {task.subject.name}
                             </p>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span

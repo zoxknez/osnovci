@@ -21,8 +21,8 @@ export default function DashboardPage() {
     studentName,
     xp,
     level,
-    nextLevelXP,
     xpProgress,
+    xpToNextLevel,
     currentStreak,
     completedHomeworkCount,
     isOnline,
@@ -89,7 +89,7 @@ export default function DashboardPage() {
               </div>
 
               <p className="text-xs opacity-90">
-                {nextLevelXP - xp} XP do Level {level + 1}
+                {xpToNextLevel} XP do Level {level + 1}
               </p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
       </SectionErrorBoundary>
 
       <SectionErrorBoundary sectionName="Daily Tip">
-        <DailyTip />
+        <DailyTip currentStreak={currentStreak} />
       </SectionErrorBoundary>
 
       {/* Adaptive Learning Recommendations */}

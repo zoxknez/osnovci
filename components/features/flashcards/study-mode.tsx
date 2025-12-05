@@ -1,13 +1,19 @@
 "use client";
 
+import confetti from "canvas-confetti";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  RotateCcw,
+  RotateCw,
+  Shuffle,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, RotateCw, Shuffle, RotateCcw, CheckCircle2 } from "lucide-react";
-import { useState, useEffect } from "react";
-// @ts-ignore
-import confetti from "canvas-confetti";
 
 interface Flashcard {
   id: string;
@@ -36,11 +42,11 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
   }
 
   const currentCard = cards[currentIndex];
-  
+
   if (!currentCard) {
     return null;
   }
-  
+
   const progress = ((currentIndex + 1) / cards.length) * 100;
 
   const handleNext = () => {
@@ -59,7 +65,15 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'],
+      colors: [
+        "#26ccff",
+        "#a25afd",
+        "#ff5e7e",
+        "#88ff5a",
+        "#fcff42",
+        "#ffa62d",
+        "#ff36ff",
+      ],
     });
   };
 
@@ -119,7 +133,7 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
               <CheckCircle2 className="h-10 w-10 text-green-600" />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">Čestitamo!</h2>
             <p className="text-muted-foreground">
@@ -132,11 +146,21 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
               <RotateCcw className="mr-2 h-4 w-4" />
               Ponovi isto
             </Button>
-            <Button onClick={handleShuffle} variant="outline" size="lg" className="w-full">
+            <Button
+              onClick={handleShuffle}
+              variant="outline"
+              size="lg"
+              className="w-full"
+            >
               <Shuffle className="mr-2 h-4 w-4" />
               Promešaj i ponovi
             </Button>
-            <Button onClick={onClose} variant="ghost" size="lg" className="w-full">
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              size="lg"
+              className="w-full"
+            >
               Zatvori
             </Button>
           </div>
@@ -154,9 +178,14 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Nazad
           </Button>
-          
+
           <div className="flex items-center gap-2">
-             <Button variant="ghost" size="icon" onClick={handleShuffle} title="Promešaj">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShuffle}
+              title="Promešaj"
+            >
               <Shuffle className="h-4 w-4" />
             </Button>
             <span className="font-medium tabular-nums">
@@ -184,6 +213,22 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
               }}
               className="absolute inset-0 w-full h-full cursor-pointer preserve-3d"
               onClick={handleFlip}
+              onKeyDown={(e) => {
+                if (e.key === " " || e.key === "Enter") {
+                  e.preventDefault();
+                  handleFlip();
+                } else if (e.key === "ArrowLeft") {
+                  handlePrev();
+                } else if (e.key === "ArrowRight") {
+                  handleNext();
+                }
+              }}
+              tabIndex={0}
+              aria-label={
+                isFlipped
+                  ? `Odgovor: ${currentCard.back}. Pritisni space za pitanje`
+                  : `Pitanje: ${currentCard.front}. Pritisni space za odgovor`
+              }
             >
               {/* Front */}
               <Card className="absolute inset-0 w-full h-full flex items-center justify-center p-8 text-center backface-hidden shadow-xl border-2 border-primary/10 bg-card">
@@ -240,13 +285,11 @@ export function StudyMode({ cards: initialCards, onClose }: StudyModeProps) {
             Okreni
           </Button>
 
-          <Button
-            variant="default"
-            size="lg"
-            onClick={handleNext}
-          >
+          <Button variant="default" size="lg" onClick={handleNext}>
             {currentIndex === cards.length - 1 ? "Završi" : "Sledeća"}
-            {currentIndex < cards.length - 1 && <ArrowRight className="ml-2 h-4 w-4" />}
+            {currentIndex < cards.length - 1 && (
+              <ArrowRight className="ml-2 h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>

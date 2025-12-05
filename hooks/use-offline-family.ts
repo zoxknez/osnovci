@@ -1,11 +1,29 @@
-import { useState, useEffect, useCallback } from "react";
-import { offlineStorage, StoredFamilyMember } from "@/lib/db/offline-storage";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { offlineStorage } from "@/lib/db/offline-storage";
+import type { StoredFamilyMember } from "@/lib/db/offline-storage";
+import { toast } from "sonner";
 import { getFamilyMembersAction } from "@/app/actions/family";
+
+// API response type for family member
+interface ApiFamilyMember {
+  id: string;
+  name: string;
+  email?: string;
+  studentName?: string;
+  linkCode?: string;
+  isActive: boolean;
+  permissions: string[];
+  linkedAt: string | Date;
+  expiresAt?: string | Date;
+  role?: string;
+  relation?: string;
+}
 
 export function useOfflineFamily() {
   const [familyMembers, setFamilyMembers] = useState<StoredFamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  const toastShownRef = useRef(false);
 
   const loadFamily = useCallback(async () => {
     try {
@@ -23,28 +41,33 @@ export function useOfflineFamily() {
           });
           
           if (result.success && result.data) {
-            const members = result.data;
+            const members = result.data as ApiFamilyMember[];
             
-            // Map to stored format if needed (dates to strings)
-            const storedMembers: StoredFamilyMember[] = members.map((m: any) => ({
+            // Map to stored format, preserving API values where available
+            const storedMembers: StoredFamilyMember[] = members.map((m) => ({
               id: m.id,
               name: m.name,
-              role: "GUARDIAN", // Default role as API might not return it explicitly in the same format
-              relation: "Roditelj", // Default relation
-              permissions: m.permissions,
-              linkedAt: new Date(m.linkedAt).toISOString()
+              role: m.role || "GUARDIAN",
+              relation: m.relation || "Roditelj",
+              permissions: m.permissions || [],
+              linkedAt: typeof m.linkedAt === 'string' ? m.linkedAt : new Date(m.linkedAt).toISOString()
             }));
 
             await offlineStorage.saveFamilyMembers(storedMembers);
             setFamilyMembers(storedMembers);
+            toastShownRef.current = false; // Reset on success
           } else {
              throw new Error(result.error);
           }
         } catch (error) {
           console.error("Failed to fetch family online", error);
-          // Fallback
+          // Fallback to cached data
           const cached = await offlineStorage.getFamilyMembers();
           setFamilyMembers(cached);
+          if (online && !toastShownRef.current && cached.length > 0) {
+            toastShownRef.current = true;
+            toast.info("Prikazujem sačuvane članove porodice");
+          }
         }
       } else {
         const cached = await offlineStorage.getFamilyMembers();

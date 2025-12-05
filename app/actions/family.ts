@@ -371,3 +371,42 @@ export async function approveLinkAction(data: z.infer<typeof approveLinkSchema>)
     return { success: false, error: "Failed to approve link" };
   }
 }
+
+/**
+ * Generate QR code data for student to share with guardians.
+ * Returns student-specific data that guardians can scan.
+ */
+export async function generateStudentQRAction() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+
+    const student = await prisma.student.findFirst({
+      where: { userId: session.user.id },
+      select: { id: true, name: true },
+    });
+
+    if (!student) return { success: false, error: "Student profile not found" };
+
+    // Generate a 6-digit link code for this student
+    const linkCode = Math.random().toString().substring(2, 8).toUpperCase();
+    
+    // Store this temporary code (expires in 24 hours)
+    // We can use the Link model with a placeholder guardian or a separate temp storage
+    // For simplicity, we'll return the student ID encoded with the code
+    const qrData = `OSNOVCI_LINK:${student.id}:${linkCode}`;
+    
+    return {
+      success: true,
+      data: {
+        qrData,
+        linkCode,
+        studentName: student.name,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      },
+    };
+  } catch (error) {
+    log.error("generateStudentQRAction error", error);
+    return { success: false, error: "Failed to generate QR code" };
+  }
+}

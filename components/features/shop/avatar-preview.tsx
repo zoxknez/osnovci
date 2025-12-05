@@ -1,8 +1,8 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { useInventory } from "@/lib/hooks/use-shop";
-import { motion } from "framer-motion";
 
 interface ShopItem {
   id: string;
@@ -30,28 +30,50 @@ interface AvatarPreviewProps {
   previewItem?: ShopItem | null;
 }
 
-export function AvatarPreview({ previewItem }: AvatarPreviewProps) {
-  const { data: inventory } = useInventory();
+// Helper to get vertical offset based on item type
+function getItemOffset(item: ShopItem): string {
+  const type = item.type.toLowerCase();
+  if (type === "head" || type === "hat") return "-40px";
+  if (type === "face" || type === "glasses") return "0px";
+  return "0px";
+}
 
-  const equippedItems = (inventory as InventoryItem[] | undefined)?.filter((i: InventoryItem) => i.equipped) || [];
-  
-  // If previewing an item, filter out any equipped item of the same type (if we had types)
-  // For now, just add it to the list for display
+export function AvatarPreview({ previewItem }: AvatarPreviewProps) {
+  const { data: inventoryData } = useInventory();
+  const inventory = (inventoryData ?? []) as InventoryItem[];
+
+  const equippedItems = inventory.filter((i) => i.equipped);
+
+  // If previewing an item, filter out any equipped item of the same type
   const displayItems = [...equippedItems];
-  
+
   if (previewItem) {
     // Check if we already own/equipped it to avoid duplicates
-    const isEquipped = equippedItems.some((i: InventoryItem) => i.itemId === previewItem.id);
+    const isEquipped = equippedItems.some((i) => i.itemId === previewItem.id);
     if (!isEquipped) {
-      displayItems.push({ id: "preview", item: previewItem, equipped: true } as InventoryItem);
+      displayItems.push({
+        id: "preview",
+        item: previewItem,
+        equipped: true,
+        studentId: "",
+        itemId: previewItem.id,
+        purchasedAt: new Date(),
+      });
     }
   }
 
   return (
-    <Card className="p-8 flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 min-h-[300px]">
+    <Card
+      className="p-8 flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 min-h-[300px]"
+      role="img"
+      aria-label={`Avatar sa ${displayItems.length} opremljenih predmeta${previewItem ? `, pregled: ${previewItem.name}` : ""}`}
+    >
       <div className="relative w-40 h-40">
         {/* Base Avatar (Emoji for now) */}
-        <div className="absolute inset-0 flex items-center justify-center text-8xl z-10">
+        <div
+          className="absolute inset-0 flex items-center justify-center text-8xl z-10"
+          aria-hidden="true"
+        >
           🧑
         </div>
 
@@ -62,11 +84,8 @@ export function AvatarPreview({ previewItem }: AvatarPreviewProps) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             className="absolute inset-0 flex items-center justify-center text-6xl z-20 pointer-events-none"
-            style={{
-              // Simple positioning logic based on item name/type (mock)
-              top: item.item.name.includes("Kapa") || item.item.name.includes("Šešir") || item.item.name.includes("Kruna") || item.item.name.includes("Kaciga") ? "-40px" : 
-                   item.item.name.includes("Naočare") ? "0px" : "0px",
-            }}
+            style={{ top: getItemOffset(item.item) }}
+            aria-hidden="true"
           >
             {item.item.assetUrl}
           </motion.div>

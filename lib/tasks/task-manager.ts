@@ -535,11 +535,11 @@ export async function bulkCompleteHomework(
  */
 export async function bulkUpdatePriority(
   homeworkIds: string[],
-  priority: "LOW" | "NORMAL" | "HIGH"
+  priority: "NORMAL" | "IMPORTANT" | "URGENT"
 ): Promise<{ count: number }> {
   const result = await prisma.homework.updateMany({
     where: { id: { in: homeworkIds } },
-    data: { priority: priority as any },
+    data: { priority },
   });
 
   return { count: result.count };

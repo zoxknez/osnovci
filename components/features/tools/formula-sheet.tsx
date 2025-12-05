@@ -1,31 +1,59 @@
 "use client";
 
+import { Search } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const FORMULAS = {
   matematika: [
-    { title: "Pitagorina teorema", formula: "a² + b² = c²", desc: "Za pravougli trougao" },
+    {
+      title: "Pitagorina teorema",
+      formula: "a² + b² = c²",
+      desc: "Za pravougli trougao",
+    },
     { title: "Površina kruga", formula: "P = r²π", desc: "r je poluprečnik" },
     { title: "Obim kruga", formula: "O = 2rπ", desc: "r je poluprečnik" },
-    { title: "Kvadrat binoma", formula: "(a ± b)² = a² ± 2ab + b²", desc: "Algebarski izraz" },
-    { title: "Razlika kvadrata", formula: "a² - b² = (a - b)(a + b)", desc: "Faktorizacija" },
+    {
+      title: "Kvadrat binoma",
+      formula: "(a ± b)² = a² ± 2ab + b²",
+      desc: "Algebarski izraz",
+    },
+    {
+      title: "Razlika kvadrata",
+      formula: "a² - b² = (a - b)(a + b)",
+      desc: "Faktorizacija",
+    },
   ],
   fizika: [
     { title: "Brzina", formula: "v = s / t", desc: "s - put, t - vreme" },
-    { title: "Ubrzanje", formula: "a = Δv / t", desc: "Promena brzine u vremenu" },
-    { title: "Drugi Njutnov zakon", formula: "F = m · a", desc: "Sila, masa, ubrzanje" },
+    {
+      title: "Ubrzanje",
+      formula: "a = Δv / t",
+      desc: "Promena brzine u vremenu",
+    },
+    {
+      title: "Drugi Njutnov zakon",
+      formula: "F = m · a",
+      desc: "Sila, masa, ubrzanje",
+    },
     { title: "Rad", formula: "A = F · s", desc: "Sila puta put" },
     { title: "Snaga", formula: "P = A / t", desc: "Rad u jedinici vremena" },
   ],
   hemija: [
-    { title: "Molarna masa", formula: "M = m / n", desc: "m - masa, n - količina supstance" },
-    { title: "Koncentracija", formula: "c = n / V", desc: "n - molovi, V - zapremina" },
+    {
+      title: "Molarna masa",
+      formula: "M = m / n",
+      desc: "m - masa, n - količina supstance",
+    },
+    {
+      title: "Koncentracija",
+      formula: "c = n / V",
+      desc: "n - molovi, V - zapremina",
+    },
     { title: "Gustina", formula: "ρ = m / V", desc: "Odnos mase i zapremine" },
-  ]
+  ],
 };
 
 export function FormulaSheet() {
@@ -33,9 +61,10 @@ export function FormulaSheet() {
   const [activeTab, setActiveTab] = useState("matematika");
 
   const filterFormulas = (list: typeof FORMULAS.matematika) => {
-    return list.filter(f => 
-      f.title.toLowerCase().includes(search.toLowerCase()) || 
-      f.desc.toLowerCase().includes(search.toLowerCase())
+    return list.filter(
+      (f) =>
+        f.title.toLowerCase().includes(search.toLowerCase()) ||
+        f.desc.toLowerCase().includes(search.toLowerCase()),
     );
   };
 
@@ -45,12 +74,17 @@ export function FormulaSheet() {
         <CardTitle className="flex items-center justify-between flex-wrap gap-4">
           <span>📐 Formule</span>
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-            <Input 
-              placeholder="Pretraži formule..." 
-              className="pl-8" 
+            <Search
+              className="absolute left-2 top-2.5 h-4 w-4 text-gray-500"
+              aria-hidden="true"
+            />
+            <Input
+              placeholder="Pretraži formule..."
+              className="pl-8"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="Pretraži formule"
+              id="formula-search"
             />
           </div>
         </CardTitle>
@@ -66,8 +100,11 @@ export function FormulaSheet() {
           {Object.entries(FORMULAS).map(([key, list]) => (
             <TabsContent key={key} value={key} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                {filterFormulas(list).map((item, i) => (
-                  <div key={i} className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all">
+                {filterFormulas(list).map((item) => (
+                  <div
+                    key={item.title}
+                    className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all"
+                  >
                     <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
                     <div className="bg-gray-50 p-2 rounded-md text-center font-mono text-lg font-bold text-blue-600 my-2 border border-gray-100">
                       {item.formula}

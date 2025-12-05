@@ -4,12 +4,22 @@
  * GET /api/moderation - Get moderation stats
  */
 
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
-import { moderateContent, getModerationStats, quickModerate } from "@/lib/safety/moderation-service";
-import { ContentType } from "@prisma/client";
-import { log } from "@/lib/logger";
+import type { ContentType } from "@prisma/client";
+import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/lib/auth/config";
+import { log } from "@/lib/logger";
+import {
+  getModerationStats,
+  moderateContent,
+  quickModerate,
+} from "@/lib/safety/moderation-service";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
 
 const moderateSchema = z.object({
   text: z.string().min(1).max(10000),
@@ -32,11 +42,32 @@ const moderateSchema = z.object({
  * POST /api/moderation
  * Moderate content with comprehensive checks
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.moderate,
+      prefix: "moderation-post",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        { error: "Previše zahteva", requestId },
+        { status: 429, headers },
+      );
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Niste prijavljeni", requestId },
+        { status: 401 },
+      );
     }
 
     const body = await request.json();
@@ -45,11 +76,13 @@ export async function POST(request: Request) {
     // Quick check (no DB logging) - for real-time validation
     if (validated.quickCheck) {
       const result = await quickModerate(validated.text);
-      return NextResponse.json(result);
+      return NextResponse.json({ ...result, requestId });
     }
 
     // Full moderation with logging
-    const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip");
+    const ipAddress =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip");
     const userAgent = request.headers.get("user-agent");
 
     const result = await moderateContent({
@@ -68,21 +101,22 @@ export async function POST(request: Request) {
       contentType: validated.contentType,
       approved: result.approved,
       action: result.action,
+      requestId,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, requestId });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid request data", details: error.issues },
-        { status: 400 }
+        { error: "Neispravni podaci", details: error.issues, requestId },
+        { status: 400 },
       );
     }
 
-    log.error("Moderation API error", error);
+    log.error("Moderation API error", { error, requestId });
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "Greška pri moderaciji sadržaja", requestId },
+      { status: 500 },
     );
   }
 }
@@ -91,11 +125,32 @@ export async function POST(request: Request) {
  * GET /api/moderation
  * Get moderation statistics for current user
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.moderate,
+      prefix: "moderation-stats",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        { error: "Previše zahteva", requestId },
+        { status: 429, headers },
+      );
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Niste prijavljeni", requestId },
+        { status: 401 },
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -103,17 +158,20 @@ export async function GET(request: Request) {
 
     // Only allow users to see their own stats (unless admin)
     if (userId !== session.user.id && session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Nemate pristup", requestId },
+        { status: 403 },
+      );
     }
 
     const stats = await getModerationStats(userId);
 
-    return NextResponse.json(stats);
+    return NextResponse.json({ ...stats, requestId });
   } catch (error) {
-    log.error("Moderation stats API error", error);
+    log.error("Moderation stats API error", { error, requestId });
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "Greška pri učitavanju statistike", requestId },
+      { status: 500 },
     );
   }
 }

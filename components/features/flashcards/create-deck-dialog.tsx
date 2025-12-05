@@ -1,5 +1,8 @@
 "use client";
 
+import { Loader2, Plus } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,11 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateDeck } from "@/lib/hooks/use-flashcards";
 import { useSubjects } from "@/hooks/use-subjects";
-import { Loader2, Plus } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useCreateDeck } from "@/lib/hooks/use-flashcards";
 
 export function CreateDeckDialog() {
   const [open, setOpen] = useState(false);
@@ -55,7 +55,7 @@ export function CreateDeckDialog() {
         onError: () => {
           toast.error("Greška pri kreiranju špila");
         },
-      }
+      },
     );
   };
 
@@ -86,9 +86,12 @@ export function CreateDeckDialog() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="subject">Predmet</Label>
+            <Label htmlFor="subject-select">Predmet</Label>
             <Select value={subjectId} onValueChange={setSubjectId} required>
-              <SelectTrigger>
+              <SelectTrigger
+                id="subject-select"
+                aria-labelledby="subject-select"
+              >
                 <SelectValue placeholder="Izaberi predmet" />
               </SelectTrigger>
               <SelectContent>

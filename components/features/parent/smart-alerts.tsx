@@ -5,18 +5,30 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { AlertTriangle, TrendingDown, Clock, BookOpen, CheckCircle2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertTriangle,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  TrendingDown,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface Alert {
   id: string;
-  type: "grade_drop" | "homework_backlog" | "study_time" | "behavior_change" | "achievement";
+  type:
+    | "grade_drop"
+    | "homework_backlog"
+    | "study_time"
+    | "behavior_change"
+    | "achievement";
   severity: "low" | "medium" | "high" | "critical";
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   recommendations: string[];
   timestamp: Date;
 }
@@ -26,20 +38,16 @@ interface SmartAlertsProps {
   guardianId: string;
 }
 
-export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsProps) {
+export function SmartAlerts({ studentId, guardianId }: SmartAlertsProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadAlerts();
-  }, [studentId]);
-
-  const loadAlerts = async () => {
+  const loadAlerts = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/parental/alerts?studentId=${studentId}`,
-        { credentials: "include" }
+        `/api/parental/alerts?studentId=${studentId}&guardianId=${guardianId}`,
+        { credentials: "include" },
       );
       if (!response.ok) throw new Error("Failed to load alerts");
       const data = await response.json();
@@ -49,7 +57,11 @@ export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsP
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [studentId, guardianId]);
+
+  useEffect(() => {
+    loadAlerts();
+  }, [loadAlerts]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -98,13 +110,28 @@ export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsP
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8 text-gray-500">
-            Učitavanje upozorenja...
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-5 w-5 rounded" />
+                  <div>
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     );
   }
 
@@ -114,7 +141,9 @@ export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsP
         <CardContent className="pt-6">
           <div className="text-center py-8">
             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <p className="text-lg font-medium text-gray-900">Sve je u redu! ✅</p>
+            <p className="text-lg font-medium text-gray-900">
+              Sve je u redu! ✅
+            </p>
             <p className="text-sm text-gray-600 mt-2">
               Nema upozorenja trenutno. Dete ide odlično!
             </p>
@@ -136,7 +165,9 @@ export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsP
               <div className="flex items-center gap-3">
                 {getTypeIcon(alert.type)}
                 <div>
-                  <CardTitle className="text-lg">{getTypeLabel(alert.type)}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {getTypeLabel(alert.type)}
+                  </CardTitle>
                   <p className="text-sm text-gray-600 mt-1">
                     {new Date(alert.timestamp).toLocaleDateString("sr-RS", {
                       day: "numeric",
@@ -152,12 +183,16 @@ export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsP
                   alert.severity === "critical" && "bg-red-500",
                   alert.severity === "high" && "bg-orange-500",
                   alert.severity === "medium" && "bg-yellow-500",
-                  alert.severity === "low" && "bg-blue-500"
+                  alert.severity === "low" && "bg-blue-500",
                 )}
               >
-                {alert.severity === "critical" ? "Kritično" :
-                 alert.severity === "high" ? "Visoko" :
-                 alert.severity === "medium" ? "Srednje" : "Nisko"}
+                {alert.severity === "critical"
+                  ? "Kritično"
+                  : alert.severity === "high"
+                    ? "Visoko"
+                    : alert.severity === "medium"
+                      ? "Srednje"
+                      : "Nisko"}
               </Badge>
             </div>
           </CardHeader>
@@ -183,8 +218,8 @@ export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsP
               <div>
                 <p className="font-medium mb-2">Preporuke:</p>
                 <ul className="space-y-2">
-                  {alert.recommendations.map((rec, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm">
+                  {alert.recommendations.map((rec) => (
+                    <li key={rec} className="flex items-start gap-2 text-sm">
                       <span className="text-blue-500 mt-1">•</span>
                       <span>{rec}</span>
                     </li>
@@ -198,4 +233,3 @@ export function SmartAlerts({ studentId, guardianId: _guardianId }: SmartAlertsP
     </div>
   );
 }
-

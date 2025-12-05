@@ -21,7 +21,7 @@ interface HomeworkBulkActionsProps {
   selectedIds: string[];
   onComplete: (ids: string[]) => Promise<void>;
   onDelete: (ids: string[]) => Promise<void>;
-  onUpdatePriority: (ids: string[], priority: "LOW" | "NORMAL" | "HIGH") => Promise<void>;
+  onUpdatePriority: (ids: string[], priority: "NORMAL" | "IMPORTANT" | "URGENT") => Promise<void>;
   onUpdateDueDate: (ids: string[], date: Date) => Promise<void>;
   onExport: (ids: string[]) => Promise<void>;
   onClearSelection: () => void;
@@ -83,7 +83,7 @@ export function HomeworkBulkActions({
     );
   };
 
-  const handlePriorityChange = (priority: "LOW" | "NORMAL" | "HIGH") => {
+  const handlePriorityChange = (priority: "NORMAL" | "IMPORTANT" | "URGENT") => {
     handleAction(
       () => onUpdatePriority(selectedIds, priority),
       `📌 Prioritet ažuriran za ${selectedIds.length} zadataka!`
@@ -144,14 +144,14 @@ export function HomeworkBulkActions({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handlePriorityChange("HIGH")}>
-              🔴 Visok prioritet
+            <DropdownMenuItem onClick={() => handlePriorityChange("URGENT")}>
+              🔴 Hitno
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePriorityChange("IMPORTANT")}>
+              🟠 Važno
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handlePriorityChange("NORMAL")}>
-              🟡 Normalan prioritet
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePriorityChange("LOW")}>
-              🟢 Nizak prioritet
+              🟢 Normalno
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -8,27 +8,33 @@ import { staggerItem } from "@/lib/animations/variants";
 
 interface SecuritySectionProps {
   biometricEnabled: boolean;
+  isTogglingBiometric?: boolean;
   onPasswordChange: () => void;
   onToggleBiometric: () => Promise<void>;
 }
 
 export function SecuritySection({
   biometricEnabled,
+  isTogglingBiometric = false,
   onPasswordChange,
   onToggleBiometric,
 }: SecuritySectionProps) {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [twoFactorError, setTwoFactorError] = useState(false);
 
   useEffect(() => {
     const fetchTwoFactorStatus = async () => {
       try {
+        setTwoFactorError(false);
         const response = await fetch("/api/auth/2fa/status");
         const data = await response.json();
         if (response.ok) {
           setTwoFactorEnabled(data.enabled);
+        } else {
+          setTwoFactorError(true);
         }
       } catch {
-        // Failed to fetch 2FA status
+        setTwoFactorError(true);
       }
     };
 
@@ -75,6 +81,7 @@ export function SecuritySection({
               biometricEnabled ? "Aktivan otisak prsta" : "Neaktivno"
             }
             enabled={biometricEnabled}
+            isLoading={isTogglingBiometric}
             icon={<Fingerprint className="h-5 w-5" />}
             activeColor="green"
             onToggle={onToggleBiometric}
@@ -88,19 +95,27 @@ export function SecuritySection({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                  twoFactorEnabled ? "bg-purple-100" : "bg-gray-200"
-                }`}>
-                  <Shield className={`h-5 w-5 transition-colors ${
-                    twoFactorEnabled ? "text-purple-600" : "text-gray-500"
-                  }`} />
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                    twoFactorEnabled ? "bg-purple-100" : "bg-gray-200"
+                  }`}
+                >
+                  <Shield
+                    className={`h-5 w-5 transition-colors ${
+                      twoFactorEnabled ? "text-purple-600" : "text-gray-500"
+                    }`}
+                  />
                 </div>
                 <div className="text-left">
                   <div className="font-semibold text-gray-900">
                     2FA Verifikacija
                   </div>
                   <div className="text-xs text-gray-600">
-                    {twoFactorEnabled ? "Dodatna zaštita aktivna" : "Neaktivno"}
+                    {twoFactorError
+                      ? "Greška pri učitavanju statusa"
+                      : twoFactorEnabled
+                        ? "Dodatna zaštita aktivna"
+                        : "Neaktivno"}
                   </div>
                 </div>
               </div>
@@ -124,6 +139,7 @@ interface SecurityToggleProps {
   title: string;
   description: string;
   enabled: boolean;
+  isLoading?: boolean;
   icon: React.ReactNode;
   activeColor: "green" | "purple";
   onToggle: () => Promise<void>;
@@ -133,6 +149,7 @@ function SecurityToggle({
   title,
   description,
   enabled,
+  isLoading = false,
   icon,
   activeColor,
   onToggle,
@@ -166,14 +183,25 @@ function SecurityToggle({
       <motion.button
         type="button"
         onClick={() => onToggle()}
+        disabled={isLoading}
+        aria-pressed={enabled}
+        aria-label={`${title}: ${enabled ? "Uključeno" : "Isključeno"}`}
         whileTap={{ scale: 0.95 }}
-        className={`relative w-14 h-8 rounded-full transition-all duration-200 ${colors.track} hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none touch-manipulation`}
+        className={`relative w-14 h-8 rounded-full transition-all duration-200 ${colors.track} hover:shadow-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <motion.div
-          className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-sm"
+          className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-sm flex items-center justify-center"
           animate={{ x: enabled ? 24 : 0 }}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        />
+        >
+          {isLoading && (
+            <motion.div
+              className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          )}
+        </motion.div>
       </motion.button>
     </div>
   );

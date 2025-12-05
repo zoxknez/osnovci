@@ -2,12 +2,13 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useSubjects } from "@/hooks/use-subjects";
 
 interface AddHomeworkModalProps {
   isOpen: boolean;
@@ -28,10 +29,8 @@ export function AddHomeworkModal({
   onClose,
   onSubmit,
 }: AddHomeworkModalProps) {
-  const [subjects, setSubjects] = useState<
-    Array<{ id: string; name: string; color: string }>
-  >([]);
-  const [loading, setLoading] = useState(false);
+  // Koristi React Query hook umesto manuelnog fetch
+  const { data: subjects = [], isLoading: loading } = useSubjects();
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -50,33 +49,6 @@ export function AddHomeworkModal({
     dueDate: "",
     priority: "NORMAL",
   });
-
-  // Fetch subjects on mount
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const fetchSubjects = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/subjects", {
-          credentials: "include",
-        });
-
-        if (!response.ok) throw new Error("Greška pri učitavanju predmeta");
-
-        const data = await response.json();
-        setSubjects(data.data || []);
-      } catch (_err) {
-        toast.error("Greška", {
-          description: "Nije moguće učitati predmete",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSubjects();
-  }, [isOpen]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

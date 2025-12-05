@@ -4,6 +4,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { offlineStorage, type StoredSchedule } from "@/lib/db/offline-storage";
 
+// Re-export StoredSchedule type for use in components
+export type { StoredSchedule };
+
 export function useOfflineSchedule() {
   const [offlineSchedule, setOfflineSchedule] = useState<StoredSchedule[]>([]);
 

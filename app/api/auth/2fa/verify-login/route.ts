@@ -1,6 +1,7 @@
 // 2FA Login Verification API
 // Verifies TOTP token or backup code during login
 
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyTwoFactorAuth } from "@/lib/auth/two-factor";
@@ -11,6 +12,7 @@ import {
   RateLimitPresets,
   rateLimit,
 } from "@/lib/security/rate-limit";
+import { logActivity } from "@/lib/tracking/activity-logger";
 
 const verifyLoginSchema = z.object({
   email: z.string().email(),
@@ -18,6 +20,8 @@ const verifyLoginSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     // Strict rate limiting - prevent brute force
     const rateLimitResult = await rateLimit(request, {
@@ -31,8 +35,9 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: "Too Many Requests",
+          error: "Previše pokušaja",
           message: "Previše pokušaja. Pokušaj ponovo za par minuta.",
+          requestId,
         },
         { status: 429, headers },
       );
@@ -43,7 +48,11 @@ export async function POST(request: NextRequest) {
 
     if (!validated.success) {
       return NextResponse.json(
-        { error: "Nevažeći podaci", details: validated.error.flatten() },
+        {
+          error: "Nevažeći podaci",
+          details: validated.error.flatten(),
+          requestId,
+        },
         { status: 400 },
       );
     }
@@ -55,7 +64,6 @@ export async function POST(request: NextRequest) {
       where: { email },
       select: {
         id: true,
-        email: true,
         twoFactorEnabled: true,
         twoFactorSecret: true,
         backupCodes: true,
@@ -64,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
       return NextResponse.json(
-        { error: "2FA nije omogućen za ovaj nalog" },
+        { error: "2FA nije omogućen za ovaj nalog", requestId },
         { status: 400 },
       );
     }
@@ -79,13 +87,14 @@ export async function POST(request: NextRequest) {
     if (!result.valid) {
       log.warn("2FA verification failed during login", {
         userId: user.id,
-        email: user.email,
+        requestId,
       });
 
       return NextResponse.json(
-        { 
-          error: "Nevažeći kod", 
-          message: "Proveri kod i pokušaj ponovo." 
+        {
+          error: "Nevažeći kod",
+          message: "Proveri kod i pokušaj ponovo.",
+          requestId,
         },
         { status: 401 },
       );
@@ -102,25 +111,36 @@ export async function POST(request: NextRequest) {
 
       log.info("Backup code used during login", {
         userId: user.id,
-        email: user.email,
+        requestId,
       });
     }
 
     log.info("2FA verification successful during login", {
       userId: user.id,
-      email: user.email,
       usedBackupCode: result.usedBackupCode,
+      requestId,
+    });
+
+    // COPPA: Log successful 2FA verification
+    await logActivity({
+      userId: user.id,
+      type: "LOGIN",
+      description: result.usedBackupCode
+        ? "Uspešna 2FA verifikacija sa backup kodom"
+        : "Uspešna 2FA verifikacija",
+      request,
     });
 
     return NextResponse.json({
       success: true,
       message: "2FA verifikovan uspešno!",
       usedBackupCode: result.usedBackupCode,
+      requestId,
     });
   } catch (error) {
-    log.error("2FA login verification failed", { error });
+    log.error("2FA login verification failed", { error, requestId });
     return NextResponse.json(
-      { error: "Greška pri verifikaciji 2FA" },
+      { error: "Greška pri verifikaciji 2FA", requestId },
       { status: 500 },
     );
   }

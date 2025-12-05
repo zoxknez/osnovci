@@ -1,12 +1,17 @@
 // Registracija API - kreiranje novog korisnika (Security Enhanced!)
 
 import bcrypt from "bcryptjs";
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyAge } from "@/lib/auth/age-verification";
 import { createAndSendVerificationEmail } from "@/lib/auth/email-verification";
-import { sendParentalConsentEmail } from "@/lib/email/parental-consent";
+import {
+  createConsentRequest,
+  markEmailSent,
+} from "@/lib/auth/parental-consent";
 import { prisma } from "@/lib/db/prisma";
+import { sendParentalConsentEmail } from "@/lib/email/parental-consent";
 import { log } from "@/lib/logger";
 import { csrfMiddleware } from "@/lib/security/csrf";
 import {
@@ -39,17 +44,22 @@ const registerSchema = z
   .refine((data) => data.email || data.phone, {
     message: "Mora postojati email ili telefon",
   })
-  .refine((data) => {
-    // Studenti MORAJU imati dateOfBirth (COPPA compliance)
-    if (data.role === "STUDENT" && !data.dateOfBirth) {
-      return false;
-    }
-    return true;
-  }, {
-    message: "Datum rođenja je obavezan za učenike (COPPA zakon)",
-  });
+  .refine(
+    (data) => {
+      // Studenti MORAJU imati dateOfBirth (COPPA compliance)
+      if (data.role === "STUDENT" && !data.dateOfBirth) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Datum rođenja je obavezan za učenike (COPPA zakon)",
+    },
+  );
 
 export async function POST(request: NextRequest) {
+  const requestId = nanoid(10);
+
   try {
     // Rate Limiting - Strict (10 requests per minute)
     const rateLimitResult = await rateLimit(request, {
@@ -143,12 +153,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Proveri da li korisnik već postoji
+    // Proveri da li korisnik već postoji (generic message to prevent enumeration)
     if (email) {
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
+        log.warn("Registration attempt with existing email", { requestId });
         return NextResponse.json(
-          { error: "Korisnik sa ovim email-om već postoji" },
+          { error: "Nalog sa ovim podacima već postoji", requestId },
           { status: 400 },
         );
       }
@@ -157,8 +168,9 @@ export async function POST(request: NextRequest) {
     if (phone) {
       const existingUser = await prisma.user.findUnique({ where: { phone } });
       if (existingUser) {
+        log.warn("Registration attempt with existing phone", { requestId });
         return NextResponse.json(
-          { error: "Korisnik sa ovim telefonom već postoji" },
+          { error: "Nalog sa ovim podacima već postoji", requestId },
           { status: 400 },
         );
       }
@@ -223,17 +235,11 @@ export async function POST(request: NextRequest) {
 
     if (needsParentalConsent && consentEmailTarget && user.student) {
       try {
-        // Import consent helper
-        const { createConsentRequest } = await import(
-          "@/lib/auth/parental-consent"
-        );
-        const { markEmailSent } = await import("@/lib/auth/parental-consent");
-
-        // Create consent request in database
+        // Create consent request in database (imports moved to top)
         const consentResult = await createConsentRequest({
           studentId: user.student.id,
           parentEmail: consentEmailTarget,
-          parentName: "Poštovani roditelju/staratelju", // TODO: Add parent name field
+          parentName: "Poštovani roditelju/staratelju",
           expiresInHours: 6,
         });
 
@@ -263,6 +269,7 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         log.error("Failed to create consent request or send email", {
           emailError,
+          requestId,
         });
       }
     }
@@ -281,6 +288,7 @@ export async function POST(request: NextRequest) {
             id: user.id,
             role: user.role,
           },
+          requestId,
         },
         { status: 201 },
       );
@@ -298,6 +306,7 @@ export async function POST(request: NextRequest) {
             id: user.id,
             role: user.role,
           },
+          requestId,
         },
         { status: 201 },
       );
@@ -313,13 +322,14 @@ export async function POST(request: NextRequest) {
           id: user.id,
           role: user.role,
         },
+        requestId,
       },
       { status: 201 },
     );
   } catch (error) {
-    log.error("Registration failed", { error });
+    log.error("Registration failed", { error, requestId });
     return NextResponse.json(
-      { error: "Greška pri kreiranju naloga" },
+      { error: "Greška pri kreiranju naloga", requestId },
       { status: 500 },
     );
   }

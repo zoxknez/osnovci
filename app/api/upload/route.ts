@@ -1,17 +1,18 @@
 // Upload API - File uploads (Images, PDFs, etc) - Mobile Optimized + Security Enhanced!
 
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import { checkImageSafety } from "@/lib/safety/image-safety";
+import { advancedFileScan } from "@/lib/security/advanced-file-scanner";
 import { csrfMiddleware } from "@/lib/security/csrf";
 import {
   sanitizeFileName,
   validateFileUpload,
 } from "@/lib/security/file-upload";
-import { advancedFileScan } from "@/lib/security/advanced-file-scanner";
 import {
   addRateLimitHeaders,
   RateLimitPresets,
@@ -23,6 +24,8 @@ import { ActivityLogger } from "@/lib/tracking/activity-logger";
 // Note: File size and type validation now handled by lib/security/file-upload.ts
 
 export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     // Rate Limiting - Upload preset (5 uploads per 5 minutes)
     const rateLimitResult = await rateLimit(request, {
@@ -36,8 +39,8 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: "Too Many Requests",
-          message: "Previše upload-a. Pokušaj ponovo za par minuta.",
+          error: "Previše upload-a. Pokušaj ponovo za par minuta.",
+          requestId,
         },
         { status: 429, headers },
       );
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
     const csrfResult = await csrfMiddleware(request);
     if (!csrfResult.valid) {
       return NextResponse.json(
-        { error: "Forbidden", message: csrfResult.error },
+        { error: "Zabranjeno", message: csrfResult.error, requestId },
         { status: 403 },
       );
     }
@@ -56,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Unauthorized", message: "Morate biti ulogovani" },
+        { error: "Niste prijavljeni", requestId },
         { status: 401 },
       );
     }
@@ -69,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     if (!user?.student) {
       return NextResponse.json(
-        { error: "Not Found", message: "Student profil nije pronađen" },
+        { error: "Student profil nije pronađen", requestId },
         { status: 404 },
       );
     }
@@ -80,12 +83,15 @@ export async function POST(request: NextRequest) {
     const homeworkId = formData.get("homeworkId") as string;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Fajl nije dostavljen", requestId },
+        { status: 400 },
+      );
     }
 
     if (!homeworkId) {
       return NextResponse.json(
-        { error: "Homework ID is required" },
+        { error: "ID zadatka je obavezan", requestId },
         { status: 400 },
       );
     }
@@ -95,7 +101,7 @@ export async function POST(request: NextRequest) {
       idSchema.parse(homeworkId);
     } catch {
       return NextResponse.json(
-        { error: "Invalid homework ID format" },
+        { error: "Nevažeći format ID-a zadatka", requestId },
         { status: 400 },
       );
     }
@@ -108,11 +114,13 @@ export async function POST(request: NextRequest) {
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
+        requestId,
       });
       return NextResponse.json(
         {
-          error: "File validation failed",
+          error: "Validacija fajla nije uspela",
           message: fileValidation.error,
+          requestId,
         },
         { status: 400 },
       );
@@ -124,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     // 🛡️ ADVANCED SECURITY SCAN - VirusTotal, EXIF removal, PDF JS detection
     const scanResult = await advancedFileScan(buffer, file.name, file.type);
-    
+
     if (!scanResult.safe) {
       log.error("Security threat detected in upload", {
         fileName: file.name,
@@ -132,8 +140,9 @@ export async function POST(request: NextRequest) {
         error: scanResult.error,
         details: scanResult.details,
         studentId: user.student.id,
+        requestId,
       });
-      
+
       // Log security incident for monitoring
       await ActivityLogger.securityIncident(
         user.student.id,
@@ -144,13 +153,16 @@ export async function POST(request: NextRequest) {
           threatNames: scanResult.details.threatNames,
           malicious: scanResult.details.malicious,
         },
-        request
+        request,
       );
 
       return NextResponse.json(
         {
-          error: "Security threat detected",
-          message: scanResult.error || "Fajl sadrži sumnjiv sadržaj i ne može biti upload-ovan",
+          error: "Bezbednosna pretnja detektovana",
+          message:
+            scanResult.error ||
+            "Fajl sadrži sumnjiv sadržaj i ne može biti upload-ovan",
+          requestId,
         },
         { status: 400 },
       );
@@ -173,7 +185,7 @@ export async function POST(request: NextRequest) {
 
     if (!homework || homework.studentId !== user.student.id) {
       return NextResponse.json(
-        { error: "Forbidden", message: "Nemate pristup ovom zadatku" },
+        { error: "Nemate pristup ovom zadatku", requestId },
         { status: 403 },
       );
     }
@@ -229,9 +241,15 @@ export async function POST(request: NextRequest) {
         finalBuffer = Buffer.from(optimized); // Replace original with optimized
 
         // Upload thumbnail to Storage Service
-        const { StorageService } = await import("@/lib/storage/storage-service");
+        const { StorageService } = await import(
+          "@/lib/storage/storage-service"
+        );
         const thumbKey = `thumbnails/${thumbnailName}`;
-        await StorageService.upload(Buffer.from(thumbnail), thumbKey, "image/jpeg");
+        await StorageService.upload(
+          Buffer.from(thumbnail),
+          thumbKey,
+          "image/jpeg",
+        );
 
         log.info("Image optimized for mobile", {
           originalSize: bytes.byteLength,
@@ -248,9 +266,9 @@ export async function POST(request: NextRequest) {
     // Upload main file to Storage Service
     const { StorageService } = await import("@/lib/storage/storage-service");
     const uploadResult = await StorageService.upload(
-      finalBuffer, 
-      fileName, 
-      file.type.startsWith("image/") ? "image/jpeg" : file.type
+      finalBuffer,
+      fileName,
+      file.type.startsWith("image/") ? "image/jpeg" : file.type,
     );
 
     log.info("File uploaded", {
@@ -262,9 +280,10 @@ export async function POST(request: NextRequest) {
       provider: uploadResult.provider,
     });
 
-      // SAFETY CHECK - Image moderation for children!
+    // SAFETY CHECK - Image moderation for children!
     if (file.type.startsWith("image/")) {
-      const safetyResult = await checkImageSafety(finalBuffer);      if (!safetyResult.safe) {
+      const safetyResult = await checkImageSafety(finalBuffer);
+      if (!safetyResult.safe) {
         log.warn("Image flagged as potentially unsafe", {
           fileName,
           score: safetyResult.score,
@@ -328,11 +347,18 @@ export async function POST(request: NextRequest) {
     if (file.type.startsWith("audio/")) attachmentType = "AUDIO";
 
     // Save attachment to database
-    const thumbnailPath = attachmentType === "IMAGE" ? `/uploads/thumbnails/${thumbnailName}` : undefined;
-    
+    const thumbnailPath =
+      attachmentType === "IMAGE"
+        ? `/uploads/thumbnails/${thumbnailName}`
+        : undefined;
+
     // Use the URL returned from StorageService
     const fileUrl = uploadResult.url;
-    const thumbnailUrl = thumbnailPath ? (uploadResult.provider === 'local' ? thumbnailPath : `${process.env['STORAGE_PUBLIC_URL'] || ''}/thumbnails/${thumbnailName}`) : undefined;
+    const thumbnailUrl = thumbnailPath
+      ? uploadResult.provider === "local"
+        ? thumbnailPath
+        : `${process.env["STORAGE_PUBLIC_URL"] || ""}/thumbnails/${thumbnailName}`
+      : undefined;
 
     const attachment = await prisma.attachment.create({
       data: {
@@ -351,6 +377,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        requestId,
         message: "Fajl je uspešno upload-ovan!",
         attachment: {
           id: attachment.id,
@@ -363,11 +390,11 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    log.error("POST /api/upload failed", { error });
+    log.error("POST /api/upload failed", { error, requestId });
     return NextResponse.json(
       {
-        error: "Internal Server Error",
-        message: "Greška pri upload-u fajla",
+        error: "Greška pri upload-u fajla",
+        requestId,
       },
       { status: 500 },
     );

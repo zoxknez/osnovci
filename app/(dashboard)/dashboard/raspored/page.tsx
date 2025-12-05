@@ -10,31 +10,41 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Download,
   Loader,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/features/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useOfflineSchedule } from "@/hooks/use-offline-schedule";
+import { useSchedule } from "@/hooks/use-schedule";
 import {
   fadeInUp,
   staggerContainer,
   staggerItem,
 } from "@/lib/animations/variants";
-import { useSchedule } from "@/hooks/use-schedule";
-import { useOfflineSchedule } from "@/hooks/use-offline-schedule";
-import { useSyncStore, useAuthStore } from "@/store";
-import { Wifi, WifiOff, Download } from "lucide-react";
 import { exportScheduleToPDF } from "@/lib/utils/schedule-pdf-export";
+import { useAuthStore, useSyncStore } from "@/store";
 
 interface ScheduleEntry {
   id: string;
   dayOfWeek: string;
   startTime: string;
   endTime: string;
-  subject?: { id: string; name: string; color?: string | undefined; icon?: string | null | undefined } | null | undefined;
+  subject?:
+    | {
+        id: string;
+        name: string;
+        color?: string | undefined;
+        icon?: string | null | undefined;
+      }
+    | null
+    | undefined;
   room?: string | null | undefined;
   notes?: string | null | undefined;
   createdAt?: string | Date | undefined;
@@ -44,9 +54,25 @@ interface ScheduleEntry {
 }
 
 // Helper to safely get lesson properties that might not exist on all types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getLessonProp = <T,>(lesson: any, prop: string, fallback: T): T => {
-  return prop in lesson ? lesson[prop] ?? fallback : fallback;
+const getLessonProp = <T,>(
+  lesson: ScheduleEntry,
+  prop: keyof ScheduleEntry,
+  fallback: T,
+): T => {
+  const value = lesson[prop];
+  return (value ?? fallback) as T;
+};
+
+// Helper za srpsku deklinaciju broja časova
+const formatLessonCount = (count: number): string => {
+  if (count === 1) return "čas";
+  if (count >= 2 && count <= 4) return "časa";
+  return "časova";
+};
+
+// Helper za dobijanje učionice iz lesson objekta
+const getLessonRoom = (lesson: ScheduleEntry): string => {
+  return lesson.room || "Učionica nije određena";
 };
 
 const DAYS = [
@@ -66,21 +92,10 @@ export default function RasporedPage() {
   const selectedDayRef = useRef<HTMLButtonElement>(null);
 
   // Offline support
-  const { offlineSchedule, cacheSchedule, hasOfflineSchedule } = useOfflineSchedule();
+  const { offlineSchedule, cacheSchedule, hasOfflineSchedule } =
+    useOfflineSchedule();
   const { isOnline } = useSyncStore();
   const { user } = useAuthStore();
-
-  const handleExportPDF = () => {
-    try {
-      const fileName = exportScheduleToPDF(schedule, user?.student?.name || "Učenik");
-      toast.success("PDF je generisan!", {
-        description: `Sačuvano kao ${fileName}`,
-      });
-    } catch (error) {
-      toast.error("Greška pri generisanju PDF-a");
-      console.error(error);
-    }
-  };
 
   // React Query hook - automatic caching and refetching
   const {
@@ -94,7 +109,32 @@ export default function RasporedPage() {
   // Cache schedule when loaded online
   useEffect(() => {
     if (scheduleData?.data && Array.isArray(scheduleData.data)) {
-      cacheSchedule(scheduleData.data as any);
+      // Type assertion needed because API returns slightly different structure
+      cacheSchedule(
+        scheduleData.data.map((item) => ({
+          id: item.id,
+          dayOfWeek: item.dayOfWeek,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          subject: item.subject
+            ? {
+                id: item.subject.id,
+                name: item.subject.name,
+                color: item.subject.color || "#3b82f6",
+                icon: item.subject.icon || null,
+              }
+            : {
+                id: "",
+                name: "Nepoznat predmet",
+                color: "#3b82f6",
+                icon: null,
+              },
+          classroom: item.room || null,
+          notes: item.notes || null,
+          createdAt: item.createdAt?.toString() || new Date().toISOString(),
+          updatedAt: item.updatedAt?.toString() || new Date().toISOString(),
+        })),
+      );
     }
   }, [scheduleData, cacheSchedule]);
 
@@ -110,9 +150,40 @@ export default function RasporedPage() {
   }, [isOnline, scheduleData, offlineSchedule, hasOfflineSchedule]);
 
   // Show error toast if query fails and no offline data
-  if (error && !hasOfflineSchedule) {
-    toast.error("Greška pri učitavanju rasporeda");
-  }
+  const errorShownRef = useRef(false);
+  useEffect(() => {
+    if (error && !hasOfflineSchedule && !errorShownRef.current) {
+      errorShownRef.current = true;
+      toast.error("Greška pri učitavanju rasporeda");
+    }
+    if (!error) {
+      errorShownRef.current = false;
+    }
+  }, [error, hasOfflineSchedule]);
+
+  // PDF Export handler (defined after schedule is available)
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  const handleExportPDF = useCallback(async () => {
+    if (isExportingPDF) return;
+    setIsExportingPDF(true);
+    try {
+      // Allow UI to update before blocking operation
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const fileName = exportScheduleToPDF(
+        schedule,
+        user?.student?.name || "Učenik",
+      );
+      toast.success("PDF je generisan!", {
+        description: `Sačuvano kao ${fileName}`,
+      });
+    } catch (err) {
+      toast.error("Greška pri generisanju PDF-a");
+      console.error(err);
+    } finally {
+      setIsExportingPDF(false);
+    }
+  }, [isExportingPDF, schedule, user?.student?.name]);
 
   // Get current week start
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday
@@ -122,11 +193,16 @@ export default function RasporedPage() {
     return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   }, [weekStart]);
 
-  // Get current time for LIVE indicator
-  const now = new Date();
+  // Get current time for LIVE indicator - refresh every minute
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const currentTime = format(now, "HH:mm");
   const currentDayIndex = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1];
-  const currentDayKey = currentDayIndex?.key ?? "MON";
+  const currentDayKey = currentDayIndex?.key ?? "MONDAY";
 
   // Check if lesson is happening now
   const isLessonActive = (lesson: ScheduleEntry) => {
@@ -137,32 +213,36 @@ export default function RasporedPage() {
   // Calculate lesson progress
   const getLessonProgress = (lesson: ScheduleEntry) => {
     if (!isLessonActive(lesson)) return 0;
-    
-    const startParts = lesson.startTime.split(':').map(Number);
-    const endParts = lesson.endTime.split(':').map(Number);
-    const nowParts = currentTime.split(':').map(Number);
-    
+
+    const startParts = lesson.startTime.split(":").map(Number);
+    const endParts = lesson.endTime.split(":").map(Number);
+    const nowParts = currentTime.split(":").map(Number);
+
     const startH = startParts[0] ?? 0;
     const startM = startParts[1] ?? 0;
     const endH = endParts[0] ?? 0;
     const endM = endParts[1] ?? 0;
     const nowH = nowParts[0] ?? 0;
     const nowM = nowParts[1] ?? 0;
-    
+
     const startMinutes = startH * 60 + startM;
     const endMinutes = endH * 60 + endM;
     const nowMinutes = nowH * 60 + nowM;
-    
+
     const totalDuration = endMinutes - startMinutes;
     const elapsed = nowMinutes - startMinutes;
-    
+
     return Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
   };
 
   // Get lessons for selected day
-  const selectedDayIndex = DAYS[selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1];
-  const selectedDayKey = selectedDayIndex?.key ?? "MON";
-  const dayLessons = schedule.filter((l) => l.dayOfWeek === selectedDayKey);
+  const selectedDayIndex =
+    DAYS[selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1];
+  const selectedDayKey = selectedDayIndex?.key ?? "MONDAY";
+  const dayLessons = useMemo(
+    () => schedule.filter((l) => l.dayOfWeek === selectedDayKey),
+    [schedule, selectedDayKey],
+  );
 
   // Group lessons by day for week view
   const weekSchedule = useMemo(() => {
@@ -174,9 +254,8 @@ export default function RasporedPage() {
     }));
   }, [schedule]);
 
-  const isToday = (date: Date) => isSameDay(date, now);
-
-  // Auto-scroll to selected day
+  // Auto-scroll to selected day when it changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: selectedDate triggers scroll intentionally
   useEffect(() => {
     if (selectedDayRef.current && scrollContainerRef.current) {
       selectedDayRef.current.scrollIntoView({
@@ -185,8 +264,7 @@ export default function RasporedPage() {
         inline: "center",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedDate]);
 
   if (loading && !hasOfflineSchedule) {
     return (
@@ -237,14 +315,23 @@ export default function RasporedPage() {
                 </>
               )}
             </div>
-            
+
             <Button
               variant="outline"
               size="sm"
               onClick={handleExportPDF}
+              disabled={isExportingPDF}
               className="hidden sm:flex"
+              aria-label="Preuzmi raspored kao PDF"
             >
-              <Download className="h-4 w-4 mr-2" />
+              {isExportingPDF ? (
+                <Loader
+                  className="h-4 w-4 mr-2 animate-spin"
+                  aria-hidden="true"
+                />
+              ) : (
+                <Download className="h-4 w-4 mr-2" aria-hidden="true" />
+              )}
               PDF
             </Button>
           </div>
@@ -265,13 +352,18 @@ export default function RasporedPage() {
         </div>
 
         {/* View Mode Toggle - Enhanced mobile */}
-        <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+        <div
+          className="flex gap-2 bg-gray-100 p-1 rounded-xl"
+          role="tablist"
+          aria-label="Izbor prikaza rasporeda"
+        >
           <Button
             variant={viewMode === "day" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("day")}
             aria-label="Prikaži raspored za jedan dan"
-            aria-pressed={viewMode === "day"}
+            aria-selected={viewMode === "day"}
+            role="tab"
             className={`
               flex-1 sm:flex-none px-6 sm:px-4 touch-manipulation
               ${viewMode === "day" ? "shadow-md" : "hover:bg-gray-200"}
@@ -284,7 +376,8 @@ export default function RasporedPage() {
             size="sm"
             onClick={() => setViewMode("week")}
             aria-label="Prikaži raspored za celu nedelju"
-            aria-pressed={viewMode === "week"}
+            aria-selected={viewMode === "week"}
+            role="tab"
             className={`
               flex-1 sm:flex-none px-6 sm:px-4 touch-manipulation
               ${viewMode === "week" ? "shadow-md" : "hover:bg-gray-200"}
@@ -327,12 +420,12 @@ export default function RasporedPage() {
                 {weekDays.map((day) => {
                   const dayKeyObj =
                     DAYS[day.getDay() === 0 ? 6 : day.getDay() - 1];
-                  const dayKey = dayKeyObj?.key ?? "MON";
+                  const dayKey = dayKeyObj?.key ?? "MONDAY";
                   const lessonsCount = schedule.filter(
                     (l) => l.dayOfWeek === dayKey,
                   ).length;
                   const selected = isSameDay(day, selectedDate);
-                  const today = isToday(day);
+                  const today = isSameDay(day, now);
 
                   return (
                     <motion.button
@@ -341,10 +434,12 @@ export default function RasporedPage() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedDate(day)}
+                      aria-label={`${dayKeyObj?.label ?? "Dan"}, ${format(day, "d. MMMM", { locale: sr })}${today ? ", danas" : ""}${lessonsCount > 0 ? `, ${lessonsCount} ${formatLessonCount(lessonsCount)}` : ""}`}
+                      aria-current={today ? "date" : undefined}
                       className={`
                         relative p-1.5 rounded-lg text-center transition-all flex-shrink-0 
                         w-[64px] sm:w-20 lg:w-auto min-h-[60px] sm:min-h-[60px]
-                        touch-manipulation group
+                        touch-manipulation group focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
                         ${
                           selected
                             ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30"
@@ -379,7 +474,7 @@ export default function RasporedPage() {
                           }
                         `}
                         >
-                          {lessonsCount} čas
+                          {lessonsCount} {formatLessonCount(lessonsCount)}
                         </div>
                       )}
 
@@ -468,30 +563,38 @@ export default function RasporedPage() {
                                 {lesson.endTime}
                               </div>
                               {isActive && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  className="mt-2 inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium"
+                                <output
+                                  aria-live="polite"
+                                  aria-label="Čas je trenutno u toku"
                                 >
                                   <motion.div
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{
-                                      repeat: Infinity,
-                                      duration: 2,
-                                    }}
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="mt-2 inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium"
                                   >
-                                    🔴
+                                    <motion.div
+                                      animate={{ scale: [1, 1.2, 1] }}
+                                      transition={{
+                                        repeat: Infinity,
+                                        duration: 2,
+                                      }}
+                                      aria-hidden="true"
+                                    >
+                                      🔴
+                                    </motion.div>
+                                    UŽIVO
                                   </motion.div>
-                                  UŽIVO
-                                </motion.div>
+                                </output>
                               )}
-                              
+
                               {isActive && (
                                 <div className="mt-3 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                  <motion.div 
+                                  <motion.div
                                     className="bg-green-500 h-full rounded-full"
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${getLessonProgress(lesson)}%` }}
+                                    animate={{
+                                      width: `${getLessonProgress(lesson)}%`,
+                                    }}
                                     transition={{ duration: 1 }}
                                   />
                                 </div>
@@ -514,15 +617,20 @@ export default function RasporedPage() {
                                       </span>
                                     )}
                                     <h3 className="text-xl font-bold text-gray-900">
-                                      {lesson.subject?.name || ("customTitle" in lesson ? lesson.customTitle : null) || "Događaj"}
+                                      {lesson.subject?.name ||
+                                        ("customTitle" in lesson
+                                          ? lesson.customTitle
+                                          : null) ||
+                                        "Događaj"}
                                     </h3>
                                   </div>
                                   <div className="space-y-1 text-sm text-gray-600">
                                     <div className="flex items-center gap-2">
-                                      <BookOpen className="h-4 w-4" />
-                                      {("room" in lesson ? lesson.room : null) ||
-                                       ("classroom" in lesson ? lesson.classroom : null) ||
-                                        "Učionica nije određena"}
+                                      <BookOpen
+                                        className="h-4 w-4"
+                                        aria-hidden="true"
+                                      />
+                                      {getLessonRoom(lesson)}
                                     </div>
                                     {lesson.notes && (
                                       <div className="flex items-center gap-2">
@@ -537,7 +645,13 @@ export default function RasporedPage() {
                                 <div
                                   className="text-center px-4 py-2 rounded-lg font-bold text-white"
                                   style={{
-                                    backgroundColor: lesson.subject?.color || getLessonProp(lesson, "customColor", "#3b82f6"),
+                                    backgroundColor:
+                                      lesson.subject?.color ||
+                                      getLessonProp(
+                                        lesson,
+                                        "customColor",
+                                        "#3b82f6",
+                                      ),
                                   }}
                                 >
                                   <div className="text-xs">Čas</div>
@@ -574,8 +688,7 @@ export default function RasporedPage() {
                 >
                   <h3 className="text-lg font-bold">{day.label}</h3>
                   <p className="text-sm opacity-90">
-                    {day.lessons.length} čas
-                    {day.lessons.length !== 1 ? "a" : ""}
+                    {day.lessons.length} {formatLessonCount(day.lessons.length)}
                   </p>
                 </div>
                 <CardContent className="p-4">
@@ -606,7 +719,12 @@ export default function RasporedPage() {
                               )}
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-900">
-                                  {lesson.subject?.name || getLessonProp(lesson, "customTitle", "Događaj")}
+                                  {lesson.subject?.name ||
+                                    getLessonProp(
+                                      lesson,
+                                      "customTitle",
+                                      "Događaj",
+                                    )}
                                 </div>
                                 <div className="text-xs text-gray-600">
                                   {lesson.startTime} - {lesson.endTime}

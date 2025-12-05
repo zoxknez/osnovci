@@ -154,3 +154,91 @@ export function withErrorBoundary<P extends object>(
     );
   };
 }
+
+// Section Error Boundary - lakša verzija za sekcije unutar stranice
+interface SectionErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+  sectionName?: string;
+}
+
+interface SectionErrorState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class SectionErrorBoundary extends Component<SectionErrorBoundaryProps, SectionErrorState> {
+  constructor(props: SectionErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+    };
+  }
+
+  static getDerivedStateFromError(error: Error): Partial<SectionErrorState> {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`❌ SectionErrorBoundary [${this.props.sectionName || 'unknown'}] caught error:`, error, errorInfo);
+
+    // Capture to Sentry
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+      tags: {
+        errorBoundary: "section",
+        sectionName: this.props.sectionName || "unknown",
+      },
+    });
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      // Custom fallback UI
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      // Default compact error UI za sekcije
+      return (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Greška pri učitavanju {this.props.sectionName ? `"${this.props.sectionName}"` : "sekcije"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Nešto nije u redu. Pokušaj ponovo.
+                </p>
+              </div>
+              <Button
+                onClick={this.handleRetry}
+                size="sm"
+                variant="outline"
+                className="flex-shrink-0"
+              >
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Ponovi
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return this.props.children;
+  }
+}

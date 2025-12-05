@@ -1,6 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Trophy, Settings, LogOut } from "lucide-react";
 import { SidebarNavItems } from "./sidebar-nav-items";
+import { getXPProgress } from "@/lib/gamification/xp-calculator";
+import { clearOfflineData } from "@/lib/offline/indexeddb";
+import { toast } from "sonner";
 
 interface DesktopSidebarProps {
   pathname: string;
@@ -9,6 +16,29 @@ interface DesktopSidebarProps {
 }
 
 export function DesktopSidebar({ pathname, level, xp }: DesktopSidebarProps) {
+  const router = useRouter();
+  
+  // Koristi centralizovanu XP kalkulaciju
+  const xpProgress = getXPProgress(xp);
+  const progressPercent = Math.round(xpProgress.progress * 100);
+  const xpToNextLevel = xpProgress.requiredXP - xpProgress.currentXP;
+
+  const handleLogout = async () => {
+    try {
+      // Očisti offline cache pre odjave
+      await clearOfflineData();
+      // Odjavi korisnika
+      await signOut({ redirect: false });
+      toast.success("Uspešno ste se odjavili");
+      router.push("/prijava");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Greška pri odjavljivanju");
+      // Fallback - redirect anyway
+      router.push("/prijava");
+    }
+  };
+
   return (
     <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-100 bg-gradient-to-b from-blue-50/50 to-white px-6 pb-4 backdrop-blur-sm">
@@ -38,13 +68,13 @@ export function DesktopSidebar({ pathname, level, xp }: DesktopSidebarProps) {
             <div className="w-full bg-black/20 rounded-full h-1.5 overflow-hidden relative">
               <div 
                 className="bg-yellow-400 h-full rounded-full transition-all duration-500 relative overflow-hidden"
-                style={{ width: `${(xp % 1000) / 10}%` }} 
+                style={{ width: `${progressPercent}%` }} 
               >
                 <div className="absolute inset-0 animate-shine" />
               </div>
             </div>
             <p className="text-[10px] text-center mt-1 text-indigo-100">
-              {1000 - (xp % 1000)} XP do sledećeg levela
+              {xpToNextLevel} XP do Level {level + 1}
             </p>
           </div>
 
@@ -63,9 +93,7 @@ export function DesktopSidebar({ pathname, level, xp }: DesktopSidebarProps) {
 
               <button
                 type="button"
-                onClick={() => {
-                  /* Logout logic */
-                }}
+                onClick={handleLogout}
                 aria-label="Odjavi se sa naloga"
                 className="w-full group flex items-center gap-x-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 active:scale-95 transition-all mt-1 focus:ring-2 focus:ring-red-500 focus:outline-none"
               >

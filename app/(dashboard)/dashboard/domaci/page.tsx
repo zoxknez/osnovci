@@ -44,8 +44,9 @@ import {
   type HomeworkFormData,
 } from "@/components/modals/add-homework-modal";
 import { useSyncStore } from "@/store";
-import { useCreateHomework, useMarkHomeworkComplete } from "@/hooks/use-homework";
+import { useCreateHomework, useMarkHomeworkComplete, homeworkKeys } from "@/hooks/use-homework";
 import { useHomeworkList } from "@/hooks/use-homework-list";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,9 +68,6 @@ export default function DomaciPage() {
 
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [_showHelper, _setShowHelper] = useState(false);
-  const [_selectedHomeworkForHelper, _setSelectedHomeworkForHelper] = useState<string | null>(null);
-  const [_studyStartTime] = useState(new Date());
 
   // Unified Homework Hook
   const {
@@ -83,14 +81,15 @@ export default function DomaciPage() {
     unsyncedCount,
   } = useHomeworkList(page, debouncedSearchQuery, filterStatus);
   
+  const queryClient = useQueryClient();
   const createHomeworkMutation = useCreateHomework();
   const markCompleteMutation = useMarkHomeworkComplete();
   const { isOnline, isSyncing } = useSyncStore();
 
   // Group homework for Kanban
   const kanbanColumns = {
-    todo: filteredHomework.filter(h => h.status === "ASSIGNED" || h.status === "IN_PROGRESS"),
-    done: filteredHomework.filter(h => h.status === "DONE" || h.status === "SUBMITTED")
+    todo: filteredHomework.filter(h => h.status === "assigned" || h.status === "in_progress"),
+    done: filteredHomework.filter(h => h.status === "done" || h.status === "submitted")
   };
 
   const handleOpenCamera = (homeworkId: string) => {
@@ -157,8 +156,9 @@ export default function DomaciPage() {
   const handleBulkComplete = async (ids: string[]) => {
     try {
       await bulkCompleteHomeworkAction(ids);
-      // Refresh data
-      window.location.reload();
+      // Invalidate cache umesto reload
+      await queryClient.invalidateQueries({ queryKey: homeworkKeys.lists() });
+      setSelectedIds([]);
     } catch (error) {
       throw error;
     }
@@ -167,18 +167,20 @@ export default function DomaciPage() {
   const handleBulkDelete = async (ids: string[]) => {
     try {
       await bulkDeleteHomeworkAction(ids);
-      // Refresh data
-      window.location.reload();
+      // Invalidate cache umesto reload
+      await queryClient.invalidateQueries({ queryKey: homeworkKeys.lists() });
+      setSelectedIds([]);
     } catch (error) {
       throw error;
     }
   };
 
-  const handleBulkUpdatePriority = async (ids: string[], priority: "LOW" | "NORMAL" | "HIGH") => {
+  const handleBulkUpdatePriority = async (ids: string[], priority: "NORMAL" | "IMPORTANT" | "URGENT") => {
     try {
       await bulkUpdatePriorityAction(ids, priority);
-      // Refresh data
-      window.location.reload();
+      // Invalidate cache umesto reload
+      await queryClient.invalidateQueries({ queryKey: homeworkKeys.lists() });
+      setSelectedIds([]);
     } catch (error) {
       throw error;
     }
@@ -187,8 +189,9 @@ export default function DomaciPage() {
   const handleBulkUpdateDueDate = async (ids: string[], date: Date) => {
     try {
       await bulkUpdateDueDateAction(ids, date);
-      // Refresh data
-      window.location.reload();
+      // Invalidate cache umesto reload
+      await queryClient.invalidateQueries({ queryKey: homeworkKeys.lists() });
+      setSelectedIds([]);
     } catch (error) {
       throw error;
     }
@@ -268,9 +271,9 @@ export default function DomaciPage() {
   }
 
   const total = pagination?.total || 0;
-  const activeCount = filteredHomework.filter(h => h.status !== "DONE" && h.status !== "SUBMITTED").length;
-  const completedCount = filteredHomework.filter(h => h.status === "DONE" || h.status === "SUBMITTED").length;
-  const urgentCount = filteredHomework.filter(h => h.priority === "urgent" && h.status !== "DONE").length;
+  const activeCount = filteredHomework.filter(h => h.status !== "done" && h.status !== "submitted").length;
+  const completedCount = filteredHomework.filter(h => h.status === "done" || h.status === "submitted").length;
+  const urgentCount = filteredHomework.filter(h => h.priority === "urgent" && h.status !== "done").length;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -411,10 +414,6 @@ export default function DomaciPage() {
                         task={task} 
                         onComplete={() => handleMarkComplete(task.id)}
                         onCamera={() => handleOpenCamera(task.id)}
-                        onGetHelp={() => {
-                          _setSelectedHomeworkForHelper(task.id);
-                          _setShowHelper(true);
-                        }}
                       />
                     </div>
                   </div>
@@ -443,26 +442,28 @@ export default function DomaciPage() {
             disabled={page >= Math.ceil(total / 20)}
             onClick={() => setPage((p) => p + 1)}
           >
-            Sljedeća
+            Sledeća
           </Button>
         </div>
       )}
 
-      {/* Camera Modal - Lazy Loaded */}
+      {/* Camera Modal - Lazy Loaded with Error Boundary */}
       {cameraOpen && (
-        <Suspense fallback={
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-            <Loader className="h-8 w-8 animate-spin text-white" />
-          </div>
-        }>
-          <ModernCamera
-            onClose={() => {
-              setCameraOpen(false);
-              setSelectedHomeworkId(null);
-            }}
-            onCapture={handlePhotoCapture}
-          />
-        </Suspense>
+        <SectionErrorBoundary sectionName="Camera">
+          <Suspense fallback={
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+              <Loader className="h-8 w-8 animate-spin text-white" />
+            </div>
+          }>
+            <ModernCamera
+              onClose={() => {
+                setCameraOpen(false);
+                setSelectedHomeworkId(null);
+              }}
+              onCapture={handlePhotoCapture}
+            />
+          </Suspense>
+        </SectionErrorBoundary>
       )}
 
       {/* Celebration Animation */}

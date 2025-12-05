@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 import { useOfflineAchievements } from "@/hooks/use-offline-achievements";
 import { Celebration } from "@/components/ui/celebration";
 import { checkAchievementsAction } from "@/app/actions/achievements";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 
 interface Achievement {
   id: string;
@@ -58,6 +59,43 @@ interface AchievementsData {
   achievements: Achievement[];
   progress: AchievementProgress[];
   stats: AchievementStats;
+}
+
+// Achievement type union for strict typing
+type AchievementType = 
+  | "FIRST_HOMEWORK" | "HOMEWORK_STREAK_3" | "HOMEWORK_STREAK_7" | "HOMEWORK_STREAK_30"
+  | "ALL_HOMEWORK_WEEK" | "EARLY_SUBMISSION" | "PERFECT_WEEK" | "GRADE_FIVE"
+  | "PERFECT_MONTH" | "TOP_STUDENT" | "LEVEL_5" | "LEVEL_10" | "LEVEL_20"
+  | "XP_1000" | "XP_5000" | "XP_10000" | "HELPFUL_STUDENT" | "NIGHT_OWL"
+  | "EARLY_BIRD" | "SPEEDRUNNER";
+
+// Localization map for Serbian achievement names
+const ACHIEVEMENT_NAMES: Record<AchievementType, string> = {
+  FIRST_HOMEWORK: "Prvi Domaći",
+  HOMEWORK_STREAK_3: "Niz od 3 Dana",
+  HOMEWORK_STREAK_7: "Niz od 7 Dana",
+  HOMEWORK_STREAK_30: "Niz od 30 Dana",
+  ALL_HOMEWORK_WEEK: "Sav Domaći za Nedelju",
+  EARLY_SUBMISSION: "Rana Predaja",
+  PERFECT_WEEK: "Savršena Nedelja",
+  GRADE_FIVE: "Petica",
+  PERFECT_MONTH: "Savršen Mesec",
+  TOP_STUDENT: "Najbolji Učenik",
+  LEVEL_5: "Nivo 5",
+  LEVEL_10: "Nivo 10",
+  LEVEL_20: "Nivo 20",
+  XP_1000: "1000 XP",
+  XP_5000: "5000 XP",
+  XP_10000: "10000 XP",
+  HELPFUL_STUDENT: "Pomoćni Učenik",
+  NIGHT_OWL: "Noćna Ptica",
+  EARLY_BIRD: "Rana Ptica",
+  SPEEDRUNNER: "Brzinac",
+};
+
+// Helper function to get localized achievement name
+function getAchievementName(type: string): string {
+  return ACHIEVEMENT_NAMES[type as AchievementType] || type.replace(/_/g, " ");
 }
 
 const ACHIEVEMENT_ICONS: Record<string, React.ReactNode> = {
@@ -110,6 +148,16 @@ export default function AchievementsDashboard() {
   const { data, loading, isOnline, refresh } = useOfflineAchievements();
   const [checking, setChecking] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount to prevent memory leaks
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const checkAchievements = async () => {
     if (!isOnline) {
@@ -127,17 +175,28 @@ export default function AchievementsDashboard() {
       
       if (result.data && result.data.newUnlocks > 0) {
         toast.success(`🏆 Otključano ${result.data.newUnlocks} novih postignuća!`);
-        setShowCelebration(true);
+        if (isMountedRef.current) {
+          setShowCelebration(true);
+          setStatusMessage(`Otključano ${result.data.newUnlocks} novih postignuća`);
+        }
       } else {
         toast.info("Nema novih postignuća");
+        if (isMountedRef.current) {
+          setStatusMessage("Nema novih postignuća");
+        }
       }
       
       await refresh();
     } catch (error) {
       console.error("Error checking achievements:", error);
       toast.error("Greška pri proveri postignuća");
+      if (isMountedRef.current) {
+        setStatusMessage("Greška pri proveri postignuća");
+      }
     } finally {
-      setChecking(false);
+      if (isMountedRef.current) {
+        setChecking(false);
+      }
     }
   };
 
@@ -166,9 +225,33 @@ export default function AchievementsDashboard() {
   // We handle the date formatting in the render.
   const { achievements, progress, stats } = data as unknown as AchievementsData;
 
+  // Memoize filtered progress to avoid recalculation on every render
+  const inProgressAchievements = useMemo(
+    () => progress.filter((p) => (p.progress || 0) > 0),
+    [progress]
+  );
+
+  const lockedAchievements = useMemo(
+    () => progress.filter((p) => (p.progress || 0) === 0),
+    [progress]
+  );
+
+  // Safe celebration complete handler
+  const handleCelebrationComplete = () => {
+    if (isMountedRef.current) {
+      setShowCelebration(false);
+    }
+  };
+
   return (
     <div className="container py-8 space-y-6">
-      <Celebration trigger={showCelebration} onComplete={() => setShowCelebration(false)} />
+      <Celebration trigger={showCelebration} onComplete={handleCelebrationComplete} />
+      
+      {/* Aria-live region for screen readers */}
+      <output aria-live="polite" className="sr-only">
+        {statusMessage}
+      </output>
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -187,15 +270,17 @@ export default function AchievementsDashboard() {
                 ? "bg-green-100 text-green-700"
                 : "bg-amber-100 text-amber-700"
             }`}
+            role="status"
+            aria-label={isOnline ? "Povezani ste na internet" : "Radite offline - podaci su lokalno sačuvani"}
           >
             {isOnline ? (
               <>
-                <Wifi className="h-4 w-4" />
+                <Wifi className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Online</span>
               </>
             ) : (
               <>
-                <WifiOff className="h-4 w-4" />
+                <WifiOff className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Offline</span>
               </>
             )}
@@ -217,15 +302,22 @@ export default function AchievementsDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
-      >
-        <motion.div variants={staggerItem}>
-          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-0">
-            <CardContent className="p-6">
+      <SectionErrorBoundary sectionName="Statistika">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 md:grid-cols-4 gap-4"
+          role="region"
+          aria-label="Statistika postignuća"
+        >
+          <motion.div variants={staggerItem}>
+            <Card 
+              className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-0"
+              role="group"
+              aria-label={`Otključano ${stats.total} postignuća`}
+            >
+              <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Otključano</p>
@@ -240,7 +332,11 @@ export default function AchievementsDashboard() {
         </motion.div>
 
         <motion.div variants={staggerItem}>
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0">
+          <Card 
+            className="bg-gradient-to-br from-blue-50 to-blue-100 border-0"
+            role="group"
+            aria-label={`Ukupno ${stats.totalXP} XP bodova`}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -256,7 +352,11 @@ export default function AchievementsDashboard() {
         </motion.div>
 
         <motion.div variants={staggerItem}>
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-0">
+          <Card 
+            className="bg-gradient-to-br from-purple-50 to-purple-100 border-0"
+            role="group"
+            aria-label={`Nivo ${stats.level}`}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -272,13 +372,17 @@ export default function AchievementsDashboard() {
         </motion.div>
 
         <motion.div variants={staggerItem}>
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0">
+          <Card 
+            className="bg-gradient-to-br from-green-50 to-green-100 border-0"
+            role="group"
+            aria-label={`${inProgressAchievements.length} postignuća u toku`}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Napredak</p>
                   <p className="text-3xl font-bold text-green-700">
-                    {progress.filter((p) => (p.progress || 0) > 0).length}
+                    {inProgressAchievements.length}
                   </p>
                 </div>
                 <Target className="w-12 h-12 text-green-500 opacity-20" />
@@ -287,11 +391,13 @@ export default function AchievementsDashboard() {
           </Card>
         </motion.div>
       </motion.div>
+      </SectionErrorBoundary>
 
       {/* Unlocked Achievements */}
       {achievements.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <SectionErrorBoundary sectionName="Otključana Postignuća">
+          <div>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <CheckCircle2 className="w-6 h-6 text-green-500" />
             Otključana Postignuća
           </h2>
@@ -346,10 +452,12 @@ export default function AchievementsDashboard() {
             ))}
           </motion.div>
         </div>
+        </SectionErrorBoundary>
       )}
 
       {/* Progress Achievements */}
-      {progress.length > 0 && (
+      {inProgressAchievements.length > 0 && (
+        <SectionErrorBoundary sectionName="Postignuća u Toku">
         <div>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Lock className="w-6 h-6 text-gray-500" />
@@ -361,9 +469,7 @@ export default function AchievementsDashboard() {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
-            {progress
-              .filter((p) => (p.progress || 0) > 0)
-              .map((item) => {
+            {inProgressAchievements.map((item) => {
                 const progressPercentage =
                   ((item.progress || 0) / (item.maxProgress || 1)) * 100;
 
@@ -379,12 +485,13 @@ export default function AchievementsDashboard() {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-bold text-lg mb-1 text-gray-700">
-                              {item.type.replace(/_/g, " ")}
+                              {getAchievementName(item.type)}
                             </h3>
                             <div className="space-y-2">
                               <Progress
                                 value={progressPercentage}
                                 className="h-2"
+                                aria-label={`Napredak: ${item.progress || 0} od ${item.maxProgress || 1}`}
                               />
                               <p className="text-sm text-gray-600">
                                 {item.progress || 0} / {item.maxProgress || 1}
@@ -399,10 +506,12 @@ export default function AchievementsDashboard() {
               })}
           </motion.div>
         </div>
+        </SectionErrorBoundary>
       )}
 
       {/* Locked Achievements */}
-      {progress.filter((p) => (p.progress || 0) === 0).length > 0 && (
+      {lockedAchievements.length > 0 && (
+        <SectionErrorBoundary sectionName="Zaključana Postignuća">
         <div>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Lock className="w-6 h-6 text-gray-400" />
@@ -414,9 +523,7 @@ export default function AchievementsDashboard() {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
           >
-            {progress
-              .filter((p) => (p.progress || 0) === 0)
-              .map((item) => (
+            {lockedAchievements.map((item) => (
                 <motion.div key={item.type} variants={staggerItem}>
                   <Card className="border border-gray-200 bg-white opacity-50">
                     <CardContent className="p-4">
@@ -427,7 +534,7 @@ export default function AchievementsDashboard() {
                           )}
                         </div>
                         <p className="text-sm font-medium text-gray-600">
-                          {item.type.replace(/_/g, " ")}
+                          {getAchievementName(item.type)}
                         </p>
                       </div>
                     </CardContent>
@@ -436,6 +543,7 @@ export default function AchievementsDashboard() {
               ))}
           </motion.div>
         </div>
+        </SectionErrorBoundary>
       )}
     </div>
   );

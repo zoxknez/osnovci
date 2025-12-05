@@ -6,10 +6,10 @@
 import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
-import { log } from "@/lib/logger";
 import { sendCustomEmail } from "@/lib/email/service";
 import { createPasswordResetEmailTemplate } from "@/lib/email/templates/password-reset";
 import { env } from "@/lib/env";
+import { log } from "@/lib/logger";
 
 // Constants
 const PASSWORD_RESET_EXPIRY_HOURS = 1; // Token expires in 1 hour
@@ -46,7 +46,7 @@ export async function createAndSendPasswordResetEmail(email: string) {
 
     // 4. Set expiration
     const expiresAt = new Date(
-      Date.now() + PASSWORD_RESET_EXPIRY_HOURS * 60 * 60 * 1000
+      Date.now() + PASSWORD_RESET_EXPIRY_HOURS * 60 * 60 * 1000,
     );
 
     log.info("Creating password reset token", {
@@ -85,7 +85,7 @@ export async function createAndSendPasswordResetEmail(email: string) {
       email,
       template.subject,
       template.html,
-      template.text
+      template.text,
     );
 
     if (!emailResult.success) {
@@ -204,7 +204,7 @@ export async function verifyPasswordResetToken(token: string) {
  */
 export async function resetPasswordWithToken(
   token: string,
-  newPassword: string
+  newPassword: string,
 ) {
   try {
     // 1. Validate password
@@ -232,10 +232,11 @@ export async function resetPasswordWithToken(
     // 4. Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    // 5. Update user password
-    await prisma.user.update({
+    // 5. Update user password and get user ID
+    const user = await prisma.user.update({
       where: { email: userEmail },
       data: { password: hashedPassword },
+      select: { id: true },
     });
 
     log.info("Password reset successful", { email: userEmail });
@@ -261,6 +262,7 @@ export async function resetPasswordWithToken(
     return {
       success: true,
       message: "Lozinka je uspešno promenjena",
+      userId: user.id,
     };
   } catch (error) {
     const errorMessage =

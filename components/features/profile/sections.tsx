@@ -21,12 +21,12 @@ import {
   Weight,
   Zap,
 } from "lucide-react";
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { staggerItem } from "@/lib/animations/variants";
 import type { ProfileData, ProfileUpdateHandler } from "./types";
-import { BLOOD_TYPE_OPTIONS, calculateBMI } from "./utils";
+import { BLOOD_TYPE_OPTIONS, calculateBMI, formatDateSafe, getDateDisplayValue } from "./utils";
 
 interface UserStats {
   xp: number;
@@ -48,37 +48,53 @@ export function GamificationSection({ stats }: { stats: UserStats | null }) {
       <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-indigo-900">
-            <Trophy className="h-5 w-5 text-indigo-600" />
+            <Trophy className="h-5 w-5 text-indigo-600" aria-hidden="true" />
             Napredak i Postignuća
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
-          <div className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center">
+        <CardContent 
+          className="grid gap-4 sm:grid-cols-3"
+          role="region"
+          aria-label="Statistika napretka"
+        >
+          <div 
+            className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center"
+            role="group"
+            aria-label={`Ukupno ${stats?.xp || 0} XP bodova`}
+          >
             <div className="text-3xl font-bold text-indigo-600 mb-1">
               {stats?.xp || 0}
             </div>
             <div className="text-sm font-medium text-gray-600 flex items-center justify-center gap-1">
-              <Zap className="w-4 h-4 text-yellow-500" />
+              <Zap className="w-4 h-4 text-yellow-500" aria-hidden="true" />
               Ukupno XP
             </div>
           </div>
 
-          <div className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center">
+          <div 
+            className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center"
+            role="group"
+            aria-label={`Nivo ${stats?.level || 1}`}
+          >
             <div className="text-3xl font-bold text-purple-600 mb-1">
               {stats?.level || 1}
             </div>
             <div className="text-sm font-medium text-gray-600 flex items-center justify-center gap-1">
-              <Trophy className="w-4 h-4 text-purple-500" />
+              <Trophy className="w-4 h-4 text-purple-500" aria-hidden="true" />
               Trenutni Level
             </div>
           </div>
 
-          <div className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center">
+          <div 
+            className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center"
+            role="group"
+            aria-label={`${stats?.streak || 0} dana u nizu`}
+          >
             <div className="text-3xl font-bold text-blue-600 mb-1">
               {stats?.streak || 0}
             </div>
             <div className="text-sm font-medium text-gray-600 flex items-center justify-center gap-1">
-              <Clock className="w-4 h-4 text-blue-500" />
+              <Clock className="w-4 h-4 text-blue-500" aria-hidden="true" />
               Dana u nizu
             </div>
           </div>
@@ -113,18 +129,8 @@ export function BasicInfoSection({
 
           <InfoField
             label="Datum rođenja"
-            value={
-              profile.birthDate &&
-              !Number.isNaN(new Date(profile.birthDate).getTime())
-                ? (new Date(profile.birthDate).toISOString().split("T")[0] ?? "")
-                : ""
-            }
-            displayValue={
-              profile.birthDate &&
-              !Number.isNaN(new Date(profile.birthDate).getTime())
-                ? `${new Date(profile.birthDate).toLocaleDateString("sr-RS")} (${calculateAge(profile.birthDate)} godina)`
-                : "Nije postavljeno"
-            }
+            value={formatDateSafe(profile.birthDate) ?? ""}
+            displayValue={getDateDisplayValue(profile.birthDate, calculateAge)}
             type="date"
             isEditing={isEditing}
             onChange={(value) => onChange("birthDate", value)}
@@ -180,12 +186,18 @@ export function PhysicalSection({
   isEditing,
   onChange,
 }: PhysicalSectionProps) {
+  // Memoize BMI calculation to avoid recalculating on every render
+  const bmiValue = useMemo(
+    () => calculateBMI(profile.height, profile.weight),
+    [profile.height, profile.weight]
+  );
+
   return (
     <motion.div variants={staggerItem}>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-green-700" />
+            <Activity className="h-5 w-5 text-green-700" aria-hidden="true" />
             Fizičke karakteristike
           </CardTitle>
         </CardHeader>
@@ -223,9 +235,13 @@ export function PhysicalSection({
           />
 
           <StaticField label="BMI">
-            <div className="p-3 bg-gray-50 rounded-lg text-center">
+            <div 
+              className="p-3 bg-gray-50 rounded-lg text-center"
+              role="group"
+              aria-label={`BMI indeks: ${bmiValue}`}
+            >
               <div className="text-2xl font-bold text-purple-600">
-                {calculateBMI(profile.height, profile.weight)}
+                {bmiValue}
               </div>
               <div className="text-xs text-gray-600">indeks</div>
             </div>
@@ -275,6 +291,8 @@ export function HealthSection({
   isEditing,
   onChange,
 }: HealthSectionProps) {
+  const bloodTypeSelectId = useId();
+  
   const handleCommaSeparated = (value: string) =>
     value
       .split(",")
@@ -286,7 +304,7 @@ export function HealthSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-red-600" />
+            <Heart className="h-5 w-5 text-red-600" aria-hidden="true" />
             Zdravstvene informacije
           </CardTitle>
         </CardHeader>
@@ -297,6 +315,7 @@ export function HealthSection({
           >
             {isEditing ? (
               <select
+                id={bloodTypeSelectId}
                 value={profile.bloodType}
                 onChange={(event) =>
                   onChange(
@@ -304,7 +323,8 @@ export function HealthSection({
                     event.target.value as ProfileData["bloodType"],
                   )
                 }
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Izaberite krvnu grupu"
               >
                 {BLOOD_TYPE_OPTIONS.map((type) => (
                   <option key={type} value={type}>

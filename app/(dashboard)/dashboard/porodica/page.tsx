@@ -16,16 +16,17 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import QRCodeSVG from "react-qr-code";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/features/page-header";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 import { useOfflineFamily } from "@/hooks/use-offline-family";
-import { approveLinkAction, removeFamilyMemberAction } from "@/app/actions/family";
+import { approveLinkAction, removeFamilyMemberAction, generateStudentQRAction } from "@/app/actions/family";
 
 interface FamilyMember {
   id: string;
@@ -48,9 +49,15 @@ const PERMISSION_OPTIONS = [
 export default function PorodicaPage() {
   const { familyMembers: storedMembers, loading, isOnline, refresh } = useOfflineFamily();
   const [showQR, setShowQR] = useState(false);
-  const [linkCode] = useState("");
+  const [linkCode, setLinkCode] = useState("");
+  const [qrData, setQrData] = useState("");
   const [copied, setCopied] = useState(false);
   const [manualCode, setManualCode] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isLinking, setIsLinking] = useState(false);
+  const [isRemoving, setIsRemoving] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const toastShownRef = useRef(false);
 
   const familyMembers: FamilyMember[] = storedMembers.map(m => ({
     ...m,
@@ -61,140 +68,40 @@ export default function PorodicaPage() {
   const generateCode = useCallback(async () => {
     if (!isOnline) {
       toast.error("Potrebna je internet konekcija za generisanje koda");
+      setStatusMessage("Potrebna je internet konekcija");
       return;
     }
+    
+    setIsGenerating(true);
+    setStatusMessage("Generisanje koda u toku...");
+    
     try {
-      // Note: initiateLinkByQRAction expects studentQRData, but here we seem to be generating a code for the guardian to scan?
-      // Wait, the original code was calling /api/link/initiate with {}.
-      // Let's check /api/link/initiate again.
-      // It expects { studentQRData } in body.
-      // But the frontend was sending {}.
-      // This implies the frontend code might have been broken or I misunderstood something.
-      // Let's look at the original frontend code again.
-      // const data = await apiPost("/api/link/initiate", {});
-      // And the backend: const { studentQRData } = await request.json();
-      // If studentQRData is missing, it returns 400.
-      // So the frontend WAS broken or I missed something.
+      const result = await generateStudentQRAction();
       
-      // However, looking at the UI, it shows a QR code with `OSNOVCI_LINK:${linkCode}`.
-      // This suggests the student generates a code/QR, and the guardian scans it.
-      // But /api/link/initiate says "Guardian scans QR -> Returns linkCode".
-      // This is confusing.
-      
-      // Let's look at the Stranger Danger logic.
-      // 1. Student shows QR (containing studentId or a temporary token).
-      // 2. Guardian scans QR. Guardian app calls /api/link/initiate with the QR data.
-      // 3. Server validates and returns a 6-digit code to the Guardian.
-      // 4. Guardian tells the code to the Student.
-      // 5. Student enters the code in their app (/api/link/child-approve).
-      
-      // So, the Student app (this page) needs to display a QR code.
-      // The QR code should contain the student ID or a signed token.
-      // The `generateCode` function here seems to be trying to get a code from the server?
-      // But `linkCode` variable is used in the QR value: `OSNOVCI_LINK:${linkCode}`.
-      
-      // If the flow is: Student generates QR -> Guardian scans -> Guardian gets code -> Student enters code.
-      // Then `generateCode` should probably just get the student ID or a token.
-      
-      // Wait, the original code:
-      // const data = await apiPost("/api/link/initiate", {});
-      // setLinkCode(data.code);
-      
-      // This suggests /api/link/initiate was being used to GENERATE the code/token for the QR?
-      // But the backend implementation I read for /api/link/initiate EXPECTS studentQRData.
-      // This means the backend I read might be for the GUARDIAN side, or I am misinterpreting.
-      
-      // Let's assume for now that I should use a new action or fix the flow.
-      // If I look at `app/actions/family.ts`, `initiateLinkByQRAction` calls `initiateLink`.
-      // `initiateLink` (from lib/auth/stranger-danger) likely handles the logic.
-      
-      // If this page is for the STUDENT, they need to show a QR.
-      // The QR should probably just contain their ID or a secure token.
-      // Maybe I should just use the student ID for now if I can't find a specific "get QR token" endpoint.
-      // But wait, `linkCode` is set from the response.
-      
-      // Let's look at `app/api/link/initiate/route.ts` again.
-      // It calls `initiateLink(studentQRData, guardian.id)`.
-      // This confirms it's the GUARDIAN calling it.
-      
-      // So `PorodicaPage` seems to be the STUDENT view.
-      // Why was it calling `/api/link/initiate`?
-      // Maybe it was a mistake in the previous implementation or I am looking at the wrong file.
-      // Or maybe `PorodicaPage` is shared? No, it says "Poveži se sa roditeljima".
-      
-      // If this is the student view, they should NOT be calling `/api/link/initiate`.
-      // They should be displaying a QR code that the guardian scans.
-      // The QR code usually contains `OSNOVCI_LINK:STUDENT_ID`.
-      
-      // The `generateCode` function in the original file seems to be fetching a code to display in the QR.
-      // Maybe there was another endpoint I missed?
-      // Or maybe `/api/link/initiate` handles both? No, the code is clear.
-      
-      // I will assume the student just needs to display their ID in the QR for now, 
-      // OR there is a missing endpoint to generate a temporary QR token.
-      // Since I don't have that endpoint, I will comment out the `generateCode` logic 
-      // and just use the student ID if possible, or leave it as a TODO.
-      
-      // Actually, looking at `app/api/family/route.ts` (POST), it generates a link code and sends an email.
-      // That's the "Invite by Email" flow.
-      
-      // The QR flow seems to be:
-      // 1. Student shows QR.
-      // 2. Guardian scans.
-      // 3. Guardian gets code.
-      // 4. Student enters code.
-      
-      // The `PorodicaPage` has `handleManualLink` which calls `/api/link/child-approve`.
-      // This matches step 4.
-      
-      // The `generateCode` part is the mystery.
-      // It sets `linkCode` which is put into the QR.
-      // If I can't find the endpoint that returns this code, I might have to skip it or fix it.
-      
-      // Let's look at `app/api/link` folder again.
-      // `child-approve` and `initiate`.
-      
-      // Maybe I should check `lib/auth/stranger-danger.ts` to see what `initiateLink` does.
-      // But I can't read lib files easily without a tool call.
-      
-      // I'll assume for now that I should replace the API calls with the actions I created.
-      // But `initiateLinkByQRAction` corresponds to `/api/link/initiate`, which is for the GUARDIAN.
-      // So calling it here (Student view) is wrong if it requires guardian auth.
-      
-      // I will comment out `generateCode` and add a TODO, 
-      // and focus on `handleManualLink` and `handleRemoveLink` which are clear.
-      
-      // Wait, if I break the QR generation, the feature is broken.
-      // Let's look at the `generateCode` again.
-      // `const data = await apiPost("/api/link/initiate", {});`
-      // If this worked before, then `/api/link/initiate` must handle empty body?
-      // `const { studentQRData } = await request.json();`
-      // `if (!studentQRData) return error`.
-      // So it definitely didn't work with empty body. The frontend code was likely unfinished or broken.
-      
-      // I will proceed with replacing `handleManualLink` and `handleRemoveLink`.
-      
-      // For `generateCode`, I'll try to use `initiateFamilyLinkAction` (email invite) as a fallback?
-      // No, that's different.
-      
-      // I'll just leave `generateCode` as is (commented out or with a warning) 
-      // because I don't have a "Generate QR Token" action.
-      // Actually, I'll remove the `generateCode` call and the `useEffect` that calls it,
-      // and maybe just show a static QR with the User ID if I can get it.
-      // But I don't have the user ID easily here without a session.
-      
-      // Let's just fix the imports and the clear actions first.
-      
+      if (result.success && result.data) {
+        setLinkCode(result.data.linkCode);
+        setQrData(result.data.qrData);
+        setStatusMessage("Kod uspešno generisan");
+        toastShownRef.current = false;
+      } else {
+        throw new Error(result.error || "Greška pri generisanju koda");
+      }
     } catch (error) {
       log.error("Failed to generate link code", error);
-      alert("Greška pri generisanju koda");
+      if (!toastShownRef.current) {
+        toastShownRef.current = true;
+        toast.error("Greška pri generisanju koda");
+      }
+      setStatusMessage("Greška pri generisanju koda");
+    } finally {
+      setIsGenerating(false);
     }
-  }, [refresh, isOnline]);
+  }, [isOnline]);
 
   // Auto-generate code when QR is shown
   useEffect(() => {
     if (showQR && !linkCode && isOnline) {
-      // generateCode(); // Disabled as it seems incorrect for Student view
+      generateCode();
     }
   }, [showQR, linkCode, generateCode, isOnline]);
 
@@ -202,50 +109,70 @@ export default function PorodicaPage() {
     navigator.clipboard.writeText(linkCode);
     setCopied(true);
     toast.success("📋 Kod kopiran!");
+    setStatusMessage("Kod kopiran u clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleManualLink = async () => {
     if (!isOnline) {
       toast.error("Potrebna je internet konekcija za povezivanje");
+      setStatusMessage("Potrebna je internet konekcija");
       return;
     }
 
     if (manualCode.length !== 6) {
       toast.error("Kod mora imati 6 karaktera");
+      setStatusMessage("Kod mora imati 6 karaktera");
       return;
     }
+
+    setIsLinking(true);
+    setStatusMessage("Povezivanje u toku...");
 
     try {
       const result = await approveLinkAction({ linkCode: manualCode, approved: true });
       if (result.success) {
         toast.success("✅ Povezano!");
+        setStatusMessage("Uspešno povezano sa roditeljem");
         setManualCode("");
         refresh();
       } else {
         toast.error(result.error || "Greška pri povezivanju");
+        setStatusMessage(result.error || "Greška pri povezivanju");
       }
     } catch (error) {
       log.error("Failed to link child", error, { linkCode: manualCode });
+      setStatusMessage("Greška pri povezivanju");
+    } finally {
+      setIsLinking(false);
     }
   };
 
   const handleRemoveLink = async (id: string, name: string) => {
     if (!isOnline) {
       toast.error("Potrebna je internet konekcija za uklanjanje člana");
+      setStatusMessage("Potrebna je internet konekcija");
       return;
     }
+
+    setIsRemoving(id);
+    setStatusMessage(`Uklanjanje ${name}...`);
 
     try {
       const result = await removeFamilyMemberAction(id);
       if (result.success) {
         toast.success(`🗑️ ${name} je uklonjen/a iz porodice`);
+        setStatusMessage(`${name} je uklonjen/a iz porodice`);
         refresh();
       } else {
         toast.error(result.error || "Greška pri uklanjanju člana");
+        setStatusMessage(result.error || "Greška pri uklanjanju člana");
       }
     } catch (error) {
       log.error("Failed to remove family link", error, { linkId: id, name });
+      setStatusMessage("Greška pri uklanjanju člana");
+    } finally {
+      setIsRemoving(null);
     }
   };
 
@@ -310,6 +237,11 @@ export default function PorodicaPage() {
         }
       />
 
+      {/* Aria-live region for screen readers */}
+      <output aria-live="polite" className="sr-only">
+        {statusMessage}
+      </output>
+
       {/* QR Code Section */}
       <AnimatePresence>
         {showQR && (
@@ -318,6 +250,7 @@ export default function PorodicaPage() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
           >
+            <SectionErrorBoundary sectionName="QR Kod">
             <Card className="overflow-hidden">
               <CardContent className="p-8">
                 <div className="grid gap-8 lg:grid-cols-2">
@@ -329,11 +262,26 @@ export default function PorodicaPage() {
                       transition={{ type: "spring", damping: 15 }}
                       className="bg-white p-6 rounded-xl shadow-lg"
                     >
-                      <QRCodeSVG
-                        value={`OSNOVCI_LINK:${linkCode}`}
-                        size={256}
-                        level="H"
-                      />
+                      {isGenerating ? (
+                        <div className="w-64 h-64 flex items-center justify-center">
+                          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+                        </div>
+                      ) : linkCode ? (
+                        <div
+                          role="img"
+                          aria-label={`QR kod za povezivanje sa kodom ${linkCode}`}
+                        >
+                          <QRCodeSVG
+                            value={qrData || `OSNOVCI_LINK:${linkCode}`}
+                            size={256}
+                            level="H"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-64 h-64 flex items-center justify-center text-gray-400">
+                          <p>Kliknite "Generiši kod" da dobijete QR</p>
+                        </div>
+                      )}
                     </motion.div>
 
                     <div className="text-center space-y-2">
@@ -367,10 +315,11 @@ export default function PorodicaPage() {
                     <Button
                       variant="outline"
                       onClick={generateCode}
-                      leftIcon={<LinkIcon className="h-4 w-4" />}
+                      disabled={isGenerating}
+                      leftIcon={isGenerating ? <Loader className="h-4 w-4 animate-spin" /> : <LinkIcon className="h-4 w-4" />}
                       aria-label="Generiši novi 6-cifreni kod za povezivanje"
                     >
-                      Generiši novi kod
+                      {isGenerating ? "Generisanje..." : "Generiši novi kod"}
                     </Button>
                   </div>
 
@@ -445,15 +394,17 @@ export default function PorodicaPage() {
                 </div>
               </CardContent>
             </Card>
+            </SectionErrorBoundary>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Manual Link Section */}
+      <SectionErrorBoundary sectionName="Ručno Povezivanje">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
+            <UserPlus className="h-5 w-5" aria-hidden="true" />
             Povežite se ručno
           </CardTitle>
         </CardHeader>
@@ -468,20 +419,23 @@ export default function PorodicaPage() {
               helperText="Unesi kod koji ti je dao roditelj"
               className="flex-1"
               aria-label="Kod za povezivanje sa roditeljima"
+              disabled={isLinking}
             />
             <Button
               onClick={handleManualLink}
-              leftIcon={<LinkIcon className="h-4 w-4" />}
+              leftIcon={isLinking ? <Loader className="h-4 w-4 animate-spin" /> : <LinkIcon className="h-4 w-4" />}
               aria-label="Poveži se sa roditeljima koristeći kod"
-              disabled={manualCode.length !== 6}
+              disabled={manualCode.length !== 6 || isLinking}
             >
-              Poveži
+              {isLinking ? "Povezivanje..." : "Poveži"}
             </Button>
           </div>
         </CardContent>
       </Card>
+      </SectionErrorBoundary>
 
       {/* Family Members List */}
+      <SectionErrorBoundary sectionName="Članovi Porodice">
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-4">
           Povezani članovi ({familyMembers.length})
@@ -530,9 +484,14 @@ export default function PorodicaPage() {
                             onClick={() =>
                               handleRemoveLink(member.id, member.name)
                             }
+                            disabled={isRemoving === member.id}
                             aria-label={`Ukloni ${member.name} iz porodične grupe`}
                           >
-                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                            {isRemoving === member.id ? (
+                              <Loader className="h-4 w-4 animate-spin" aria-hidden="true" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" aria-hidden="true" />
+                            )}
                           </Button>
                         </div>
 
@@ -575,6 +534,7 @@ export default function PorodicaPage() {
           </motion.div>
         )}
       </div>
+      </SectionErrorBoundary>
 
       {/* Permissions Management */}
       <Card>

@@ -1,6 +1,7 @@
 // Check if user has 2FA enabled API
 // Used before login to determine if 2FA modal should be shown
 
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
@@ -16,6 +17,8 @@ const checkSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     // Rate limiting - moderate
     const rateLimitResult = await rateLimit(request, {
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest) {
       addRateLimitHeaders(headers, rateLimitResult);
 
       return NextResponse.json(
-        { error: "Too Many Requests" },
+        { error: "Previše zahteva", requestId },
         { status: 429, headers },
       );
     }
@@ -38,7 +41,11 @@ export async function POST(request: NextRequest) {
 
     if (!validated.success) {
       return NextResponse.json(
-        { error: "Nevažeći email", details: validated.error.flatten() },
+        {
+          error: "Nevažeći email",
+          details: validated.error.flatten(),
+          requestId,
+        },
         { status: 400 },
       );
     }
@@ -46,7 +53,7 @@ export async function POST(request: NextRequest) {
     const { email } = validated.data;
 
     // Check if user exists and has 2FA enabled
-    let user;
+    let user: { id: string; twoFactorEnabled: boolean } | null = null;
     try {
       user = await prisma.user.findUnique({
         where: { email },
@@ -57,10 +64,11 @@ export async function POST(request: NextRequest) {
       });
     } catch (dbError) {
       // Database might not be ready yet
-      log.warn("Database query failed in 2FA check", { dbError, email });
+      log.warn("Database query failed in 2FA check", { dbError, requestId });
       // Return false to allow login attempt (2FA will be checked again during actual login)
       return NextResponse.json({
         twoFactorEnabled: false,
+        requestId,
       });
     }
 
@@ -68,11 +76,12 @@ export async function POST(request: NextRequest) {
     // Even if user doesn't exist, return false to prevent user enumeration
     return NextResponse.json({
       twoFactorEnabled: user?.twoFactorEnabled || false,
+      requestId,
     });
   } catch (error) {
-    log.error("2FA check failed", { error });
+    log.error("2FA check failed", { error, requestId });
     return NextResponse.json(
-      { error: "Greška pri proveri 2FA statusa" },
+      { error: "Greška pri proveri 2FA statusa", requestId },
       { status: 500 },
     );
   }

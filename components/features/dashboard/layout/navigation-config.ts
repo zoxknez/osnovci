@@ -6,7 +6,11 @@ import {
   Clock,
   Home,
   Users,
-  Settings,
+  UserCircle,
+  Heart,
+  Trophy,
+  ShoppingBag,
+  Backpack,
 } from "lucide-react";
 
 export const navigation = [
@@ -25,19 +29,31 @@ export const navigation = [
   {
     name: "Porodica",
     href: "/dashboard/porodica",
-    icon: Users,
+    icon: Heart,
     emoji: "👨‍👩‍👧‍👦",
+  },
+  {
+    name: "Postignuća",
+    href: "/dashboard/postignuca",
+    icon: Trophy,
+    emoji: "🏆",
+  },
+  {
+    name: "Pernica",
+    href: "/dashboard/pernica",
+    icon: Backpack,
+    emoji: "🎒",
+  },
+  {
+    name: "Prodavnica",
+    href: "/dashboard/prodavnica",
+    icon: ShoppingBag,
+    emoji: "🛒",
   },
   {
     name: "Profil",
     href: "/dashboard/profil",
-    icon: Users,
+    icon: UserCircle,
     emoji: "👤",
-  },
-  {
-    name: "Podešavanja",
-    href: "/settings",
-    icon: Settings,
-    emoji: "⚙️",
   },
 ];

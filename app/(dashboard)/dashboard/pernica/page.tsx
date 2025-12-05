@@ -1,31 +1,31 @@
 "use client";
 
+import { Book, Calculator as CalcIcon, Library, Loader } from "lucide-react";
 import { lazy, Suspense } from "react";
-import { Loader } from "lucide-react";
+import { SectionErrorBoundary } from "@/components/error-boundary";
 import { PageHeader } from "@/components/features/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator as CalcIcon, Book, Library } from "lucide-react";
 
 // Lazy load heavy components - only load when tab is active
-const CreateDeckDialog = lazy(() => 
-  import("@/components/features/flashcards/create-deck-dialog").then((mod) => ({ 
-    default: mod.CreateDeckDialog 
-  }))
+const CreateDeckDialog = lazy(() =>
+  import("@/components/features/flashcards/create-deck-dialog").then((mod) => ({
+    default: mod.CreateDeckDialog,
+  })),
 );
-const DeckList = lazy(() => 
-  import("@/components/features/flashcards/deck-list").then((mod) => ({ 
-    default: mod.DeckList 
-  }))
+const DeckList = lazy(() =>
+  import("@/components/features/flashcards/deck-list").then((mod) => ({
+    default: mod.DeckList,
+  })),
 );
-const Calculator = lazy(() => 
-  import("@/components/features/tools/calculator").then((mod) => ({ 
-    default: mod.Calculator 
-  }))
+const Calculator = lazy(() =>
+  import("@/components/features/tools/calculator").then((mod) => ({
+    default: mod.Calculator,
+  })),
 );
-const FormulaSheet = lazy(() => 
-  import("@/components/features/tools/formula-sheet").then((mod) => ({ 
-    default: mod.FormulaSheet 
-  }))
+const FormulaSheet = lazy(() =>
+  import("@/components/features/tools/formula-sheet").then((mod) => ({
+    default: mod.FormulaSheet,
+  })),
 );
 
 export default function PernicaPage() {
@@ -60,34 +60,46 @@ export default function PernicaPage() {
               <CreateDeckDialog />
             </Suspense>
           </div>
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-12">
-              <Loader className="h-8 w-8 animate-spin text-blue-600" />
-            </div>
-          }>
-            <DeckList />
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-12">
+                <Loader className="h-8 w-8 animate-spin text-blue-600" />
+              </div>
+            }
+          >
+            <SectionErrorBoundary sectionName="Kartice">
+              <DeckList />
+            </SectionErrorBoundary>
           </Suspense>
         </TabsContent>
 
         <TabsContent value="calculator">
           <div className="py-8">
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12">
-                <Loader className="h-8 w-8 animate-spin text-blue-600" />
-              </div>
-            }>
-              <Calculator />
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-12">
+                  <Loader className="h-8 w-8 animate-spin text-blue-600" />
+                </div>
+              }
+            >
+              <SectionErrorBoundary sectionName="Kalkulator">
+                <Calculator />
+              </SectionErrorBoundary>
             </Suspense>
           </div>
         </TabsContent>
 
         <TabsContent value="formulas">
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-12">
-              <Loader className="h-8 w-8 animate-spin text-blue-600" />
-            </div>
-          }>
-            <FormulaSheet />
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-12">
+                <Loader className="h-8 w-8 animate-spin text-blue-600" />
+              </div>
+            }
+          >
+            <SectionErrorBoundary sectionName="Formule">
+              <FormulaSheet />
+            </SectionErrorBoundary>
           </Suspense>
         </TabsContent>
       </Tabs>

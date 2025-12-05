@@ -388,6 +388,8 @@ async function main() {
     const student = createdStudents[i];
     const gData = gamificationData[i];
 
+    if (!student || !gData) continue;
+
     const gamification = await prisma.gamification.create({
       data: {
         studentId: student.id,
@@ -408,6 +410,8 @@ async function main() {
     const numAchievements = Math.min(gData.level, achievementTypes.length);
     for (let j = 0; j < numAchievements; j++) {
       const ach = achievementTypes[j];
+      if (!ach) continue;
+      
       await prisma.achievement.create({
         data: {
           gamificationId: gamification.id,
@@ -447,12 +451,15 @@ async function main() {
       const numGrades = 3 + Math.floor(Math.random() * 6);
       for (let i = 0; i < numGrades; i++) {
         const grade = Math.floor(Math.random() * 3) + 3; // 3, 4, or 5 mostly
+        const categoryIdx = Math.floor(Math.random() * gradeCategories.length);
+        const category = gradeCategories[categoryIdx] ?? "Kontrolni";
+        
         await prisma.grade.create({
           data: {
             studentId: student.id,
             subjectId: subject.id,
             grade: grade.toString(),
-            category: gradeCategories[Math.floor(Math.random() * gradeCategories.length)],
+            category,
             description: grade === 5 ? "Odličan rad!" : grade === 4 ? "Vrlo dobar rad" : "Solidan rad",
             date: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000),
             weight: Math.floor(Math.random() * 2) + 1,
@@ -469,6 +476,10 @@ async function main() {
   console.log("📚 Kreiram domaće zadatke za Marka...");
 
   const marko = createdStudents[0];
+  if (!marko) {
+    throw new Error("Marko (prvi student) nije kreiran!");
+  }
+  
   const matematika = getSubject("Matematika");
   const srpski = getSubject("Srpski jezik");
   const engleski = getSubject("Engleski jezik");

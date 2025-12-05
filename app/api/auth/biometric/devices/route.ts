@@ -14,18 +14,42 @@
  * ]
  */
 
-import { NextResponse } from "next/server";
+import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
 import { getUserBiometricCredentials } from "@/lib/auth/biometric-server";
 import { auth } from "@/lib/auth/config";
 import { log } from "@/lib/logger";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.moderate,
+      prefix: "biometric-devices",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        { message: "Previše zahteva", requestId },
+        { status: 429, headers },
+      );
+    }
+
     // Check authentication
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
-        { message: "Neautorizovan pristup" },
+        { message: "Neautorizovan pristup", requestId },
         { status: 401 },
       );
     }
@@ -44,21 +68,19 @@ export async function GET() {
         lastUsedAt: Date;
       }) => ({
         id: cred.credentialID,
-        deviceName: cred.deviceName || "Unknown Device",
+        deviceName: cred.deviceName || "Nepoznat uređaj",
         createdAt: cred.createdAt,
       }),
     );
 
-    log.info("Listed biometric devices", {
-      userId: session.user.id,
-      count: devices.length,
+    return NextResponse.json({
+      devices,
+      requestId,
     });
-
-    return NextResponse.json(devices);
   } catch (error) {
-    log.error("Failed to list biometric devices", error);
+    log.error("Failed to list biometric devices", { error, requestId });
     return NextResponse.json(
-      { message: "Greška pri učitavanju uređaja" },
+      { message: "Greška pri učitavanju uređaja", requestId },
       { status: 500 },
     );
   }

@@ -1,11 +1,16 @@
 // 2FA Setup API - Enable Two-Factor Authentication
 // Generates TOTP secret and QR code for user
 
+import { compare } from "bcryptjs";
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { compare } from "bcryptjs";
 import { auth } from "@/lib/auth/config";
-import { setupTwoFactorAuth, verifyTOTPToken } from "@/lib/auth/two-factor";
+import {
+  decrypt,
+  setupTwoFactorAuth,
+  verifyTOTPToken,
+} from "@/lib/auth/two-factor";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 import {
@@ -13,13 +18,17 @@ import {
   RateLimitPresets,
   rateLimit,
 } from "@/lib/security/rate-limit";
+import { logActivity } from "@/lib/tracking/activity-logger";
 
 const setupSchema = z.object({
   password: z.string().min(1, "Lozinka je obavezna"),
 });
 
 const verifySchema = z.object({
-  token: z.string().length(6).regex(/^\d{6}$/, "Token mora biti 6 cifara"),
+  token: z
+    .string()
+    .length(6)
+    .regex(/^\d{6}$/, "Token mora biti 6 cifara"),
 });
 
 /**
@@ -27,6 +36,8 @@ const verifySchema = z.object({
  * Step 1: Generate TOTP secret and QR code
  */
 export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     const rateLimitResult = await rateLimit(request, {
       ...RateLimitPresets.moderate,
@@ -38,7 +49,10 @@ export async function POST(request: NextRequest) {
       addRateLimitHeaders(headers, rateLimitResult);
 
       return NextResponse.json(
-        { error: "Too Many Requests" },
+        {
+          error: "Previše zahteva. Pokušajte ponovo za par minuta.",
+          requestId,
+        },
         { status: 429, headers },
       );
     }
@@ -46,7 +60,7 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Niste prijavljeni", requestId },
         { status: 401 },
       );
     }
@@ -64,11 +78,20 @@ export async function POST(request: NextRequest) {
     // Verify password
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, email: true, phone: true, password: true, twoFactorEnabled: true },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        password: true,
+        twoFactorEnabled: true,
+      },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Korisnik nije pronađen" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Korisnik nije pronađen" },
+        { status: 404 },
+      );
     }
 
     if (user.twoFactorEnabled) {
@@ -86,12 +109,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isPasswordValid = await compare(validated.data.password, user.password);
+    const isPasswordValid = await compare(
+      validated.data.password,
+      user.password,
+    );
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: "Netačna lozinka" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Netačna lozinka" }, { status: 401 });
     }
 
     // Generate 2FA setup
@@ -108,18 +131,30 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    log.info("2FA setup initiated", { userId: user.id });
+    log.info("2FA setup initiated", { userId: user.id, requestId });
+
+    // COPPA: Log security-sensitive action
+    await logActivity({
+      userId: user.id,
+      type: "SECURITY_CHANGE",
+      description: "Pokrenuto podešavanje dvofaktorske autentifikacije",
+      request,
+    });
 
     return NextResponse.json({
       success: true,
+      requestId,
       qrCodeDataUrl: setup.qrCodeDataUrl,
       backupCodes: setup.backupCodes,
-      message: "Skeniraj QR kod sa authenticator aplikacijom i unesi 6-cifreni kod za potvrdu",
+      message:
+        "Skeniraj QR kod sa authenticator aplikacijom i unesi 6-cifreni kod za potvrdu",
+      warning:
+        "VAŽNO: Sačuvaj backup kodove na sigurnom mestu! Neće biti prikazani ponovo.",
     });
   } catch (error) {
-    log.error("2FA setup failed", { error });
+    log.error("2FA setup failed", { error, requestId });
     return NextResponse.json(
-      { error: "Greška pri podešavanju 2FA" },
+      { error: "Greška pri podešavanju 2FA", requestId },
       { status: 500 },
     );
   }
@@ -130,6 +165,8 @@ export async function POST(request: NextRequest) {
  * Step 2: Verify TOTP token and enable 2FA
  */
 export async function PUT(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     const rateLimitResult = await rateLimit(request, {
       ...RateLimitPresets.strict,
@@ -141,14 +178,20 @@ export async function PUT(request: NextRequest) {
       addRateLimitHeaders(headers, rateLimitResult);
 
       return NextResponse.json(
-        { error: "Too Many Requests" },
+        {
+          error: "Previše zahteva. Pokušajte ponovo za par minuta.",
+          requestId,
+        },
         { status: 429, headers },
       );
     }
 
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Niste prijavljeni", requestId },
+        { status: 401 },
+      );
     }
 
     const body = await request.json();
@@ -156,7 +199,11 @@ export async function PUT(request: NextRequest) {
 
     if (!validated.success) {
       return NextResponse.json(
-        { error: "Nevažeći token", details: validated.error.flatten() },
+        {
+          error: "Nevažeći token",
+          details: validated.error.flatten(),
+          requestId,
+        },
         { status: 400 },
       );
     }
@@ -173,26 +220,28 @@ export async function PUT(request: NextRequest) {
 
     if (!user || !user.twoFactorSecret) {
       return NextResponse.json(
-        { error: "Nema pending 2FA setup-a. Pokreni setup ponovo." },
+        { error: "Nema pending 2FA setup-a. Pokreni setup ponovo.", requestId },
         { status: 400 },
       );
     }
 
     if (user.twoFactorEnabled) {
       return NextResponse.json(
-        { error: "2FA je već omogućen" },
+        { error: "2FA je već omogućen", requestId },
         { status: 400 },
       );
     }
 
     // Decrypt secret and verify token
-    const { decrypt } = await import("@/lib/auth/two-factor");
     const secret = decrypt(user.twoFactorSecret);
     const isValid = verifyTOTPToken(validated.data.token, secret);
 
     if (!isValid) {
       return NextResponse.json(
-        { error: "Nevažeći token. Proveri authenticator aplikaciju." },
+        {
+          error: "Nevažeći token. Proveri authenticator aplikaciju.",
+          requestId,
+        },
         { status: 400 },
       );
     }
@@ -205,16 +254,26 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    log.info("2FA enabled successfully", { userId: user.id });
+    log.info("2FA enabled successfully", { userId: user.id, requestId });
+
+    // COPPA: Log security-sensitive action
+    await logActivity({
+      userId: user.id,
+      type: "SECURITY_CHANGE",
+      description: "Dvofaktorska autentifikacija uspešno omogućena",
+      request,
+    });
 
     return NextResponse.json({
       success: true,
-      message: "2FA uspešno omogućen! Sada ćeš morati da uneseš kod prilikom prijave.",
+      requestId,
+      message:
+        "2FA uspešno omogućen! Sada ćeš morati da uneseš kod prilikom prijave.",
     });
   } catch (error) {
-    log.error("2FA verification failed", { error });
+    log.error("2FA verification failed", { error, requestId });
     return NextResponse.json(
-      { error: "Greška pri verifikaciji 2FA" },
+      { error: "Greška pri verifikaciji 2FA", requestId },
       { status: 500 },
     );
   }
@@ -225,6 +284,8 @@ export async function PUT(request: NextRequest) {
  * Disable 2FA
  */
 export async function DELETE(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     const rateLimitResult = await rateLimit(request, {
       ...RateLimitPresets.moderate,
@@ -236,14 +297,20 @@ export async function DELETE(request: NextRequest) {
       addRateLimitHeaders(headers, rateLimitResult);
 
       return NextResponse.json(
-        { error: "Too Many Requests" },
+        {
+          error: "Previše zahteva. Pokušajte ponovo za par minuta.",
+          requestId,
+        },
         { status: 429, headers },
       );
     }
 
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Niste prijavljeni", requestId },
+        { status: 401 },
+      );
     }
 
     const body = await request.json();
@@ -251,7 +318,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!validated.success) {
       return NextResponse.json(
-        { error: "Nevažeći podaci" },
+        { error: "Nevažeći podaci", requestId },
         { status: 400 },
       );
     }
@@ -264,15 +331,18 @@ export async function DELETE(request: NextRequest) {
 
     if (!user?.password) {
       return NextResponse.json(
-        { error: "Nalog nema postavljenu lozinku" },
+        { error: "Nalog nema postavljenu lozinku", requestId },
         { status: 400 },
       );
     }
 
-    const isPasswordValid = await compare(validated.data.password, user.password);
+    const isPasswordValid = await compare(
+      validated.data.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: "Netačna lozinka" },
+        { error: "Netačna lozinka", requestId },
         { status: 401 },
       );
     }
@@ -287,16 +357,25 @@ export async function DELETE(request: NextRequest) {
       },
     });
 
-    log.info("2FA disabled", { userId: session.user.id });
+    log.info("2FA disabled", { userId: session.user.id, requestId });
+
+    // COPPA: Log security-sensitive action
+    await logActivity({
+      userId: session.user.id,
+      type: "SECURITY_CHANGE",
+      description: "Dvofaktorska autentifikacija onemogućena",
+      request,
+    });
 
     return NextResponse.json({
       success: true,
+      requestId,
       message: "2FA je onemogućen",
     });
   } catch (error) {
-    log.error("2FA disable failed", { error });
+    log.error("2FA disable failed", { error, requestId });
     return NextResponse.json(
-      { error: "Greška pri onemogućavanju 2FA" },
+      { error: "Greška pri onemogućavanju 2FA", requestId },
       { status: 500 },
     );
   }

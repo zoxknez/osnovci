@@ -3,18 +3,27 @@
  * Analytics dashboard for guardians to monitor student progress
  */
 
+import { redirect } from "next/navigation";
+import { SectionErrorBoundary } from "@/components/error-boundary";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { redirect } from "next/navigation";
 import { ParentalAnalyticsWrapper } from "./parental-analytics-wrapper";
 import { ParentalDashboardEnhanced } from "./parental-dashboard-enhanced";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { StudentSelector } from "./student-selector";
+
+// Type for guardian link with student
+interface GuardianLink {
+  studentId: string;
+  isActive: boolean;
+  student: {
+    id: string;
+    name: string;
+    user: {
+      id: string;
+      email: string | null;
+    };
+  };
+}
 
 export const metadata = {
   title: "Roditeljski Dashboard - Osnovci",
@@ -60,8 +69,8 @@ export default async function ParentalDashboardPage({
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Roditeljski Dashboard</h1>
           <p className="text-muted-foreground">
-            Nemate povezanih učenika. Molimo vas da povežete vašeg učenika koristeći kôd za
-            povezivanje.
+            Nemate povezanih učenika. Molimo vas da povežete vašeg učenika
+            koristeći kôd za povezivanje.
           </p>
         </div>
       </div>
@@ -69,8 +78,11 @@ export default async function ParentalDashboardPage({
   }
 
   // Get selected student or default to first linked student
-  const selectedStudentId = params.studentId || guardian.links[0]?.studentId || "";
-  const selectedLink = guardian.links.find((link: any) => link.studentId === selectedStudentId);
+  const selectedStudentId =
+    params.studentId || guardian.links[0]?.studentId || "";
+  const selectedLink = (guardian.links as GuardianLink[]).find(
+    (link) => link.studentId === selectedStudentId,
+  );
 
   if (!selectedLink && guardian.links[0]) {
     redirect(`/dashboard/roditelj?studentId=${guardian.links[0].studentId}`);
@@ -91,37 +103,31 @@ export default async function ParentalDashboardPage({
         </div>
 
         {guardian.links.length > 1 && (
-          <form action="/dashboard/roditelj" method="get">
-            <Select name="studentId" defaultValue={selectedStudentId}>
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Izaberite učenika" />
-              </SelectTrigger>
-              <SelectContent>
-                {guardian.links.map((link: any) => (
-                  <SelectItem key={link.studentId} value={link.studentId}>
-                    {link.student.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </form>
+          <StudentSelector
+            links={guardian.links as GuardianLink[]}
+            selectedStudentId={selectedStudentId}
+          />
         )}
       </div>
 
       {/* Enhanced Dashboard with Alerts and Messaging */}
-      <ParentalDashboardEnhanced
-        studentId={selectedStudentId}
-        guardianId={guardian.id}
-        currentUserId={session.user.id}
-        studentName={selectedLink.student.name}
-      />
+      <SectionErrorBoundary sectionName="Dashboard">
+        <ParentalDashboardEnhanced
+          studentId={selectedStudentId}
+          guardianId={guardian.id}
+          currentUserId={session.user.id}
+          studentName={selectedLink.student.name}
+        />
+      </SectionErrorBoundary>
 
       {/* Analytics */}
-      <ParentalAnalyticsWrapper
-        studentId={selectedStudentId}
-        studentName={selectedLink.student.name}
-        guardianId={guardian.id}
-      />
+      <SectionErrorBoundary sectionName="Analitika">
+        <ParentalAnalyticsWrapper
+          studentId={selectedStudentId}
+          studentName={selectedLink.student.name}
+          guardianId={guardian.id}
+        />
+      </SectionErrorBoundary>
     </div>
   );
 }

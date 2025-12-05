@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { 
   createScheduleAction, 
   updateScheduleAction, 
-  deleteScheduleAction 
+  deleteScheduleAction,
+  getScheduleAction 
 } from "@/app/actions/schedule";
 
 // Keys for React Query
@@ -20,33 +21,26 @@ export const scheduleKeys = {
   detail: (id: string) => [...scheduleKeys.details(), id] as const,
 };
 
-// Fetch schedule
-async function fetchSchedule(_filters: Record<string, unknown> = {}): Promise<PaginatedSchedule> {
-  // Use Server Action
-  const result = await import("@/app/actions/schedule").then(mod => mod.getScheduleAction());
+// Fetch schedule sa filterima
+async function fetchSchedule(filters: Record<string, unknown> = {}): Promise<PaginatedSchedule> {
+  // Prosleđujemo dayOfWeek filter ako postoji
+  const scheduleFilters: { dayOfWeek?: string } = {};
+  const dayOfWeekValue = filters["dayOfWeek"];
+  if (dayOfWeekValue && typeof dayOfWeekValue === 'string') {
+    scheduleFilters.dayOfWeek = dayOfWeekValue;
+  }
+  
+  const result = await getScheduleAction(scheduleFilters);
   if (result.error) throw new Error(result.error);
-  // Filter locally if needed since getScheduleAction returns all for student
-  // But wait, getScheduleAction doesn't support filters yet in the same way?
-  // The action returns { success: true, data: [...] }
-  // The hook expects PaginatedSchedule { data: [...], pagination: ... }
-  // We need to adapt the response or update the action.
   
-  // Let's check getScheduleAction again.
-  // It returns ActionState { data: any }
-  // The data is ScheduleEntry[]
-  
-  // We need to wrap it to match PaginatedSchedule structure if the UI expects it
-  // or update the UI to handle array.
-  // Looking at DashboardPage: 
-  // const todayClasses = ... Array.isArray(scheduleData?.data) ? scheduleData.data : [];
-  // So it expects { data: [...] }
-  
+  // Wrap response u PaginatedSchedule format
+  const data = result.data || [];
   return {
-    data: result.data,
+    data,
     pagination: {
       page: 1,
-      limit: result.data.length,
-      total: result.data.length,
+      limit: data.length,
+      total: data.length,
       pages: 1
     }
   };

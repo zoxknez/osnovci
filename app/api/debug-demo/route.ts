@@ -1,16 +1,37 @@
-// Debug endpoint za proveru demo naloga
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+/**
+ * Debug endpoint za proveru demo naloga
+ * Zaštićen: samo za ADMIN korisnike ili sa ADMIN_SECRET
+ */
+
+import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
-    // Get current session
+    // Provera pristupa: ADMIN korisnik ili ADMIN_SECRET header
     const session = await auth();
-    
+    const adminSecret = request.headers.get("x-admin-secret");
+    const envSecret = process.env["ADMIN_SECRET"];
+
+    const isAdmin = session?.user?.role === "ADMIN";
+    const hasValidSecret = envSecret && adminSecret === envSecret;
+
+    if (!isAdmin && !hasValidSecret) {
+      log.warn("Unauthorized debug-demo access attempt", { requestId });
+      return NextResponse.json(
+        { error: "Nemate pristup", requestId },
+        { status: 403 },
+      );
+    }
+
     // Check demo user in database
     const demoUser = await prisma.user.findUnique({
       where: { email: "marko@demo.rs" },
@@ -25,11 +46,20 @@ export async function GET() {
       },
     });
 
+    log.info("Debug-demo check performed", {
+      requestId,
+      userId: session?.user?.id,
+    });
+
     return NextResponse.json({
       success: true,
+      requestId,
       session: session
         ? {
-            user: session.user,
+            user: {
+              id: session.user.id,
+              role: session.user.role,
+            },
             expires: session.expires,
           }
         : null,
@@ -53,14 +83,15 @@ export async function GET() {
           }
         : null,
     });
-  } catch (error: any) {
+  } catch (error) {
+    log.error("Debug-demo failed", { error, requestId });
     return NextResponse.json(
       {
-        error: "Debug failed",
-        details: error.message || String(error),
-        stack: error.stack,
+        error: "Greška pri proveri",
+        details: error instanceof Error ? error.message : "Nepoznata greška",
+        requestId,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

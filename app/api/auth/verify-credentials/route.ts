@@ -4,6 +4,7 @@
  */
 
 import bcrypt from "bcryptjs";
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -24,6 +25,8 @@ const verifySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
     // Rate limiting - strict for auth
     const rateLimitResult = await rateLimit(request, {
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
       addRateLimitHeaders(headers, rateLimitResult);
 
       return NextResponse.json(
-        { error: "Previše pokušaja. Sačekajte malo.", valid: false },
+        { error: "Previše pokušaja. Sačekajte malo.", valid: false, requestId },
         { status: 429, headers },
       );
     }
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     if (!validated.success) {
       return NextResponse.json(
-        { error: "Nevažeći podaci", valid: false },
+        { error: "Nevažeći podaci", valid: false, requestId },
         { status: 400 },
       );
     }
@@ -57,7 +60,11 @@ export async function POST(request: NextRequest) {
     const lockStatus = await isAccountLocked(email);
     if (lockStatus.locked) {
       return NextResponse.json(
-        { error: lockStatus.message || "Nalog je zaključan", valid: false },
+        {
+          error: lockStatus.message || "Nalog je zaključan",
+          valid: false,
+          requestId,
+        },
         { status: 403 },
       );
     }
@@ -78,7 +85,7 @@ export async function POST(request: NextRequest) {
 
       // Don't reveal if user exists
       return NextResponse.json(
-        { error: "Pogrešan email ili lozinka", valid: false },
+        { error: "Pogrešan email ili lozinka", valid: false, requestId },
         { status: 401 },
       );
     }
@@ -92,29 +99,37 @@ export async function POST(request: NextRequest) {
 
       if (lockResult.locked) {
         return NextResponse.json(
-          { error: lockResult.message || "Nalog je zaključan", valid: false },
+          {
+            error: lockResult.message || "Nalog je zaključan",
+            valid: false,
+            requestId,
+          },
           { status: 403 },
         );
       }
 
       return NextResponse.json(
-        { error: "Pogrešan email ili lozinka", valid: false },
+        { error: "Pogrešan email ili lozinka", valid: false, requestId },
         { status: 401 },
       );
     }
 
     // Don't clear failed attempts yet - wait for 2FA verification
     // Password is valid, but we don't create a session here
-    log.info("Credentials verified for 2FA user", { userId: user.id });
+    log.info("Credentials verified for 2FA user", {
+      userId: user.id,
+      requestId,
+    });
 
     return NextResponse.json({
       valid: true,
+      requestId,
       requires2FA: user.twoFactorEnabled,
     });
   } catch (error) {
-    log.error("Verify credentials failed", { error });
+    log.error("Verify credentials failed", { error, requestId });
     return NextResponse.json(
-      { error: "Greška pri verifikaciji", valid: false },
+      { error: "Greška pri verifikaciji", valid: false, requestId },
       { status: 500 },
     );
   }

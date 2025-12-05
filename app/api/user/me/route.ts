@@ -3,19 +3,43 @@
  * Vraća informacije o trenutno ulogovanom korisniku
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { nanoid } from "nanoid";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import {
+  addRateLimitHeaders,
+  RateLimitPresets,
+  rateLimit,
+} from "@/lib/security/rate-limit";
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const requestId = nanoid();
+
   try {
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, {
+      ...RateLimitPresets.moderate,
+      prefix: "user-me",
+    });
+
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+
+      return NextResponse.json(
+        { error: "Previše zahteva", requestId },
+        { status: 429, headers },
+      );
+    }
+
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Niste prijavljeni", requestId },
+        { status: 401 },
       );
     }
 
@@ -42,13 +66,14 @@ export async function GET(_request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
+        { error: "Korisnik nije pronađen", requestId },
+        { status: 404 },
       );
     }
 
     return NextResponse.json({
       success: true,
+      requestId,
       user: {
         id: user.id,
         email: user.email,
@@ -58,11 +83,10 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    log.error("Error fetching user info", error);
+    log.error("Error fetching user info", { error, requestId });
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: "Greška pri učitavanju podataka", requestId },
+      { status: 500 },
     );
   }
 }
-

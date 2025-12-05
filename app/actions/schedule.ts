@@ -179,7 +179,7 @@ export async function deleteScheduleAction(id: string): Promise<ActionState> {
   }
 }
 
-export async function getScheduleAction(): Promise<ActionState> {
+export async function getScheduleAction(filters?: { dayOfWeek?: string }): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -213,8 +213,18 @@ export async function getScheduleAction(): Promise<ActionState> {
         return { error: "Nema povezanih učenika" };
     }
 
-    // Try cache for single student
-    if (studentIds.length === 1 && studentIds[0]) {
+    // Build where clause
+    const whereClause: Record<string, unknown> = {
+      studentId: { in: studentIds },
+    };
+    
+    // Dodaj filter za dan u nedelji ako je prosleđen
+    if (filters?.dayOfWeek) {
+      whereClause["dayOfWeek"] = filters.dayOfWeek;
+    }
+
+    // Try cache for single student (only when no filters)
+    if (studentIds.length === 1 && studentIds[0] && !filters?.dayOfWeek) {
       const cached = await getCachedSchedule(studentIds[0]);
       if (cached) {
         return { success: true, data: cached };
@@ -222,9 +232,7 @@ export async function getScheduleAction(): Promise<ActionState> {
     }
 
     const schedule = await prisma.scheduleEntry.findMany({
-      where: {
-        studentId: { in: studentIds },
-      },
+      where: whereClause,
       include: {
         subject: {
           select: { id: true, name: true, color: true },
@@ -236,8 +244,8 @@ export async function getScheduleAction(): Promise<ActionState> {
       ],
     });
 
-    // Set cache for single student
-    if (studentIds.length === 1 && studentIds[0]) {
+    // Set cache for single student (only when no filters)
+    if (studentIds.length === 1 && studentIds[0] && !filters?.dayOfWeek) {
       await setCachedSchedule(studentIds[0], schedule);
     }
 

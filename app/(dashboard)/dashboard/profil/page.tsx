@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/features/page-header";
 import { LastUpdatedNotice } from "@/components/features/profile/last-updated";
 import { PrivacyNotice } from "@/components/features/profile/privacy-notice";
 import { ProfileHeader } from "@/components/features/profile/profile-header";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 import { log } from "@/lib/logger";
 import {
   ActivitiesSection,
@@ -29,6 +30,7 @@ import { useOfflineProfile } from "@/hooks/use-offline-profile";
 export default function ProfilPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
   
   const { profile, setProfile, stats, loading, isOffline } = useOfflineProfile();
 
@@ -43,10 +45,12 @@ export default function ProfilPage() {
   const handleSave = async () => {
     if (isOffline) {
       toast.error("Nije moguće sačuvati izmene dok ste offline.");
+      setStatusMessage("Nije moguće sačuvati izmene dok ste offline.");
       return;
     }
 
     setIsSaving(true);
+    setStatusMessage("Čuvanje profila u toku...");
 
     try {
       await apiPatch("/api/profile", {
@@ -58,10 +62,12 @@ export default function ProfilPage() {
       toast.success("✅ Profil sačuvan!", {
         description: "Sve promene su uspešno sačuvane.",
       });
+      setStatusMessage("Profil uspešno sačuvan.");
 
       setIsEditing(false);
     } catch (error) {
       log.error("Profile update failed", error);
+      setStatusMessage("Greška pri čuvanju profila.");
       // Toast already shown by apiPatch
     } finally {
       setIsSaving(false);
@@ -118,6 +124,11 @@ export default function ProfilPage() {
         onSave={handleSave}
       />
 
+      {/* Aria-live region for screen readers */}
+      <output aria-live="polite" className="sr-only">
+        {statusMessage}
+      </output>
+
       <PrivacyNotice />
 
       <motion.div
@@ -126,38 +137,50 @@ export default function ProfilPage() {
         initial="initial"
         animate="animate"
       >
-        <GamificationSection stats={stats} />
+        <SectionErrorBoundary sectionName="Gamifikacija">
+          <GamificationSection stats={stats} />
+        </SectionErrorBoundary>
 
-        <BasicInfoSection
-          profile={profile}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-          calculateAge={calculateAge}
-        />
+        <SectionErrorBoundary sectionName="Osnovne Informacije">
+          <BasicInfoSection
+            profile={profile}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+            calculateAge={calculateAge}
+          />
+        </SectionErrorBoundary>
 
-        <PhysicalSection
-          profile={profile}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-        />
+        <SectionErrorBoundary sectionName="Fizičke Karakteristike">
+          <PhysicalSection
+            profile={profile}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+          />
+        </SectionErrorBoundary>
 
-        <HealthSection
-          profile={profile}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-        />
+        <SectionErrorBoundary sectionName="Zdravstvene Informacije">
+          <HealthSection
+            profile={profile}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+          />
+        </SectionErrorBoundary>
 
-        <ContactsSection
-          profile={profile}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-        />
+        <SectionErrorBoundary sectionName="Kontakti">
+          <ContactsSection
+            profile={profile}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+          />
+        </SectionErrorBoundary>
 
-        <ActivitiesSection
-          profile={profile}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-        />
+        <SectionErrorBoundary sectionName="Aktivnosti">
+          <ActivitiesSection
+            profile={profile}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+          />
+        </SectionErrorBoundary>
       </motion.div>
 
       <LastUpdatedNotice />

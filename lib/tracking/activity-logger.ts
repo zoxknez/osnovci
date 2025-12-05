@@ -1,46 +1,67 @@
 // Activity Logger - Track student actions for parental oversight
+
+import type {
+  Prisma,
+  ActivityType as PrismaActivityType,
+} from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
-export type ActivityType =
-  | "LOGIN"
-  | "HOMEWORK_CREATED"
-  | "HOMEWORK_UPDATED"
-  | "HOMEWORK_DELETED"
-  | "PHOTO_UPLOADED"
-  | "PASSWORD_CHANGED"
-  | "PROFILE_UPDATED"
-  | "PARENT_LINKED"
-  | "PARENT_REMOVED"
-  | "SECURITY_INCIDENT";
+// Re-export Prisma ActivityType for use in other files
+export type ActivityType = PrismaActivityType;
 
 interface LogActivityParams {
-  studentId: string;
+  studentId?: string;
+  userId?: string;
   type: ActivityType;
   description: string;
-  metadata?: any;
+  metadata?: Prisma.InputJsonValue;
   request?: NextRequest;
 }
 
 /**
  * Log student activity
  * Parents can see what child is doing
+ * Accepts either studentId directly or userId (will resolve to studentId)
  */
 export async function logActivity({
   studentId,
+  userId,
   type,
   description,
   metadata,
   request,
 }: LogActivityParams) {
   try {
-    const ipAddress = request?.headers.get("x-forwarded-for") || request?.headers.get("x-real-ip");
+    // Resolve studentId from userId if not provided
+    let resolvedStudentId = studentId;
+    if (!resolvedStudentId && userId) {
+      const student = await prisma.student.findUnique({
+        where: { userId },
+        select: { id: true },
+      });
+      resolvedStudentId = student?.id;
+    }
+
+    // If we still don't have a studentId, log but don't fail
+    if (!resolvedStudentId) {
+      log.warn("Activity logging skipped - no studentId found", {
+        userId,
+        type,
+        description,
+      });
+      return null;
+    }
+
+    const ipAddress =
+      request?.headers.get("x-forwarded-for") ||
+      request?.headers.get("x-real-ip");
     const userAgent = request?.headers.get("user-agent");
-    
+
     const activity = await prisma.activityLog.create({
       data: {
-        studentId,
+        studentId: resolvedStudentId,
         type,
         description,
         metadata: metadata || {},
@@ -51,12 +72,12 @@ export async function logActivity({
 
     log.debug("Activity logged", {
       activityId: activity.id,
-      studentId,
+      studentId: resolvedStudentId,
       type,
     });
 
     // Check if parent should be notified
-    await checkParentalNotification(studentId, type, description);
+    await checkParentalNotification(resolvedStudentId, type, description);
 
     return activity;
   } catch (error) {
