@@ -101,9 +101,10 @@ export async function sendPushNotification(
         failed++;
 
         // Handle expired/invalid subscriptions
+        const webPushError = error as { statusCode?: number };
         if (
-          error instanceof webpush.WebPushError &&
-          (error.statusCode === 410 || error.statusCode === 404)
+          webPushError.statusCode === 410 ||
+          webPushError.statusCode === 404
         ) {
           // Subscription expired or invalid - mark as inactive
           await prisma.pushSubscription.update({
@@ -114,7 +115,7 @@ export async function sendPushNotification(
           log.warn("[PUSH] Subscription expired - marked as inactive", {
             userId,
             subscriptionId: subscription.id,
-            statusCode: error.statusCode,
+            statusCode: webPushError.statusCode,
           });
         } else {
           log.error("[PUSH] Failed to send notification", error as Error, {
