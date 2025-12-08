@@ -83,7 +83,7 @@ DATABASE_URL_UNPOOLED="postgresql://postgres:[PASSWORD]@[HOST]:5432/postgres"
 
 **Primer** (Supabase):
 ```bash
-DATABASE_URL="postgresql://postgres.abcd1234:myPassword123@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+DATABASE_URL="postgresql://postgres.YOUR_PROJECT_ID:YOUR_DB_PASSWORD@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
 ```
 
 ---

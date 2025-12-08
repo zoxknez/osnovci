@@ -63,7 +63,7 @@ SENTRY_PROJECT="your-project"
 SENTRY_AUTH_TOKEN="your_token"
 
 # Email (Verification)
-EMAIL_SERVER="smtp://user:pass@smtp.gmail.com:587"
+EMAIL_SERVER="smtp://YOUR_EMAIL:YOUR_APP_PASSWORD@smtp.gmail.com:587"
 EMAIL_FROM="noreply@yourdomain.com"
 
 # Push Notifications (Future)
@@ -199,7 +199,7 @@ done
 
 **For Gmail:**
 ```env
-EMAIL_SERVER="smtp://your-email@gmail.com:your-app-password@smtp.gmail.com:587"
+EMAIL_SERVER="smtp://YOUR_GMAIL@gmail.com:YOUR_APP_PASSWORD@smtp.gmail.com:587"
 EMAIL_FROM="noreply@yourdomain.com"
 ```
 
