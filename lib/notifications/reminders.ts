@@ -3,16 +3,16 @@
  * Client-side notification logic handled by push.ts
  */
 
-import { log } from '@/lib/logger';
+import { log } from "@/lib/logger";
 
 /**
  * Schedule reminder stub - triggers client-side notification
  */
 export async function sendScheduleReminders(
   studentId: string,
-  date: Date
+  date: Date,
 ): Promise<void> {
-  log.info('Schedule reminder triggered', { studentId, date });
+  log.info("Schedule reminder triggered", { studentId, date });
   // Client-side handling via service worker
 }
 
@@ -20,7 +20,7 @@ export async function sendScheduleReminders(
  * Homework reminder stub - triggers client-side notification
  */
 export async function sendHomeworkReminders(studentId: string): Promise<void> {
-  log.info('Homework reminder triggered', { studentId });
+  log.info("Homework reminder triggered", { studentId });
   // Client-side handling via service worker
 }
 
@@ -28,6 +28,6 @@ export async function sendHomeworkReminders(studentId: string): Promise<void> {
  * Daily digest stub - triggers client-side notification
  */
 export async function sendDailyDigest(studentId: string): Promise<void> {
-  log.info('Daily digest triggered', { studentId });
+  log.info("Daily digest triggered", { studentId });
   // Client-side handling via service worker
 }

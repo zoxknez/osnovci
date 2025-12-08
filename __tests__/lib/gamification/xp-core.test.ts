@@ -3,15 +3,15 @@
  * Testiranje osnovnog XP sistema sa anti-gaming mehanizmima
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  calculateXP,
   calculateLevel,
-  getXPForNextLevel,
+  calculateXP,
   getLevelProgress,
-  XP_REWARDS,
-  XP_LIMITS,
+  getXPForNextLevel,
   LEVEL_THRESHOLDS,
+  XP_LIMITS,
+  XP_REWARDS,
 } from "@/lib/gamification/xp-core";
 
 describe("XP Core System", () => {
@@ -43,7 +43,9 @@ describe("XP Core System", () => {
       });
 
       expect(result.totalXP).toBe(10 + XP_REWARDS.NIGHT_OWL_BONUS);
-      expect(result.bonuses).toContain(`Night Owl +${XP_REWARDS.NIGHT_OWL_BONUS}`);
+      expect(result.bonuses).toContain(
+        `Night Owl +${XP_REWARDS.NIGHT_OWL_BONUS}`,
+      );
     });
 
     it("should apply morning bonus correctly", () => {
@@ -53,7 +55,9 @@ describe("XP Core System", () => {
       });
 
       expect(result.totalXP).toBe(10 + XP_REWARDS.MORNING_BONUS);
-      expect(result.bonuses).toContain(`Early Bird +${XP_REWARDS.MORNING_BONUS}`);
+      expect(result.bonuses).toContain(
+        `Early Bird +${XP_REWARDS.MORNING_BONUS}`,
+      );
     });
 
     it("should apply perfect score bonus correctly", () => {
@@ -83,7 +87,9 @@ describe("XP Core System", () => {
       });
 
       expect(result.totalXP).toBe(10 + XP_REWARDS.DETAILED_NOTES);
-      expect(result.bonuses).toContain(`Detailed +${XP_REWARDS.DETAILED_NOTES}`);
+      expect(result.bonuses).toContain(
+        `Detailed +${XP_REWARDS.DETAILED_NOTES}`,
+      );
     });
 
     it("should stack multiple bonuses correctly", () => {
@@ -94,7 +100,11 @@ describe("XP Core System", () => {
         isFast: true,
       });
 
-      const expectedXP = 10 + XP_REWARDS.WEEKEND_BONUS + XP_REWARDS.PERFECT_SCORE + XP_REWARDS.FAST_COMPLETION;
+      const expectedXP =
+        10 +
+        XP_REWARDS.WEEKEND_BONUS +
+        XP_REWARDS.PERFECT_SCORE +
+        XP_REWARDS.FAST_COMPLETION;
       expect(result.totalXP).toBe(expectedXP);
       expect(result.bonuses).toHaveLength(3);
     });
@@ -118,9 +128,13 @@ describe("XP Core System", () => {
       });
 
       // Should use cap of 10, not 20
-      const cappedStreakBonus = Math.floor(10 * XP_REWARDS.STREAK_CAP * XP_REWARDS.STREAK_MULTIPLIER);
+      const cappedStreakBonus = Math.floor(
+        10 * XP_REWARDS.STREAK_CAP * XP_REWARDS.STREAK_MULTIPLIER,
+      );
       expect(result.totalXP).toBe(10 + cappedStreakBonus);
-      expect(result.bonuses).toContain(`Streak x${XP_REWARDS.STREAK_CAP} +${cappedStreakBonus}`);
+      expect(result.bonuses).toContain(
+        `Streak x${XP_REWARDS.STREAK_CAP} +${cappedStreakBonus}`,
+      );
     });
 
     it("should apply daily XP cap", () => {
@@ -241,8 +255,12 @@ describe("XP Core System", () => {
   describe("XP Constants", () => {
     it("should have valid XP_REWARDS values", () => {
       expect(XP_REWARDS.HOMEWORK_COMPLETED).toBeGreaterThan(0);
-      expect(XP_REWARDS.HOMEWORK_EARLY).toBeGreaterThan(XP_REWARDS.HOMEWORK_COMPLETED);
-      expect(XP_REWARDS.HOMEWORK_VERY_EARLY).toBeGreaterThan(XP_REWARDS.HOMEWORK_EARLY);
+      expect(XP_REWARDS.HOMEWORK_EARLY).toBeGreaterThan(
+        XP_REWARDS.HOMEWORK_COMPLETED,
+      );
+      expect(XP_REWARDS.HOMEWORK_VERY_EARLY).toBeGreaterThan(
+        XP_REWARDS.HOMEWORK_EARLY,
+      );
     });
 
     it("should have valid XP_LIMITS values", () => {

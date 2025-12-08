@@ -1,8 +1,16 @@
 "use client";
 
-import { exportCalendarAction } from "@/app/actions/calendar";
-import { useState } from "react";
-import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks, startOfMonth, addMonths, subMonths } from "date-fns";
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  format,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+  subMonths,
+  subWeeks,
+} from "date-fns";
 import { sr } from "date-fns/locale";
 import {
   Calendar as CalendarIcon,
@@ -11,12 +19,14 @@ import {
   Download,
   Plus,
 } from "lucide-react";
-import { DayView } from "./day-view";
-import { WeekView } from "./week-view";
-import { MonthView } from "./month-view";
-import { AgendaView } from "./agenda-view";
+import { useState } from "react";
+import { exportCalendarAction } from "@/app/actions/calendar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { AgendaView } from "./agenda-view";
+import { DayView } from "./day-view";
+import { MonthView } from "./month-view";
+import { WeekView } from "./week-view";
 
 type CalendarViewType = "day" | "week" | "month" | "agenda";
 
@@ -79,8 +89,10 @@ export function CalendarView({
 
   const handleExport = async () => {
     try {
-      const startDate = view === "month" ? startOfMonth(currentDate) : currentDate;
-      const endDate = view === "month" ? addMonths(startDate, 1) : addDays(currentDate, 30);
+      const startDate =
+        view === "month" ? startOfMonth(currentDate) : currentDate;
+      const endDate =
+        view === "month" ? addMonths(startDate, 1) : addDays(currentDate, 30);
 
       const result = await exportCalendarAction({
         studentId,
@@ -88,7 +100,8 @@ export function CalendarView({
         endDate: endDate.toISOString(),
       });
 
-      if (!result.success || !result.icalData) throw new Error(result.error || "Export failed");
+      if (!result.success || !result.icalData)
+        throw new Error(result.error || "Export failed");
 
       const blob = new Blob([result.icalData], { type: "text/calendar" });
       const url = window.URL.createObjectURL(blob);
@@ -109,10 +122,11 @@ export function CalendarView({
     switch (view) {
       case "day":
         return format(currentDate, "d. MMMM yyyy", { locale: sr });
-      case "week":
+      case "week": {
         const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
         const weekEnd = addDays(weekStart, 6);
         return `${format(weekStart, "d. MMM", { locale: sr })} - ${format(weekEnd, "d. MMM yyyy", { locale: sr })}`;
+      }
       case "month":
         return format(currentDate, "MMMM yyyy", { locale: sr });
       case "agenda":
@@ -137,7 +151,7 @@ export function CalendarView({
                   "rounded-md px-3 py-1.5 text-sm font-medium transition-all",
                   view === v
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700",
                 )}
               >
                 {v === "day" && "Dan"}

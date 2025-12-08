@@ -1,10 +1,10 @@
 /**
  * Unified Offline Storage - Konsolidovana IndexedDB implementacija
- * 
+ *
  * Kombinuje funkcionalnosti iz:
  * - lib/db/offline-storage.ts (singleton pattern, type safety)
  * - lib/offline/indexeddb.ts (compression, logging, metadata)
- * 
+ *
  * Features:
  * - Singleton pattern za konzistentnost
  * - LZString kompresija za veće tekstove
@@ -20,11 +20,13 @@ import { log } from "@/lib/logger";
 // Try to import LZString, but make it optional
 let LZString: typeof import("lz-string") | null = null;
 if (typeof window !== "undefined") {
-  import("lz-string").then((module) => {
-    LZString = module.default || module;
-  }).catch(() => {
-    // LZString not available, compression disabled
-  });
+  import("lz-string")
+    .then((module) => {
+      LZString = module.default || module;
+    })
+    .catch(() => {
+      // LZString not available, compression disabled
+    });
 }
 
 // Compression helpers
@@ -53,7 +55,12 @@ function decompress(str: string | null): string | null {
 
 // Homework types
 export type HomeworkPriority = "NORMAL" | "IMPORTANT" | "URGENT";
-export type HomeworkStatus = "ASSIGNED" | "IN_PROGRESS" | "DONE" | "SUBMITTED" | "REVIEWED";
+export type HomeworkStatus =
+  | "ASSIGNED"
+  | "IN_PROGRESS"
+  | "DONE"
+  | "SUBMITTED"
+  | "REVIEWED";
 
 export interface StoredHomework {
   id: string;
@@ -179,7 +186,12 @@ export interface StoredGamificationData {
 
 // Sync types
 export type SyncActionType = "CREATE" | "UPDATE" | "DELETE" | "UPLOAD";
-export type SyncEntityType = "homework" | "attachment" | "note" | "grade" | "event";
+export type SyncEntityType =
+  | "homework"
+  | "attachment"
+  | "note"
+  | "grade"
+  | "event";
 
 export interface StoredSyncItem {
   id: string;
@@ -204,7 +216,7 @@ interface UnifiedDB extends DBSchema {
       "by-synced": number;
     };
   };
-  
+
   attachments: {
     key: string;
     value: StoredAttachment;
@@ -213,7 +225,7 @@ interface UnifiedDB extends DBSchema {
       "by-synced": number;
     };
   };
-  
+
   schedule: {
     key: string;
     value: StoredScheduleItem;
@@ -222,7 +234,7 @@ interface UnifiedDB extends DBSchema {
       "by-day": string;
     };
   };
-  
+
   grades: {
     key: string;
     value: StoredGrade;
@@ -232,7 +244,7 @@ interface UnifiedDB extends DBSchema {
       "by-date": string;
     };
   };
-  
+
   events: {
     key: string;
     value: StoredEvent;
@@ -241,12 +253,12 @@ interface UnifiedDB extends DBSchema {
       "by-date": string;
     };
   };
-  
+
   family: {
     key: string;
     value: StoredFamilyMember;
   };
-  
+
   gamification: {
     key: string;
     value: {
@@ -255,7 +267,7 @@ interface UnifiedDB extends DBSchema {
       updatedAt: string;
     };
   };
-  
+
   profile: {
     key: string;
     value: {
@@ -264,7 +276,7 @@ interface UnifiedDB extends DBSchema {
       updatedAt: string;
     };
   };
-  
+
   "pending-sync": {
     key: string;
     value: StoredSyncItem;
@@ -273,7 +285,7 @@ interface UnifiedDB extends DBSchema {
       "by-entity": string;
     };
   };
-  
+
   metadata: {
     key: string;
     value: {
@@ -282,7 +294,7 @@ interface UnifiedDB extends DBSchema {
       updatedAt: number;
     };
   };
-  
+
   "study-sessions": {
     key: string;
     value: {
@@ -330,7 +342,10 @@ class UnifiedOfflineStorage {
     try {
       const db = await openDB<UnifiedDB>(DB_NAME, DB_VERSION, {
         upgrade(db, oldVersion) {
-          log.info("[OfflineStorage] Upgrading database", { oldVersion, newVersion: DB_VERSION });
+          log.info("[OfflineStorage] Upgrading database", {
+            oldVersion,
+            newVersion: DB_VERSION,
+          });
 
           // Homework store
           if (!db.objectStoreNames.contains("homework")) {
@@ -343,7 +358,9 @@ class UnifiedOfflineStorage {
 
           // Attachments store
           if (!db.objectStoreNames.contains("attachments")) {
-            const store = db.createObjectStore("attachments", { keyPath: "id" });
+            const store = db.createObjectStore("attachments", {
+              keyPath: "id",
+            });
             store.createIndex("by-homework", "homeworkId");
             store.createIndex("by-synced", "synced");
           }
@@ -387,7 +404,9 @@ class UnifiedOfflineStorage {
 
           // Pending sync store
           if (!db.objectStoreNames.contains("pending-sync")) {
-            const store = db.createObjectStore("pending-sync", { keyPath: "id" });
+            const store = db.createObjectStore("pending-sync", {
+              keyPath: "id",
+            });
             store.createIndex("by-timestamp", "timestamp");
             store.createIndex("by-entity", "entity");
           }
@@ -399,16 +418,23 @@ class UnifiedOfflineStorage {
 
           // Study sessions store
           if (!db.objectStoreNames.contains("study-sessions")) {
-            const store = db.createObjectStore("study-sessions", { keyPath: "id" });
+            const store = db.createObjectStore("study-sessions", {
+              keyPath: "id",
+            });
             store.createIndex("by-date", "startTime");
           }
         },
       });
 
-      log.info("[OfflineStorage] Database initialized", { version: DB_VERSION });
+      log.info("[OfflineStorage] Database initialized", {
+        version: DB_VERSION,
+      });
       return db;
     } catch (error) {
-      log.error("[OfflineStorage] Failed to initialize database", error as Error);
+      log.error(
+        "[OfflineStorage] Failed to initialize database",
+        error as Error,
+      );
       throw error;
     }
   }
@@ -417,13 +443,15 @@ class UnifiedOfflineStorage {
   // HOMEWORK OPERATIONS
   // ========================================
 
-  async saveHomework(homework: StoredHomework | StoredHomework[]): Promise<void> {
+  async saveHomework(
+    homework: StoredHomework | StoredHomework[],
+  ): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
-    
+
     const items = Array.isArray(homework) ? homework : [homework];
     const tx = db.transaction("homework", "readwrite");
-    
+
     for (const hw of items) {
       await tx.store.put({
         ...hw,
@@ -432,7 +460,7 @@ class UnifiedOfflineStorage {
         cachedAt: Date.now(),
       });
     }
-    
+
     await tx.done;
     log.info("[OfflineStorage] Saved homework", { count: items.length });
   }
@@ -441,7 +469,7 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return undefined;
     const db = await this.dbPromise;
     const hw = await db.get("homework", id);
-    
+
     if (hw) {
       return {
         ...hw,
@@ -456,8 +484,8 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     const items = await db.getAll("homework");
-    
-    return items.map(hw => ({
+
+    return items.map((hw) => ({
       ...hw,
       description: decompress(hw.description ?? null),
       notes: decompress(hw.notes ?? null),
@@ -468,8 +496,8 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     const items = await db.getAllFromIndex("homework", "by-student", studentId);
-    
-    return items.map(hw => ({
+
+    return items.map((hw) => ({
       ...hw,
       description: decompress(hw.description ?? null),
       notes: decompress(hw.notes ?? null),
@@ -480,8 +508,8 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     const items = await db.getAllFromIndex("homework", "by-status", status);
-    
-    return items.map(hw => ({
+
+    return items.map((hw) => ({
       ...hw,
       description: decompress(hw.description ?? null),
       notes: decompress(hw.notes ?? null),
@@ -520,7 +548,9 @@ class UnifiedOfflineStorage {
     return attachment?.file || attachment?.blob || null;
   }
 
-  async getAttachmentsByHomework(homeworkId: string): Promise<StoredAttachment[]> {
+  async getAttachmentsByHomework(
+    homeworkId: string,
+  ): Promise<StoredAttachment[]> {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     return db.getAllFromIndex("attachments", "by-homework", homeworkId);
@@ -541,16 +571,16 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     const tx = db.transaction("schedule", "readwrite");
-    
+
     await tx.store.clear();
-    
+
     for (const item of schedule) {
       await tx.store.put({
         ...item,
         cachedAt: Date.now(),
       });
     }
-    
+
     await tx.done;
     log.info("[OfflineStorage] Saved schedule", { count: schedule.length });
   }
@@ -581,16 +611,16 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     const tx = db.transaction("grades", "readwrite");
-    
+
     await tx.store.clear();
-    
+
     for (const grade of grades) {
       await tx.store.put({
         ...grade,
         cachedAt: Date.now(),
       });
     }
-    
+
     await tx.done;
     log.info("[OfflineStorage] Saved grades", { count: grades.length });
   }
@@ -621,7 +651,7 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     const tx = db.transaction("events", "readwrite");
-    
+
     for (const event of events) {
       await tx.store.put({
         ...event,
@@ -629,7 +659,7 @@ class UnifiedOfflineStorage {
         cachedAt: Date.now(),
       });
     }
-    
+
     await tx.done;
     log.info("[OfflineStorage] Saved events", { count: events.length });
   }
@@ -638,8 +668,8 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     const items = await db.getAllFromIndex("events", "by-student", studentId);
-    
-    return items.map(event => ({
+
+    return items.map((event) => ({
       ...event,
       description: decompress(event.description),
     }));
@@ -653,18 +683,20 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     const tx = db.transaction("family", "readwrite");
-    
+
     await tx.store.clear();
-    
+
     for (const member of members) {
       await tx.store.put({
         ...member,
         cachedAt: Date.now(),
       });
     }
-    
+
     await tx.done;
-    log.info("[OfflineStorage] Saved family members", { count: members.length });
+    log.info("[OfflineStorage] Saved family members", {
+      count: members.length,
+    });
   }
 
   async getFamilyMembers(): Promise<StoredFamilyMember[]> {
@@ -724,7 +756,7 @@ class UnifiedOfflineStorage {
   async addToSyncQueue(item: Omit<StoredSyncItem, "id">): Promise<string> {
     if (!this.dbPromise) return "";
     const db = await this.dbPromise;
-    
+
     const id = `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     await db.put("pending-sync", {
       ...item,
@@ -732,8 +764,11 @@ class UnifiedOfflineStorage {
       timestamp: new Date().toISOString(),
       retries: item.retries || 0,
     });
-    
-    log.info("[OfflineStorage] Added to sync queue", { id, entity: item.entity });
+
+    log.info("[OfflineStorage] Added to sync queue", {
+      id,
+      entity: item.entity,
+    });
     return id;
   }
 
@@ -754,7 +789,7 @@ class UnifiedOfflineStorage {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     const item = await db.get("pending-sync", id);
-    
+
     if (item) {
       item.retries += 1;
       await db.put("pending-sync", item);
@@ -793,19 +828,26 @@ class UnifiedOfflineStorage {
   // STUDY SESSIONS
   // ========================================
 
-  async saveStudySession(session: UnifiedDB["study-sessions"]["value"]): Promise<void> {
+  async saveStudySession(
+    session: UnifiedDB["study-sessions"]["value"],
+  ): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
     await db.put("study-sessions", session);
     log.info("[OfflineStorage] Saved study session", { id: session.id });
   }
 
-  async getStudySessions(limit = 100): Promise<UnifiedDB["study-sessions"]["value"][]> {
+  async getStudySessions(
+    limit = 100,
+  ): Promise<UnifiedDB["study-sessions"]["value"][]> {
     if (!this.dbPromise) return [];
     const db = await this.dbPromise;
     const sessions = await db.getAll("study-sessions");
     return sessions
-      .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
+      )
       .slice(0, limit);
   }
 
@@ -819,29 +861,35 @@ class UnifiedOfflineStorage {
   }> {
     if (!this.dbPromise) return { homework: [], attachments: [] };
     const db = await this.dbPromise;
-    
+
     const homework = await db.getAllFromIndex("homework", "by-synced", 0);
     const attachments = await db.getAllFromIndex("attachments", "by-synced", 0);
-    
+
     return { homework, attachments };
   }
 
   async clearAllData(): Promise<void> {
     if (!this.dbPromise) return;
     const db = await this.dbPromise;
-    
+
     const stores = [
-      "homework", "attachments", "schedule", "grades", 
-      "events", "family", "gamification", "profile",
-      "pending-sync", "metadata", "study-sessions"
+      "homework",
+      "attachments",
+      "schedule",
+      "grades",
+      "events",
+      "family",
+      "gamification",
+      "profile",
+      "pending-sync",
+      "metadata",
+      "study-sessions",
     ] as const;
-    
+
     const tx = db.transaction([...stores], "readwrite");
-    
-    await Promise.all(
-      stores.map(store => tx.objectStore(store).clear())
-    );
-    
+
+    await Promise.all(stores.map((store) => tx.objectStore(store).clear()));
+
     await tx.done;
     log.info("[OfflineStorage] Cleared all data");
   }
@@ -855,13 +903,13 @@ class UnifiedOfflineStorage {
     if (!("storage" in navigator && "estimate" in navigator.storage)) {
       return { usage: 0, quota: 0, percentage: 0, available: false };
     }
-    
+
     const estimate = await navigator.storage.estimate();
     return {
       usage: estimate.usage || 0,
       quota: estimate.quota || 0,
-      percentage: estimate.quota 
-        ? ((estimate.usage || 0) / estimate.quota) * 100 
+      percentage: estimate.quota
+        ? ((estimate.usage || 0) / estimate.quota) * 100
         : 0,
       available: true,
     };
@@ -870,17 +918,23 @@ class UnifiedOfflineStorage {
   async getRecordCounts(): Promise<Record<string, number>> {
     if (!this.dbPromise) return {};
     const db = await this.dbPromise;
-    
+
     const counts: Record<string, number> = {};
     const stores = [
-      "homework", "attachments", "schedule", "grades",
-      "events", "family", "pending-sync", "study-sessions"
+      "homework",
+      "attachments",
+      "schedule",
+      "grades",
+      "events",
+      "family",
+      "pending-sync",
+      "study-sessions",
     ] as const;
-    
+
     for (const store of stores) {
       counts[store] = await db.count(store);
     }
-    
+
     return counts;
   }
 

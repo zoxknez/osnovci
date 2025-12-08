@@ -1,9 +1,9 @@
 /**
  * Next.js Instrumentation Hook
- * 
+ *
  * This file is automatically loaded by Next.js on both server and edge runtimes.
  * Used for Sentry initialization and other monitoring setup.
- * 
+ *
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 
@@ -43,7 +43,7 @@ export async function onRequestError(
     routerKind: "Pages Router" | "App Router";
     routePath: string;
     routeType: "render" | "route" | "action" | "middleware";
-  }
+  },
 ) {
   // Import Sentry dynamically to avoid bundling issues
   if (process.env["NEXT_RUNTIME"] === "nodejs") {

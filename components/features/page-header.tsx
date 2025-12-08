@@ -97,10 +97,12 @@ export function PageHeader({
                 <span
                   className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-lg text-white border ${styles.border} shadow-lg hover:bg-white/30 transition-all cursor-default`}
                 >
-                  <span className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${styles.dot}`} />
+                  <span
+                    className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${styles.dot}`}
+                  />
                   <span className="hidden sm:inline">{badge}</span>
                   <span className="inline sm:hidden text-xs">
-                    {typeof badge === 'string' ? badge.slice(0, 8) : badge}
+                    {typeof badge === "string" ? badge.slice(0, 8) : badge}
                   </span>
                 </span>
               </div>
@@ -118,25 +120,17 @@ export function PageHeader({
           </div>
 
           {/* Action button */}
-          {action && (
-            <div className="flex-shrink-0">
-              {action}
-            </div>
-          )}
+          {action && <div className="flex-shrink-0">{action}</div>}
         </div>
 
         {/* Static decorative elements - removed animation */}
-        <div
-          className="absolute top-8 right-8 w-24 h-24 rounded-full opacity-10 pointer-events-none"
-        >
+        <div className="absolute top-8 right-8 w-24 h-24 rounded-full opacity-10 pointer-events-none">
           <div
             className={`w-full h-full rounded-full bg-gradient-to-br ${styles.accent} blur-lg`}
           />
         </div>
 
-        <div
-          className="absolute bottom-8 left-8 w-32 h-32 rounded-full opacity-10 pointer-events-none"
-        >
+        <div className="absolute bottom-8 left-8 w-32 h-32 rounded-full opacity-10 pointer-events-none">
           <div
             className={`w-full h-full rounded-full bg-gradient-to-tr ${styles.accent} blur-xl`}
           />

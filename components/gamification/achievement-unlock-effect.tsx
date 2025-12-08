@@ -2,7 +2,7 @@
 
 /**
  * AchievementUnlockEffect - Spektakularni efekti za otključane achievement-e
- * 
+ *
  * Features:
  * - Konfeti animacije
  * - Zvučni efekti (optional)
@@ -11,41 +11,81 @@
  * - WCAG 2.1 AAA compliant (reduced motion support)
  */
 
-import * as React from "react";
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  Trophy,
-  Star,
-  Medal,
-  Crown,
-  Sparkles,
-  PartyPopper,
-  Target,
-  Flame,
-  Zap,
-  Heart,
-  BookOpen,
-  Clock,
-  CheckCircle2,
   Award,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  Crown,
+  Flame,
+  Heart,
+  Medal,
+  PartyPopper,
+  Sparkles,
+  Star,
+  Target,
+  Trophy,
   X,
+  Zap,
 } from "lucide-react";
+import type * as React from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Achievement categories with their icons and colors
 const ACHIEVEMENT_CATEGORIES = {
-  homework: { icon: BookOpen, color: "from-blue-500 to-cyan-500", bgColor: "bg-blue-100" },
-  streak: { icon: Flame, color: "from-orange-500 to-red-500", bgColor: "bg-orange-100" },
-  grade: { icon: Star, color: "from-yellow-400 to-amber-500", bgColor: "bg-yellow-100" },
-  speed: { icon: Zap, color: "from-purple-500 to-pink-500", bgColor: "bg-purple-100" },
-  focus: { icon: Target, color: "from-green-500 to-emerald-500", bgColor: "bg-green-100" },
-  social: { icon: Heart, color: "from-pink-500 to-rose-500", bgColor: "bg-pink-100" },
-  milestone: { icon: Trophy, color: "from-amber-500 to-yellow-500", bgColor: "bg-amber-100" },
-  special: { icon: Crown, color: "from-indigo-500 to-violet-500", bgColor: "bg-indigo-100" },
-  time: { icon: Clock, color: "from-teal-500 to-cyan-500", bgColor: "bg-teal-100" },
-  perfect: { icon: Medal, color: "from-emerald-500 to-green-500", bgColor: "bg-emerald-100" },
+  homework: {
+    icon: BookOpen,
+    color: "from-blue-500 to-cyan-500",
+    bgColor: "bg-blue-100",
+  },
+  streak: {
+    icon: Flame,
+    color: "from-orange-500 to-red-500",
+    bgColor: "bg-orange-100",
+  },
+  grade: {
+    icon: Star,
+    color: "from-yellow-400 to-amber-500",
+    bgColor: "bg-yellow-100",
+  },
+  speed: {
+    icon: Zap,
+    color: "from-purple-500 to-pink-500",
+    bgColor: "bg-purple-100",
+  },
+  focus: {
+    icon: Target,
+    color: "from-green-500 to-emerald-500",
+    bgColor: "bg-green-100",
+  },
+  social: {
+    icon: Heart,
+    color: "from-pink-500 to-rose-500",
+    bgColor: "bg-pink-100",
+  },
+  milestone: {
+    icon: Trophy,
+    color: "from-amber-500 to-yellow-500",
+    bgColor: "bg-amber-100",
+  },
+  special: {
+    icon: Crown,
+    color: "from-indigo-500 to-violet-500",
+    bgColor: "bg-indigo-100",
+  },
+  time: {
+    icon: Clock,
+    color: "from-teal-500 to-cyan-500",
+    bgColor: "bg-teal-100",
+  },
+  perfect: {
+    icon: Medal,
+    color: "from-emerald-500 to-green-500",
+    bgColor: "bg-emerald-100",
+  },
 };
 
 export type AchievementCategory = keyof typeof ACHIEVEMENT_CATEGORIES;
@@ -70,11 +110,11 @@ interface AchievementUnlockEffectProps {
 }
 
 // Confetti particle component
-function ConfettiParticle({ 
+function ConfettiParticle({
   color,
   shouldReduceMotion,
-}: { 
-  index?: number; 
+}: {
+  index?: number;
   color: string;
   shouldReduceMotion: boolean;
 }) {
@@ -83,7 +123,7 @@ function ConfettiParticle({
   const randomDuration = 1.5 + Math.random() * 1;
   const randomRotation = Math.random() * 720 - 360;
   const size = 8 + Math.random() * 8;
-  
+
   if (shouldReduceMotion) {
     return null;
   }
@@ -98,21 +138,21 @@ function ConfettiParticle({
         left: "50%",
         top: "50%",
       }}
-      initial={{ 
-        x: 0, 
-        y: 0, 
+      initial={{
+        x: 0,
+        y: 0,
         opacity: 1,
         rotate: 0,
         scale: 0,
       }}
-      animate={{ 
-        x: randomX, 
+      animate={{
+        x: randomX,
         y: 300 + Math.random() * 200,
         opacity: 0,
         rotate: randomRotation,
         scale: [0, 1, 1, 0.5, 0],
       }}
-      transition={{ 
+      transition={{
         duration: randomDuration,
         delay: randomDelay,
         ease: "easeOut",
@@ -124,7 +164,7 @@ function ConfettiParticle({
 // Star burst component
 function StarBurst({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
   const stars = Array.from({ length: 12 }, (_, i) => i);
-  
+
   if (shouldReduceMotion) {
     return null;
   }
@@ -134,24 +174,24 @@ function StarBurst({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
       {stars.map((i) => {
         const angle = (i / 12) * 360;
         const radians = (angle * Math.PI) / 180;
-        
+
         return (
           <motion.div
             key={i}
             className="absolute left-1/2 top-1/2 text-yellow-400"
-            initial={{ 
-              x: 0, 
-              y: 0, 
-              scale: 0, 
+            initial={{
+              x: 0,
+              y: 0,
+              scale: 0,
               opacity: 1,
             }}
-            animate={{ 
+            animate={{
               x: Math.cos(radians) * 120,
               y: Math.sin(radians) * 120,
               scale: [0, 1.5, 0],
               opacity: [1, 1, 0],
             }}
-            transition={{ 
+            transition={{
               duration: 0.8,
               delay: 0.2,
               ease: "easeOut",
@@ -166,12 +206,12 @@ function StarBurst({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
 }
 
 // Glow ring effect
-function GlowRing({ 
-  color, 
+function GlowRing({
+  color,
   delay,
   shouldReduceMotion,
-}: { 
-  color: string; 
+}: {
+  color: string;
   delay: number;
   shouldReduceMotion: boolean;
 }) {
@@ -181,13 +221,10 @@ function GlowRing({
 
   return (
     <motion.div
-      className={cn(
-        "absolute inset-0 rounded-full border-4",
-        color
-      )}
+      className={cn("absolute inset-0 rounded-full border-4", color)}
       initial={{ scale: 0.5, opacity: 0 }}
       animate={{ scale: 2, opacity: [0, 0.5, 0] }}
-      transition={{ 
+      transition={{
         duration: 1,
         delay,
         ease: "easeOut",
@@ -213,12 +250,28 @@ export function AchievementUnlockEffect({
 
   // Get rarity colors
   const rarityConfig = {
-    common: { border: "border-gray-300", glow: "shadow-gray-300/50", label: "Obično" },
-    rare: { border: "border-blue-400", glow: "shadow-blue-400/50", label: "Rijetko" },
-    epic: { border: "border-purple-500", glow: "shadow-purple-500/50", label: "Epsko" },
-    legendary: { border: "border-amber-400", glow: "shadow-amber-400/50", label: "Legendarno" },
+    common: {
+      border: "border-gray-300",
+      glow: "shadow-gray-300/50",
+      label: "Obično",
+    },
+    rare: {
+      border: "border-blue-400",
+      glow: "shadow-blue-400/50",
+      label: "Rijetko",
+    },
+    epic: {
+      border: "border-purple-500",
+      glow: "shadow-purple-500/50",
+      label: "Epsko",
+    },
+    legendary: {
+      border: "border-amber-400",
+      glow: "shadow-amber-400/50",
+      label: "Legendarno",
+    },
   };
-  
+
   const rarity = achievement.rarity || "common";
   const rarityStyles = rarityConfig[rarity];
 
@@ -270,7 +323,7 @@ export function AchievementUnlockEffect({
   const handleClaim = () => {
     setClaimed(true);
     triggerHaptic();
-    
+
     setTimeout(() => {
       onClaim?.(achievement);
       onClose();
@@ -302,7 +355,7 @@ export function AchievementUnlockEffect({
                     color={color}
                     shouldReduceMotion={shouldReduceMotion ?? false}
                   />
-                ))
+                )),
               )}
             </div>
           )}
@@ -310,14 +363,14 @@ export function AchievementUnlockEffect({
           {/* Main achievement card */}
           <motion.div
             initial={{ scale: 0, rotate: -10 }}
-            animate={{ 
-              scale: 1, 
+            animate={{
+              scale: 1,
               rotate: 0,
               transition: {
                 type: "spring",
                 stiffness: 200,
                 damping: 15,
-              }
+              },
             }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
@@ -325,24 +378,24 @@ export function AchievementUnlockEffect({
               "relative bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-sm mx-4",
               "shadow-2xl",
               rarityStyles.border,
-              "border-2"
+              "border-2",
             )}
           >
             {/* Glow rings */}
-            <GlowRing 
-              color="border-yellow-400" 
-              delay={0} 
-              shouldReduceMotion={shouldReduceMotion ?? false} 
+            <GlowRing
+              color="border-yellow-400"
+              delay={0}
+              shouldReduceMotion={shouldReduceMotion ?? false}
             />
-            <GlowRing 
-              color="border-amber-400" 
-              delay={0.2} 
-              shouldReduceMotion={shouldReduceMotion ?? false} 
+            <GlowRing
+              color="border-amber-400"
+              delay={0.2}
+              shouldReduceMotion={shouldReduceMotion ?? false}
             />
-            <GlowRing 
-              color="border-orange-400" 
-              delay={0.4} 
-              shouldReduceMotion={shouldReduceMotion ?? false} 
+            <GlowRing
+              color="border-orange-400"
+              delay={0.4}
+              shouldReduceMotion={shouldReduceMotion ?? false}
             />
 
             {/* Star burst */}
@@ -384,7 +437,8 @@ export function AchievementUnlockEffect({
                     "inline-block px-3 py-1 rounded-full text-xs font-bold mb-3",
                     rarity === "rare" && "bg-blue-100 text-blue-700",
                     rarity === "epic" && "bg-purple-100 text-purple-700",
-                    rarity === "legendary" && "bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900"
+                    rarity === "legendary" &&
+                      "bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900",
                   )}
                 >
                   ⭐ {rarityStyles.label}
@@ -395,14 +449,14 @@ export function AchievementUnlockEffect({
             {/* Achievement icon */}
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
-              animate={{ 
-                scale: 1, 
+              animate={{
+                scale: 1,
                 rotate: 0,
                 transition: {
                   delay: 0.3,
                   type: "spring",
                   stiffness: 200,
-                }
+                },
               }}
               className="relative mx-auto mb-6"
             >
@@ -413,7 +467,7 @@ export function AchievementUnlockEffect({
                   categoryConfig.color,
                   "shadow-lg",
                   rarityStyles.glow,
-                  "relative overflow-hidden"
+                  "relative overflow-hidden",
                 )}
               >
                 {/* Shimmer effect */}
@@ -477,13 +531,13 @@ export function AchievementUnlockEffect({
               transition={{ delay: 0.4 }}
               className="text-center mb-6 relative z-10"
             >
-              <h2 
+              <h2
                 id="achievement-title"
                 className="text-xl font-bold mb-2 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent"
               >
                 {achievement.title}
               </h2>
-              <p 
+              <p
                 id="achievement-description"
                 className="text-sm text-muted-foreground"
               >
@@ -494,27 +548,31 @@ export function AchievementUnlockEffect({
             {/* XP Reward */}
             <motion.div
               initial={{ scale: 0 }}
-              animate={{ 
+              animate={{
                 scale: 1,
                 transition: {
                   delay: 0.5,
                   type: "spring",
                   stiffness: 300,
-                }
+                },
               }}
               className={cn(
                 "mx-auto mb-6 px-6 py-3 rounded-2xl",
                 "bg-gradient-to-r from-yellow-100 to-amber-100",
                 "dark:from-yellow-900/30 dark:to-amber-900/30",
-                "border border-yellow-200 dark:border-yellow-800"
+                "border border-yellow-200 dark:border-yellow-800",
               )}
             >
               <div className="flex items-center justify-center gap-2">
                 <motion.div
-                  animate={!shouldReduceMotion ? {
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1],
-                  } : {}}
+                  animate={
+                    !shouldReduceMotion
+                      ? {
+                          rotate: [0, 10, -10, 0],
+                          scale: [1, 1.1, 1],
+                        }
+                      : {}
+                  }
                   transition={{
                     repeat: Infinity,
                     duration: 1.5,
@@ -544,7 +602,7 @@ export function AchievementUnlockEffect({
                   categoryConfig.color,
                   "hover:opacity-90 transition-opacity",
                   "shadow-lg",
-                  claimed && "opacity-50"
+                  claimed && "opacity-50",
                 )}
               >
                 {claimed ? (
@@ -573,24 +631,28 @@ export function AchievementUnlockEffect({
 
 // Hook for managing achievement unlocks
 export function useAchievementUnlock() {
-  const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
+  const [currentAchievement, setCurrentAchievement] =
+    useState<Achievement | null>(null);
   const [queue, setQueue] = useState<Achievement[]>([]);
 
-  const showAchievement = useCallback((achievement: Achievement) => {
-    if (currentAchievement) {
-      // Queue if one is already showing
-      setQueue(prev => [...prev, achievement]);
-    } else {
-      setCurrentAchievement(achievement);
-    }
-  }, [currentAchievement]);
+  const showAchievement = useCallback(
+    (achievement: Achievement) => {
+      if (currentAchievement) {
+        // Queue if one is already showing
+        setQueue((prev) => [...prev, achievement]);
+      } else {
+        setCurrentAchievement(achievement);
+      }
+    },
+    [currentAchievement],
+  );
 
   const hideAchievement = useCallback(() => {
     setCurrentAchievement(null);
-    
+
     // Show next in queue after a short delay
     setTimeout(() => {
-      setQueue(prev => {
+      setQueue((prev) => {
         if (prev.length > 0) {
           const [next, ...rest] = prev;
           if (next) {

@@ -5,15 +5,15 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface Notification {
@@ -96,7 +96,7 @@ export function NotificationBell() {
                   key={notification.id}
                   className={cn(
                     "p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors",
-                    !notification.read && "bg-blue-50 border-blue-200"
+                    !notification.read && "bg-blue-50 border-blue-200",
                   )}
                   onClick={async () => {
                     // Mark as read
@@ -109,17 +109,22 @@ export function NotificationBell() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{notification.title}</p>
+                      <p className="font-medium text-sm">
+                        {notification.title}
+                      </p>
                       <p className="text-xs text-gray-600 mt-1">
                         {notification.message}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
-                        {new Date(notification.timestamp).toLocaleDateString("sr-RS", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {new Date(notification.timestamp).toLocaleDateString(
+                          "sr-RS",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </p>
                     </div>
                     {!notification.read && (
@@ -135,4 +140,3 @@ export function NotificationBell() {
     </DropdownMenu>
   );
 }
-

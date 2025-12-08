@@ -1,6 +1,6 @@
 /**
  * Daily Challenges - Dnevni Izazovi za Učenike
- * 
+ *
  * Nova funkcionalnost koja motiviše učenike svakodnevnim zadacima:
  * - 3 dnevna izazova (lak, srednji, težak)
  * - Bonus XP za sve 3 izazova
@@ -10,17 +10,17 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { 
-  Target, 
-  Star, 
-  Flame, 
-  Trophy, 
-  CheckCircle2, 
-  Sparkles,
+import {
+  CheckCircle2,
   Clock,
-  Gift
+  Flame,
+  Gift,
+  Sparkles,
+  Star,
+  Target,
+  Trophy,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -58,12 +58,18 @@ interface DailyChallengesProps {
 // Icon based on challenge type
 function getChallengeIcon(type: ChallengeType) {
   switch (type) {
-    case "homework": return <CheckCircle2 className="w-5 h-5" />;
-    case "streak": return <Flame className="w-5 h-5" />;
-    case "time": return <Clock className="w-5 h-5" />;
-    case "quality": return <Star className="w-5 h-5" />;
-    case "social": return <Gift className="w-5 h-5" />;
-    default: return <Target className="w-5 h-5" />;
+    case "homework":
+      return <CheckCircle2 className="w-5 h-5" />;
+    case "streak":
+      return <Flame className="w-5 h-5" />;
+    case "time":
+      return <Clock className="w-5 h-5" />;
+    case "quality":
+      return <Star className="w-5 h-5" />;
+    case "social":
+      return <Gift className="w-5 h-5" />;
+    default:
+      return <Target className="w-5 h-5" />;
   }
 }
 
@@ -72,7 +78,7 @@ function getChallengeProgress(
   type: ChallengeType,
   target: number,
   completedHomework: number,
-  streak: number
+  streak: number,
 ): number {
   switch (type) {
     case "homework":
@@ -86,85 +92,85 @@ function getChallengeProgress(
 
 // Generisanje dnevnih izazova na osnovu datuma (deterministički)
 function generateDailyChallenges(
-  date: Date, 
+  date: Date,
   streak: number,
   todayHomework: number,
-  completedHomework: number
+  completedHomework: number,
 ): DailyChallenge[] {
   const dayOfYear = Math.floor(
-    (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000
+    (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000,
   );
   const seed = dayOfYear + date.getFullYear();
 
   const easyTemplates: ChallengeTemplate[] = [
-    { 
-      title: "Ranoranilac", 
-      description: "Završi bar 1 domaći pre 12h", 
-      type: "time", 
+    {
+      title: "Ranoranilac",
+      description: "Završi bar 1 domaći pre 12h",
+      type: "time",
       target: 1,
-      xpBonus: 25 
+      xpBonus: 25,
     },
-    { 
-      title: "Prvi Korak", 
-      description: "Započni rad na bilo kom domaćem", 
-      type: "homework", 
+    {
+      title: "Prvi Korak",
+      description: "Započni rad na bilo kom domaćem",
+      type: "homework",
       target: 1,
-      xpBonus: 20 
+      xpBonus: 20,
     },
-    { 
-      title: "Dnevna Vežba", 
-      description: "Provedi bar 15 minuta učeći", 
-      type: "time", 
+    {
+      title: "Dnevna Vežba",
+      description: "Provedi bar 15 minuta učeći",
+      type: "time",
       target: 15,
-      xpBonus: 30 
+      xpBonus: 30,
     },
   ];
 
   const mediumTemplates: ChallengeTemplate[] = [
-    { 
-      title: "Produktivan Dan", 
-      description: "Završi 2 domaća zadatka", 
-      type: "homework", 
+    {
+      title: "Produktivan Dan",
+      description: "Završi 2 domaća zadatka",
+      type: "homework",
       target: 2,
-      xpBonus: 50 
+      xpBonus: 50,
     },
-    { 
-      title: "Perfektni Detalji", 
-      description: "Dodaj napomene/slike na domaći", 
-      type: "quality", 
+    {
+      title: "Perfektni Detalji",
+      description: "Dodaj napomene/slike na domaći",
+      type: "quality",
       target: 1,
-      xpBonus: 40 
+      xpBonus: 40,
     },
-    { 
-      title: "Fokusirana Sesija", 
-      description: "Radi 30 min bez pauze", 
-      type: "time", 
+    {
+      title: "Fokusirana Sesija",
+      description: "Radi 30 min bez pauze",
+      type: "time",
       target: 30,
-      xpBonus: 45 
+      xpBonus: 45,
     },
   ];
 
   const hardTemplates: ChallengeTemplate[] = [
-    { 
-      title: "Heroj Dana", 
-      description: "Završi sve današnje domaće", 
-      type: "homework", 
+    {
+      title: "Heroj Dana",
+      description: "Završi sve današnje domaće",
+      type: "homework",
       target: todayHomework || 3,
-      xpBonus: 100 
+      xpBonus: 100,
     },
-    { 
-      title: "Rano Predaja", 
-      description: "Predaj domaći dan pre roka", 
-      type: "time", 
+    {
+      title: "Rano Predaja",
+      description: "Predaj domaći dan pre roka",
+      type: "time",
       target: 1,
-      xpBonus: 75 
+      xpBonus: 75,
     },
-    { 
-      title: "Streak Master", 
-      description: "Održi streak još jedan dan", 
-      type: "streak", 
+    {
+      title: "Streak Master",
+      description: "Održi streak još jedan dan",
+      type: "streak",
       target: streak + 1,
-      xpBonus: 80 
+      xpBonus: 80,
     },
   ];
 
@@ -181,7 +187,12 @@ function generateDailyChallenges(
   const challenges: DailyChallenge[] = [];
 
   if (easy) {
-    const current = getChallengeProgress(easy.type, easy.target, completedHomework, streak);
+    const current = getChallengeProgress(
+      easy.type,
+      easy.target,
+      completedHomework,
+      streak,
+    );
     challenges.push({
       id: `easy-${seed}`,
       title: easy.title,
@@ -197,7 +208,12 @@ function generateDailyChallenges(
   }
 
   if (medium) {
-    const current = getChallengeProgress(medium.type, medium.target, completedHomework, streak);
+    const current = getChallengeProgress(
+      medium.type,
+      medium.target,
+      completedHomework,
+      streak,
+    );
     challenges.push({
       id: `medium-${seed}`,
       title: medium.title,
@@ -213,7 +229,12 @@ function generateDailyChallenges(
   }
 
   if (hard) {
-    const current = getChallengeProgress(hard.type, hard.target, completedHomework, streak);
+    const current = getChallengeProgress(
+      hard.type,
+      hard.target,
+      completedHomework,
+      streak,
+    );
     challenges.push({
       id: `hard-${seed}`,
       title: hard.title,
@@ -236,11 +257,11 @@ function getTimeUntilMidnight(): string {
   const now = new Date();
   const midnight = new Date(now);
   midnight.setHours(24, 0, 0, 0);
-  
+
   const diff = midnight.getTime() - now.getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   return `${hours}h ${minutes}m`;
 }
 
@@ -256,7 +277,12 @@ export function DailyChallenges({
   useEffect(() => {
     const today = new Date();
     setChallenges(
-      generateDailyChallenges(today, currentStreak, todayHomeworkCount, completedHomeworkCount)
+      generateDailyChallenges(
+        today,
+        currentStreak,
+        todayHomeworkCount,
+        completedHomeworkCount,
+      ),
     );
   }, [currentStreak, todayHomeworkCount, completedHomeworkCount]);
 
@@ -267,27 +293,38 @@ export function DailyChallenges({
     return () => clearInterval(timer);
   }, []);
 
-  const completedCount = challenges.filter(c => c.completed).length;
+  const completedCount = challenges.filter((c) => c.completed).length;
   const allCompleted = completedCount === 3;
-  const totalXP = challenges.reduce((sum, c) => sum + (c.completed ? c.xpReward : 0), 0);
+  const totalXP = challenges.reduce(
+    (sum, c) => sum + (c.completed ? c.xpReward : 0),
+    0,
+  );
   const bonusXP = allCompleted ? 50 : 0;
 
   const getDifficultyColor = (difficulty: Difficulty, completed: boolean) => {
     if (completed) return "text-green-500 bg-green-50";
     switch (difficulty) {
-      case "easy": return "text-emerald-600 bg-emerald-50";
-      case "medium": return "text-amber-600 bg-amber-50";
-      case "hard": return "text-red-600 bg-red-50";
-      default: return "text-gray-600 bg-gray-50";
+      case "easy":
+        return "text-emerald-600 bg-emerald-50";
+      case "medium":
+        return "text-amber-600 bg-amber-50";
+      case "hard":
+        return "text-red-600 bg-red-50";
+      default:
+        return "text-gray-600 bg-gray-50";
     }
   };
 
   const getDifficultyLabel = (difficulty: Difficulty) => {
     switch (difficulty) {
-      case "easy": return "Lako";
-      case "medium": return "Srednje";
-      case "hard": return "Teško";
-      default: return "";
+      case "easy":
+        return "Lako";
+      case "medium":
+        return "Srednje";
+      case "hard":
+        return "Teško";
+      default:
+        return "";
     }
   };
 
@@ -300,7 +337,9 @@ export function DailyChallenges({
               <Target className="w-6 h-6" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold">Dnevni Izazovi</CardTitle>
+              <CardTitle className="text-lg font-bold">
+                Dnevni Izazovi
+              </CardTitle>
               <p className="text-sm text-white/80">Osvoji bonus XP!</p>
             </div>
           </div>
@@ -315,9 +354,9 @@ export function DailyChallenges({
                   key={i}
                   className={cn(
                     "w-3 h-3 rounded-full transition-all",
-                    i < completedCount 
-                      ? "bg-yellow-400 shadow-lg shadow-yellow-400/50" 
-                      : "bg-white/30"
+                    i < completedCount
+                      ? "bg-yellow-400 shadow-lg shadow-yellow-400/50"
+                      : "bg-white/30",
                   )}
                 />
               ))}
@@ -332,17 +371,19 @@ export function DailyChallenges({
             key={challenge.id}
             className={cn(
               "relative p-4 rounded-xl border-2 transition-all duration-300",
-              challenge.completed 
-                ? "border-green-200 bg-green-50/50" 
-                : "border-gray-100 hover:border-gray-200 hover:shadow-sm"
+              challenge.completed
+                ? "border-green-200 bg-green-50/50"
+                : "border-gray-100 hover:border-gray-200 hover:shadow-sm",
             )}
           >
             <div className="flex items-start gap-3">
               {/* Status Icon */}
-              <div className={cn(
-                "p-2 rounded-lg shrink-0",
-                getDifficultyColor(challenge.difficulty, challenge.completed)
-              )}>
+              <div
+                className={cn(
+                  "p-2 rounded-lg shrink-0",
+                  getDifficultyColor(challenge.difficulty, challenge.completed),
+                )}
+              >
                 {challenge.completed ? (
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
                 ) : (
@@ -353,20 +394,29 @@ export function DailyChallenges({
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={cn(
-                    "text-xs font-medium px-2 py-0.5 rounded-full",
-                    getDifficultyColor(challenge.difficulty, challenge.completed)
-                  )}>
+                  <span
+                    className={cn(
+                      "text-xs font-medium px-2 py-0.5 rounded-full",
+                      getDifficultyColor(
+                        challenge.difficulty,
+                        challenge.completed,
+                      ),
+                    )}
+                  >
                     {getDifficultyLabel(challenge.difficulty)}
                   </span>
                   <span className="text-xs text-gray-500">
                     +{challenge.xpReward} XP
                   </span>
                 </div>
-                <h4 className={cn(
-                  "font-semibold text-sm",
-                  challenge.completed ? "text-green-700 line-through" : "text-gray-800"
-                )}>
+                <h4
+                  className={cn(
+                    "font-semibold text-sm",
+                    challenge.completed
+                      ? "text-green-700 line-through"
+                      : "text-gray-800",
+                  )}
+                >
                   {challenge.title}
                 </h4>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -378,12 +428,16 @@ export function DailyChallenges({
                   <div className="mt-2">
                     <div className="flex justify-between text-xs text-gray-400 mb-1">
                       <span>Napredak</span>
-                      <span>{challenge.current}/{challenge.target}</span>
+                      <span>
+                        {challenge.current}/{challenge.target}
+                      </span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all"
-                        style={{ width: `${(challenge.current / challenge.target) * 100}%` }}
+                        style={{
+                          width: `${(challenge.current / challenge.target) * 100}%`,
+                        }}
                       />
                     </div>
                   </div>
@@ -401,36 +455,48 @@ export function DailyChallenges({
         ))}
 
         {/* Bonus Section */}
-        <div className={cn(
-          "mt-4 p-4 rounded-xl border-2 border-dashed transition-all",
-          allCompleted 
-            ? "border-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50" 
-            : "border-gray-200 bg-gray-50"
-        )}>
+        <div
+          className={cn(
+            "mt-4 p-4 rounded-xl border-2 border-dashed transition-all",
+            allCompleted
+              ? "border-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50"
+              : "border-gray-200 bg-gray-50",
+          )}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                "p-2 rounded-lg",
-                allCompleted ? "bg-yellow-400 text-white" : "bg-gray-200 text-gray-400"
-              )}>
+              <div
+                className={cn(
+                  "p-2 rounded-lg",
+                  allCompleted
+                    ? "bg-yellow-400 text-white"
+                    : "bg-gray-200 text-gray-400",
+                )}
+              >
                 <Trophy className="w-5 h-5" />
               </div>
               <div>
-                <h4 className={cn(
-                  "font-semibold text-sm",
-                  allCompleted ? "text-yellow-700" : "text-gray-500"
-                )}>
+                <h4
+                  className={cn(
+                    "font-semibold text-sm",
+                    allCompleted ? "text-yellow-700" : "text-gray-500",
+                  )}
+                >
                   Bonus za sve izazove
                 </h4>
                 <p className="text-xs text-gray-500">
-                  {allCompleted ? "Čestitamo! 🎉" : `Završi sva 3 izazova za bonus`}
+                  {allCompleted
+                    ? "Čestitamo! 🎉"
+                    : `Završi sva 3 izazova za bonus`}
                 </p>
               </div>
             </div>
-            <div className={cn(
-              "text-lg font-bold",
-              allCompleted ? "text-yellow-600" : "text-gray-400"
-            )}>
+            <div
+              className={cn(
+                "text-lg font-bold",
+                allCompleted ? "text-yellow-600" : "text-gray-400",
+              )}
+            >
               +{bonusXP} XP
             </div>
           </div>

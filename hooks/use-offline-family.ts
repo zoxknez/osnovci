@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { offlineStorage } from "@/lib/db/offline-storage";
-import type { StoredFamilyMember } from "@/lib/db/offline-storage";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getFamilyMembersAction } from "@/app/actions/family";
+import type { StoredFamilyMember } from "@/lib/db/offline-storage";
+import { offlineStorage } from "@/lib/db/offline-storage";
 
 // API response type for family member
 interface ApiFamilyMember {
@@ -33,16 +33,16 @@ export function useOfflineFamily() {
 
       if (online) {
         try {
-          const result = await getFamilyMembersAction({ 
-            page: 1, 
+          const result = await getFamilyMembersAction({
+            page: 1,
             limit: 100,
             sortBy: "createdAt",
-            order: "desc"
+            order: "desc",
           });
-          
+
           if (result.success && result.data) {
             const members = result.data as ApiFamilyMember[];
-            
+
             // Map to stored format, preserving API values where available
             const storedMembers: StoredFamilyMember[] = members.map((m) => ({
               id: m.id,
@@ -50,14 +50,17 @@ export function useOfflineFamily() {
               role: m.role || "GUARDIAN",
               relation: m.relation || "Roditelj",
               permissions: m.permissions || [],
-              linkedAt: typeof m.linkedAt === 'string' ? m.linkedAt : new Date(m.linkedAt).toISOString()
+              linkedAt:
+                typeof m.linkedAt === "string"
+                  ? m.linkedAt
+                  : new Date(m.linkedAt).toISOString(),
             }));
 
             await offlineStorage.saveFamilyMembers(storedMembers);
             setFamilyMembers(storedMembers);
             toastShownRef.current = false; // Reset on success
           } else {
-             throw new Error(result.error);
+            throw new Error(result.error);
           }
         } catch (error) {
           console.error("Failed to fetch family online", error);
@@ -82,7 +85,7 @@ export function useOfflineFamily() {
 
   useEffect(() => {
     loadFamily();
-    
+
     const handleOnline = () => {
       setIsOnline(true);
       loadFamily();
@@ -102,6 +105,6 @@ export function useOfflineFamily() {
     familyMembers,
     loading,
     isOnline,
-    refresh: loadFamily
+    refresh: loadFamily,
   };
 }

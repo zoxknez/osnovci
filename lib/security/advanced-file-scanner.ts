@@ -52,7 +52,7 @@ export interface AdvancedScanResult {
 export async function advancedFileScan(
   fileBuffer: Buffer | Uint8Array,
   fileName: string,
-  mimeType: string
+  mimeType: string,
 ): Promise<AdvancedScanResult> {
   const startTime = Date.now();
   const buffer = Buffer.isBuffer(fileBuffer)
@@ -84,7 +84,11 @@ export async function advancedFileScan(
       if (exifResult.success && exifResult.cleanedBuffer) {
         cleanedBuffer = exifResult.cleanedBuffer;
         exifRemoved = true;
-        log.info("EXIF metadata removed", { fileName, originalSize: buffer.length, cleanedSize: cleanedBuffer.length });
+        log.info("EXIF metadata removed", {
+          fileName,
+          originalSize: buffer.length,
+          cleanedSize: cleanedBuffer.length,
+        });
       }
     }
 
@@ -98,7 +102,8 @@ export async function advancedFileScan(
           safe: false,
           scanType: "heuristic",
           details: { pdfJavascript: true },
-          error: "PDF fajl sadrži JavaScript koji predstavlja bezbedonosni rizik",
+          error:
+            "PDF fajl sadrži JavaScript koji predstavlja bezbedonosni rizik",
           timestamp: new Date(),
         };
       }
@@ -108,7 +113,7 @@ export async function advancedFileScan(
     if (VIRUSTOTAL_API_KEY) {
       const vtResult = await scanWithVirusTotal(cleanedBuffer, fileName);
       const elapsed = Date.now() - startTime;
-      
+
       log.info("VirusTotal scan completed", {
         fileName,
         safe: vtResult.safe,
@@ -128,7 +133,9 @@ export async function advancedFileScan(
     }
 
     // 5. Fallback to offline heuristic scan
-    log.warn("VirusTotal API key not configured, using offline scan", { fileName });
+    log.warn("VirusTotal API key not configured, using offline scan", {
+      fileName,
+    });
     return {
       safe: true,
       scanType: "offline",
@@ -155,7 +162,7 @@ export async function advancedFileScan(
  */
 async function scanWithVirusTotal(
   buffer: Buffer,
-  fileName: string
+  fileName: string,
 ): Promise<AdvancedScanResult> {
   try {
     // Calculate file hash (VirusTotal uses SHA-256)
@@ -221,7 +228,7 @@ async function scanWithVirusTotal(
               headers: {
                 "x-apikey": VIRUSTOTAL_API_KEY,
               },
-            }
+            },
           );
 
           if (reportResponse.ok) {
@@ -251,7 +258,7 @@ async function scanWithVirusTotal(
  */
 function parseVirusTotalResponse(
   data: any,
-  scanType: "virustotal" | "heuristic" | "offline"
+  scanType: "virustotal" | "heuristic" | "offline",
 ): AdvancedScanResult {
   const stats = data.data?.attributes?.last_analysis_stats || {};
   const results = data.data?.attributes?.last_analysis_results || {};
@@ -302,7 +309,7 @@ function parseVirusTotalResponse(
 function heuristicMalwareScan(
   buffer: Buffer,
   fileName: string,
-  _mimeType: string
+  _mimeType: string,
 ): { safe: boolean; reason?: string } {
   // 1. Check for embedded executables
   const exeSignatures = [
@@ -370,16 +377,16 @@ function heuristicMalwareScan(
  */
 async function removeExifMetadata(
   buffer: Buffer,
-  mimeType: string
+  mimeType: string,
 ): Promise<{ success: boolean; cleanedBuffer?: Buffer; error?: string }> {
   try {
     // For now, use basic EXIF stripping (JPEG only)
     // In production, use library like 'sharp' or 'piexifjs'
-    
+
     if (mimeType === "image/jpeg" || mimeType === "image/jpg") {
       // JPEG EXIF data is between 0xFFE1 (APP1 marker) and next marker
       // For basic stripping, we skip all APP1 segments
-      
+
       let cleanedBuffer = Buffer.from(buffer);
       let offset = 2; // Skip SOI (0xFFD8)
 
@@ -414,7 +421,10 @@ async function removeExifMetadata(
 
     // For PNG/WebP, EXIF removal requires specialized libraries
     // Return original buffer for now (add sharp/piexifjs in production)
-    return { success: false, error: "EXIF removal not supported for this format" };
+    return {
+      success: false,
+      error: "EXIF removal not supported for this format",
+    };
   } catch (error) {
     log.error("EXIF removal failed", error);
     return { success: false, error: "EXIF removal failed" };
@@ -476,7 +486,7 @@ export async function testFileScan(filePath: string): Promise<void> {
   const fs = await import("node:fs/promises");
   const buffer = await fs.readFile(filePath);
   const fileName = filePath.split("/").pop() || "unknown";
-  
+
   // Detect MIME type from extension
   const ext = fileName.split(".").pop()?.toLowerCase();
   const mimeTypes: Record<string, string> = {
@@ -489,6 +499,6 @@ export async function testFileScan(filePath: string): Promise<void> {
   const mimeType = mimeTypes[ext || ""] || "application/octet-stream";
 
   const result = await advancedFileScan(buffer, fileName, mimeType);
-  
+
   console.log("File Scan Result:", JSON.stringify(result, null, 2));
 }

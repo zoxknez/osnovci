@@ -3,9 +3,9 @@
 
 import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
+import { syncHomeworkAction } from "@/app/actions/homework";
 import { offlineStorage } from "@/lib/db/offline-storage";
 import { useSyncStore } from "@/store";
-import { syncHomeworkAction } from "@/app/actions/homework";
 
 export function SyncManager() {
   const {
@@ -35,12 +35,12 @@ export function SyncManager() {
 
   const processSyncItem = useCallback(async (item: any) => {
     if (item.entity === "homework") {
-        const result = await syncHomeworkAction({
-            type: item.type,
-            data: item.data
-        });
-        if (result.error) throw new Error(result.error);
-        return result.data;
+      const result = await syncHomeworkAction({
+        type: item.type,
+        data: item.data,
+      });
+      if (result.error) throw new Error(result.error);
+      return result.data;
     }
 
     // Fallback for legacy API routes if needed
@@ -95,7 +95,9 @@ export function SyncManager() {
             // Max retries reached, BUT DO NOT DELETE DATA!
             // Just notify user and leave it in queue for manual retry or later sync
             // await offlineStorage.removeSyncItem(item.id); <--- PREVENT DATA LOSS
-            toast.error(`Sinhronizacija nije uspela: ${item.entity}. Pokušaćemo ponovo kasnije.`);
+            toast.error(
+              `Sinhronizacija nije uspela: ${item.entity}. Pokušaćemo ponovo kasnije.`,
+            );
           }
         }
       }

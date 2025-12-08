@@ -5,10 +5,42 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import {
+  Award,
+  BookOpen,
+  Calendar,
+  Clock,
+  Download,
+  Minus,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { getParentalAnalyticsAction } from "@/app/actions/analytics";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -16,33 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  BookOpen,
-  Clock,
-  Award,
-  Download,
-  Calendar,
-} from "lucide-react";
-import { format } from "date-fns";
-import { getParentalAnalyticsAction } from "@/app/actions/analytics";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AnalyticsData {
   period: {
@@ -244,12 +250,15 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
         <div>
           <h2 className="text-2xl font-bold">Analitika Učenika</h2>
           <p className="text-muted-foreground">
-            Period: {format(new Date(analytics.period.startDate), "dd.MM.yyyy")} -{" "}
-            {format(new Date(analytics.period.endDate), "dd.MM.yyyy")}
+            Period: {format(new Date(analytics.period.startDate), "dd.MM.yyyy")}{" "}
+            - {format(new Date(analytics.period.endDate), "dd.MM.yyyy")}
           </p>
         </div>
         <div className="flex gap-2">
-          <Select value={period} onValueChange={(v) => setPeriod(v as "week" | "month")}>
+          <Select
+            value={period}
+            onValueChange={(v) => setPeriod(v as "week" | "month")}
+          >
             <SelectTrigger className="w-[180px]">
               <Calendar className="mr-2 h-4 w-4" />
               <SelectValue />
@@ -274,9 +283,12 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.homework.completionRate}%</div>
+            <div className="text-2xl font-bold">
+              {analytics.homework.completionRate}%
+            </div>
             <p className="text-xs text-muted-foreground">
-              {analytics.homework.completed} / {analytics.homework.total} završeno
+              {analytics.homework.completed} / {analytics.homework.total}{" "}
+              završeno
             </p>
             {analytics.homework.overdue > 0 && (
               <p className="text-xs text-destructive mt-1">
@@ -293,10 +305,13 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analytics.grades.average > 0 ? analytics.grades.average.toFixed(2) : "N/A"}
+              {analytics.grades.average > 0
+                ? analytics.grades.average.toFixed(2)
+                : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {analytics.grades.count} ocene ({analytics.grades.lowest} - {analytics.grades.highest})
+              {analytics.grades.count} ocene ({analytics.grades.lowest} -{" "}
+              {analytics.grades.highest})
             </p>
           </CardContent>
         </Card>
@@ -307,9 +322,12 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.timeSpent.totalHours}h</div>
+            <div className="text-2xl font-bold">
+              {analytics.timeSpent.totalHours}h
+            </div>
             <p className="text-xs text-muted-foreground">
-              {analytics.timeSpent.sessions} sesija (prosek {analytics.timeSpent.avgSessionMinutes} min)
+              {analytics.timeSpent.sessions} sesija (prosek{" "}
+              {analytics.timeSpent.avgSessionMinutes} min)
             </p>
           </CardContent>
         </Card>
@@ -320,7 +338,9 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.achievements.total}</div>
+            <div className="text-2xl font-bold">
+              {analytics.achievements.total}
+            </div>
             <p className="text-xs text-muted-foreground">
               {analytics.achievements.totalPoints} poena
             </p>
@@ -342,7 +362,9 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
           <Card>
             <CardHeader>
               <CardTitle>Dnevna Stopa Završetka</CardTitle>
-              <CardDescription>Praćenje završenih domaćih zadataka po danima</CardDescription>
+              <CardDescription>
+                Praćenje završenih domaćih zadataka po danima
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -354,7 +376,9 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
                   />
                   <YAxis />
                   <Tooltip
-                    labelFormatter={(date) => format(new Date(date), "dd.MM.yyyy")}
+                    labelFormatter={(date) =>
+                      format(new Date(date), "dd.MM.yyyy")
+                    }
                   />
                   <Legend />
                   <Bar dataKey="completed" fill="#00C49F" name="Završeno" />
@@ -374,9 +398,15 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
                   <PieChart>
                     <Pie
                       data={[
-                        { name: "Završeno", value: analytics.homework.completed },
+                        {
+                          name: "Završeno",
+                          value: analytics.homework.completed,
+                        },
                         { name: "U toku", value: analytics.homework.pending },
-                        { name: "Prekoračeno", value: analytics.homework.overdue },
+                        {
+                          name: "Prekoračeno",
+                          value: analytics.homework.overdue,
+                        },
                       ]}
                       cx="50%"
                       cy="50%"
@@ -387,7 +417,10 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
                       dataKey="value"
                     >
                       {[0, 1, 2].map((index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -403,19 +436,29 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
               <CardContent className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Ukupno:</span>
-                  <span className="font-medium">{analytics.homework.total}</span>
+                  <span className="font-medium">
+                    {analytics.homework.total}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Sa prilozima:</span>
-                  <span className="font-medium">{analytics.homework.withAttachments}</span>
+                  <span className="font-medium">
+                    {analytics.homework.withAttachments}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Prosečno vreme:</span>
-                  <span className="font-medium">{analytics.homework.avgCompletionTime}h</span>
+                  <span className="font-medium">
+                    {analytics.homework.avgCompletionTime}h
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Stopa završetka:</span>
-                  <span className="font-medium">{analytics.homework.completionRate}%</span>
+                  <span className="text-muted-foreground">
+                    Stopa završetka:
+                  </span>
+                  <span className="font-medium">
+                    {analytics.homework.completionRate}%
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -439,7 +482,9 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
                   />
                   <YAxis domain={[1, 5]} />
                   <Tooltip
-                    labelFormatter={(date) => format(new Date(date), "dd.MM.yyyy")}
+                    labelFormatter={(date) =>
+                      format(new Date(date), "dd.MM.yyyy")
+                    }
                   />
                   <Legend />
                   <Line
@@ -462,11 +507,18 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
               <CardContent>
                 <div className="space-y-2">
                   {analytics.grades.bySubject.map((subject) => (
-                    <div key={subject.subjectId} className="flex justify-between items-center">
+                    <div
+                      key={subject.subjectId}
+                      className="flex justify-between items-center"
+                    >
                       <span className="text-sm">{subject.subjectName}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">({subject.count})</span>
-                        <span className="font-medium">{subject.average.toFixed(2)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({subject.count})
+                        </span>
+                        <span className="font-medium">
+                          {subject.average.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -481,11 +533,18 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
               <CardContent>
                 <div className="space-y-2">
                   {analytics.grades.byType.map((type) => (
-                    <div key={type.type} className="flex justify-between items-center">
+                    <div
+                      key={type.type}
+                      className="flex justify-between items-center"
+                    >
                       <span className="text-sm">{type.type}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">({type.count})</span>
-                        <span className="font-medium">{type.average.toFixed(2)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({type.count})
+                        </span>
+                        <span className="font-medium">
+                          {type.average.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -500,16 +559,23 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
           <Card>
             <CardHeader>
               <CardTitle>Performanse po Predmetima</CardTitle>
-              <CardDescription>Komparativni prikaz uspeha po predmetima</CardDescription>
+              <CardDescription>
+                Komparativni prikaz uspeha po predmetima
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {analytics.subjectPerformance.map((subject) => (
-                  <div key={subject.subjectId} className="border-b pb-4 last:border-0">
+                  <div
+                    key={subject.subjectId}
+                    className="border-b pb-4 last:border-0"
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium">{subject.subjectName}</h4>
                       {subject.gradeAverage !== null && (
-                        <span className="text-lg font-bold">{subject.gradeAverage.toFixed(2)}</span>
+                        <span className="text-lg font-bold">
+                          {subject.gradeAverage.toFixed(2)}
+                        </span>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
@@ -523,8 +589,12 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
                       </div>
                       {subject.homeworkCompletionRate !== null && (
                         <div className="col-span-2">
-                          <span className="text-muted-foreground">Stopa završetka: </span>
-                          <span className="font-medium">{subject.homeworkCompletionRate}%</span>
+                          <span className="text-muted-foreground">
+                            Stopa završetka:{" "}
+                          </span>
+                          <span className="font-medium">
+                            {subject.homeworkCompletionRate}%
+                          </span>
                         </div>
                       )}
                     </div>
@@ -540,7 +610,9 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
           <Card>
             <CardHeader>
               <CardTitle>Dnevno Vreme Učenja</CardTitle>
-              <CardDescription>Praćenje vremena provedenog na platformi</CardDescription>
+              <CardDescription>
+                Praćenje vremena provedenog na platformi
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -550,9 +622,17 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
                     dataKey="date"
                     tickFormatter={(date) => format(new Date(date), "dd.MM")}
                   />
-                  <YAxis label={{ value: "Minuti", angle: -90, position: "insideLeft" }} />
+                  <YAxis
+                    label={{
+                      value: "Minuti",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
                   <Tooltip
-                    labelFormatter={(date) => format(new Date(date), "dd.MM.yyyy")}
+                    labelFormatter={(date) =>
+                      format(new Date(date), "dd.MM.yyyy")
+                    }
                   />
                   <Bar dataKey="minutes" fill="#8884d8" name="Minuti" />
                 </BarChart>
@@ -566,7 +646,9 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
       <Card>
         <CardHeader>
           <CardTitle>Nedeljno Poređenje</CardTitle>
-          <CardDescription>Trenutna nedelja vs. prethodna nedelja</CardDescription>
+          <CardDescription>
+            Trenutna nedelja vs. prethodna nedelja
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
@@ -574,7 +656,9 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
               <h4 className="font-medium mb-3">Trenutna Nedelja</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Domaći završeno:</span>
+                  <span className="text-muted-foreground">
+                    Domaći završeno:
+                  </span>
                   <span>
                     {analytics.weeklyComparison.currentWeek.homeworkCompleted} /{" "}
                     {analytics.weeklyComparison.currentWeek.homeworkTotal}
@@ -582,7 +666,11 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Prosek ocena:</span>
-                  <span>{analytics.weeklyComparison.currentWeek.gradeAverage.toFixed(2)}</span>
+                  <span>
+                    {analytics.weeklyComparison.currentWeek.gradeAverage.toFixed(
+                      2,
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
@@ -590,15 +678,21 @@ export function ParentalAnalytics({ studentId }: ParentalAnalyticsProps) {
               <h4 className="font-medium mb-3">Prethodna Nedelja</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Domaći završeno:</span>
+                  <span className="text-muted-foreground">
+                    Domaći završeno:
+                  </span>
                   <span>
-                    {analytics.weeklyComparison.previousWeek.homeworkCompleted} /{" "}
-                    {analytics.weeklyComparison.previousWeek.homeworkTotal}
+                    {analytics.weeklyComparison.previousWeek.homeworkCompleted}{" "}
+                    / {analytics.weeklyComparison.previousWeek.homeworkTotal}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Prosek ocena:</span>
-                  <span>{analytics.weeklyComparison.previousWeek.gradeAverage.toFixed(2)}</span>
+                  <span>
+                    {analytics.weeklyComparison.previousWeek.gradeAverage.toFixed(
+                      2,
+                    )}
+                  </span>
                 </div>
               </div>
             </div>

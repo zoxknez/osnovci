@@ -5,10 +5,10 @@
 
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { useState } from "react";
 import { Skeleton } from "@/components/features/loading/skeleton-loader";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
 
 interface OptimizedImageProps {
@@ -44,7 +44,7 @@ export function OptimizedImage({
   });
 
   const shouldLoad = priority || isIntersecting;
-  
+
   // Build skeleton props conditionally to avoid undefined
   const skeletonProps: {
     variant: "rectangular";
@@ -62,7 +62,7 @@ export function OptimizedImage({
     if (width !== undefined) skeletonProps.width = width;
     if (height !== undefined) skeletonProps.height = height;
   }
-  
+
   // Build image props conditionally
   const imageProps: {
     src: string;
@@ -85,7 +85,7 @@ export function OptimizedImage({
       isLoaded ? "opacity-100" : "opacity-0",
       objectFit === "cover" && "object-cover",
       objectFit === "contain" && "object-contain",
-      objectFit === "fill" && "object-fill"
+      objectFit === "fill" && "object-fill",
     ),
     onLoad: () => setIsLoaded(true),
   };
@@ -101,4 +101,3 @@ export function OptimizedImage({
     </div>
   );
 }
-

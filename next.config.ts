@@ -37,7 +37,8 @@ const nextConfig: NextConfig = {
     // Remote patterns for external images (if needed in future)
     remotePatterns: [],
     // Unoptimized flag for development (can improve dev performance)
-    ...(process.env.NODE_ENV === "development" && process.env["UNOPTIMIZED_IMAGES"] === "true"
+    ...(process.env.NODE_ENV === "development" &&
+    process.env["UNOPTIMIZED_IMAGES"] === "true"
       ? { unoptimized: true }
       : {}),
   },
@@ -204,7 +205,7 @@ const nextConfig: NextConfig = {
   // Server external packages - exclude problematic packages from bundling
   // This prevents Turbopack from trying to bundle test files and dependencies
   serverExternalPackages: ["pino", "thread-stream", "bullmq", "ioredis"],
-  
+
   // Output standalone for better Docker builds
   ...(process.env.NODE_ENV === "production" && { output: "standalone" }),
   typescript: {
@@ -216,8 +217,12 @@ const nextConfig: NextConfig = {
 export default withSentryConfig(withBundleAnalyzer(withNextIntl(nextConfig)), {
   // Sentry Webpack Plugin Options
   ...(process.env["SENTRY_ORG"] && { org: process.env["SENTRY_ORG"] }),
-  ...(process.env["SENTRY_PROJECT"] && { project: process.env["SENTRY_PROJECT"] }),
-  ...(process.env["SENTRY_AUTH_TOKEN"] && { authToken: process.env["SENTRY_AUTH_TOKEN"] }),
+  ...(process.env["SENTRY_PROJECT"] && {
+    project: process.env["SENTRY_PROJECT"],
+  }),
+  ...(process.env["SENTRY_AUTH_TOKEN"] && {
+    authToken: process.env["SENTRY_AUTH_TOKEN"],
+  }),
 
   // Only upload source maps in production
   silent: process.env.NODE_ENV !== "production",

@@ -99,7 +99,7 @@ export function calculateLevel(totalXP: number): number {
 /**
  * Get XP required for specific level
  */
-calculateLevel.getRequiredXP = function (level: number): number {
+calculateLevel.getRequiredXP = (level: number): number => {
   if (level <= 0) return 0;
   if (level > LEVEL_THRESHOLDS.length) {
     // Calculate dynamically for high levels

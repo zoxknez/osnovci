@@ -60,7 +60,7 @@ export async function csrfMiddleware(
   // Origin verification - prevent cross-site attacks
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");
-  
+
   if (origin) {
     try {
       const originHost = new URL(origin).host;

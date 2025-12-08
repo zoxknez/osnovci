@@ -28,14 +28,18 @@ export function SubjectGradeCard({ subjectGrade: sg }: SubjectGradeCardProps) {
   // Calculate goal progress
   const currentAvg = sg.average || 0;
   const nextGrade = Math.floor(currentAvg) + 1;
-  const progressToNext = Math.max(0, Math.min(100, ((currentAvg - Math.floor(currentAvg)) * 100)));
+  const progressToNext = Math.max(
+    0,
+    Math.min(100, (currentAvg - Math.floor(currentAvg)) * 100),
+  );
 
   return (
-    <Card
-      className="border-0 hover:shadow-xl transition-all h-full group overflow-hidden relative"
-    >
-      <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: sg.color }} />
-      
+    <Card className="border-0 hover:shadow-xl transition-all h-full group overflow-hidden relative">
+      <div
+        className="absolute top-0 left-0 w-full h-1"
+        style={{ backgroundColor: sg.color }}
+      />
+
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -49,14 +53,27 @@ export function SubjectGradeCard({ subjectGrade: sg }: SubjectGradeCardProps) {
               <p className="text-xs text-gray-500">{sg.totalGrades} ocena</p>
             </div>
           </div>
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-            sg.trend === 'up' ? 'bg-green-100 text-green-700' : 
-            sg.trend === 'down' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
-          }`}>
+          <div
+            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+              sg.trend === "up"
+                ? "bg-green-100 text-green-700"
+                : sg.trend === "down"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-gray-100 text-gray-700"
+            }`}
+          >
             {sg.trend === "up" && <TrendingUp className="h-3 w-3" />}
             {sg.trend === "down" && <TrendingDown className="h-3 w-3" />}
-            {sg.trend === "stable" && <span className="text-lg leading-3">−</span>}
-            <span className="capitalize">{sg.trend === 'stable' ? 'Stabilno' : sg.trend === 'up' ? 'Raste' : 'Pada'}</span>
+            {sg.trend === "stable" && (
+              <span className="text-lg leading-3">−</span>
+            )}
+            <span className="capitalize">
+              {sg.trend === "stable"
+                ? "Stabilno"
+                : sg.trend === "up"
+                  ? "Raste"
+                  : "Pada"}
+            </span>
           </div>
         </div>
 
@@ -69,9 +86,15 @@ export function SubjectGradeCard({ subjectGrade: sg }: SubjectGradeCardProps) {
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-400 mb-1">Zadnja</p>
-            <span className={`text-xl font-bold ${
-              (sg.lastGrade || 0) >= 4 ? 'text-green-600' : (sg.lastGrade || 0) >= 3 ? 'text-blue-600' : 'text-red-600'
-            }`}>
+            <span
+              className={`text-xl font-bold ${
+                (sg.lastGrade || 0) >= 4
+                  ? "text-green-600"
+                  : (sg.lastGrade || 0) >= 3
+                    ? "text-blue-600"
+                    : "text-red-600"
+              }`}
+            >
               {sg.lastGrade || 0}
             </span>
           </div>
@@ -103,7 +126,7 @@ export function SubjectGradeCard({ subjectGrade: sg }: SubjectGradeCardProps) {
                   backgroundColor: sg.color,
                   opacity: 0.6 + (g / 5) * 0.4,
                   height: `${(g / 5) * 100}%`,
-                  minHeight: '20%'
+                  minHeight: "20%",
                 }}
                 title={`Ocena: ${g}`}
               >
@@ -116,4 +139,3 @@ export function SubjectGradeCard({ subjectGrade: sg }: SubjectGradeCardProps) {
     </Card>
   );
 }
-

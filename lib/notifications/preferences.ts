@@ -1,7 +1,10 @@
 // Notification Preferences System - Granular Control per Event Type
 // Manage user preferences for email, push, and in-app notifications
 
-import { NotificationChannel, NotificationEventType } from "@prisma/client";
+import {
+  NotificationChannel,
+  type NotificationEventType,
+} from "@prisma/client";
 import prisma from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
@@ -284,7 +287,10 @@ export async function updateNotificationPreference({
     }
     if (quietHoursEnd !== undefined && quietHoursEnd !== null) {
       if (quietHoursEnd < 0 || quietHoursEnd > 23) {
-        return { success: false, error: "Invalid quiet hours end (must be 0-23)" };
+        return {
+          success: false,
+          error: "Invalid quiet hours end (must be 0-23)",
+        };
       }
     }
 
@@ -304,9 +310,11 @@ export async function updateNotificationPreference({
       create: {
         userId,
         eventType,
-        emailEnabled: emailEnabled ?? DEFAULT_PREFERENCES[eventType].emailEnabled,
+        emailEnabled:
+          emailEnabled ?? DEFAULT_PREFERENCES[eventType].emailEnabled,
         pushEnabled: pushEnabled ?? DEFAULT_PREFERENCES[eventType].pushEnabled,
-        inAppEnabled: inAppEnabled ?? DEFAULT_PREFERENCES[eventType].inAppEnabled,
+        inAppEnabled:
+          inAppEnabled ?? DEFAULT_PREFERENCES[eventType].inAppEnabled,
         quietHoursStart: quietHoursStart ?? null,
         quietHoursEnd: quietHoursEnd ?? null,
         digest: digest ?? false,

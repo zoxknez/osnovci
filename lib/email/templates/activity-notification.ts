@@ -1,7 +1,7 @@
 /**
  * Activity Notification Email Template
  */
-import { createBaseTemplate, type EmailTemplate } from './base';
+import { createBaseTemplate, type EmailTemplate } from "./base";
 
 export function createActivityNotificationTemplate(
   activityType: string,
@@ -22,8 +22,8 @@ export function createActivityNotificationTemplate(
     <p>S poštovanjem,<br><strong>Tim Osnovci</strong></p>
   `;
 
-  const html = createBaseTemplate(content, '📱 Obaveštenje o aktivnosti');
-  
+  const html = createBaseTemplate(content, "📱 Obaveštenje o aktivnosti");
+
   const text = `
 Obaveštenje o aktivnosti
 
@@ -52,12 +52,11 @@ Osnovci - Aplikacija za Učenike i Roditelje
 
 function escapeHtml(text: string): string {
   const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   };
   return text.replace(/[&<>"']/g, (m) => map[m] ?? m);
 }
-

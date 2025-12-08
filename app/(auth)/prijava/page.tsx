@@ -9,7 +9,6 @@ import { signIn } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
-import { log } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { log } from "@/lib/logger";
 
 export default function PrijavaPage() {
   const router = useRouter();
@@ -30,16 +30,24 @@ export default function PrijavaPage() {
     email: "",
     password: "",
   });
-  
+
   // Accessibility: respect reduced motion preferences
   const prefersReducedMotion = useReducedMotion();
-  
-  const backgroundAnimation = useMemo(() => 
-    prefersReducedMotion ? {} : {
-      animate: { x: [0, 100, 0], y: [0, 50, 0] },
-      transition: { duration: 20, repeat: Infinity, ease: "easeInOut" as Easing }
-    }
-  , [prefersReducedMotion]);
+
+  const backgroundAnimation = useMemo(
+    () =>
+      prefersReducedMotion
+        ? {}
+        : {
+            animate: { x: [0, 100, 0], y: [0, 50, 0] },
+            transition: {
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut" as Easing,
+            },
+          },
+    [prefersReducedMotion],
+  );
 
   // Auto-focus prvi input
   useEffect(() => {
@@ -160,7 +168,7 @@ export default function PrijavaPage() {
 
       // 2FA verified - complete login
       toast.success("2FA verifikovan! Dobrodošli nazad! 🎉");
-      
+
       if (data.usedBackupCode) {
         toast.info("Backup kod je iskorišćen i više ne može biti korišćen.", {
           duration: 5000,
@@ -194,10 +202,16 @@ export default function PrijavaPage() {
         />
         <motion.div
           className="absolute bottom-10 sm:bottom-20 -right-10 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-          {...(prefersReducedMotion ? {} : {
-            animate: { x: [0, -100, 0], y: [0, -50, 0] },
-            transition: { duration: 15, repeat: Infinity, ease: "easeInOut" }
-          })}
+          {...(prefersReducedMotion
+            ? {}
+            : {
+                animate: { x: [0, -100, 0], y: [0, -50, 0] },
+                transition: {
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+              })}
         />
       </div>
 
@@ -331,7 +345,9 @@ export default function PrijavaPage() {
                     <span className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">brz pristup</span>
+                    <span className="bg-white px-2 text-gray-500">
+                      brz pristup
+                    </span>
                   </div>
                 </div>
 

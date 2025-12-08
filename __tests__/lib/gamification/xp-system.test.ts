@@ -3,7 +3,7 @@
  * Testiranje kompletnog XP sistema sa bazom podataka
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock Prisma
 const mockPrisma = {
@@ -163,7 +163,7 @@ describe("XP Award System", () => {
       // Actually, need to check total XP against level threshold
       // For level 3, threshold is 500 + 300 + 300 = 1100
       // For level 4, we need cumulative XP of 500 + 600 + 900 = 2000
-      
+
       // Simplified test
       const willLevelUp = newXP >= threshold;
       expect(willLevelUp).toBe(false); // 580 < 1100
@@ -204,8 +204,7 @@ describe("XP Award System", () => {
       const lastActivity = new Date("2025-01-09T10:00:00");
       const now = new Date("2025-01-09T15:00:00");
 
-      const isSameDay =
-        lastActivity.toDateString() === now.toDateString();
+      const isSameDay = lastActivity.toDateString() === now.toDateString();
 
       expect(isSameDay).toBe(true);
       // Streak should NOT increment for same day
@@ -217,7 +216,9 @@ describe("XP Award System", () => {
 
       const lastDate = new Date(lastActivity.toDateString());
       const today = new Date(now.toDateString());
-      const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor(
+        (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
       expect(diffDays).toBe(1);
       // Streak should increment
@@ -229,7 +230,9 @@ describe("XP Award System", () => {
 
       const lastDate = new Date(lastActivity.toDateString());
       const today = new Date(now.toDateString());
-      const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor(
+        (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
       expect(diffDays).toBe(4);
       // Streak should reset to 1
@@ -383,7 +386,10 @@ describe("XP Award System", () => {
         data: {
           studentId: "student-1",
           action: "XP_AWARDED",
-          details: JSON.stringify({ amount: 100, reason: "HOMEWORK_COMPLETED" }),
+          details: JSON.stringify({
+            amount: 100,
+            reason: "HOMEWORK_COMPLETED",
+          }),
         },
       });
 
@@ -435,7 +441,8 @@ describe("XP Award System", () => {
         { studentId: "s3", totalXPEarned: 4000 },
       ].sort((a, b) => b.totalXPEarned - a.totalXPEarned);
 
-      const newRank = updatedLeaderboard.findIndex(s => s.studentId === "student-1") + 1;
+      const newRank =
+        updatedLeaderboard.findIndex((s) => s.studentId === "student-1") + 1;
       expect(newRank).toBe(2); // Moved up from 4 to 2
     });
   });
@@ -456,11 +463,11 @@ describe("XP Award System", () => {
       ];
 
       const totalFromHomework = xpHistory
-        .filter(x => x.type === "HOMEWORK")
+        .filter((x) => x.type === "HOMEWORK")
         .reduce((sum, x) => sum + x.amount, 0);
 
       const totalFromAchievements = xpHistory
-        .filter(x => x.type === "ACHIEVEMENT")
+        .filter((x) => x.type === "ACHIEVEMENT")
         .reduce((sum, x) => sum + x.amount, 0);
 
       expect(totalFromHomework).toBe(50);
@@ -525,14 +532,14 @@ describe("XP Award System", () => {
 
     it("should handle database errors gracefully", async () => {
       mockPrisma.gamification.update.mockRejectedValue(
-        new Error("Database connection failed")
+        new Error("Database connection failed"),
       );
 
       await expect(
         mockPrisma.gamification.update({
           where: { id: "gam-1" },
           data: { currentXP: 100 },
-        })
+        }),
       ).rejects.toThrow("Database connection failed");
     });
   });

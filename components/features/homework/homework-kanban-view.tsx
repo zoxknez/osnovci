@@ -33,11 +33,11 @@ interface HomeworkKanbanViewProps {
   onCamera: (id: string) => void;
 }
 
-export function HomeworkKanbanView({ 
-  todo, 
-  done, 
-  onComplete, 
-  onCamera 
+export function HomeworkKanbanView({
+  todo,
+  done,
+  onComplete,
+  onCamera,
 }: HomeworkKanbanViewProps) {
   return (
     <div className="grid md:grid-cols-2 gap-6 h-full min-h-[500px]">
@@ -47,14 +47,16 @@ export function HomeworkKanbanView({
           <h3 className="font-bold text-gray-700 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
             Za uraditi
-            <Badge variant="secondary" className="ml-2 bg-white">{todo.length}</Badge>
+            <Badge variant="secondary" className="ml-2 bg-white">
+              {todo.length}
+            </Badge>
           </h3>
         </div>
         <div className="space-y-3">
-          {todo.map(task => (
-            <HomeworkCardCompact 
-              key={task.id} 
-              task={task} 
+          {todo.map((task) => (
+            <HomeworkCardCompact
+              key={task.id}
+              task={task}
               onComplete={() => onComplete(task.id)}
               onCamera={() => onCamera(task.id)}
             />
@@ -73,14 +75,16 @@ export function HomeworkKanbanView({
           <h3 className="font-bold text-gray-700 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500" />
             Završeno
-            <Badge variant="secondary" className="ml-2 bg-white">{done.length}</Badge>
+            <Badge variant="secondary" className="ml-2 bg-white">
+              {done.length}
+            </Badge>
           </h3>
         </div>
         <div className="space-y-3">
-          {done.map(task => (
-            <HomeworkCardCompact 
-              key={task.id} 
-              task={task} 
+          {done.map((task) => (
+            <HomeworkCardCompact
+              key={task.id}
+              task={task}
               isDone
               onComplete={() => {}}
               onCamera={() => onCamera(task.id)}
@@ -96,4 +100,3 @@ export function HomeworkKanbanView({
     </div>
   );
 }
-

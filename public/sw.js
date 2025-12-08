@@ -105,18 +105,20 @@ self.addEventListener("sync", (event) => {
       syncPendingActions()
         .then((result) => {
           // Notify all clients about sync completion
-          return self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
-            clients.forEach((client) => {
-              client.postMessage({
-                type: "SYNC_COMPLETE",
-                result,
+          return self.clients
+            .matchAll({ includeUncontrolled: true })
+            .then((clients) => {
+              clients.forEach((client) => {
+                client.postMessage({
+                  type: "SYNC_COMPLETE",
+                  result,
+                });
               });
             });
-          });
         })
         .catch((error) => {
           console.error("[Service Worker] Sync failed:", error);
-        })
+        }),
     );
   }
 });
@@ -173,20 +175,20 @@ async function processPendingAction(action) {
   }
 
   let endpoint = "/api/sync";
-  let method = "POST";
+  const method = "POST";
   let body = null;
   let headers = { "Content-Type": "application/json" };
 
   if (entity === "attachment") {
     endpoint = "/api/upload";
     const formData = new FormData();
-    
+
     if (data.file) {
-        formData.append("file", data.file);
+      formData.append("file", data.file);
     } else if (data.blob) {
-        formData.append("file", data.blob, data.fileName || "upload.jpg");
+      formData.append("file", data.blob, data.fileName || "upload.jpg");
     }
-    
+
     formData.append("homeworkId", data.homeworkId);
     body = formData;
     headers = {}; // Let browser set boundary
@@ -195,7 +197,7 @@ async function processPendingAction(action) {
     body = JSON.stringify({
       action: actionType,
       entity: entity,
-      data: data
+      data: data,
     });
   }
 
@@ -223,16 +225,19 @@ async function processPendingAction(action) {
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open("osnovci-offline", 1);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-    
+
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      
+
       // Create object stores if they don't exist
       if (!db.objectStoreNames.contains("pendingActions")) {
-        db.createObjectStore("pendingActions", { keyPath: "id", autoIncrement: true });
+        db.createObjectStore("pendingActions", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
       }
     };
   });
@@ -256,7 +261,5 @@ self.addEventListener("push", (event) => {
 // Notification click handler
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data?.url || "/"),
-  );
+  event.waitUntil(clients.openWindow(event.notification.data?.url || "/"));
 });

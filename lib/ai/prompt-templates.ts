@@ -4,12 +4,12 @@
  */
 
 // Tipovi predmeta
-export type SubjectType = 
-  | "matematika" 
-  | "srpski" 
-  | "engleski" 
-  | "priroda" 
-  | "istorija" 
+export type SubjectType =
+  | "matematika"
+  | "srpski"
+  | "engleski"
+  | "priroda"
+  | "istorija"
   | "geografija"
   | "fizika"
   | "hemija"
@@ -151,21 +151,21 @@ Probaj ponovo sa jednostavnijim pitanjem! ✨`,
  */
 export function getSubjectPrompt(subject: string | undefined): string {
   if (!subject) return HOMEWORK_HELP_PROMPTS.opste;
-  
+
   const normalizedSubject = subject.toLowerCase().trim();
-  
+
   // Try exact match first
   if (normalizedSubject in HOMEWORK_HELP_PROMPTS) {
     return HOMEWORK_HELP_PROMPTS[normalizedSubject as SubjectType];
   }
-  
+
   // Try partial match
   for (const [key, prompt] of Object.entries(HOMEWORK_HELP_PROMPTS)) {
     if (normalizedSubject.includes(key) || key.includes(normalizedSubject)) {
       return prompt;
     }
   }
-  
+
   return HOMEWORK_HELP_PROMPTS.opste;
 }
 
@@ -180,10 +180,16 @@ export function getRandomEncouragement(): string {
 /**
  * Detect question type from query
  */
-export function detectQuestionType(query: string): keyof typeof QUESTION_TYPE_PROMPTS {
+export function detectQuestionType(
+  query: string,
+): keyof typeof QUESTION_TYPE_PROMPTS {
   const lowerQuery = query.toLowerCase();
-  
-  if (lowerQuery.includes("objasni") || lowerQuery.includes("šta je") || lowerQuery.includes("sta je")) {
+
+  if (
+    lowerQuery.includes("objasni") ||
+    lowerQuery.includes("šta je") ||
+    lowerQuery.includes("sta je")
+  ) {
     return "explanation";
   }
   if (lowerQuery.includes("kako") || lowerQuery.includes("na koji način")) {
@@ -192,7 +198,11 @@ export function detectQuestionType(query: string): keyof typeof QUESTION_TYPE_PR
   if (lowerQuery.includes("zašto") || lowerQuery.includes("zasto")) {
     return "whyIs";
   }
-  if (lowerQuery.includes("šta ako") || lowerQuery.includes("sta ako") || lowerQuery.includes("šta bi")) {
+  if (
+    lowerQuery.includes("šta ako") ||
+    lowerQuery.includes("sta ako") ||
+    lowerQuery.includes("šta bi")
+  ) {
     return "whatIf";
   }
   if (lowerQuery.includes("uporedi") || lowerQuery.includes("razlika")) {
@@ -207,6 +217,6 @@ export function detectQuestionType(query: string): keyof typeof QUESTION_TYPE_PR
   if (lowerQuery.includes("proveri") || lowerQuery.includes("da li je tačno")) {
     return "check";
   }
-  
+
   return "explanation";
 }

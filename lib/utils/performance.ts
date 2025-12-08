@@ -8,7 +8,7 @@
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 
@@ -30,7 +30,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
 
@@ -57,7 +57,7 @@ export function lazyLoadImage(img: HTMLImageElement, src: string) {
           }
         });
       },
-      { rootMargin: "50px" }
+      { rootMargin: "50px" },
     );
     observer.observe(img);
   } else {
@@ -69,7 +69,10 @@ export function lazyLoadImage(img: HTMLImageElement, src: string) {
 /**
  * Prefetch resources
  */
-export function prefetchResource(url: string, as: "script" | "style" | "image" | "font" = "script") {
+export function prefetchResource(
+  url: string,
+  as: "script" | "style" | "image" | "font" = "script",
+) {
   if (typeof document !== "undefined") {
     const link = document.createElement("link");
     link.rel = "prefetch";
@@ -117,8 +120,7 @@ export function prefersReducedMotion(): boolean {
  */
 export function createOptimizedScrollHandler(
   callback: () => void,
-  throttleMs: number = 100
+  throttleMs: number = 100,
 ) {
   return throttle(callback, throttleMs);
 }
-

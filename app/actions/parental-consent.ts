@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import {
@@ -13,7 +14,6 @@ import {
 import prisma from "@/lib/db/prisma";
 import { sendParentalConsentEmail } from "@/lib/email/parental-consent";
 import { log } from "@/lib/logger";
-import { headers } from "next/headers";
 
 /**
  * Calculate age from birth date
@@ -22,16 +22,19 @@ import { headers } from "next/headers";
  */
 function calculateAge(birthDate: Date | null | undefined): number {
   if (!birthDate) return 0;
-  
+
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   // Adjust age if birthday hasn't occurred this year
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
     age--;
   }
-  
+
   return Math.max(0, age); // Ensure non-negative
 }
 
@@ -105,7 +108,9 @@ const createConsentSchema = z.object({
   parentName: z.string().optional(),
 });
 
-export async function createConsentRequestAction(data: z.infer<typeof createConsentSchema>): Promise<ActionResponse> {
+export async function createConsentRequestAction(
+  data: z.infer<typeof createConsentSchema>,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
 
@@ -136,8 +141,7 @@ export async function createConsentRequestAction(data: z.infer<typeof createCons
     });
 
     // Only guardians linked to student can create consent requests
-    const isLinkedGuardian =
-      user?.guardian && user.guardian.links.length > 0;
+    const isLinkedGuardian = user?.guardian && user.guardian.links.length > 0;
 
     if (!isLinkedGuardian) {
       return { error: "Not authorized for this student" };
@@ -207,7 +211,9 @@ const revokeConsentSchema = z.object({
   consentId: z.string().cuid(),
 });
 
-export async function revokeConsentAction(data: z.infer<typeof revokeConsentSchema>): Promise<ActionResponse> {
+export async function revokeConsentAction(
+  data: z.infer<typeof revokeConsentSchema>,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
 
@@ -275,7 +281,9 @@ const resendEmailSchema = z.object({
   consentId: z.string().cuid(),
 });
 
-export async function resendConsentEmailAction(data: z.infer<typeof resendEmailSchema>): Promise<ActionResponse> {
+export async function resendConsentEmailAction(
+  data: z.infer<typeof resendEmailSchema>,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
 
@@ -392,7 +400,10 @@ export async function resendMyConsentEmailAction(): Promise<ActionResponse> {
 
     await markEmailSent(consent.id);
 
-    log.info("Consent email resent for user", { userId: user.id, consentId: consent.id });
+    log.info("Consent email resent for user", {
+      userId: user.id,
+      consentId: consent.id,
+    });
 
     return {
       success: true,
@@ -412,7 +423,9 @@ const verifyConsentSchema = z.object({
   code: z.string().min(1),
 });
 
-export async function verifyConsentAction(data: z.infer<typeof verifyConsentSchema>): Promise<ActionResponse> {
+export async function verifyConsentAction(
+  data: z.infer<typeof verifyConsentSchema>,
+): Promise<ActionResponse> {
   try {
     const validated = verifyConsentSchema.safeParse(data);
 

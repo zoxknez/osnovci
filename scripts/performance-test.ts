@@ -13,7 +13,10 @@ import https from "node:https";
 import { performance } from "node:perf_hooks";
 
 const BASE_URL = process.env["TEST_URL"] || "http://localhost:3000";
-const CONCURRENT_REQUESTS = Number.parseInt(process.env["CONCURRENT"] || "10", 10);
+const CONCURRENT_REQUESTS = Number.parseInt(
+  process.env["CONCURRENT"] || "10",
+  10,
+);
 const TOTAL_REQUESTS = Number.parseInt(process.env["REQUESTS"] || "100", 10);
 const TIMEOUT = Number.parseInt(process.env["TIMEOUT"] || "5000", 10);
 

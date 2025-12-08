@@ -35,7 +35,7 @@ export function Skeleton({
         baseClasses,
         variantClasses[variant],
         animate && "animate-pulse",
-        className
+        className,
       )}
       style={{
         width: width || undefined,
@@ -67,17 +67,26 @@ export function SkeletonList({ count = 3 }: { count?: number }) {
   );
 }
 
-export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
+export function SkeletonTable({
+  rows = 5,
+  cols = 4,
+}: {
+  rows?: number;
+  cols?: number;
+}) {
   return (
     <div className="space-y-2">
       {Array.from({ length: rows }).map((_, rowIdx) => (
         <div key={rowIdx} className="flex gap-2">
           {Array.from({ length: cols }).map((_, colIdx) => (
-            <Skeleton key={colIdx} variant="rectangular" className="flex-1 h-10" />
+            <Skeleton
+              key={colIdx}
+              variant="rectangular"
+              className="flex-1 h-10"
+            />
           ))}
         </div>
       ))}
     </div>
   );
 }
-

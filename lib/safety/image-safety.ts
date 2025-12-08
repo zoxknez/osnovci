@@ -3,7 +3,10 @@
 
 import sharp from "sharp";
 import { log } from "@/lib/logger";
-import { moderateImage as aiModerateImage, isAIModerationEnabled } from './ai-moderation';
+import {
+  moderateImage as aiModerateImage,
+  isAIModerationEnabled,
+} from "./ai-moderation";
 
 export interface ImageSafetyResult {
   safe: boolean;
@@ -59,25 +62,29 @@ export async function checkImageSafety(
     if (isAIModerationEnabled()) {
       try {
         const aiResult = await aiModerateImage(buffer);
-        
+
         if (!aiResult.safe) {
           score = 0;
-          reasons.push(`AI blocked: ${aiResult.blockReason || 'Inappropriate content'}`);
+          reasons.push(
+            `AI blocked: ${aiResult.blockReason || "Inappropriate content"}`,
+          );
         } else if (aiResult.requiresReview) {
           score = Math.min(score, 60);
-          reasons.push('AI flagged for manual review');
+          reasons.push("AI flagged for manual review");
         } else if (aiResult.confidence > 0) {
           // AI passed - boost score
           score = Math.min(100, score + 10);
         }
-        
-        log.info('AI moderation applied', {
+
+        log.info("AI moderation applied", {
           aiSafe: aiResult.safe,
           aiConfidence: aiResult.confidence,
           finalScore: score,
         });
       } catch (error) {
-        log.error('AI moderation failed, continuing with basic checks', { error });
+        log.error("AI moderation failed, continuing with basic checks", {
+          error,
+        });
       }
     }
 
@@ -172,14 +179,17 @@ export async function moderateImage(filePath: string): Promise<{
 
   // Fallback: Use basic safety checks (current implementation)
   // This works reliably without external dependencies
-  log.warn("Using fallback image moderation (no AI API configured) - Flagging for review", {
-    filePath,
-  });
+  log.warn(
+    "Using fallback image moderation (no AI API configured) - Flagging for review",
+    {
+      filePath,
+    },
+  );
 
   // FAIL-SECURE: If AI is not configured, we cannot guarantee safety for children.
-  // We mark it as requiring review but technically "safe" enough to not block immediately 
+  // We mark it as requiring review but technically "safe" enough to not block immediately
   // if basic checks passed, but with high alert.
-  
+
   return {
     safe: false, // Fail secure - treat as unsafe until reviewed if we can't verify
     adult: 0,

@@ -38,12 +38,18 @@ export function GradesInsights({ insights }: GradesInsightsProps) {
         {insights.map((insight, i) => (
           <Card key={i} className="bg-white/80 backdrop-blur border-indigo-100">
             <CardContent className="p-4">
-              <h4 className="font-bold text-gray-900 mb-1">{insight.subject}</h4>
+              <h4 className="font-bold text-gray-900 mb-1">
+                {insight.subject}
+              </h4>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-500">Trenutno:</span>
-                <span className="font-bold text-indigo-600">{insight.currentAvg}</span>
+                <span className="font-bold text-indigo-600">
+                  {insight.currentAvg}
+                </span>
               </div>
-              <p className="text-sm text-gray-700 leading-snug font-medium">{insight.suggestion}</p>
+              <p className="text-sm text-gray-700 leading-snug font-medium">
+                {insight.suggestion}
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -51,4 +57,3 @@ export function GradesInsights({ insights }: GradesInsightsProps) {
     </motion.div>
   );
 }
-

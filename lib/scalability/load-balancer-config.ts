@@ -3,12 +3,12 @@
  * Prepares application for horizontal scaling
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { log } from '@/lib/logger';
-import { checkDatabaseHealth, disconnectDatabase } from '@/lib/db/prisma';
+import type { NextRequest, NextResponse } from "next/server";
+import { checkDatabaseHealth, disconnectDatabase } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 // Server instance ID (unique per container/process)
-export const SERVER_ID = process.env['SERVER_ID'] || `server-${Date.now()}`;
+export const SERVER_ID = process.env["SERVER_ID"] || `server-${Date.now()}`;
 
 // Startup timestamp
 const STARTUP_TIME = Date.now();
@@ -25,7 +25,7 @@ let errorCount = 0;
 // ============================================
 
 export interface HealthCheckResponse {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   serverId: string;
   uptime: number;
   timestamp: number;
@@ -70,14 +70,14 @@ export async function deepHealthCheck(): Promise<HealthCheckResponse> {
   const cpuHealthy = cpuPercentage < 80;
 
   // Calculate overall status
-  let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-  
+  let status: "healthy" | "degraded" | "unhealthy" = "healthy";
+
   if (!dbHealth.healthy || !memHealthy || !cpuHealthy) {
-    status = 'degraded';
+    status = "degraded";
   }
-  
+
   if (isShuttingDown) {
-    status = 'unhealthy';
+    status = "unhealthy";
   }
 
   const errorRate = requestCount > 0 ? (errorCount / requestCount) * 100 : 0;
@@ -112,12 +112,12 @@ export async function deepHealthCheck(): Promise<HealthCheckResponse> {
  * Shallow health check (for quick liveness probe)
  */
 export async function shallowHealthCheck(): Promise<{
-  status: 'ok' | 'shutting_down';
+  status: "ok" | "shutting_down";
   serverId: string;
   uptime: number;
 }> {
   return {
-    status: isShuttingDown ? 'shutting_down' : 'ok',
+    status: isShuttingDown ? "shutting_down" : "ok",
     serverId: SERVER_ID,
     uptime: Date.now() - STARTUP_TIME,
   };
@@ -133,7 +133,7 @@ export async function readinessCheck(): Promise<boolean> {
 
   // Check database connectivity
   const dbHealth = await checkDatabaseHealth();
-  
+
   return dbHealth.healthy;
 }
 
@@ -160,7 +160,7 @@ export function trackError() {
  */
 export function getRequestMetrics() {
   const errorRate = requestCount > 0 ? (errorCount / requestCount) * 100 : 0;
-  
+
   return {
     total: requestCount,
     errors: errorCount,
@@ -190,38 +190,38 @@ export async function initiateShutdown(signal: string): Promise<void> {
   }
 
   isShuttingDown = true;
-  log.info('Graceful shutdown initiated', { signal, serverId: SERVER_ID });
+  log.info("Graceful shutdown initiated", { signal, serverId: SERVER_ID });
 
   // Give load balancer time to remove this instance from rotation
-  await new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds
+  await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 seconds
 
   // Close database connections
   try {
     await disconnectDatabase();
   } catch (error) {
-    log.error('Error closing database', error as Error);
+    log.error("Error closing database", error as Error);
   }
 
   // Close queue workers
   try {
     // Workers handle their own shutdown via SIGTERM
-    log.info('Queue workers shutting down');
+    log.info("Queue workers shutting down");
   } catch (error) {
-    log.error('Error closing workers', error as Error);
+    log.error("Error closing workers", error as Error);
   }
 
-  log.info('Graceful shutdown completed', { serverId: SERVER_ID });
+  log.info("Graceful shutdown completed", { serverId: SERVER_ID });
 }
 
 // Register shutdown handlers
-if (process.env['NODE_ENV'] === 'production') {
-  process.on('SIGTERM', async () => {
-    await initiateShutdown('SIGTERM');
+if (process.env["NODE_ENV"] === "production") {
+  process.on("SIGTERM", async () => {
+    await initiateShutdown("SIGTERM");
     process.exit(0);
   });
 
-  process.on('SIGINT', async () => {
-    await initiateShutdown('SIGINT');
+  process.on("SIGINT", async () => {
+    await initiateShutdown("SIGINT");
     process.exit(0);
   });
 }
@@ -234,9 +234,9 @@ if (process.env['NODE_ENV'] === 'production') {
  * Add load balancing headers to response
  */
 export function addLoadBalancingHeaders(response: NextResponse): NextResponse {
-  response.headers.set('X-Server-ID', SERVER_ID);
-  response.headers.set('X-Server-Uptime', String(Date.now() - STARTUP_TIME));
-  
+  response.headers.set("X-Server-ID", SERVER_ID);
+  response.headers.set("X-Server-Uptime", String(Date.now() - STARTUP_TIME));
+
   return response;
 }
 
@@ -251,9 +251,9 @@ export function shouldHandleRequest(): boolean {
   // Check if server is overloaded
   const memUsage = process.memoryUsage();
   const memoryOverload = memUsage.heapUsed / memUsage.heapTotal > 0.95;
-  
+
   if (memoryOverload) {
-    log.warn('Server overloaded, rejecting request', {
+    log.warn("Server overloaded, rejecting request", {
       memoryPercentage: (memUsage.heapUsed / memUsage.heapTotal) * 100,
     });
     return false;
@@ -281,12 +281,12 @@ export function parseAffinityCookie(cookie: string): {
   timestamp: number;
 } | null {
   try {
-    const parts = cookie.split('-');
+    const parts = cookie.split("-");
     if (parts.length !== 2) return null;
-    
+
     const [serverId, timestampStr] = parts;
     if (!serverId || !timestampStr) return null;
-    
+
     return {
       serverId,
       timestamp: parseInt(timestampStr, 10),
@@ -300,14 +300,14 @@ export function parseAffinityCookie(cookie: string): {
  * Check if request should be handled by this server (for session affinity)
  */
 export function isAffinityMatch(req: NextRequest): boolean {
-  const cookie = req.cookies.get('server-affinity')?.value;
-  
+  const cookie = req.cookies.get("server-affinity")?.value;
+
   if (!cookie) {
     return true; // No affinity set, handle request
   }
 
   const affinity = parseAffinityCookie(cookie);
-  
+
   if (!affinity) {
     return true; // Invalid cookie, handle request
   }
@@ -321,9 +321,9 @@ export function isAffinityMatch(req: NextRequest): boolean {
 
 export const loadBalancerConfig = {
   // Health check endpoints
-  healthEndpoint: '/api/health',
-  readinessEndpoint: '/api/ready',
-  livenessEndpoint: '/api/alive',
+  healthEndpoint: "/api/health",
+  readinessEndpoint: "/api/ready",
+  livenessEndpoint: "/api/alive",
 
   // Health check intervals
   healthCheckInterval: 30, // seconds
@@ -335,7 +335,7 @@ export const loadBalancerConfig = {
 
   // Session affinity
   sessionAffinityEnabled: true,
-  affinityCookieName: 'server-affinity',
+  affinityCookieName: "server-affinity",
   affinityCookieMaxAge: 3600, // 1 hour
 
   // Load balancing algorithm suggestions
@@ -343,7 +343,7 @@ export const loadBalancerConfig = {
   // - Least Connections: Better for long-running requests
   // - IP Hash: Natural session affinity
   // - Weighted: For servers with different capacities
-  recommendedAlgorithm: 'least-connections',
+  recommendedAlgorithm: "least-connections",
 
   // Circuit breaker thresholds
   maxErrorRate: 10, // percentage

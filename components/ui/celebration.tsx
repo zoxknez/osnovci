@@ -10,7 +10,11 @@ interface CelebrationProps {
   onComplete?: () => void;
 }
 
-export function Celebration({ trigger, duration = 5000, onComplete }: CelebrationProps) {
+export function Celebration({
+  trigger,
+  duration = 5000,
+  onComplete,
+}: CelebrationProps) {
   const { width, height } = useWindowSize();
   const [isActive, setIsActive] = useState(false);
 

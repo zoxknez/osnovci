@@ -3,11 +3,11 @@
  * Optimizovano sa error handling i SSR support
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T
+  initialValue: T,
 ): [T, (value: T | ((val: T) => T)) => void, () => void] {
   // State to store our value
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -32,7 +32,7 @@ export function useLocalStorage<T>(
         const valueToStore =
           value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
-        
+
         if (typeof window !== "undefined") {
           window.localStorage.setItem(key, JSON.stringify(valueToStore));
         }
@@ -40,7 +40,7 @@ export function useLocalStorage<T>(
         console.error(`Error setting localStorage key "${key}":`, error);
       }
     },
-    [key, storedValue]
+    [key, storedValue],
   );
 
   const removeValue = useCallback(() => {
@@ -56,4 +56,3 @@ export function useLocalStorage<T>(
 
   return [storedValue, setValue, removeValue];
 }
-

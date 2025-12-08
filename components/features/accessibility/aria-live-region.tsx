@@ -57,9 +57,6 @@ export function useAriaAnnouncer() {
 
   return {
     announce,
-    AriaLiveRegion: (
-      <AriaLiveRegion message={message} priority={priority} />
-    ),
+    AriaLiveRegion: <AriaLiveRegion message={message} priority={priority} />,
   };
 }
-

@@ -6,44 +6,44 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  BookMarked,
   BookOpen,
-  Plus,
-  Minus,
-  Play,
-  Pause,
   CheckCircle,
   Clock,
-  Trophy,
-  Star,
-  BookMarked,
   Loader2,
+  Minus,
+  Pause,
+  Play,
+  Plus,
+  Star,
+  Trophy,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 interface Book {
@@ -140,7 +140,7 @@ export function ReadingTracker({
     if (allSessions.length === 0) return 0;
 
     const sortedSessions = [...allSessions].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
 
     let streak = 0;
@@ -152,7 +152,7 @@ export function ReadingTracker({
       sessionDate.setHours(0, 0, 0, 0);
 
       const diffDays = Math.floor(
-        (currentDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24)
+        (currentDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24),
       );
 
       if (diffDays === 0 || diffDays === 1) {
@@ -181,7 +181,9 @@ export function ReadingTracker({
       currentPage: 0,
       startDate: new Date(),
       isCompleted: false,
-      coverColor: BOOK_COLORS[Math.floor(Math.random() * BOOK_COLORS.length)] ?? "bg-blue-500",
+      coverColor:
+        BOOK_COLORS[Math.floor(Math.random() * BOOK_COLORS.length)] ??
+        "bg-blue-500",
       xpEarned: 0,
     };
 
@@ -225,7 +227,7 @@ export function ReadingTracker({
     // Calculate XP
     let xpEarned = pagesRead * XP_PER_PAGE;
     const isCompleted = endPage >= book.totalPages;
-    
+
     // Check if this is first reading today for daily bonus
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -237,12 +239,16 @@ export function ReadingTracker({
 
     if (!hasReadToday) {
       xpEarned += XP_DAILY_READING_BONUS;
-      toast.success(`🌟 +${XP_DAILY_READING_BONUS} XP bonus za dnevno čitanje!`);
+      toast.success(
+        `🌟 +${XP_DAILY_READING_BONUS} XP bonus za dnevno čitanje!`,
+      );
     }
 
     if (isCompleted) {
       xpEarned += XP_BOOK_COMPLETION_BONUS;
-      toast.success(`🏆 +${XP_BOOK_COMPLETION_BONUS} XP bonus za završenu knjigu!`);
+      toast.success(
+        `🏆 +${XP_BOOK_COMPLETION_BONUS} XP bonus za završenu knjigu!`,
+      );
     }
 
     // Create session
@@ -260,17 +266,18 @@ export function ReadingTracker({
 
     // Update book
     setBooks((prev) =>
-      prev.map((b): Book =>
-        b.id === book.id
-          ? {
-              ...b,
-              currentPage: endPage,
-              isCompleted,
-              endDate: isCompleted ? new Date() : b.endDate,
-              xpEarned: b.xpEarned + xpEarned,
-            }
-          : b
-      )
+      prev.map(
+        (b): Book =>
+          b.id === book.id
+            ? {
+                ...b,
+                currentPage: endPage,
+                isCompleted,
+                endDate: isCompleted ? new Date() : b.endDate,
+                xpEarned: b.xpEarned + xpEarned,
+              }
+            : b,
+      ),
     );
 
     // Notify parent about XP
@@ -279,9 +286,9 @@ export function ReadingTracker({
     }
 
     setActiveSession(null);
-    
+
     toast.success(
-      `✅ Sesija završena! Pročitano ${pagesRead} stranica, zarađeno ${xpEarned} XP`
+      `✅ Sesija završena! Pročitano ${pagesRead} stranica, zarađeno ${xpEarned} XP`,
     );
   };
 
@@ -290,8 +297,11 @@ export function ReadingTracker({
     setBooks((prev) =>
       prev.map((book): Book => {
         if (book.id !== bookId) return book;
-        
-        const newPage = Math.max(0, Math.min(book.totalPages, book.currentPage + delta));
+
+        const newPage = Math.max(
+          0,
+          Math.min(book.totalPages, book.currentPage + delta),
+        );
         const isCompleted = newPage >= book.totalPages;
 
         return {
@@ -300,7 +310,7 @@ export function ReadingTracker({
           isCompleted,
           endDate: isCompleted ? new Date() : book.endDate,
         };
-      })
+      }),
     );
   };
 
@@ -380,7 +390,8 @@ export function ReadingTracker({
                       placeholder={`Veće od ${activeSession.startPage}`}
                       min={activeSession.startPage + 1}
                       max={
-                        books.find((b) => b.id === activeSession.bookId)?.totalPages
+                        books.find((b) => b.id === activeSession.bookId)
+                          ?.totalPages
                       }
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -392,7 +403,7 @@ export function ReadingTracker({
                     <Button
                       onClick={() => {
                         const input = document.querySelector(
-                          'input[type="number"]'
+                          'input[type="number"]',
                         ) as HTMLInputElement;
                         if (input) {
                           endReading(parseInt(input.value));
@@ -468,11 +479,16 @@ export function ReadingTracker({
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddingBook(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddingBook(false)}
+                >
                   Otkaži
                 </Button>
                 <Button onClick={handleAddBook} disabled={isLoading}>
-                  {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {isLoading && (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  )}
                   Dodaj
                 </Button>
               </DialogFooter>
@@ -500,18 +516,23 @@ export function ReadingTracker({
                 <Card
                   className={cn(
                     "relative overflow-hidden",
-                    book.isCompleted && "border-green-500"
+                    book.isCompleted && "border-green-500",
                   )}
                 >
                   {/* Book spine color */}
                   <div
-                    className={cn("absolute left-0 top-0 bottom-0 w-2", book.coverColor)}
+                    className={cn(
+                      "absolute left-0 top-0 bottom-0 w-2",
+                      book.coverColor,
+                    )}
                   />
 
                   <CardHeader className="pl-6">
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-base">{book.title}</CardTitle>
+                        <CardTitle className="text-base">
+                          {book.title}
+                        </CardTitle>
                         <CardDescription>{book.author}</CardDescription>
                       </div>
                       {book.isCompleted && (
@@ -579,10 +600,15 @@ export function ReadingTracker({
                       <Button
                         className="w-full gap-2"
                         variant={
-                          activeSession?.bookId === book.id ? "destructive" : "default"
+                          activeSession?.bookId === book.id
+                            ? "destructive"
+                            : "default"
                         }
                         onClick={() => startReading(book)}
-                        disabled={activeSession !== null && activeSession.bookId !== book.id}
+                        disabled={
+                          activeSession !== null &&
+                          activeSession.bookId !== book.id
+                        }
                       >
                         {activeSession?.bookId === book.id ? (
                           <>

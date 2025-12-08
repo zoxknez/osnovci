@@ -1,7 +1,7 @@
 /**
  * Flagged Content Notification Email Template
  */
-import { createBaseTemplate, type EmailTemplate } from './base';
+import { createBaseTemplate, type EmailTemplate } from "./base";
 
 export function createFlaggedContentTemplate(
   fileName: string,
@@ -10,7 +10,7 @@ export function createFlaggedContentTemplate(
 ): EmailTemplate {
   const reasonsList = reasons
     .map((r) => `<li style="margin: 8px 0;">${escapeHtml(r)}</li>`)
-    .join('');
+    .join("");
 
   const content = `
     <p>Poštovani/a roditelju/staratelju,</p>
@@ -34,8 +34,8 @@ export function createFlaggedContentTemplate(
     <p>S poštovanjem,<br><strong>Tim Osnovci</strong></p>
   `;
 
-  const html = createBaseTemplate(content, '⚠️ Upozorenje o sadržaju');
-  
+  const html = createBaseTemplate(content, "⚠️ Upozorenje o sadržaju");
+
   const text = `
 Upozorenje o sadržaju
 
@@ -46,7 +46,7 @@ Vaše dete ${studentName} je pokušalo da upload-uje sliku koja je označena kao
 ⚠️ Fajl: ${fileName}
 
 Razlozi:
-${reasons.map((r) => `- ${r}`).join('\n')}
+${reasons.map((r) => `- ${r}`).join("\n")}
 
 Molimo vas da razmotrite razgovor sa svojim detetom o sigurnosti na internetu.
 
@@ -60,7 +60,7 @@ Osnovci - Aplikacija za Učenike i Roditelje
   `.trim();
 
   return {
-    subject: '⚠️ Upozorenje o sadržaju - Osnovci',
+    subject: "⚠️ Upozorenje o sadržaju - Osnovci",
     html,
     text,
   };
@@ -68,12 +68,11 @@ Osnovci - Aplikacija za Učenike i Roditelje
 
 function escapeHtml(text: string): string {
   const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   };
   return text.replace(/[&<>"']/g, (m) => map[m] ?? m);
 }
-

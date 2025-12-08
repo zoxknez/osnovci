@@ -27,21 +27,17 @@ export async function submitErrorFeedbackAction(data: FeedbackInput) {
     });
 
     // Send to Sentry
-    captureMessage(
-      `User feedback: ${validated.feedback}`,
-      "info",
-      {
-        tags: {
-          type: "error_feedback",
-        },
-        extra: {
-          error: validated.error,
-          stack: validated.stack,
-          url: validated.url,
-          timestamp: validated.timestamp,
-        },
-      }
-    );
+    captureMessage(`User feedback: ${validated.feedback}`, "info", {
+      tags: {
+        type: "error_feedback",
+      },
+      extra: {
+        error: validated.error,
+        stack: validated.stack,
+        url: validated.url,
+        timestamp: validated.timestamp,
+      },
+    });
 
     return { success: true };
   } catch (error) {

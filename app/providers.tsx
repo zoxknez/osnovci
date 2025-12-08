@@ -8,12 +8,12 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider } from "@/components/theme-provider";
-import { CsrfProvider } from "@/lib/security/csrf-provider";
+import { ReducedMotionProvider } from "@/components/features/accessibility/reduced-motion";
 import { ShortcutsProvider } from "@/components/providers/shortcuts-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AdvancedErrorBoundary } from "@/components/ui/advanced-error-boundary";
 import { useWebVitals } from "@/lib/performance/monitoring";
-import { ReducedMotionProvider } from "@/components/features/accessibility/reduced-motion";
+import { CsrfProvider } from "@/lib/security/csrf-provider";
 
 /**
  * Create QueryClient with default options
@@ -95,11 +95,9 @@ export function Providers({
             <ShortcutsProvider>
               {/* Performance monitoring */}
               <PerformanceMonitor />
-              
+
               {/* Reduced motion support */}
-              <ReducedMotionProvider>
-                {children}
-              </ReducedMotionProvider>
+              <ReducedMotionProvider>{children}</ReducedMotionProvider>
             </ShortcutsProvider>
           </CsrfProvider>
         </ThemeProvider>

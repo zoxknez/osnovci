@@ -1,11 +1,11 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   createKnowledgeResourceAction,
   deleteKnowledgeResourceAction,
   getKnowledgeResourcesAction,
   togglePinKnowledgeResourceAction,
 } from "@/app/actions/knowledge";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 export type ResourceType = "NOTE" | "IMAGE" | "LINK" | "PDF";
 
@@ -33,7 +33,7 @@ export function useKnowledge(subjectId?: string, type?: ResourceType) {
     queryFn: async () => {
       const res = await getKnowledgeResourcesAction(
         subjectId === "all" ? undefined : subjectId,
-        (type as string) === "all" ? undefined : type
+        (type as string) === "all" ? undefined : type,
       );
       if (res.error) throw new Error(res.error);
       return res.data as KnowledgeResource[];

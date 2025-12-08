@@ -205,12 +205,7 @@ img.responsive {
 
 /* Skeleton with better performance */
 .skeleton-optimized {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
-  );
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: skeleton-load 1.5s ease-in-out infinite;
   will-change: background-position;
@@ -361,12 +356,7 @@ img.responsive {
 /* Dark mode optimizations */
 @media (prefers-color-scheme: dark) {
   .skeleton-optimized {
-    background: linear-gradient(
-      90deg,
-      #2a2a2a 25%,
-      #3a3a3a 50%,
-      #2a2a2a 75%
-    );
+    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
   }
 
   .bottom-sheet {
@@ -425,4 +415,3 @@ img.responsive {
 
 /* Debug paint flashing (remove in production) */
 /* * { outline: 1px solid red !important; } */
-

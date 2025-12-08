@@ -1,8 +1,8 @@
 // Advanced Error Boundary - With Recovery & Logging
 "use client";
 
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import { Component, type ReactNode } from "react";
-import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { log } from "@/lib/logger";
@@ -60,7 +60,9 @@ export class AdvancedErrorBoundary extends Component<Props, State> {
     if (
       this.props.resetKeys &&
       prevProps.resetKeys &&
-      this.props.resetKeys.some((key, index) => key !== prevProps.resetKeys?.[index])
+      this.props.resetKeys.some(
+        (key, index) => key !== prevProps.resetKeys?.[index],
+      )
     ) {
       this.resetErrorBoundary();
     }
@@ -107,7 +109,8 @@ export class AdvancedErrorBoundary extends Component<Props, State> {
 
             <CardContent className="space-y-4">
               <p className="text-center text-gray-600">
-                Ne brini, ovo nije tvoja greška! Pokušaćemo da popravimo problem.
+                Ne brini, ovo nije tvoja greška! Pokušaćemo da popravimo
+                problem.
               </p>
 
               {/* Error details for debugging (collapsible) */}
@@ -167,7 +170,8 @@ export class AdvancedErrorBoundary extends Component<Props, State> {
               {!isRecoverable && (
                 <div className="bg-orange-100 border-l-4 border-orange-500 p-4 rounded">
                   <p className="text-sm text-orange-700">
-                    ⚠️ Problem se ponavlja. Preporučujemo osvežavanje stranice ili kontaktiranje podrške.
+                    ⚠️ Problem se ponavlja. Preporučujemo osvežavanje stranice
+                    ili kontaktiranje podrške.
                   </p>
                 </div>
               )}
@@ -194,7 +198,7 @@ export function withErrorBoundary<P extends object>(
     if (onError) {
       boundaryProps.onError = onError;
     }
-    
+
     return (
       <AdvancedErrorBoundary {...boundaryProps}>
         <Component {...props} />

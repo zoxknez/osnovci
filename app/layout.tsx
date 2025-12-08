@@ -44,8 +44,10 @@ export const metadata: Metadata = {
   authors: [{ name: "Osnovci Tim" }],
   creator: "Osnovci",
   metadataBase: new URL(
-    process.env["NEXTAUTH_URL"] || 
-    (process.env['VERCEL_URL'] ? `https://${process.env['VERCEL_URL']}` : "http://localhost:3000")
+    process.env["NEXTAUTH_URL"] ||
+      (process.env["VERCEL_URL"]
+        ? `https://${process.env["VERCEL_URL"]}`
+        : "http://localhost:3000"),
   ),
   manifest: "/manifest.json",
   appleWebApp: {
@@ -89,10 +91,10 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { getNonce } from "@/lib/security/csp";
-import { Providers } from "./providers";
 import { SkipToContent } from "@/components/features/accessibility/skip-to-content";
 import { ConnectionStatus } from "@/components/features/performance/connection-status";
+import { getNonce } from "@/lib/security/csp";
+import { Providers } from "./providers";
 
 export default async function RootLayout({
   children,
@@ -121,9 +123,16 @@ export default async function RootLayout({
         {/* DNS Prefetch & Preconnect for critical resources */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://vercel.app" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+          crossOrigin="anonymous"
+        />
         {/* Performance hints */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
       </head>
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 transition-colors duration-300`}
@@ -133,7 +142,9 @@ export default async function RootLayout({
             {/* Skip to Content - Accessibility */}
             <SkipToContent />
             {/* Main Content */}
-            <main id="main-content" tabIndex={-1}>{children}</main>
+            <main id="main-content" tabIndex={-1}>
+              {children}
+            </main>
 
             {/* Toast Notifications */}
             <Toaster position="top-center" />

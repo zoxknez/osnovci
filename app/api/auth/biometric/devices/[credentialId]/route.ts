@@ -14,6 +14,7 @@ import { NextResponse } from "next/server";
 type RouteContext = {
   params: Promise<{ credentialId: string }>;
 };
+
 import {
   deleteBiometricCredential,
   getUserBiometricCredentials,
@@ -21,10 +22,7 @@ import {
 import { auth } from "@/lib/auth/config";
 import { log } from "@/lib/logger";
 
-export async function DELETE(
-  _request: Request,
-  context: RouteContext,
-) {
+export async function DELETE(_request: Request, context: RouteContext) {
   try {
     // Check authentication
     const session = await auth();

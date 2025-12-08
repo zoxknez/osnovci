@@ -5,8 +5,8 @@
 
 "use client";
 
-import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { getChildFriendlyError } from "@/lib/utils/child-friendly-errors";
 
 interface ErrorToastOptions {
@@ -19,26 +19,28 @@ interface ErrorToastOptions {
 /**
  * Show user-friendly error toast with retry option
  */
-export function showErrorToast({ 
-  error, 
-  retry, 
+export function showErrorToast({
+  error,
+  retry,
   dismissible = true,
-  duration = 5000 
+  duration = 5000,
 }: ErrorToastOptions) {
   const errorMessage = error instanceof Error ? error.message : error;
-  
+
   // Try to get child-friendly error message
   let friendlyError;
   try {
     // Extract error code if available
-    const errorCode = error instanceof Error && 'code' in error 
-      ? (error as any).code 
-      : errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch')
-        ? 'network_error'
-        : errorMessage.toLowerCase().includes('timeout')
-          ? 'timeout'
-          : '500';
-    
+    const errorCode =
+      error instanceof Error && "code" in error
+        ? (error as any).code
+        : errorMessage.toLowerCase().includes("network") ||
+            errorMessage.toLowerCase().includes("fetch")
+          ? "network_error"
+          : errorMessage.toLowerCase().includes("timeout")
+            ? "timeout"
+            : "500";
+
     friendlyError = getChildFriendlyError(errorCode, errorMessage);
   } catch {
     friendlyError = {
@@ -54,23 +56,27 @@ export function showErrorToast({
     description: friendlyError.message,
     duration: duration,
     icon: <AlertCircle className="h-5 w-5" />,
-    action: retry ? {
-      label: "Pokušaj ponovo",
-      onClick: async () => {
-        try {
-          await retry();
-          toast.success("Uspešno!", {
-            description: "Akcija je ponovljena.",
-          });
-        } catch (err) {
-          showErrorToast({ error: err as Error, retry });
+    action: retry
+      ? {
+          label: "Pokušaj ponovo",
+          onClick: async () => {
+            try {
+              await retry();
+              toast.success("Uspešno!", {
+                description: "Akcija je ponovljena.",
+              });
+            } catch (err) {
+              showErrorToast({ error: err as Error, retry });
+            }
+          },
         }
-      },
-    } : undefined,
-    cancel: dismissible ? {
-      label: "Zatvori",
-      onClick: () => toast.dismiss(toastId),
-    } : undefined,
+      : undefined,
+    cancel: dismissible
+      ? {
+          label: "Zatvori",
+          onClick: () => toast.dismiss(toastId),
+        }
+      : undefined,
   });
 
   return toastId;
@@ -85,15 +91,17 @@ export function showSuccessToast(
   action?: {
     label: string;
     onClick: () => void;
-  }
+  },
 ) {
   return toast.success(title, {
     description,
     duration: 3000,
-    action: action ? {
-      label: action.label,
-      onClick: action.onClick,
-    } : undefined,
+    action: action
+      ? {
+          label: action.label,
+          onClick: action.onClick,
+        }
+      : undefined,
   });
 }
 
@@ -113,7 +121,7 @@ export function updateToast(
   toastId: string | number,
   type: "success" | "error",
   message: string,
-  description?: string
+  description?: string,
 ) {
   if (type === "success") {
     toast.success(message, {
@@ -129,4 +137,3 @@ export function updateToast(
     });
   }
 }
-

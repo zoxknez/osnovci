@@ -3,8 +3,8 @@
  * Weekly digest emails, behavioral alerts, engagement scoring
  */
 
+import { differenceInDays, endOfWeek, startOfWeek, subWeeks } from "date-fns";
 import { prisma } from "@/lib/db/prisma";
-import { startOfWeek, endOfWeek, subWeeks, differenceInDays } from "date-fns";
 
 /**
  * Calculate Student Engagement Score (0-100)
@@ -13,7 +13,7 @@ import { startOfWeek, endOfWeek, subWeeks, differenceInDays } from "date-fns";
 export async function calculateEngagementScore(
   studentId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<{
   score: number;
   level: "low" | "medium" | "high";
@@ -41,9 +41,8 @@ export async function calculateEngagementScore(
     },
   });
 
-  const homeworkCompletionScore = homework._count.id > 0 
-    ? (completedHomework / homework._count.id) * 30 
-    : 0;
+  const homeworkCompletionScore =
+    homework._count.id > 0 ? (completedHomework / homework._count.id) * 30 : 0;
 
   // Login frequency (0-25 points) - daily logins are best
   const activityLogs = await prisma.activityLog.groupBy({
@@ -56,10 +55,13 @@ export async function calculateEngagementScore(
 
   const daysBetween = differenceInDays(endDate, startDate);
   const uniqueDays = new Set(
-    activityLogs.map((log: { createdAt: Date }) => log.createdAt.toISOString().split('T')[0])
+    activityLogs.map(
+      (log: { createdAt: Date }) => log.createdAt.toISOString().split("T")[0],
+    ),
   ).size;
 
-  const loginFrequencyScore = daysBetween > 0 ? (uniqueDays / daysBetween) * 25 : 0;
+  const loginFrequencyScore =
+    daysBetween > 0 ? (uniqueDays / daysBetween) * 25 : 0;
 
   // Time spent (0-25 points) - based on activity frequency
   const totalActivities = await prisma.activityLog.count({
@@ -90,24 +92,27 @@ export async function calculateEngagementScore(
     const values = grades
       .map((g) => parseInt(g.grade, 10))
       .filter((v) => !isNaN(v));
-    
+
     if (values.length >= 3) {
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
-      const variance = values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length;
+      const variance =
+        values.reduce((sum, val) => sum + (val - avg) ** 2, 0) / values.length;
       const stdDev = Math.sqrt(variance);
-      
+
       // Lower standard deviation = higher consistency
-      gradeConsistencyScore = Math.max(20 - (stdDev * 5), 0);
+      gradeConsistencyScore = Math.max(20 - stdDev * 5, 0);
     }
   }
 
   const totalScore = Math.round(
-    homeworkCompletionScore + loginFrequencyScore + timeSpentScore + gradeConsistencyScore
+    homeworkCompletionScore +
+      loginFrequencyScore +
+      timeSpentScore +
+      gradeConsistencyScore,
   );
 
-  const level: "low" | "medium" | "high" = 
-    totalScore >= 75 ? "high" :
-    totalScore >= 50 ? "medium" : "low";
+  const level: "low" | "medium" | "high" =
+    totalScore >= 75 ? "high" : totalScore >= 50 ? "medium" : "low";
 
   return {
     score: totalScore,
@@ -125,16 +130,24 @@ export async function calculateEngagementScore(
  * Behavioral Alert Detection
  * Triggers: missed deadlines, grade drops, attendance issues
  */
-export async function detectBehavioralAlerts(
-  studentId: string
-): Promise<Array<{
-  type: "missing_deadlines" | "grade_drop" | "low_engagement" | "excessive_time";
-  severity: "info" | "warning" | "critical";
-  message: string;
-  actionable: string;
-}>> {
+export async function detectBehavioralAlerts(studentId: string): Promise<
+  Array<{
+    type:
+      | "missing_deadlines"
+      | "grade_drop"
+      | "low_engagement"
+      | "excessive_time";
+    severity: "info" | "warning" | "critical";
+    message: string;
+    actionable: string;
+  }>
+> {
   const alerts: Array<{
-    type: "missing_deadlines" | "grade_drop" | "low_engagement" | "excessive_time";
+    type:
+      | "missing_deadlines"
+      | "grade_drop"
+      | "low_engagement"
+      | "excessive_time";
     severity: "info" | "warning" | "critical";
     message: string;
     actionable: string;
@@ -187,14 +200,20 @@ export async function detectBehavioralAlerts(
   });
 
   // Calculate averages manually
-  const recentValues = recentGradesRaw.map((g) => parseInt(g.grade, 10)).filter((v) => !isNaN(v));
-  const previousValues = previousGradesRaw.map((g) => parseInt(g.grade, 10)).filter((v) => !isNaN(v));
+  const recentValues = recentGradesRaw
+    .map((g) => parseInt(g.grade, 10))
+    .filter((v) => !isNaN(v));
+  const previousValues = previousGradesRaw
+    .map((g) => parseInt(g.grade, 10))
+    .filter((v) => !isNaN(v));
 
   if (recentValues.length > 0 && previousValues.length > 0) {
-    const recentAvg = recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
-    const previousAvg = previousValues.reduce((a, b) => a + b, 0) / previousValues.length;
+    const recentAvg =
+      recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
+    const previousAvg =
+      previousValues.reduce((a, b) => a + b, 0) / previousValues.length;
     const drop = previousAvg - recentAvg;
-    
+
     if (drop >= 1) {
       alerts.push({
         type: "grade_drop",
@@ -245,7 +264,7 @@ export async function detectBehavioralAlerts(
 export async function getTimeOnDeviceAnalytics(
   studentId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<{
   totalMinutes: number;
   byActivity: Array<{
@@ -309,22 +328,24 @@ export async function getTimeOnDeviceAnalytics(
     byTimeOfDay,
     longestSession: null, // TODO: Calculate from consecutive activity timestamps
   };
-}/**
+} /**
  * Subject Focus Report
  * Which subjects are getting most/least attention
  */
 export async function getSubjectFocusReport(
   studentId: string,
   startDate: Date,
-  endDate: Date
-): Promise<Array<{
-  subjectId: string;
-  subjectName: string;
-  homeworkCount: number;
-  homeworkMinutes: number;
-  gradeCount: number;
-  attentionLevel: "low" | "medium" | "high";
-}>> {
+  endDate: Date,
+): Promise<
+  Array<{
+    subjectId: string;
+    subjectName: string;
+    homeworkCount: number;
+    homeworkMinutes: number;
+    gradeCount: number;
+    attentionLevel: "low" | "medium" | "high";
+  }>
+> {
   const subjects = await prisma.subject.findMany({
     where: {
       OR: [
@@ -350,34 +371,36 @@ export async function getSubjectFocusReport(
 
   // Calculate attention metrics
   const subjectData = await Promise.all(
-    subjects.map(async (subject: {
-      id: string;
-      name: string;
-      homework: Array<{ id: string }>;
-      grades: Array<{ id: string }>;
-    }) => {
-      // Estimate time: ~15 min per homework
-      const homeworkMinutes = subject.homework.length * 15;
+    subjects.map(
+      async (subject: {
+        id: string;
+        name: string;
+        homework: Array<{ id: string }>;
+        grades: Array<{ id: string }>;
+      }) => {
+        // Estimate time: ~15 min per homework
+        const homeworkMinutes = subject.homework.length * 15;
 
-      // Determine attention level based on homework frequency
-      let attentionLevel: "low" | "medium" | "high";
-      if (subject.homework.length >= 5) {
-        attentionLevel = "high";
-      } else if (subject.homework.length >= 2) {
-        attentionLevel = "medium";
-      } else {
-        attentionLevel = "low";
-      }
+        // Determine attention level based on homework frequency
+        let attentionLevel: "low" | "medium" | "high";
+        if (subject.homework.length >= 5) {
+          attentionLevel = "high";
+        } else if (subject.homework.length >= 2) {
+          attentionLevel = "medium";
+        } else {
+          attentionLevel = "low";
+        }
 
-      return {
-        subjectId: subject.id,
-        subjectName: subject.name,
-        homeworkCount: subject.homework.length,
-        homeworkMinutes,
-        gradeCount: subject.grades.length,
-        attentionLevel,
-      };
-    })
+        return {
+          subjectId: subject.id,
+          subjectName: subject.name,
+          homeworkCount: subject.homework.length,
+          homeworkMinutes,
+          gradeCount: subject.grades.length,
+          attentionLevel,
+        };
+      },
+    ),
   );
 
   return subjectData.sort((a, b) => b.homeworkMinutes - a.homeworkMinutes);
@@ -389,7 +412,7 @@ export async function getSubjectFocusReport(
  */
 export async function getHomeworkCompletionTrend(
   studentId: string,
-  weeks: number = 4
+  weeks: number = 4,
 ): Promise<{
   weeklyRates: Array<{
     weekStart: Date;
@@ -442,7 +465,7 @@ export async function getHomeworkCompletionTrend(
   }
 
   // Calculate trend (linear regression on rates)
-  const rates = weeklyData.map(w => w.rate);
+  const rates = weeklyData.map((w) => w.rate);
   if (rates.length < 2) {
     return {
       weeklyRates: weeklyData.reverse(),
@@ -453,14 +476,13 @@ export async function getHomeworkCompletionTrend(
 
   const firstHalf = rates.slice(0, Math.ceil(rates.length / 2));
   const secondHalf = rates.slice(Math.ceil(rates.length / 2));
-  
+
   const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
   const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
 
   const trendValue = secondAvg - firstAvg;
-  const trend: "improving" | "declining" | "stable" = 
-    trendValue > 5 ? "improving" :
-    trendValue < -5 ? "declining" : "stable";
+  const trend: "improving" | "declining" | "stable" =
+    trendValue > 5 ? "improving" : trendValue < -5 ? "declining" : "stable";
 
   return {
     weeklyRates: weeklyData.reverse(),

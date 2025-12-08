@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  FullProfile, 
-  UpdateProfileInput 
-} from "@/lib/api/schemas/profile";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getProfileAction, updateProfileAction } from "@/app/actions/profile";
+import type {
+  FullProfile,
+  UpdateProfileInput,
+} from "@/lib/api/schemas/profile";
 
 // Keys for React Query
 export const profileKeys = {

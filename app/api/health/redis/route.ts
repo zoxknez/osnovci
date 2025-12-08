@@ -6,8 +6,12 @@
  */
 
 import { NextResponse } from "next/server";
-import { getRedisHealth, checkRedisHealth, isRedisConfigured } from "@/lib/upstash";
 import { log } from "@/lib/logger";
+import {
+  checkRedisHealth,
+  getRedisHealth,
+  isRedisConfigured,
+} from "@/lib/upstash";
 
 export async function GET() {
   try {
@@ -19,7 +23,7 @@ export async function GET() {
           message: "Redis is not configured - using in-memory fallback",
           configured: false,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -44,7 +48,7 @@ export async function GET() {
           consecutiveFailures: status.consecutiveFailures,
         },
       },
-      { status: isHealthy ? 200 : 503 }
+      { status: isHealthy ? 200 : 503 },
     );
   } catch (error) {
     log.error("Redis health check failed", error);
@@ -54,7 +58,7 @@ export async function GET() {
         message: "Health check failed",
         configured: true,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

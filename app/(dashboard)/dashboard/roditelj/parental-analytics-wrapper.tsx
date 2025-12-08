@@ -3,7 +3,10 @@
 import dynamic from "next/dynamic";
 
 const ParentalAnalytics = dynamic(
-  () => import("@/components/reports/parental-analytics").then((mod) => mod.ParentalAnalytics),
+  () =>
+    import("@/components/reports/parental-analytics").then(
+      (mod) => mod.ParentalAnalytics,
+    ),
   {
     loading: () => (
       <div className="flex items-center justify-center p-12">
@@ -11,7 +14,7 @@ const ParentalAnalytics = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 );
 
 interface ParentalAnalyticsWrapperProps {

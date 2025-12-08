@@ -1,7 +1,8 @@
 // Parental Consent Email - COPPA Compliance
-import { sendEmailWithRetry } from "./utils";
-import { createTransporter } from "./transporter";
+
 import { log } from "@/lib/logger";
+import { createTransporter } from "./transporter";
+import { sendEmailWithRetry } from "./utils";
 
 interface ParentalConsentEmailData {
   parentEmail: string;
@@ -17,10 +18,17 @@ interface ParentalConsentEmailData {
  * Required for children under 13 (COPPA compliance)
  */
 export async function sendParentalConsentEmail(
-  data: ParentalConsentEmailData
+  data: ParentalConsentEmailData,
 ): Promise<{ success: boolean; error?: string }> {
-  const { parentEmail, parentName, childName, childAge, consentToken, consentUrl } = data;
-  
+  const {
+    parentEmail,
+    parentName,
+    childName,
+    childAge,
+    consentToken,
+    consentUrl,
+  } = data;
+
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="sr">
@@ -202,7 +210,7 @@ export async function sendParentalConsentEmail(
     </body>
     </html>
   `;
-  
+
   const textContent = `
 Osnovci - Zahtev za saglasnost roditelja
 
@@ -239,7 +247,7 @@ Pitanja? Kontaktirajte nas: podrska@osnovci.rs
 
 Osnovci - Moderna aplikacija za učenike i roditelje
 `;
-  
+
   try {
     const transporter = createTransporter();
     const result = await sendEmailWithRetry(transporter, {
@@ -248,28 +256,28 @@ Osnovci - Moderna aplikacija za učenike i roditelje
       html: htmlContent,
       text: textContent,
     });
-    
+
     if (result.success) {
-      log.info("Parental consent email sent", { 
-        parentEmail, 
+      log.info("Parental consent email sent", {
+        parentEmail,
         childName,
         childAge,
       });
       return { success: true };
     } else {
-      log.error("Failed to send parental consent email", { 
+      log.error("Failed to send parental consent email", {
         error: result.error,
         parentEmail,
       });
       return { success: false, error: result.error || "Failed to send email" };
     }
   } catch (error) {
-    log.error("Error sending parental consent email", { 
+    log.error("Error sending parental consent email", {
       error,
       parentEmail,
     });
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : "Unknown error",
     };
   }
@@ -281,7 +289,7 @@ Osnovci - Moderna aplikacija za učenike i roditelje
 export async function sendConsentConfirmationEmail(
   parentEmail: string,
   parentName: string,
-  childName: string
+  childName: string,
 ): Promise<{ success: boolean }> {
   const htmlContent = `
     <!DOCTYPE html>
@@ -329,7 +337,7 @@ export async function sendConsentConfirmationEmail(
     </body>
     </html>
   `;
-  
+
   const transporter = createTransporter();
   const result = await sendEmailWithRetry(transporter, {
     to: parentEmail,
@@ -337,6 +345,6 @@ export async function sendConsentConfirmationEmail(
     html: htmlContent,
     text: `Uspešno ste dali saglasnost za korišćenje Osnovci aplikacije. Dete ${childName} sada može koristiti aplikaciju.`,
   });
-  
+
   return { success: result.success };
 }

@@ -3,6 +3,7 @@
 
 import { AlertTriangle, Home, Mail } from "lucide-react";
 import Link from "next/link";
+import { resendMyConsentEmailAction } from "@/app/actions/parental-consent";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { resendMyConsentEmailAction } from "@/app/actions/parental-consent";
 
 export default function ConsentRequiredPage() {
   return (
@@ -56,7 +56,7 @@ export default function ConsentRequiredPage() {
                   } else {
                     alert(
                       response.error ||
-                        "Greška pri slanju emaila. Pokušaj ponovo."
+                        "Greška pri slanju emaila. Pokušaj ponovo.",
                     );
                   }
                 } catch {

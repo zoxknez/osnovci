@@ -1,5 +1,13 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Settings } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  getShiftSettingsAction,
+  updateShiftSettingsAction,
+} from "@/app/actions/settings";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,14 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Settings } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { getShiftSettingsAction, updateShiftSettingsAction } from "@/app/actions/settings";
 
 // Simple Switch Component
-function Switch({ checked, onCheckedChange, id }: { checked: boolean; onCheckedChange: (c: boolean) => void; id?: string }) {
+function Switch({
+  checked,
+  onCheckedChange,
+  id,
+}: {
+  checked: boolean;
+  onCheckedChange: (c: boolean) => void;
+  id?: string;
+}) {
   return (
     <button
       id={id}
@@ -50,7 +61,9 @@ function Switch({ checked, onCheckedChange, id }: { checked: boolean; onCheckedC
 export function ShiftSettingsDialog() {
   const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(false);
-  const [referenceDate, setReferenceDate] = useState<string>(new Date().toISOString().split('T')[0] || "");
+  const [referenceDate, setReferenceDate] = useState<string>(
+    new Date().toISOString().split("T")[0] || "",
+  );
   const [referenceType, setReferenceType] = useState<"A" | "B">("A");
 
   const queryClient = useQueryClient();
@@ -68,7 +81,9 @@ export function ShiftSettingsDialog() {
     if (settings) {
       setEnabled(settings.shiftSystemEnabled);
       if (settings.shiftReferenceDate) {
-        const dateStr = new Date(settings.shiftReferenceDate).toISOString().split('T')[0];
+        const dateStr = new Date(settings.shiftReferenceDate)
+          .toISOString()
+          .split("T")[0];
         if (dateStr) setReferenceDate(dateStr);
       }
       if (settings.shiftReferenceType) {
@@ -114,7 +129,8 @@ export function ShiftSettingsDialog() {
         <DialogHeader>
           <DialogTitle>Podešavanje Smena</DialogTitle>
           <DialogDescription>
-            Ako tvoja škola menja smene (pre podne / popodne) svake nedelje, ovde to možeš podesiti.
+            Ako tvoja škola menja smene (pre podne / popodne) svake nedelje,
+            ovde to možeš podesiti.
           </DialogDescription>
         </DialogHeader>
 

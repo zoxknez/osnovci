@@ -17,26 +17,25 @@
  * @module components/features/conflicts/conflict-resolver
  */
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   Check,
-  X,
-  RefreshCw,
-  User,
-  Server,
-  Zap,
   FileText,
+  RefreshCw,
+  Server,
+  User,
+  X,
+  Zap,
 } from "lucide-react";
+import { useState } from "react";
 import {
-  type VersionConflictError,
-  type ConflictStrategy,
-  type ConflictResolution,
-  generateConflictReport,
-  getConflictSummary,
-  resolveConflict,
-} from "@/lib/conflicts/optimistic-locking";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -45,13 +44,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  type ConflictResolution,
+  type ConflictStrategy,
+  generateConflictReport,
+  getConflictSummary,
+  resolveConflict,
+  type VersionConflictError,
+} from "@/lib/conflicts/optimistic-locking";
 
 interface ConflictResolverProps {
   conflict: VersionConflictError;
@@ -138,7 +138,7 @@ export function ConflictResolver({
       // Check if all conflicts are resolved
       if (resolution.conflictedFields.length > 0) {
         alert(
-          `Molimo odaberite vrednost za sva polja sa konfliktom (${resolution.conflictedFields.length})`
+          `Molimo odaberite vrednost za sva polja sa konfliktom (${resolution.conflictedFields.length})`,
         );
         return;
       }
@@ -147,7 +147,7 @@ export function ConflictResolver({
         selectedStrategy,
         clientData,
         serverData,
-        conflict.diff
+        conflict.diff,
       );
     } else {
       return;
@@ -170,10 +170,12 @@ export function ConflictResolver({
               <AlertTriangle className="h-6 w-6" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-2xl">Detektovan Konflikt Promena</CardTitle>
+              <CardTitle className="text-2xl">
+                Detektovan Konflikt Promena
+              </CardTitle>
               <CardDescription className="mt-2">
-                Dok ste Vi radili offline, neko drugi je takođe promenio iste podatke.
-                Odaberite kako želite da rešite konflikt.
+                Dok ste Vi radili offline, neko drugi je takođe promenio iste
+                podatke. Odaberite kako želite da rešite konflikt.
               </CardDescription>
             </div>
           </div>
@@ -184,10 +186,14 @@ export function ConflictResolver({
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-lg border bg-muted/30 p-3">
               <div className="text-sm text-muted-foreground">Ukupno Polja</div>
-              <div className="mt-1 text-2xl font-bold">{summary.totalFields}</div>
+              <div className="mt-1 text-2xl font-bold">
+                {summary.totalFields}
+              </div>
             </div>
             <div className="rounded-lg border bg-muted/30 p-3">
-              <div className="text-sm text-muted-foreground">Polja sa Konfliktom</div>
+              <div className="text-sm text-muted-foreground">
+                Polja sa Konfliktom
+              </div>
               <div className="mt-1 text-2xl font-bold text-red-600">
                 {summary.conflictedFields}
               </div>
@@ -280,8 +286,8 @@ export function ConflictResolver({
                 <div className="flex-1">
                   <div className="font-medium">Pametno Spajanje</div>
                   <div className="mt-1 text-sm text-muted-foreground">
-                    Automatski spaja promene koje se ne sukobljavaju. Za konflikte koristi
-                    promene sa servera.
+                    Automatski spaja promene koje se ne sukobljavaju. Za
+                    konflikte koristi promene sa servera.
                   </div>
                 </div>
                 {selectedStrategy === "SMART_MERGE" && (
@@ -322,14 +328,18 @@ export function ConflictResolver({
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-3"
               >
-                <h3 className="font-semibold">Odaberite Vrednost za Svako Polje</h3>
+                <h3 className="font-semibold">
+                  Odaberite Vrednost za Svako Polje
+                </h3>
 
                 <div className="space-y-2">
                   {conflict.diff.map((diff) => (
                     <div
                       key={diff.field}
                       className={`rounded-lg border p-4 ${
-                        diff.isConflict ? "border-red-300 bg-red-50" : "border-border"
+                        diff.isConflict
+                          ? "border-red-300 bg-red-50"
+                          : "border-border"
                       }`}
                     >
                       <div className="mb-3 flex items-start justify-between">
@@ -351,7 +361,9 @@ export function ConflictResolver({
                       <div className="grid gap-2 sm:grid-cols-2">
                         {/* Client Value */}
                         <button
-                          onClick={() => handleFieldSelect(diff.field, "client")}
+                          onClick={() =>
+                            handleFieldSelect(diff.field, "client")
+                          }
                           className={`rounded-lg border-2 p-3 text-left transition-colors ${
                             manualSelections[diff.field] === "client"
                               ? "border-blue-500 bg-blue-50"
@@ -372,7 +384,9 @@ export function ConflictResolver({
 
                         {/* Server Value */}
                         <button
-                          onClick={() => handleFieldSelect(diff.field, "server")}
+                          onClick={() =>
+                            handleFieldSelect(diff.field, "server")
+                          }
                           className={`rounded-lg border-2 p-3 text-left transition-colors ${
                             manualSelections[diff.field] === "server"
                               ? "border-purple-500 bg-purple-50"

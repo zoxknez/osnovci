@@ -1,17 +1,19 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { askAiTutor } from "@/lib/ai/tutor-service";
 import { z } from "zod";
+import { askAiTutor } from "@/lib/ai/tutor-service";
+import { auth } from "@/lib/auth/config";
 
-const chatSchema = z.object({
-  subjectId: z.string().optional(),
-  query: z.string().optional(),
-  imageUrl: z.string().optional(),
-  persona: z.string().optional(),
-}).refine(data => data.query || data.imageUrl, {
-  message: "Either query or imageUrl must be provided",
-});
+const chatSchema = z
+  .object({
+    subjectId: z.string().optional(),
+    query: z.string().optional(),
+    imageUrl: z.string().optional(),
+    persona: z.string().optional(),
+  })
+  .refine((data) => data.query || data.imageUrl, {
+    message: "Either query or imageUrl must be provided",
+  });
 
 export type ActionState<T = any> = {
   success?: boolean;
@@ -19,7 +21,12 @@ export type ActionState<T = any> = {
   data?: T;
 };
 
-export async function chatWithAiAction(data: { query?: string; imageUrl?: string; subjectId?: string; persona?: string }): Promise<ActionState> {
+export async function chatWithAiAction(data: {
+  query?: string;
+  imageUrl?: string;
+  subjectId?: string;
+  persona?: string;
+}): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };

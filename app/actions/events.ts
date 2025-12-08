@@ -1,11 +1,11 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { revalidatePath } from "next/cache";
-import type { Prisma } from "@prisma/client";
 
 const createEventSchema = z.object({
   type: z.enum(["EXAM", "MEETING", "TRIP", "COMPETITION", "OTHER"]),
@@ -104,11 +104,15 @@ export async function createEventAction(data: CreateEventInput) {
         studentId: user.student.id,
         type: validated.data.type,
         title: validated.data.title,
-        ...(validated.data.description && { description: validated.data.description }),
+        ...(validated.data.description && {
+          description: validated.data.description,
+        }),
         dateTime: new Date(validated.data.dateTime),
         ...(validated.data.location && { location: validated.data.location }),
         ...(validated.data.notes && { notes: validated.data.notes }),
-        ...(validated.data.notifyAt && { notifyAt: new Date(validated.data.notifyAt) }),
+        ...(validated.data.notifyAt && {
+          notifyAt: new Date(validated.data.notifyAt),
+        }),
       },
     });
 

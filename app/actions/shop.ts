@@ -1,8 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { revalidatePath } from "next/cache";
 
 const DEFAULT_ITEMS = [
   {
@@ -187,7 +187,10 @@ export async function buyItemAction(itemId: string): Promise<ActionState> {
   }
 }
 
-export async function equipItemAction(itemId: string, equipped: boolean): Promise<ActionState> {
+export async function equipItemAction(
+  itemId: string,
+  equipped: boolean,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };

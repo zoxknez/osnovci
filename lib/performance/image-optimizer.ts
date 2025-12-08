@@ -1,6 +1,6 @@
 /**
  * Image Optimization Utilities
- * 
+ *
  * Provides client-side and server-side image optimization:
  * - Compression before upload
  * - Format conversion (WebP/AVIF)
@@ -29,7 +29,7 @@ export interface CompressionOptions {
  */
 export async function compressImage(
   file: File,
-  options: CompressionOptions = {}
+  options: CompressionOptions = {},
 ): Promise<File> {
   const defaultOptions = {
     maxSizeMB: 1, // Target 1MB
@@ -66,7 +66,7 @@ export async function compressImage(
  */
 export async function compressImages(
   files: File[],
-  options?: CompressionOptions
+  options?: CompressionOptions,
 ): Promise<File[]> {
   return Promise.all(files.map((file) => compressImage(file, options)));
 }
@@ -76,7 +76,7 @@ export async function compressImages(
  */
 export async function generateThumbnail(
   file: File,
-  size: number = 200
+  size: number = 200,
 ): Promise<File> {
   return compressImage(file, {
     maxSizeMB: 0.1, // 100KB max
@@ -135,16 +135,16 @@ export function getOptimizedImageUrl(
   _options: {
     width?: number;
     quality?: number;
-  } = {}
+  } = {},
 ): string {
   // Width and quality will be handled by Next.js Image component
   // _options parameter reserved for future custom optimization logic
-  
+
   // If external URL, return as-is (Next.js Image will handle it)
   if (src.startsWith("http://") || src.startsWith("https://")) {
     return src;
   }
-  
+
   // For local images, Next.js will optimize via /_next/image
   return src;
 }
@@ -154,7 +154,7 @@ export function getOptimizedImageUrl(
  */
 export function generateSrcSet(
   src: string,
-  widths: number[] = [640, 750, 828, 1080, 1200, 1920]
+  widths: number[] = [640, 750, 828, 1080, 1200, 1920],
 ): string {
   return widths
     .map((width) => `${getOptimizedImageUrl(src, { width })} ${width}w`)
@@ -170,7 +170,7 @@ export function generateSrcSet(
  */
 export function createLazyLoadObserver(
   onIntersect: (entry: IntersectionObserverEntry) => void,
-  options: IntersectionObserverInit = {}
+  options: IntersectionObserverInit = {},
 ): IntersectionObserver {
   const defaultOptions: IntersectionObserverInit = {
     root: null,
@@ -199,7 +199,7 @@ export function getBlurhashBackground(blurhash?: string): string {
   if (!blurhash) {
     return "bg-gray-200 dark:bg-gray-800";
   }
-  
+
   // In production, decode blurhash to canvas and get data URL
   // For now, return gradient placeholder
   return "bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-700";
@@ -250,7 +250,7 @@ export function getAspectRatio(width: number, height: number): number {
 export function calculateDimensionsForAspectRatio(
   originalWidth: number,
   originalHeight: number,
-  targetAspectRatio: number
+  targetAspectRatio: number,
 ): {
   width: number;
   height: number;
@@ -289,7 +289,7 @@ export function calculateDimensionsForAspectRatio(
  */
 export function measureImageLoadTime(
   src: string,
-  onLoad: (duration: number) => void
+  onLoad: (duration: number) => void,
 ): HTMLImageElement {
   const img = new Image();
   const startTime = performance.now();
@@ -316,7 +316,7 @@ export function preloadImages(urls: string[]): Promise<void[]> {
           img.onload = () => resolve();
           img.onerror = reject;
           img.src = url;
-        })
-    )
+        }),
+    ),
   );
 }

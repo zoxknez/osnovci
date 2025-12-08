@@ -1,15 +1,18 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
-import { CreateScheduleSchema, UpdateScheduleSchema } from "@/lib/api/schemas/schedule";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import { 
-  getCachedSchedule, 
-  setCachedSchedule, 
-  invalidateScheduleCache 
+import type { z } from "zod";
+import {
+  CreateScheduleSchema,
+  UpdateScheduleSchema,
+} from "@/lib/api/schemas/schedule";
+import { auth } from "@/lib/auth/config";
+import {
+  getCachedSchedule,
+  invalidateScheduleCache,
+  setCachedSchedule,
 } from "@/lib/cache/redis";
+import { prisma } from "@/lib/db/prisma";
 
 export type ActionState = {
   success?: boolean;
@@ -18,7 +21,9 @@ export type ActionState = {
   data?: any;
 };
 
-export async function createScheduleAction(data: z.infer<typeof CreateScheduleSchema>): Promise<ActionState> {
+export async function createScheduleAction(
+  data: z.infer<typeof CreateScheduleSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -27,9 +32,9 @@ export async function createScheduleAction(data: z.infer<typeof CreateScheduleSc
   // Validate input
   const validated = CreateScheduleSchema.safeParse(data);
   if (!validated.success) {
-    return { 
-      error: "Nevalidni podaci", 
-      details: validated.error.flatten().fieldErrors 
+    return {
+      error: "Nevalidni podaci",
+      details: validated.error.flatten().fieldErrors,
     };
   }
 
@@ -59,7 +64,9 @@ export async function createScheduleAction(data: z.infer<typeof CreateScheduleSc
         isCustomEvent: validated.data.isCustomEvent,
         customTitle: validated.data.customTitle ?? null,
         customColor: validated.data.customColor ?? null,
-        customDate: validated.data.customDate ? new Date(validated.data.customDate) : null,
+        customDate: validated.data.customDate
+          ? new Date(validated.data.customDate)
+          : null,
       },
     });
 
@@ -77,7 +84,10 @@ export async function createScheduleAction(data: z.infer<typeof CreateScheduleSc
   }
 }
 
-export async function updateScheduleAction(id: string, data: z.infer<typeof UpdateScheduleSchema>): Promise<ActionState> {
+export async function updateScheduleAction(
+  id: string,
+  data: z.infer<typeof UpdateScheduleSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -85,9 +95,9 @@ export async function updateScheduleAction(id: string, data: z.infer<typeof Upda
 
   const validated = UpdateScheduleSchema.safeParse(data);
   if (!validated.success) {
-    return { 
-      error: "Nevalidni podaci", 
-      details: validated.error.flatten().fieldErrors 
+    return {
+      error: "Nevalidni podaci",
+      details: validated.error.flatten().fieldErrors,
     };
   }
 
@@ -112,7 +122,7 @@ export async function updateScheduleAction(id: string, data: z.infer<typeof Upda
 
     // Filter out undefined values to avoid overwriting with undefined (which might cause issues with exactOptionalPropertyTypes)
     const updateData = Object.fromEntries(
-      Object.entries(validated.data).filter(([_, v]) => v !== undefined)
+      Object.entries(validated.data).filter(([_, v]) => v !== undefined),
     ) as any;
 
     if (updateData.customDate) {
@@ -179,7 +189,9 @@ export async function deleteScheduleAction(id: string): Promise<ActionState> {
   }
 }
 
-export async function getScheduleAction(filters?: { dayOfWeek?: string }): Promise<ActionState> {
+export async function getScheduleAction(filters?: {
+  dayOfWeek?: string;
+}): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -187,9 +199,9 @@ export async function getScheduleAction(filters?: { dayOfWeek?: string }): Promi
 
   try {
     const studentIds: string[] = [];
-    
+
     if (session.user.student?.id) {
-        studentIds.push(session.user.student.id);
+      studentIds.push(session.user.student.id);
     }
 
     if (session.user.guardian) {
@@ -208,16 +220,16 @@ export async function getScheduleAction(filters?: { dayOfWeek?: string }): Promi
         });
       }
     }
-    
+
     if (studentIds.length === 0) {
-        return { error: "Nema povezanih učenika" };
+      return { error: "Nema povezanih učenika" };
     }
 
     // Build where clause
     const whereClause: Record<string, unknown> = {
       studentId: { in: studentIds },
     };
-    
+
     // Dodaj filter za dan u nedelji ako je prosleđen
     if (filters?.dayOfWeek) {
       whereClause["dayOfWeek"] = filters.dayOfWeek;
@@ -238,10 +250,7 @@ export async function getScheduleAction(filters?: { dayOfWeek?: string }): Promi
           select: { id: true, name: true, color: true },
         },
       },
-      orderBy: [
-        { dayOfWeek: "asc" },
-        { startTime: "asc" },
-      ],
+      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
     });
 
     // Set cache for single student (only when no filters)

@@ -6,8 +6,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { sanitizeHtml, sanitizePlainText, containsXssPatterns } from "./xss-protection";
 import { log } from "../logger";
+import {
+  containsXssPatterns,
+  sanitizeHtml,
+  sanitizePlainText,
+} from "./xss-protection";
 
 /**
  * Fields that contain rich HTML (allow basic formatting)
@@ -151,7 +155,7 @@ export async function withXssProtection(request: NextRequest) {
  */
 export function sanitizeFields<T extends Record<string, any>>(
   body: T,
-  fields: Record<keyof T, "html" | "plain">
+  fields: Record<keyof T, "html" | "plain">,
 ): T {
   const sanitized = { ...body };
 

@@ -16,14 +16,14 @@
  * @module components/providers/shortcuts-provider
  */
 
-import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { CommandPalette } from "@/components/features/command-palette";
 import { ShortcutsHelp } from "@/components/features/shortcuts-help";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { DEFAULT_SHORTCUTS } from "@/lib/shortcuts/config";
 import { log } from "@/lib/logger";
+import { DEFAULT_SHORTCUTS } from "@/lib/shortcuts/config";
 
 interface ShortcutsProviderProps {
   children: React.ReactNode;
@@ -60,7 +60,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
       router.push(path);
       toast.success(`Navigacija: ${label}`);
     },
-    [router]
+    [router],
   );
 
   // Refresh handler
@@ -141,7 +141,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         handler: (e) => {
           // Find search input and focus it
           const searchInput = document.querySelector(
-            'input[type="search"], input[placeholder*="pretraga" i], input[placeholder*="search" i]'
+            'input[type="search"], input[placeholder*="pretraga" i], input[placeholder*="search" i]',
           ) as HTMLInputElement;
 
           if (searchInput) {
@@ -158,7 +158,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
       scope: "global",
       disableInInputs: true,
       enableLogging: true,
-    }
+    },
   );
 
   return (

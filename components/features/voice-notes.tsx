@@ -6,19 +6,21 @@
 
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Mic,
-  Square,
-  Play,
-  Pause,
-  Trash2,
-  Save,
-  Loader2,
   AlertCircle,
   Clock,
+  Loader2,
+  Mic,
+  Pause,
+  Play,
+  Save,
+  Square,
+  Trash2,
 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,8 +30,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface VoiceNote {
@@ -97,7 +97,8 @@ export function VoiceNotes({
     requestPermission();
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
       notes.forEach((note) => URL.revokeObjectURL(note.audioUrl));
     };
   }, [requestPermission, notes]);
@@ -105,14 +106,14 @@ export function VoiceNotes({
   // Visualize audio level during recording
   const visualizeAudio = useCallback((analyser: AnalyserNode) => {
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    
+
     const updateLevel = () => {
       analyser.getByteFrequencyData(dataArray);
       const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
       setAudioLevel(average / 255);
       animationFrameRef.current = requestAnimationFrame(updateLevel);
     };
-    
+
     updateLevel();
   }, []);
 
@@ -158,12 +159,16 @@ export function VoiceNotes({
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+
         // Check file size
         const sizeMB = audioBlob.size / (1024 * 1024);
         if (sizeMB > MAX_FILE_SIZE_MB) {
-          toast.error(`Fajl je prevelik (${sizeMB.toFixed(1)}MB). Maksimum je ${MAX_FILE_SIZE_MB}MB.`);
+          toast.error(
+            `Fajl je prevelik (${sizeMB.toFixed(1)}MB). Maksimum je ${MAX_FILE_SIZE_MB}MB.`,
+          );
           return;
         }
 
@@ -181,7 +186,7 @@ export function VoiceNotes({
 
         setNotes((prev) => [...prev, newNote]);
         toast.success("Beleška sačuvana!");
-        
+
         // Clean up
         stream.getTracks().forEach((track) => track.stop());
         if (animationFrameRef.current) {
@@ -238,7 +243,7 @@ export function VoiceNotes({
         audioRef.current.src = note.audioUrl;
         audioRef.current.play();
         setPlayingNoteId(note.id);
-        
+
         audioRef.current.onended = () => {
           setPlayingNoteId(null);
         };
@@ -255,7 +260,7 @@ export function VoiceNotes({
       if (onDelete) {
         await onDelete(noteId);
       }
-      
+
       URL.revokeObjectURL(note.audioUrl);
       setNotes((prev) => prev.filter((n) => n.id !== noteId));
       toast.success("Beleška obrisana");
@@ -313,7 +318,8 @@ export function VoiceNotes({
           Glasovne beleške
         </CardTitle>
         <CardDescription>
-          Snimi do {maxNotes} glasovnih beleški (maks. {maxDuration} sekundi svaka)
+          Snimi do {maxNotes} glasovnih beleški (maks. {maxDuration} sekundi
+          svaka)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -329,7 +335,7 @@ export function VoiceNotes({
               <div
                 className={cn(
                   "absolute inset-0 rounded-full bg-red-500/20",
-                  "animate-pulse"
+                  "animate-pulse",
                 )}
               />
               <div
@@ -408,7 +414,7 @@ export function VoiceNotes({
                   exit={{ opacity: 0, x: 20 }}
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-lg border",
-                    playingNoteId === note.id && "bg-primary/5 border-primary"
+                    playingNoteId === note.id && "bg-primary/5 border-primary",
                   )}
                 >
                   {/* Play/Pause Button */}

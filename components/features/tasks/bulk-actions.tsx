@@ -1,8 +1,8 @@
 "use client";
 
+import { CheckCircle2, Clock, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Clock, Trash2 } from "lucide-react";
 
 interface BulkActionsProps {
   selectedCount: number;
@@ -29,7 +29,7 @@ export function BulkActions({
   return (
     <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-blue-600 text-white rounded-full shadow-lg px-6 py-3 flex items-center gap-4 z-50 slide-in-bottom">
       <span className="font-medium">{selectedCount} izabrano</span>
-      
+
       <div className="h-6 w-px bg-blue-400" />
 
       <div className="flex gap-2">
@@ -45,10 +45,14 @@ export function BulkActions({
 
         <select
           className="bg-blue-700 text-white border-0 rounded-md px-3 py-1 text-sm cursor-pointer hover:bg-blue-800"
-          onChange={(e) => onUpdatePriority(e.target.value as "LOW" | "NORMAL" | "HIGH")}
+          onChange={(e) =>
+            onUpdatePriority(e.target.value as "LOW" | "NORMAL" | "HIGH")
+          }
           defaultValue=""
         >
-          <option value="" disabled>Prioritet</option>
+          <option value="" disabled>
+            Prioritet
+          </option>
           <option value="HIGH">Visok</option>
           <option value="NORMAL">Normalan</option>
           <option value="LOW">Nizak</option>

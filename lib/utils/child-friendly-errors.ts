@@ -173,7 +173,7 @@ export function getChildFriendlyError(
   customMessage?: string,
 ): ChildFriendlyError {
   const error = CHILD_FRIENDLY_ERRORS[errorCode] ?? CHILD_FRIENDLY_ERRORS[500];
-  
+
   if (!error) {
     return CHILD_FRIENDLY_ERRORS[500] as ChildFriendlyError;
   }

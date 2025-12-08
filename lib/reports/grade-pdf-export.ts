@@ -1,7 +1,7 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { format, parseISO } from "date-fns";
 import { sr } from "date-fns/locale";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 // Types (matching analytics types)
 interface GradeTrendData {
@@ -94,10 +94,17 @@ function getTrendText(trend: "up" | "down" | "stable"): string {
 
 export async function generateGradeAnalyticsPDF(
   studentName: string,
-  analytics: GradeAnalytics
+  analytics: GradeAnalytics,
 ): Promise<Blob> {
   const doc = new jsPDF();
-  const { overview, subjectTrends, categoryPerformance, distribution, predictions, alerts } = analytics;
+  const {
+    overview,
+    subjectTrends,
+    categoryPerformance,
+    distribution,
+    predictions,
+    alerts,
+  } = analytics;
 
   let yPos = 20;
 
@@ -117,7 +124,7 @@ export async function generateGradeAnalyticsPDF(
     `${formatDate(analytics.period.startDate)} - ${formatDate(analytics.period.endDate)}`,
     105,
     yPos,
-    { align: "center" }
+    { align: "center" },
   );
 
   yPos += 15;
@@ -137,7 +144,10 @@ export async function generateGradeAnalyticsPDF(
       ["Najviša ocena", overview.highestGrade.toString()],
       ["Najniža ocena", overview.lowestGrade.toString()],
       ["Trend", getTrendText(overview.trend)],
-      ["Promena", `${overview.trendPercentage > 0 ? "+" : ""}${overview.trendPercentage.toFixed(1)}%`],
+      [
+        "Promena",
+        `${overview.trendPercentage > 0 ? "+" : ""}${overview.trendPercentage.toFixed(1)}%`,
+      ],
     ],
     theme: "striped",
     headStyles: { fillColor: [66, 139, 202] },
@@ -164,10 +174,10 @@ export async function generateGradeAnalyticsPDF(
         alert.type === "declining"
           ? "Opadanje"
           : alert.type === "improvement"
-          ? "Poboljšanje"
-          : alert.type === "below-threshold"
-          ? "Ispod praga"
-          : "Visoke performanse",
+            ? "Poboljšanje"
+            : alert.type === "below-threshold"
+              ? "Ispod praga"
+              : "Visoke performanse",
         alert.message,
       ]),
       theme: "striped",
@@ -194,7 +204,9 @@ export async function generateGradeAnalyticsPDF(
 
   autoTable(doc, {
     startY: yPos,
-    head: [["Predmet", "Trenutni Prosek", "Prethodni Prosek", "Trend", "Promena"]],
+    head: [
+      ["Predmet", "Trenutni Prosek", "Prethodni Prosek", "Trend", "Promena"],
+    ],
     body: subjectTrends.map((subject) => [
       subject.subjectName,
       subject.currentAverage.toFixed(2),
@@ -302,14 +314,11 @@ export async function generateGradeAnalyticsPDF(
       `Generisano: ${format(new Date(), "dd. MMMM yyyy, HH:mm", { locale: sr })}`,
       105,
       285,
-      { align: "center" }
+      { align: "center" },
     );
-    doc.text(
-      "Osnovci - Platforma za Praćenje Napretka Učenika",
-      105,
-      290,
-      { align: "center" }
-    );
+    doc.text("Osnovci - Platforma za Praćenje Napretka Učenika", 105, 290, {
+      align: "center",
+    });
   }
 
   return doc.output("blob");

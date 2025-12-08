@@ -1,9 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { checkAndUnlockAchievements } from "@/lib/gamification/achievement-triggers";
-import { revalidatePath } from "next/cache";
 
 export type ActionState<T = any> = {
   success?: boolean;
@@ -11,7 +11,9 @@ export type ActionState<T = any> = {
   data?: T;
 };
 
-export async function getAchievementsAction(studentIdParam?: string): Promise<ActionState> {
+export async function getAchievementsAction(
+  studentIdParam?: string,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -38,7 +40,7 @@ export async function getAchievementsAction(studentIdParam?: string): Promise<Ac
       studentId = user.student.id;
     } else if (user?.guardian && studentIdParam) {
       const hasAccess = user.guardian.links.some(
-        (link) => link.studentId === studentIdParam
+        (link) => link.studentId === studentIdParam,
       );
       if (!hasAccess) {
         return { error: "Nemate pristup ovom učeniku" };
@@ -108,7 +110,7 @@ export async function checkAchievementsAction(): Promise<ActionState> {
 
     const studentId = user.student.id;
     const results = await checkAndUnlockAchievements(studentId);
-    
+
     const newUnlocks = results.filter((r) => r.unlocked).length;
 
     if (newUnlocks > 0) {

@@ -1,8 +1,8 @@
 // Advanced Suspense Wrapper - Best Practices for Code Splitting
 "use client";
 
-import { Suspense, type ComponentType, type ReactNode } from "react";
 import { Loader } from "lucide-react";
+import { type ComponentType, type ReactNode, Suspense } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -92,7 +92,7 @@ export function lazyWithFallback<P extends object>(
   fallback?: ReactNode,
 ) {
   const LazyComponent = lazy(() => importFunc());
-  
+
   return function LazyWithFallback(props: P) {
     return (
       <Suspense fallback={fallback || <LoaderFallback />}>

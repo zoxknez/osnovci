@@ -1,11 +1,11 @@
 "use client";
 
-import { getCalendarViewAction } from "@/app/actions/calendar";
-import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { sr } from "date-fns/locale";
-import { CalendarEvent } from "./calendar-event";
+import { useEffect, useState } from "react";
+import { getCalendarViewAction } from "@/app/actions/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarEvent } from "./calendar-event";
 
 interface AgendaViewData {
   date: Date;
@@ -100,8 +100,8 @@ export function AgendaView({ studentId, onEventClick }: AgendaViewProps) {
                   {dayData.events.length === 1
                     ? "događaj"
                     : dayData.events.length < 5
-                    ? "događaja"
-                    : "događaja"}
+                      ? "događaja"
+                      : "događaja"}
                 </p>
               </div>
             </div>

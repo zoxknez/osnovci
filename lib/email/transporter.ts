@@ -3,10 +3,10 @@
  * Modern, cached transporter with retry logic
  */
 
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
-import { log } from '@/lib/logger';
-import { env } from '@/lib/env';
+import type { Transporter } from "nodemailer";
+import nodemailer from "nodemailer";
+import { env } from "@/lib/env";
+import { log } from "@/lib/logger";
 
 let cachedTransporter: Transporter | null = null;
 
@@ -21,11 +21,14 @@ export function createTransporter(): Transporter {
   }
 
   // Development: Use Ethereal test account
-  if (process.env.NODE_ENV === 'development' || !env.SENDGRID_API_KEY) {
+  if (process.env.NODE_ENV === "development" || !env.SENDGRID_API_KEY) {
     if (!env.EMAIL_TEST_USER || !env.EMAIL_TEST_PASS) {
-      log.warn('Email test credentials not configured. Using JSON transport (no emails sent).', {
-        hint: 'Set EMAIL_TEST_USER and EMAIL_TEST_PASS in .env for development',
-      });
+      log.warn(
+        "Email test credentials not configured. Using JSON transport (no emails sent).",
+        {
+          hint: "Set EMAIL_TEST_USER and EMAIL_TEST_PASS in .env for development",
+        },
+      );
       // Return a JSON transport for testing (logs instead of sending)
       cachedTransporter = nodemailer.createTransport({
         jsonTransport: true, // JSON transport doesn't send emails, just logs
@@ -34,7 +37,7 @@ export function createTransporter(): Transporter {
     }
 
     cachedTransporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
+      host: "smtp.ethereal.email",
       port: 587,
       secure: false,
       auth: {
@@ -43,28 +46,28 @@ export function createTransporter(): Transporter {
       },
     });
 
-    log.info('Email transporter created (Ethereal - Development)', {});
+    log.info("Email transporter created (Ethereal - Development)", {});
     return cachedTransporter;
   }
 
   // Production: Use SendGrid
   if (env.SENDGRID_API_KEY) {
     cachedTransporter = nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
+      host: "smtp.sendgrid.net",
       port: 587,
       secure: false,
       auth: {
-        user: 'apikey',
+        user: "apikey",
         pass: env.SENDGRID_API_KEY,
       },
     });
 
-    log.info('Email transporter created (SendGrid - Production)', {});
+    log.info("Email transporter created (SendGrid - Production)", {});
     return cachedTransporter;
   }
 
   throw new Error(
-    'Email service nije konfigurisan. Postavite SENDGRID_API_KEY za production ili EMAIL_TEST_USER/EMAIL_TEST_PASS za development.',
+    "Email service nije konfigurisan. Postavite SENDGRID_API_KEY za production ili EMAIL_TEST_USER/EMAIL_TEST_PASS za development.",
   );
 }
 
@@ -77,7 +80,7 @@ export async function verifyTransporter(): Promise<boolean> {
     await transporter.verify();
     return true;
   } catch (error) {
-    log.error('Email transporter verification failed', { error });
+    log.error("Email transporter verification failed", { error });
     return false;
   }
 }
@@ -88,4 +91,3 @@ export async function verifyTransporter(): Promise<boolean> {
 export function clearTransporterCache(): void {
   cachedTransporter = null;
 }
-

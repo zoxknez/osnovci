@@ -2,7 +2,7 @@
 
 /**
  * QuickActions - Brze akcije za učenike
- * 
+ *
  * Features:
  * - Floating action button (FAB) za mobilne
  * - Shortcuts za česte akcije
@@ -12,20 +12,20 @@
  * - Child-friendly UI
  */
 
-import * as React from "react";
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Plus,
-  Camera,
   BookOpen,
-  Clock,
   Calendar,
-  StickyNote,
-  X,
+  Camera,
+  Clock,
+  Plus,
   Sparkles,
+  StickyNote,
   Target,
+  X,
 } from "lucide-react";
+import type * as React from "react";
+import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export interface QuickAction {
@@ -117,13 +117,13 @@ const containerVariants = {
 };
 
 const itemVariants = {
-  hidden: { 
-    scale: 0, 
+  hidden: {
+    scale: 0,
     opacity: 0,
     y: 20,
   },
-  visible: { 
-    scale: 1, 
+  visible: {
+    scale: 1,
     opacity: 1,
     y: 0,
     transition: {
@@ -132,8 +132,8 @@ const itemVariants = {
       damping: 20,
     },
   },
-  exit: { 
-    scale: 0, 
+  exit: {
+    scale: 0,
     opacity: 0,
     y: 20,
     transition: {
@@ -143,11 +143,11 @@ const itemVariants = {
 };
 
 const fabVariants = {
-  closed: { 
+  closed: {
     rotate: 0,
     scale: 1,
   },
-  open: { 
+  open: {
     rotate: 45,
     scale: 1.1,
   },
@@ -168,37 +168,39 @@ export function QuickActions({
   const [pressedAction, setPressedAction] = useState<string | null>(null);
 
   // Build actions with handlers
-  const resolvedActions: QuickAction[] = actions || DEFAULT_ACTIONS.map((action) => {
-    let onClick = () => {};
-    
-    switch (action.id) {
-      case "add-homework":
-        onClick = onAddHomework || (() => console.log("Add homework"));
-        break;
-      case "camera":
-        onClick = onOpenCamera || (() => console.log("Open camera"));
-        break;
-      case "timer":
-        onClick = onStartTimer || (() => console.log("Start timer"));
-        break;
-      case "focus":
-        onClick = onOpenFocusMode || (() => console.log("Open focus mode"));
-        break;
-      case "calendar":
-        onClick = onOpenCalendar || (() => console.log("Open calendar"));
-        break;
-      case "note":
-        onClick = onAddNote || (() => console.log("Add note"));
-        break;
-    }
-    
-    return { ...action, onClick };
-  });
+  const resolvedActions: QuickAction[] =
+    actions ||
+    DEFAULT_ACTIONS.map((action) => {
+      let onClick = () => {};
+
+      switch (action.id) {
+        case "add-homework":
+          onClick = onAddHomework || (() => console.log("Add homework"));
+          break;
+        case "camera":
+          onClick = onOpenCamera || (() => console.log("Open camera"));
+          break;
+        case "timer":
+          onClick = onStartTimer || (() => console.log("Start timer"));
+          break;
+        case "focus":
+          onClick = onOpenFocusMode || (() => console.log("Open focus mode"));
+          break;
+        case "calendar":
+          onClick = onOpenCalendar || (() => console.log("Open calendar"));
+          break;
+        case "note":
+          onClick = onAddNote || (() => console.log("Add note"));
+          break;
+      }
+
+      return { ...action, onClick };
+    });
 
   // Toggle menu
   const toggleMenu = useCallback(() => {
-    setIsOpen(prev => !prev);
-    
+    setIsOpen((prev) => !prev);
+
     // Haptic feedback
     if ("vibrate" in navigator) {
       navigator.vibrate(10);
@@ -208,12 +210,12 @@ export function QuickActions({
   // Handle action click
   const handleActionClick = useCallback((action: QuickAction) => {
     setPressedAction(action.id);
-    
+
     // Haptic feedback
     if ("vibrate" in navigator) {
       navigator.vibrate([10, 50, 10]);
     }
-    
+
     // Delay for visual feedback
     setTimeout(() => {
       action.onClick();
@@ -237,13 +239,7 @@ export function QuickActions({
   };
 
   return (
-    <div 
-      className={cn(
-        "fixed z-50",
-        positionClasses[position],
-        className
-      )}
-    >
+    <div className={cn("fixed z-50", positionClasses[position], className)}>
       {/* Action items */}
       <AnimatePresence>
         {isOpen && (
@@ -254,31 +250,38 @@ export function QuickActions({
             exit="exit"
             className={cn(
               "absolute flex flex-col gap-3",
-              itemsPosition[position]
+              itemsPosition[position],
             )}
           >
             {resolvedActions.map((action) => {
               const Icon = action.icon;
               const isPressed = pressedAction === action.id;
-              
+
               return (
                 <motion.div
                   key={action.id}
                   variants={itemVariants}
                   className="flex items-center gap-3"
                   style={{
-                    flexDirection: position === "bottom-left" ? "row-reverse" : "row",
+                    flexDirection:
+                      position === "bottom-left" ? "row-reverse" : "row",
                   }}
                 >
                   {/* Label */}
                   <motion.span
-                    initial={{ opacity: 0, x: position === "bottom-left" ? 10 : -10 }}
+                    initial={{
+                      opacity: 0,
+                      x: position === "bottom-left" ? 10 : -10,
+                    }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: position === "bottom-left" ? 10 : -10 }}
+                    exit={{
+                      opacity: 0,
+                      x: position === "bottom-left" ? 10 : -10,
+                    }}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap",
                       "bg-gray-900 text-white dark:bg-white dark:text-gray-900",
-                      "shadow-lg"
+                      "shadow-lg",
                     )}
                   >
                     {action.label}
@@ -300,7 +303,7 @@ export function QuickActions({
                       "shadow-lg transition-colors",
                       action.color,
                       action.disabled && "opacity-50 cursor-not-allowed",
-                      isPressed && "ring-4 ring-white/50"
+                      isPressed && "ring-4 ring-white/50",
                     )}
                     aria-label={action.label}
                   >
@@ -339,7 +342,7 @@ export function QuickActions({
           "bg-gradient-to-br from-primary to-primary/80",
           "shadow-xl shadow-primary/30",
           "focus:outline-none focus:ring-4 focus:ring-primary/50",
-          "transition-all"
+          "transition-all",
         )}
         aria-label={isOpen ? "Zatvori meni" : "Otvori brze akcije"}
         aria-expanded={isOpen}
@@ -354,7 +357,7 @@ export function QuickActions({
             <Plus className="h-6 w-6 text-white" />
           )}
         </motion.div>
-        
+
         {/* Glow effect */}
         <motion.div
           className="absolute inset-0 rounded-full bg-primary"
@@ -380,7 +383,7 @@ export function QuickActions({
             className={cn(
               "absolute bottom-full mb-2 px-2 py-1 rounded text-xs",
               "bg-gray-900 text-white whitespace-nowrap",
-              position === "bottom-left" ? "left-0" : "right-0"
+              position === "bottom-left" ? "left-0" : "right-0",
             )}
           >
             <Sparkles className="h-3 w-3 inline mr-1" />
@@ -432,7 +435,7 @@ export function SingleActionButton({
         "focus:outline-none focus:ring-4 focus:ring-offset-2",
         positionClasses[position],
         color,
-        className
+        className,
       )}
       aria-label={label}
     >

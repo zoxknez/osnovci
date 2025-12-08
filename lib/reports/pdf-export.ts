@@ -68,7 +68,7 @@ interface AnalyticsData {
 
 export async function generateAnalyticsPDF(
   studentName: string,
-  analytics: AnalyticsData
+  analytics: AnalyticsData,
 ): Promise<Blob> {
   const doc = new jsPDF();
   let yPosition = 20;
@@ -89,7 +89,7 @@ export async function generateAnalyticsPDF(
     `Period: ${formatDate(analytics.period.startDate)} - ${formatDate(analytics.period.endDate)}`,
     105,
     yPosition,
-    { align: "center" }
+    { align: "center" },
   );
 
   yPosition += 15;
@@ -104,10 +104,26 @@ export async function generateAnalyticsPDF(
   doc.setFont("helvetica", "normal");
 
   const summaryData = [
-    ["Domaci Zadaci", `${analytics.homework.completed}/${analytics.homework.total}`, `${analytics.homework.completionRate}%`],
-    ["Prosek Ocena", analytics.grades.count > 0 ? analytics.grades.average.toFixed(2) : "N/A", getTrendText(analytics.grades.trend)],
-    ["Vreme Ucenja", `${analytics.timeSpent.totalHours}h`, `${analytics.timeSpent.sessions} sesija`],
-    ["Dostignuca", `${analytics.achievements.total}`, `${analytics.achievements.totalPoints} poena`],
+    [
+      "Domaci Zadaci",
+      `${analytics.homework.completed}/${analytics.homework.total}`,
+      `${analytics.homework.completionRate}%`,
+    ],
+    [
+      "Prosek Ocena",
+      analytics.grades.count > 0 ? analytics.grades.average.toFixed(2) : "N/A",
+      getTrendText(analytics.grades.trend),
+    ],
+    [
+      "Vreme Ucenja",
+      `${analytics.timeSpent.totalHours}h`,
+      `${analytics.timeSpent.sessions} sesija`,
+    ],
+    [
+      "Dostignuca",
+      `${analytics.achievements.total}`,
+      `${analytics.achievements.totalPoints} poena`,
+    ],
   ];
 
   autoTable(doc, {
@@ -194,7 +210,9 @@ export async function generateAnalyticsPDF(
     subject.subjectName,
     subject.gradeAverage !== null ? subject.gradeAverage.toFixed(2) : "N/A",
     `${subject.gradeCount}`,
-    subject.homeworkCompletionRate !== null ? `${subject.homeworkCompletionRate}%` : "N/A",
+    subject.homeworkCompletionRate !== null
+      ? `${subject.homeworkCompletionRate}%`
+      : "N/A",
     `${subject.homeworkTotal}`,
   ]);
 

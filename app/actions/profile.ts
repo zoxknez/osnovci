@@ -1,11 +1,14 @@
 "use server";
 
+import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
+import type { z } from "zod";
+import {
+  ChangePasswordSchema,
+  UpdateProfileSchema,
+} from "@/lib/api/schemas/profile";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { UpdateProfileSchema, ChangePasswordSchema } from "@/lib/api/schemas/profile";
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import bcrypt from "bcryptjs";
 
 export type ActionState<T = any> = {
   success?: boolean;
@@ -55,39 +58,43 @@ export async function getProfileAction(): Promise<ActionState> {
 
     if (user.student) {
       const studentId = user.student.id;
-      
+
       // Optimizovani query - kombinovan umesto N+1
-      const [homeworkStats, grades, scheduleCount, gamification] = await Promise.all([
-        // Aggregacija homework-a umesto fetch svih pa filter
-        prisma.homework.groupBy({
-          by: ['status'],
-          where: { studentId },
-          _count: { id: true },
-        }),
-        // Samo ocene - potrebne za prosek
-        prisma.grade.findMany({
-          where: { studentId },
-          select: { grade: true },
-        }),
-        // Samo count za schedule
-        prisma.scheduleEntry.count({
-          where: { studentId },
-        }),
-        // Gamifikacija sa achievements
-        prisma.gamification.findUnique({
-          where: { studentId },
-          include: {
-            achievements: {
-              orderBy: { unlockedAt: "desc" },
-              take: 10,
-              select: { title: true },
+      const [homeworkStats, grades, scheduleCount, gamification] =
+        await Promise.all([
+          // Aggregacija homework-a umesto fetch svih pa filter
+          prisma.homework.groupBy({
+            by: ["status"],
+            where: { studentId },
+            _count: { id: true },
+          }),
+          // Samo ocene - potrebne za prosek
+          prisma.grade.findMany({
+            where: { studentId },
+            select: { grade: true },
+          }),
+          // Samo count za schedule
+          prisma.scheduleEntry.count({
+            where: { studentId },
+          }),
+          // Gamifikacija sa achievements
+          prisma.gamification.findUnique({
+            where: { studentId },
+            include: {
+              achievements: {
+                orderBy: { unlockedAt: "desc" },
+                take: 10,
+                select: { title: true },
+              },
             },
-          },
-        }),
-      ]);
+          }),
+        ]);
 
       // Izračunaj statistiku iz agregiranih podataka
-      const totalHomework = homeworkStats.reduce((sum, s) => sum + s._count.id, 0);
+      const totalHomework = homeworkStats.reduce(
+        (sum, s) => sum + s._count.id,
+        0,
+      );
       const completedHomework = homeworkStats
         .filter((s) => s.status === "DONE" || s.status === "SUBMITTED")
         .reduce((sum, s) => sum + s._count.id, 0);
@@ -107,7 +114,7 @@ export async function getProfileAction(): Promise<ActionState> {
         totalClasses: scheduleCount,
         attendanceRate: 95,
         xpThisMonth: gamification?.totalXPEarned || 0,
-        achievements: gamification?.achievements.map(a => a.title) || [],
+        achievements: gamification?.achievements.map((a) => a.title) || [],
       };
 
       profileData.xp = gamification?.xp || 0;
@@ -122,7 +129,9 @@ export async function getProfileAction(): Promise<ActionState> {
   }
 }
 
-export async function updateProfileAction(data: z.infer<typeof UpdateProfileSchema>): Promise<ActionState> {
+export async function updateProfileAction(
+  data: z.infer<typeof UpdateProfileSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -149,7 +158,9 @@ export async function updateProfileAction(data: z.infer<typeof UpdateProfileSche
         data: {
           ...(validated.data.name && { name: validated.data.name }),
           ...(validated.data.avatar && { avatar: validated.data.avatar }),
-          ...(validated.data.dateOfBirth && { birthDate: new Date(validated.data.dateOfBirth) }),
+          ...(validated.data.dateOfBirth && {
+            birthDate: new Date(validated.data.dateOfBirth),
+          }),
           ...(validated.data.school && { school: validated.data.school }),
           ...(validated.data.grade && { grade: validated.data.grade }),
         },
@@ -174,7 +185,9 @@ export async function updateProfileAction(data: z.infer<typeof UpdateProfileSche
   }
 }
 
-export async function changePasswordAction(data: z.infer<typeof ChangePasswordSchema>): Promise<ActionState> {
+export async function changePasswordAction(
+  data: z.infer<typeof ChangePasswordSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -195,7 +208,10 @@ export async function changePasswordAction(data: z.infer<typeof ChangePasswordSc
       return { error: "Korisnik nije pronađen" };
     }
 
-    const isValid = await bcrypt.compare(validated.data.currentPassword, user.password);
+    const isValid = await bcrypt.compare(
+      validated.data.currentPassword,
+      user.password,
+    );
     if (!isValid) {
       return { error: "Trenutna lozinka nije ispravna" };
     }
@@ -353,7 +369,8 @@ export async function exportDataAction(): Promise<ActionState> {
       },
 
       gdprInformation: {
-        rightToErasure: "Contact podrska@osnovci.rs to request account deletion",
+        rightToErasure:
+          "Contact podrska@osnovci.rs to request account deletion",
         rightToRectification: "Update data in app settings or contact support",
         rightToRestriction: "Contact podrska@osnovci.rs",
         dataController: "Osnovci Application",

@@ -1,7 +1,10 @@
 // Content Moderation & Safety - Za decu!
 // Štiti decu od neprikladnog sadržaja
 
-import { containsProfanity, getActionForSeverity } from '@/lib/security/profanity-list';
+import {
+  containsProfanity,
+  getActionForSeverity,
+} from "@/lib/security/profanity-list";
 
 /**
  * Content Filter - za tekst
@@ -15,8 +18,8 @@ export class ContentFilter {
     safe: boolean;
     filtered: string;
     flagged: string[];
-    severity: 'none' | 'mild' | 'moderate' | 'severe' | 'critical';
-    action: 'allow' | 'warn' | 'filter' | 'block' | 'flag';
+    severity: "none" | "mild" | "moderate" | "severe" | "critical";
+    action: "allow" | "warn" | "filter" | "block" | "flag";
     notifyParent: boolean;
   } {
     const result = containsProfanity(text);
@@ -25,8 +28,8 @@ export class ContentFilter {
     // Filter matched words
     let filtered = text;
     for (const word of result.matches) {
-      const regex = new RegExp(word, 'gi');
-      filtered = filtered.replace(regex, '***');
+      const regex = new RegExp(word, "gi");
+      filtered = filtered.replace(regex, "***");
     }
 
     return {
@@ -178,7 +181,8 @@ export class PIIDetector {
 
     // Adrese (Enhanced regex for Serbian addresses)
     // Matches: "Bulevar kralja Aleksandra 123", "Ulica lipa 5", "Kneza Mihaila 10a"
-    const addressRegex = /\b(ulica|ul\.|bulevar|bul\.|trg|put)\s+[A-ZČĆŽŠĐ][a-zčćžšđ]+(\s+[A-ZČĆŽŠĐa-zčćžšđ]+)*\s+\d+[a-z]?\b/gi;
+    const addressRegex =
+      /\b(ulica|ul\.|bulevar|bul\.|trg|put)\s+[A-ZČĆŽŠĐ][a-zčćžšđ]+(\s+[A-ZČĆŽŠĐa-zčćžšđ]+)*\s+\d+[a-z]?\b/gi;
     if (addressRegex.test(text)) {
       types.push("address");
       masked = masked.replace(addressRegex, "[ADRESA]");
@@ -198,7 +202,7 @@ export class PIIDetector {
     if (ccRegex.test(text)) {
       // Simple check to avoid matching years like 2024-2025
       const matches = text.match(ccRegex);
-      if (matches && matches.some(m => m.replace(/\D/g, '').length >= 13)) {
+      if (matches && matches.some((m) => m.replace(/\D/g, "").length >= 13)) {
         types.push("credit_card");
         masked = masked.replace(ccRegex, "[KARTICA]");
       }

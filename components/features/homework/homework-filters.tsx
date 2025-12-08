@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Search, MoreVertical } from "lucide-react";
+import { MoreVertical, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,7 +42,7 @@ export function HomeworkFilters({
               className="bg-white border-gray-200 focus:border-blue-500 transition-all"
             />
           </div>
-          
+
           <div className="flex items-center gap-3 overflow-x-auto pb-2 sm:pb-0">
             <div className="flex bg-gray-100/80 p-1 rounded-lg">
               <button
@@ -51,7 +51,9 @@ export function HomeworkFilters({
                 aria-pressed={viewMode === "list"}
                 className={cn(
                   "p-2 rounded-md transition-all text-sm font-medium flex items-center gap-2",
-                  viewMode === "list" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"
+                  viewMode === "list"
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-500 hover:text-gray-700",
                 )}
               >
                 <MoreVertical className="h-4 w-4 rotate-90" />
@@ -63,7 +65,9 @@ export function HomeworkFilters({
                 aria-pressed={viewMode === "kanban"}
                 className={cn(
                   "p-2 rounded-md transition-all text-sm font-medium flex items-center gap-2",
-                  viewMode === "kanban" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"
+                  viewMode === "kanban"
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-500 hover:text-gray-700",
                 )}
               >
                 <div className="flex gap-0.5">
@@ -81,7 +85,11 @@ export function HomeworkFilters({
                 variant={filterStatus === "all" ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => onFilterChange("all")}
-                className={filterStatus === "all" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : ""}
+                className={
+                  filterStatus === "all"
+                    ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                    : ""
+                }
               >
                 Sve
               </Button>
@@ -89,7 +97,11 @@ export function HomeworkFilters({
                 variant={filterStatus === "active" ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => onFilterChange("active")}
-                className={filterStatus === "active" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : ""}
+                className={
+                  filterStatus === "active"
+                    ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                    : ""
+                }
               >
                 Aktivni
               </Button>
@@ -97,7 +109,11 @@ export function HomeworkFilters({
                 variant={filterStatus === "done" ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => onFilterChange("done")}
-                className={filterStatus === "done" ? "bg-green-100 text-green-700 hover:bg-green-200" : ""}
+                className={
+                  filterStatus === "done"
+                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                    : ""
+                }
               >
                 Urađeni
               </Button>
@@ -108,4 +124,3 @@ export function HomeworkFilters({
     </Card>
   );
 }
-

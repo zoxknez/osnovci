@@ -29,7 +29,7 @@ interface LearningRecommendation {
  * Analizira performanse učenika i generiše learning profile
  */
 export async function analyzeLearningProfile(
-  studentId: string
+  studentId: string,
 ): Promise<LearningProfile> {
   try {
     // Get grades by subject
@@ -85,7 +85,7 @@ export async function analyzeLearningProfile(
         stats.average = stats.average / stats.count;
       }
       const totalHomework = homework.filter(
-        (hw) => hw.subject.name === subject
+        (hw) => hw.subject.name === subject,
       ).length;
       if (totalHomework > 0) {
         stats.completionRate = stats.completionRate / totalHomework;
@@ -146,7 +146,7 @@ export async function analyzeLearningProfile(
  * Generiše personalizovane preporuke za učenje
  */
 export async function generateLearningRecommendations(
-  studentId: string
+  studentId: string,
 ): Promise<LearningRecommendation[]> {
   const profile = await analyzeLearningProfile(studentId);
   const recommendations: LearningRecommendation[] = [];
@@ -197,7 +197,7 @@ export async function generateLearningRecommendations(
   // Sort by priority
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   recommendations.sort(
-    (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+    (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
   );
 
   return recommendations.slice(0, 10); // Return top 10
@@ -206,9 +206,7 @@ export async function generateLearningRecommendations(
 /**
  * Preporučuje optimalan raspored učenja za danas
  */
-export async function getOptimalStudySchedule(
-  studentId: string
-): Promise<{
+export async function getOptimalStudySchedule(studentId: string): Promise<{
   recommendedOrder: LearningRecommendation[];
   totalEstimatedTime: number;
   breaks: Array<{ after: number; duration: number }>; // minutes
@@ -222,9 +220,12 @@ export async function getOptimalStudySchedule(
 
   recommendations.forEach((rec, idx) => {
     cumulativeTime += rec.estimatedTime;
-    
+
     // Break after every attention span period
-    if (cumulativeTime >= profile.attentionSpan && idx < recommendations.length - 1) {
+    if (
+      cumulativeTime >= profile.attentionSpan &&
+      idx < recommendations.length - 1
+    ) {
       breaks.push({
         after: cumulativeTime,
         duration: 5, // 5 minute break
@@ -237,9 +238,8 @@ export async function getOptimalStudySchedule(
     recommendedOrder: recommendations,
     totalEstimatedTime: recommendations.reduce(
       (sum, r) => sum + r.estimatedTime,
-      0
+      0,
     ),
     breaks,
   };
 }
-

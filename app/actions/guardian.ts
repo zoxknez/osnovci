@@ -2,13 +2,13 @@
 
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
-import { log } from "@/lib/logger";
 import {
   hasParentPIN,
   setParentPIN,
   verifyParentPIN,
 } from "@/lib/auth/parental-lock";
+import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 const setPinSchema = z.object({
   pin: z.string().regex(/^\d{4,6}$/, "PIN mora biti 4-6 cifara"),
@@ -21,7 +21,8 @@ export async function setGuardianPinAction(data: z.infer<typeof setPinSchema>) {
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = setPinSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -36,10 +37,16 @@ export async function setGuardianPinAction(data: z.infer<typeof setPinSchema>) {
 
     if (await hasParentPIN(user.guardian.id)) {
       if (!currentPin) {
-        return { success: false, error: "Morate uneti trenutni PIN za promenu" };
+        return {
+          success: false,
+          error: "Morate uneti trenutni PIN za promenu",
+        };
       }
 
-      const isCurrentValid = await verifyParentPIN(currentPin, user.guardian.id);
+      const isCurrentValid = await verifyParentPIN(
+        currentPin,
+        user.guardian.id,
+      );
       if (!isCurrentValid) {
         return { success: false, error: "Trenutni PIN nije tačan" };
       }

@@ -15,15 +15,15 @@
  * @module components/features/shortcuts-help
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { Keyboard, Search, X } from "lucide-react";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Keyboard } from "lucide-react";
 import {
+  CATEGORY_DESCRIPTIONS,
+  CATEGORY_LABELS,
   DEFAULT_SHORTCUTS,
   getShortcutDisplay,
   getShortcutsByCategory,
-  CATEGORY_LABELS,
-  CATEGORY_DESCRIPTIONS,
   type ShortcutCategory,
 } from "@/lib/shortcuts/config";
 
@@ -41,7 +41,9 @@ export function ShortcutsHelp({ isOpen, onClose }: ShortcutsHelpProps) {
         (s) =>
           s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           s.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          getShortcutDisplay(s).toLowerCase().includes(searchQuery.toLowerCase())
+          getShortcutDisplay(s)
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()),
       )
     : DEFAULT_SHORTCUTS;
 

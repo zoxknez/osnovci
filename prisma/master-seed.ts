@@ -191,7 +191,7 @@ async function main() {
         student: {
           create: {
             name: GENERIC_STUDENT_NAMES[i] || `Student ${i + 1}`,
-            school: SCHOOLS[i % SCHOOLS.length] || 'OŠ Demo',
+            school: SCHOOLS[i % SCHOOLS.length] || "OŠ Demo",
             grade: (i % 8) + 1,
             class: String.fromCharCode(65 + (i % 4)),
           },
@@ -226,7 +226,7 @@ async function main() {
       student: {
         create: {
           name: "Demo Učenik",
-          school: SCHOOLS[0] || 'OŠ Demo',
+          school: SCHOOLS[0] || "OŠ Demo",
           grade: 5,
           class: "A",
         },
@@ -240,7 +240,7 @@ async function main() {
       data: { studentId: demoStudentUser.student.id },
     });
   } else {
-    throw new Error('Failed to create demo student');
+    throw new Error("Failed to create demo student");
   }
 
   const demoGuardianUser = await prisma.user.create({
@@ -352,7 +352,7 @@ async function main() {
           subjects[Math.floor(Math.random() * subjects.length)];
         const timeSlot = times[i];
         if (!randomSubject || !timeSlot) continue;
-        
+
         await prisma.scheduleEntry.create({
           data: {
             studentId: student.id,
@@ -373,7 +373,7 @@ async function main() {
       const randomSubject =
         subjects[Math.floor(Math.random() * subjects.length)];
       if (!randomSubject) continue;
-      
+
       const gradeDate = new Date();
       gradeDate.setDate(gradeDate.getDate() - Math.floor(Math.random() * 90));
 

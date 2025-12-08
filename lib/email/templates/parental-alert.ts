@@ -1,4 +1,3 @@
-
 /**
  * Parental Alert Email Template
  * Used for security incidents, lockouts, and urgent notifications
@@ -12,7 +11,7 @@ export interface ParentalAlertTemplate {
 
 export function createParentalAlertTemplate(
   alertType: string,
-  metadata: Record<string, string>
+  metadata: Record<string, string>,
 ): ParentalAlertTemplate {
   let subject = "";
   let html = "";
@@ -20,9 +19,9 @@ export function createParentalAlertTemplate(
 
   if (alertType === "consent_lockout") {
     subject = "🚨 Osnovci: Sigurnosno upozorenje - Verifikacija pristanka";
-    const studentName = metadata['studentName'] || "Vaše dete";
-    const attemptCount = metadata['attemptCount'] || "više";
-    
+    const studentName = metadata["studentName"] || "Vaše dete";
+    const attemptCount = metadata["attemptCount"] || "više";
+
     html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #ef4444;">🚨 Sigurnosno upozorenje</h2>
@@ -56,7 +55,7 @@ export function createParentalAlertTemplate(
         </p>
       </div>
     `;
-    
+
     text = `
       🚨 Sigurnosno upozorenje
       

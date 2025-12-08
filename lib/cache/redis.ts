@@ -1,13 +1,13 @@
 /**
  * Redis Cache Layer
- * 
+ *
  * Provides high-performance caching for frequently accessed data:
  * - Student data (profile, settings)
  * - Homework lists (daily, weekly)
  * - Schedule entries (weekly view)
  * - Grade aggregations (subject averages)
  * - Parental insights (engagement scores)
- * 
+ *
  * Cache Strategy:
  * - Read-through: Fetch from DB if cache miss
  * - Write-through: Update cache on DB writes
@@ -19,12 +19,14 @@ import { Redis } from "@upstash/redis";
 import { log } from "@/lib/logger";
 
 // Initialize Upstash Redis client
-export const redis = process.env["UPSTASH_REDIS_REST_URL"] && process.env["UPSTASH_REDIS_REST_TOKEN"]
-  ? new Redis({
-      url: process.env["UPSTASH_REDIS_REST_URL"],
-      token: process.env["UPSTASH_REDIS_REST_TOKEN"],
-    })
-  : null;
+export const redis =
+  process.env["UPSTASH_REDIS_REST_URL"] &&
+  process.env["UPSTASH_REDIS_REST_TOKEN"]
+    ? new Redis({
+        url: process.env["UPSTASH_REDIS_REST_URL"],
+        token: process.env["UPSTASH_REDIS_REST_TOKEN"],
+      })
+    : null;
 
 // Cache key prefixes
 const CACHE_PREFIXES = {
@@ -76,7 +78,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
 export async function cacheSet(
   key: string,
   value: unknown,
-  ttl?: number
+  ttl?: number,
 ): Promise<void> {
   if (!redis) return;
 
@@ -124,13 +126,17 @@ export async function cacheDeletePattern(pattern: string): Promise<void> {
         match: pattern,
         count: 100,
       });
-      cursor = typeof result[0] === 'string' ? parseInt(result[0], 10) : result[0];
+      cursor =
+        typeof result[0] === "string" ? parseInt(result[0], 10) : result[0];
       keysToDelete.push(...result[1]);
     } while (cursor !== 0);
 
     if (keysToDelete.length > 0) {
       await redis.del(...keysToDelete);
-      log.info("Cache pattern deleted", { pattern, count: keysToDelete.length });
+      log.info("Cache pattern deleted", {
+        pattern,
+        count: keysToDelete.length,
+      });
     }
   } catch (error) {
     log.error("Redis SCAN/DEL error", error, { pattern });
@@ -140,7 +146,10 @@ export async function cacheDeletePattern(pattern: string): Promise<void> {
 /**
  * Increment counter (for rate limiting)
  */
-export async function cacheIncrement(key: string, ttl?: number): Promise<number> {
+export async function cacheIncrement(
+  key: string,
+  ttl?: number,
+): Promise<number> {
   if (!redis) return 0;
 
   try {
@@ -170,7 +179,7 @@ export async function setCachedStudent(studentId: string, data: unknown) {
   return cacheSet(
     `${CACHE_PREFIXES.STUDENT}${studentId}`,
     data,
-    CACHE_TTL.STUDENT
+    CACHE_TTL.STUDENT,
   );
 }
 
@@ -188,12 +197,12 @@ export async function getCachedHomework(studentId: string, date: string) {
 export async function setCachedHomework(
   studentId: string,
   date: string,
-  data: unknown
+  data: unknown,
 ) {
   return cacheSet(
     `${CACHE_PREFIXES.HOMEWORK}${studentId}:${date}`,
     data,
-    CACHE_TTL.HOMEWORK
+    CACHE_TTL.HOMEWORK,
   );
 }
 
@@ -204,19 +213,22 @@ export async function invalidateHomeworkCache(studentId: string) {
 /**
  * Generic homework list cache (for pagination/filtering)
  */
-export async function getCachedHomeworkList(studentId: string, keySuffix: string) {
+export async function getCachedHomeworkList(
+  studentId: string,
+  keySuffix: string,
+) {
   return cacheGet(`${CACHE_PREFIXES.HOMEWORK}${studentId}:${keySuffix}`);
 }
 
 export async function setCachedHomeworkList(
   studentId: string,
   keySuffix: string,
-  data: unknown
+  data: unknown,
 ) {
   return cacheSet(
     `${CACHE_PREFIXES.HOMEWORK}${studentId}:${keySuffix}`,
     data,
-    CACHE_TTL.HOMEWORK
+    CACHE_TTL.HOMEWORK,
   );
 }
 
@@ -231,7 +243,7 @@ export async function setCachedSchedule(studentId: string, data: unknown) {
   return cacheSet(
     `${CACHE_PREFIXES.SCHEDULE}${studentId}`,
     data,
-    CACHE_TTL.SCHEDULE
+    CACHE_TTL.SCHEDULE,
   );
 }
 
@@ -252,7 +264,7 @@ export async function getCachedGrades(studentId: string, period?: string) {
 export async function setCachedGrades(
   studentId: string,
   data: unknown,
-  period?: string
+  period?: string,
 ) {
   const key = period
     ? `${CACHE_PREFIXES.GRADES}${studentId}:${period}`
@@ -275,7 +287,7 @@ export async function setCachedInsights(studentId: string, data: unknown) {
   return cacheSet(
     `${CACHE_PREFIXES.INSIGHTS}${studentId}`,
     data,
-    CACHE_TTL.INSIGHTS
+    CACHE_TTL.INSIGHTS,
   );
 }
 
@@ -289,7 +301,7 @@ export async function invalidateInsightsCache(studentId: string) {
 export async function getCachedCalendar(
   studentId: string,
   view: string,
-  date: string
+  date: string,
 ) {
   return cacheGet(`${CACHE_PREFIXES.CALENDAR}${studentId}:${view}:${date}`);
 }
@@ -298,12 +310,12 @@ export async function setCachedCalendar(
   studentId: string,
   view: string,
   date: string,
-  data: unknown
+  data: unknown,
 ) {
   return cacheSet(
     `${CACHE_PREFIXES.CALENDAR}${studentId}:${view}:${date}`,
     data,
-    CACHE_TTL.CALENDAR
+    CACHE_TTL.CALENDAR,
   );
 }
 
@@ -330,12 +342,15 @@ export async function invalidateAllStudentCaches(studentId: string) {
 /**
  * Cache warming (preload frequently accessed data)
  */
-export async function warmCache(studentId: string, data: {
-  student?: unknown;
-  homework?: unknown;
-  schedule?: unknown;
-  grades?: unknown;
-}) {
+export async function warmCache(
+  studentId: string,
+  data: {
+    student?: unknown;
+    homework?: unknown;
+    schedule?: unknown;
+    grades?: unknown;
+  },
+) {
   const promises: Promise<void>[] = [];
 
   if (data.student) {

@@ -1,6 +1,6 @@
 /**
  * Parental Oversight Dashboard - Panel za Roditelje
- * 
+ *
  * Kompletni pregled aktivnosti djeteta za roditelje:
  * - Pregled domaćih zadataka
  * - Statistike i trendovi
@@ -11,27 +11,33 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
-import { 
-  BookOpen,
-  TrendingUp,
-  Trophy,
-  Shield,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  Eye,
-  ChevronRight,
-  Star,
-  Flame,
-  Target
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import { sr } from "date-fns/locale";
+import {
+  AlertTriangle,
+  BookOpen,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Eye,
+  Flame,
+  Shield,
+  Star,
+  Target,
+  TrendingUp,
+  Trophy,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface StudentInfo {
   id: string;
@@ -99,22 +105,27 @@ export function ParentalDashboard({
 
   // Statistike
   const stats = useMemo(() => {
-    const pending = homework.filter(h => 
-      h.status === "ASSIGNED" || h.status === "IN_PROGRESS"
+    const pending = homework.filter(
+      (h) => h.status === "ASSIGNED" || h.status === "IN_PROGRESS",
     ).length;
-    const completed = homework.filter(h => 
-      h.status === "DONE" || h.status === "SUBMITTED" || h.status === "REVIEWED"
+    const completed = homework.filter(
+      (h) =>
+        h.status === "DONE" ||
+        h.status === "SUBMITTED" ||
+        h.status === "REVIEWED",
     ).length;
-    const overdue = homework.filter(h => {
+    const overdue = homework.filter((h) => {
       const due = new Date(h.dueDate);
-      return due < new Date() && h.status !== "DONE" && h.status !== "SUBMITTED";
+      return (
+        due < new Date() && h.status !== "DONE" && h.status !== "SUBMITTED"
+      );
     }).length;
-    const urgent = homework.filter(h => h.priority === "URGENT").length;
-    
+    const urgent = homework.filter((h) => h.priority === "URGENT").length;
+
     return { pending, completed, overdue, urgent };
   }, [homework]);
 
-  const unresolvedSafetyIssues = safetyReports.filter(r => !r.resolved);
+  const unresolvedSafetyIssues = safetyReports.filter((r) => !r.resolved);
 
   const getStatusColor = (status: HomeworkItem["status"]) => {
     switch (status) {
@@ -131,11 +142,16 @@ export function ParentalDashboard({
 
   const getStatusLabel = (status: HomeworkItem["status"]) => {
     switch (status) {
-      case "DONE": return "Završeno";
-      case "SUBMITTED": return "Predato";
-      case "REVIEWED": return "Pregledano";
-      case "IN_PROGRESS": return "U toku";
-      default: return "Čeka";
+      case "DONE":
+        return "Završeno";
+      case "SUBMITTED":
+        return "Predato";
+      case "REVIEWED":
+        return "Pregledano";
+      case "IN_PROGRESS":
+        return "U toku";
+      default:
+        return "Čeka";
     }
   };
 
@@ -151,21 +167,26 @@ export function ParentalDashboard({
             <div className="flex-1">
               <h2 className="text-xl font-bold">{student.name}</h2>
               <p className="text-blue-100">
-                {student.grade}. razred, odeljenje {student.class} • {student.school}
+                {student.grade}. razred, odeljenje {student.class} •{" "}
+                {student.school}
               </p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-center">
                 <div className="flex items-center gap-1">
                   <Flame className="w-5 h-5 text-orange-300" />
-                  <span className="text-2xl font-bold">{gamification.streak}</span>
+                  <span className="text-2xl font-bold">
+                    {gamification.streak}
+                  </span>
                 </div>
                 <span className="text-xs text-blue-100">dana zaredom</span>
               </div>
               <div className="text-center">
                 <div className="flex items-center gap-1">
                   <Star className="w-5 h-5 text-yellow-300" />
-                  <span className="text-2xl font-bold">{gamification.level}</span>
+                  <span className="text-2xl font-bold">
+                    {gamification.level}
+                  </span>
                 </div>
                 <span className="text-xs text-blue-100">nivo</span>
               </div>
@@ -188,10 +209,12 @@ export function ParentalDashboard({
             <span className="text-xs text-gray-500">U toku</span>
           </div>
           <div className="p-4 text-center">
-            <span className={cn(
-              "block text-2xl font-bold",
-              stats.overdue > 0 ? "text-red-600" : "text-gray-800"
-            )}>
+            <span
+              className={cn(
+                "block text-2xl font-bold",
+                stats.overdue > 0 ? "text-red-600" : "text-gray-800",
+              )}
+            >
               {stats.overdue}
             </span>
             <span className="text-xs text-gray-500">Prekoračeno</span>
@@ -211,7 +234,12 @@ export function ParentalDashboard({
           { id: "overview" as const, label: "Pregled", icon: Eye },
           { id: "homework" as const, label: "Domaći", icon: BookOpen },
           { id: "progress" as const, label: "Napredak", icon: TrendingUp },
-          { id: "safety" as const, label: "Bezbjednost", icon: Shield, badge: unresolvedSafetyIssues.length },
+          {
+            id: "safety" as const,
+            label: "Bezbjednost",
+            icon: Shield,
+            badge: unresolvedSafetyIssues.length,
+          },
         ].map(({ id, label, icon: Icon, badge }) => (
           <Button
             key={id}
@@ -219,7 +247,7 @@ export function ParentalDashboard({
             size="sm"
             className={cn(
               "flex items-center gap-2",
-              badge && badge > 0 && "relative"
+              badge && badge > 0 && "relative",
             )}
             onClick={() => setActiveTab(id)}
           >
@@ -247,17 +275,19 @@ export function ParentalDashboard({
             </CardHeader>
             <CardContent className="space-y-3">
               {recentActivity.slice(0, 5).map((activity) => (
-                <div 
+                <div
                   key={activity.id}
                   className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
                 >
                   <div className="w-2 h-2 mt-2 rounded-full bg-blue-500" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700">{activity.description}</p>
+                    <p className="text-sm text-gray-700">
+                      {activity.description}
+                    </p>
                     <span className="text-xs text-gray-400">
-                      {formatDistanceToNow(new Date(activity.timestamp), { 
-                        addSuffix: true, 
-                        locale: sr 
+                      {formatDistanceToNow(new Date(activity.timestamp), {
+                        addSuffix: true,
+                        locale: sr,
                       })}
                     </span>
                   </div>
@@ -281,22 +311,28 @@ export function ParentalDashboard({
             </CardHeader>
             <CardContent className="space-y-3">
               {homework
-                .filter(h => h.status !== "DONE" && h.status !== "SUBMITTED")
-                .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                .filter((h) => h.status !== "DONE" && h.status !== "SUBMITTED")
+                .sort(
+                  (a, b) =>
+                    new Date(a.dueDate).getTime() -
+                    new Date(b.dueDate).getTime(),
+                )
                 .slice(0, 5)
                 .map((hw) => {
                   const dueDate = new Date(hw.dueDate);
                   const isOverdue = dueDate < new Date();
-                  
+
                   return (
-                    <div 
+                    <div
                       key={hw.id}
                       className={cn(
                         "flex items-center gap-3 p-3 rounded-lg border",
-                        isOverdue ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"
+                        isOverdue
+                          ? "bg-red-50 border-red-200"
+                          : "bg-gray-50 border-gray-200",
                       )}
                     >
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: hw.subject.color }}
                       />
@@ -308,21 +344,29 @@ export function ParentalDashboard({
                           {hw.subject.name}
                         </p>
                       </div>
-                      <div className={cn(
-                        "text-right shrink-0",
-                        isOverdue ? "text-red-600" : "text-gray-500"
-                      )}>
+                      <div
+                        className={cn(
+                          "text-right shrink-0",
+                          isOverdue ? "text-red-600" : "text-gray-500",
+                        )}
+                      >
                         <p className="text-xs font-medium">
-                          {isOverdue ? "Prekoračeno" : format(dueDate, "d. MMM", { locale: sr })}
+                          {isOverdue
+                            ? "Prekoračeno"
+                            : format(dueDate, "d. MMM", { locale: sr })}
                         </p>
                       </div>
                     </div>
                   );
                 })}
-              {homework.filter(h => h.status !== "DONE" && h.status !== "SUBMITTED").length === 0 && (
+              {homework.filter(
+                (h) => h.status !== "DONE" && h.status !== "SUBMITTED",
+              ).length === 0 && (
                 <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
                   <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span className="text-sm text-green-700">Svi zadaci su završeni!</span>
+                  <span className="text-sm text-green-700">
+                    Svi zadaci su završeni!
+                  </span>
                 </div>
               )}
             </CardContent>
@@ -342,11 +386,13 @@ export function ParentalDashboard({
                   <p className="text-2xl font-bold text-amber-600">
                     {gamification.achievements}
                   </p>
-                  <p className="text-sm text-gray-600">Otključanih postignuća</p>
+                  <p className="text-sm text-gray-600">
+                    Otključanih postignuća
+                  </p>
                 </div>
                 <Trophy className="w-12 h-12 text-amber-400" />
               </div>
-              
+
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="p-3 bg-gray-50 rounded-lg text-center">
                   <p className="text-lg font-bold text-gray-800">
@@ -419,22 +465,26 @@ export function ParentalDashboard({
           <CardContent className="space-y-3">
             {homework.map((hw) => {
               const dueDate = new Date(hw.dueDate);
-              const isOverdue = dueDate < new Date() && 
-                hw.status !== "DONE" && hw.status !== "SUBMITTED";
-              
+              const isOverdue =
+                dueDate < new Date() &&
+                hw.status !== "DONE" &&
+                hw.status !== "SUBMITTED";
+
               return (
-                <div 
+                <div
                   key={hw.id}
                   className={cn(
                     "flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-sm",
-                    isOverdue ? "bg-red-50 border-red-200" : "bg-white border-gray-200"
+                    isOverdue
+                      ? "bg-red-50 border-red-200"
+                      : "bg-white border-gray-200",
                   )}
                 >
-                  <div 
+                  <div
                     className="w-4 h-4 rounded-full shrink-0"
                     style={{ backgroundColor: hw.subject.color }}
                   />
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-medium text-gray-800 truncate">
@@ -454,14 +504,16 @@ export function ParentalDashboard({
                       </span>
                     </div>
                   </div>
-                  
-                  <div className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium shrink-0",
-                    getStatusColor(hw.status)
-                  )}>
+
+                  <div
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium shrink-0",
+                      getStatusColor(hw.status),
+                    )}
+                  >
                     {getStatusLabel(hw.status)}
                   </div>
-                  
+
                   <Button variant="ghost" size="icon" className="shrink-0">
                     <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -484,19 +536,23 @@ export function ParentalDashboard({
             <CardContent>
               <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white mb-4">
-                  <span className="text-3xl font-bold">{gamification.level}</span>
+                  <span className="text-3xl font-bold">
+                    {gamification.level}
+                  </span>
                 </div>
                 <p className="text-gray-600">Trenutni nivo</p>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-600">XP do sledećeg nivoa</span>
-                    <span className="font-medium">{gamification.xp % 1000}/1000</span>
+                    <span className="font-medium">
+                      {gamification.xp % 1000}/1000
+                    </span>
                   </div>
                   <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
                       style={{ width: `${(gamification.xp % 1000) / 10}%` }}
                     />
@@ -517,15 +573,17 @@ export function ParentalDashboard({
               <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white mb-4">
                   <Flame className="w-8 h-8 mr-1" />
-                  <span className="text-3xl font-bold">{gamification.streak}</span>
+                  <span className="text-3xl font-bold">
+                    {gamification.streak}
+                  </span>
                 </div>
                 <p className="text-gray-600">Dana u nizu</p>
               </div>
-              
+
               <div className="p-4 bg-orange-50 rounded-xl text-center">
                 <p className="text-sm text-orange-800">
-                  {gamification.streak >= 7 
-                    ? "🔥 Odličan streak! Nastavi tako!" 
+                  {gamification.streak >= 7
+                    ? "🔥 Odličan streak! Nastavi tako!"
                     : "Motivišite dijete da održava dnevni streak!"}
                 </p>
               </div>
@@ -549,37 +607,49 @@ export function ParentalDashboard({
             {safetyReports.length > 0 ? (
               <div className="space-y-3">
                 {safetyReports.map((report) => (
-                  <div 
+                  <div
                     key={report.id}
                     className={cn(
                       "flex items-start gap-4 p-4 rounded-xl border",
-                      report.resolved 
-                        ? "bg-gray-50 border-gray-200" 
+                      report.resolved
+                        ? "bg-gray-50 border-gray-200"
                         : report.severity === "high"
                           ? "bg-red-50 border-red-200"
                           : report.severity === "medium"
                             ? "bg-amber-50 border-amber-200"
-                            : "bg-blue-50 border-blue-200"
+                            : "bg-blue-50 border-blue-200",
                     )}
                   >
-                    <div className={cn(
-                      "p-2 rounded-lg shrink-0",
-                      report.severity === "high" ? "bg-red-100" :
-                      report.severity === "medium" ? "bg-amber-100" : "bg-blue-100"
-                    )}>
-                      <AlertTriangle className={cn(
-                        "w-5 h-5",
-                        report.severity === "high" ? "text-red-600" :
-                        report.severity === "medium" ? "text-amber-600" : "text-blue-600"
-                      )} />
+                    <div
+                      className={cn(
+                        "p-2 rounded-lg shrink-0",
+                        report.severity === "high"
+                          ? "bg-red-100"
+                          : report.severity === "medium"
+                            ? "bg-amber-100"
+                            : "bg-blue-100",
+                      )}
+                    >
+                      <AlertTriangle
+                        className={cn(
+                          "w-5 h-5",
+                          report.severity === "high"
+                            ? "text-red-600"
+                            : report.severity === "medium"
+                              ? "text-amber-600"
+                              : "text-blue-600",
+                        )}
+                      />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-gray-800">
-                          {report.type === "content_flag" ? "Sadržaj označen" :
-                           report.type === "time_alert" ? "Upozorenje o vremenu" :
-                           "Lični podaci detektovani"}
+                          {report.type === "content_flag"
+                            ? "Sadržaj označen"
+                            : report.type === "time_alert"
+                              ? "Upozorenje o vremenu"
+                              : "Lični podaci detektovani"}
                         </h4>
                         {report.resolved && (
                           <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
@@ -587,12 +657,18 @@ export function ParentalDashboard({
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">{report.description}</p>
+                      <p className="text-sm text-gray-600">
+                        {report.description}
+                      </p>
                       <span className="text-xs text-gray-400 mt-2 block">
-                        {format(new Date(report.timestamp), "d. MMM yyyy, HH:mm", { locale: sr })}
+                        {format(
+                          new Date(report.timestamp),
+                          "d. MMM yyyy, HH:mm",
+                          { locale: sr },
+                        )}
                       </span>
                     </div>
-                    
+
                     {!report.resolved && (
                       <Button variant="outline" size="sm">
                         Riješi
@@ -608,7 +684,7 @@ export function ParentalDashboard({
                   Sve je sigurno!
                 </h3>
                 <p className="text-gray-500 max-w-sm">
-                  Nema sigurnosnih upozorenja. Sistem automatski prati aktivnost 
+                  Nema sigurnosnih upozorenja. Sistem automatski prati aktivnost
                   i obavještiće vas o bilo kakvim problemima.
                 </p>
               </div>

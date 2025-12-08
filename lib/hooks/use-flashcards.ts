@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getDecksAction,
-  getDeckAction,
+  createCardAction,
   createDeckAction,
   deleteDeckAction,
-  createCardAction,
+  getDeckAction,
+  getDecksAction,
 } from "@/app/actions/flashcards";
 
 export const flashcardKeys = {
@@ -39,7 +39,11 @@ export function useCreateDeck() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { title: string; subjectId: string; color?: string }) => {
+    mutationFn: async (data: {
+      title: string;
+      subjectId: string;
+      color?: string;
+    }) => {
       const result = await createDeckAction(data);
       if (result.error) throw new Error(result.error);
       return result.data;

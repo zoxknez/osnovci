@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { getStickers } from "@/lib/social/sticker-service";
 
 const sendStickerSchema = z.object({
@@ -32,7 +32,10 @@ export async function getStickersAction(): Promise<ActionState> {
   }
 }
 
-export async function sendStickerAction(data: { receiverId: string; stickerId: string }): Promise<ActionState> {
+export async function sendStickerAction(data: {
+  receiverId: string;
+  stickerId: string;
+}): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };

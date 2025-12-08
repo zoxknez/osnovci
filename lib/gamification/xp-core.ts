@@ -15,29 +15,29 @@ import { createNotification } from "@/lib/notifications/create";
 
 export const XP_REWARDS = {
   // Base rewards (reduced from v2)
-  HOMEWORK_COMPLETED: 8,        // Was 10
-  HOMEWORK_EARLY: 12,           // Was 15
-  HOMEWORK_VERY_EARLY: 18,      // Was 25
+  HOMEWORK_COMPLETED: 8, // Was 10
+  HOMEWORK_EARLY: 12, // Was 15
+  HOMEWORK_VERY_EARLY: 18, // Was 25
 
   // Time-based bonuses (reduced)
-  WEEKEND_BONUS: 3,             // Was 5
-  NIGHT_OWL_BONUS: 2,           // Was 3
-  MORNING_BONUS: 2,             // Was 3
+  WEEKEND_BONUS: 3, // Was 5
+  NIGHT_OWL_BONUS: 2, // Was 3
+  MORNING_BONUS: 2, // Was 3
 
   // Quality bonuses (harder to get)
-  PERFECT_SCORE: 15,            // Was 20
-  FAST_COMPLETION: 5,           // Was 10
-  DETAILED_NOTES: 3,            // Was 5
+  PERFECT_SCORE: 15, // Was 20
+  FAST_COMPLETION: 5, // Was 10
+  DETAILED_NOTES: 3, // Was 5
 
   // Streaks (with diminishing returns)
-  STREAK_DAY: 3,                // Was 5
-  STREAK_MULTIPLIER: 0.05,      // Was 0.1 (5% instead of 10%)
-  STREAK_CAP: 10,               // Max 10 days streak bonus (50% max)
+  STREAK_DAY: 3, // Was 5
+  STREAK_MULTIPLIER: 0.05, // Was 0.1 (5% instead of 10%)
+  STREAK_CAP: 10, // Max 10 days streak bonus (50% max)
 
   // Milestones (keep high for motivation)
   PERFECT_WEEK: 50,
   LEVEL_UP: 20,
-  
+
   // Social & Special
   HELPED_PEER: 15,
   COMEBACK: 30,
@@ -48,10 +48,10 @@ export const XP_REWARDS = {
 // ============================================
 
 export const XP_LIMITS = {
-  MAX_DAILY_XP: 100,            // 100 XP per day max
-  MAX_WEEKLY_XP: 500,           // 500 XP per week max
-  MAX_HOMEWORK_PER_DAY: 10,     // Max 10 homework submissions per day
-  COOLDOWN_MINUTES: 5,          // 5 min cooldown between submissions
+  MAX_DAILY_XP: 100, // 100 XP per day max
+  MAX_WEEKLY_XP: 500, // 500 XP per week max
+  MAX_HOMEWORK_PER_DAY: 10, // Max 10 homework submissions per day
+  COOLDOWN_MINUTES: 5, // 5 min cooldown between submissions
 } as const;
 
 // ============================================
@@ -59,33 +59,57 @@ export const XP_LIMITS = {
 // ============================================
 
 export const LEVEL_THRESHOLDS = [
-  0,      // Level 1
-  100,    // Level 2  (+50 from v2)
-  250,    // Level 3  (+100)
-  450,    // Level 4  (+150)
-  700,    // Level 5  (+200)
-  1000,   // Level 6  (+250)
-  1350,   // Level 7  (+300)
-  1750,   // Level 8  (+350)
-  2200,   // Level 9  (+400)
-  2700,   // Level 10 (+400)
-  3250,   // Level 11 (+350)
-  3850,   // Level 12 (+250)
-  4500,   // Level 13 (+100)
-  5200,   // Level 14 (-100)
-  5950,   // Level 15 (-350)
-  6750,   // Level 16 (-650)
-  7600,   // Level 17 (-1000)
-  8500,   // Level 18 (-1400)
-  9450,   // Level 19 (-1850)
-  10450,  // Level 20 (-2350)
+  0, // Level 1
+  100, // Level 2  (+50 from v2)
+  250, // Level 3  (+100)
+  450, // Level 4  (+150)
+  700, // Level 5  (+200)
+  1000, // Level 6  (+250)
+  1350, // Level 7  (+300)
+  1750, // Level 8  (+350)
+  2200, // Level 9  (+400)
+  2700, // Level 10 (+400)
+  3250, // Level 11 (+350)
+  3850, // Level 12 (+250)
+  4500, // Level 13 (+100)
+  5200, // Level 14 (-100)
+  5950, // Level 15 (-350)
+  6750, // Level 16 (-650)
+  7600, // Level 17 (-1000)
+  8500, // Level 18 (-1400)
+  9450, // Level 19 (-1850)
+  10450, // Level 20 (-2350)
   // Levels 21-50 follow exponential curve
-  11550, 12750, 14050, 15450, 16950,  // 21-25
-  18550, 20250, 22050, 23950, 25950,  // 26-30
-  28050, 30250, 32550, 34950, 37450,  // 31-35
-  40050, 42750, 45550, 48450, 51450,  // 36-40
-  54550, 57750, 61050, 64450, 67950,  // 41-45
-  71550, 75250, 79050, 82950, 86950,  // 46-50
+  11550,
+  12750,
+  14050,
+  15450,
+  16950, // 21-25
+  18550,
+  20250,
+  22050,
+  23950,
+  25950, // 26-30
+  28050,
+  30250,
+  32550,
+  34950,
+  37450, // 31-35
+  40050,
+  42750,
+  45550,
+  48450,
+  51450, // 36-40
+  54550,
+  57750,
+  61050,
+  64450,
+  67950, // 41-45
+  71550,
+  75250,
+  79050,
+  82950,
+  86950, // 46-50
 ];
 
 // ============================================
@@ -94,7 +118,7 @@ export const LEVEL_THRESHOLDS = [
 
 /**
  * Add XP to student with enhanced calculation
- * 
+ *
  * NOTE: This function does NOT call checkAchievements to avoid circular dependencies.
  * The caller should handle achievement checks separately.
  */
@@ -357,9 +381,9 @@ export function calculateXP(params: {
   if (streak > 0) {
     const effectiveStreak = Math.min(streak, XP_REWARDS.STREAK_CAP);
     const streakBonus = Math.floor(
-      baseAmount * effectiveStreak * XP_REWARDS.STREAK_MULTIPLIER
+      baseAmount * effectiveStreak * XP_REWARDS.STREAK_MULTIPLIER,
     );
-    
+
     if (streakBonus > 0) {
       totalXP += streakBonus;
       bonuses.push(`Streak x${effectiveStreak} +${streakBonus}`);
@@ -375,7 +399,7 @@ export function calculateXP(params: {
     const remaining = Math.max(0, XP_LIMITS.MAX_DAILY_XP - currentDailyXP);
     totalXP = remaining;
     capped = true;
-    capReason = 'Daily XP limit reached';
+    capReason = "Daily XP limit reached";
   }
 
   // Weekly cap
@@ -383,7 +407,7 @@ export function calculateXP(params: {
     const remaining = Math.max(0, XP_LIMITS.MAX_WEEKLY_XP - currentWeeklyXP);
     totalXP = remaining;
     capped = true;
-    capReason = 'Weekly XP limit reached';
+    capReason = "Weekly XP limit reached";
   }
 
   return {
@@ -397,9 +421,7 @@ export function calculateXP(params: {
 /**
  * Validate homework submission (anti-gaming checks)
  */
-export async function validateHomeworkSubmission(
-  studentId: string
-): Promise<{
+export async function validateHomeworkSubmission(studentId: string): Promise<{
   allowed: boolean;
   reason?: string;
   cooldownRemaining?: number;

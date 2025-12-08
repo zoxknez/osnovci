@@ -39,7 +39,10 @@ export function createUserFriendlyError(error: unknown): AppError {
     }
 
     // Permission errors
-    if (error.message.includes("permission") || error.message.includes("unauthorized")) {
+    if (
+      error.message.includes("permission") ||
+      error.message.includes("unauthorized")
+    ) {
       return {
         code: "PERMISSION_ERROR",
         message: error.message,
@@ -84,7 +87,7 @@ export function logError(error: unknown, context?: Record<string, any>) {
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  initialDelay: number = 1000
+  initialDelay: number = 1000,
 ): Promise<T> {
   let lastError: unknown;
 
@@ -93,11 +96,10 @@ export async function retryWithBackoff<T>(
       return await fn();
     } catch (error) {
       lastError = error;
-      
+
       if (attempt < maxRetries) {
-        const delay = initialDelay * Math.pow(2, attempt);
+        const delay = initialDelay * 2 ** attempt;
         await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
       }
     }
   }
@@ -110,7 +112,7 @@ export async function retryWithBackoff<T>(
  */
 export async function safeAsync<T>(
   fn: () => Promise<T>,
-  fallback?: T
+  fallback?: T,
 ): Promise<{ data?: T; error?: AppError }> {
   try {
     const data = await fn();
@@ -123,4 +125,3 @@ export async function safeAsync<T>(
     return { error: appError };
   }
 }
-

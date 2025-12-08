@@ -1,46 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 import { format, parseISO } from "date-fns";
 import { sr } from "date-fns/locale";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Alert as AlertComponent, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
   AlertTriangle,
   CheckCircle2,
-  Info,
   Download,
+  Info,
+  Minus,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  Alert as AlertComponent,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Types
 type Period = "week" | "month" | "semester" | "year";
@@ -160,7 +164,7 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
       setError(null);
 
       const response = await fetch(
-        `/api/analytics/grades?studentId=${studentId}&period=${period}`
+        `/api/analytics/grades?studentId=${studentId}&period=${period}`,
       );
 
       if (!response.ok) {
@@ -193,9 +197,7 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
     return <CheckCircle2 className="w-5 h-5 text-green-500" />;
   };
 
-  const getAlertVariant = (
-    type: Alert["type"]
-  ): "default" | "destructive" => {
+  const getAlertVariant = (type: Alert["type"]): "default" | "destructive" => {
     if (type === "declining" || type === "below-threshold")
       return "destructive";
     return "default";
@@ -210,7 +212,7 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
       );
       const blob = await generateGradeAnalyticsPDF(
         `Učenik ${studentId}`,
-        analytics
+        analytics,
       );
 
       const url = URL.createObjectURL(blob);
@@ -248,7 +250,16 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
     );
   }
 
-  const { overview, timeline, movingAverages, subjectTrends, categoryPerformance, distribution, predictions, alerts } = analytics;
+  const {
+    overview,
+    timeline,
+    movingAverages,
+    subjectTrends,
+    categoryPerformance,
+    distribution,
+    predictions,
+    alerts,
+  } = analytics;
 
   return (
     <div className="space-y-6">
@@ -288,10 +299,7 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
       {alerts.length > 0 && (
         <div className="space-y-2">
           {alerts.map((alert, index) => (
-            <AlertComponent
-              key={index}
-              variant={getAlertVariant(alert.type)}
-            >
+            <AlertComponent key={index} variant={getAlertVariant(alert.type)}>
               <div className="flex items-start gap-2">
                 {getAlertIcon(alert.severity)}
                 <div className="flex-1">
@@ -328,8 +336,8 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
                     overview.trend === "up"
                       ? "text-green-500"
                       : overview.trend === "down"
-                      ? "text-red-500"
-                      : "text-gray-500"
+                        ? "text-red-500"
+                        : "text-gray-500"
                   }`}
                 >
                   {overview.trendPercentage > 0 ? "+" : ""}
@@ -349,7 +357,9 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold">{overview.highestGrade}</div>
+                <div className="text-2xl font-bold">
+                  {overview.highestGrade}
+                </div>
                 <div className="text-xs text-muted-foreground">Najviša</div>
               </div>
               <div className="text-right">
@@ -527,8 +537,8 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
                         subject.trend === "up"
                           ? "default"
                           : subject.trend === "down"
-                          ? "destructive"
-                          : "secondary"
+                            ? "destructive"
+                            : "secondary"
                       }
                     >
                       {subject.percentageChange > 0 ? "+" : ""}
@@ -584,7 +594,11 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="count" fill={COLORS.primary} name="Broj ocena">
+                    <Bar
+                      dataKey="count"
+                      fill={COLORS.primary}
+                      name="Broj ocena"
+                    >
                       {distribution.map((_entry, index) => (
                         <Cell
                           key={`cell-${index}`}
@@ -611,7 +625,9 @@ export default function GradeAnalytics({ studentId }: GradeAnalyticsProps) {
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      label={(entry: any) => `${entry.grade}: ${entry.percentage}%`}
+                      label={(entry: any) =>
+                        `${entry.grade}: ${entry.percentage}%`
+                      }
                     >
                       {distribution.map((_entry, index) => (
                         <Cell

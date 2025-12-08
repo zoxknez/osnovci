@@ -102,12 +102,12 @@ function customRetry(failureCount: number, error: any): boolean {
   return false;
 }
 
-import { 
-  getHomeworkAction, 
-  getHomeworkByIdAction, 
-  createHomeworkAction, 
-  updateHomeworkAction, 
-  deleteHomeworkAction 
+import {
+  createHomeworkAction,
+  deleteHomeworkAction,
+  getHomeworkAction,
+  getHomeworkByIdAction,
+  updateHomeworkAction,
 } from "@/app/actions/homework";
 
 // ...
@@ -134,17 +134,17 @@ export function useHomework(params?: {
   status?: string;
 }) {
   // ... (keep params logic if needed for query key, but action takes object)
-  
+
   return useQuery({
     queryKey: [...queryKeys.homework, params],
     queryFn: async () => {
-        const result = await getHomeworkAction(params as any);
-        if (result.error) throw new Error(result.error);
-        // Result data structure matches HomeworkResponse (data, pagination)
-        // But getHomeworkAction returns { success: true, data: { data: ..., pagination: ... } }
-        // So result.data is { data: ..., pagination: ... }
-        // We need to return { success: true, ...result.data } to match HomeworkResponse interface
-        return { success: true, ...result.data } as HomeworkResponse;
+      const result = await getHomeworkAction(params as any);
+      if (result.error) throw new Error(result.error);
+      // Result data structure matches HomeworkResponse (data, pagination)
+      // But getHomeworkAction returns { success: true, data: { data: ..., pagination: ... } }
+      // So result.data is { data: ..., pagination: ... }
+      // We need to return { success: true, ...result.data } to match HomeworkResponse interface
+      return { success: true, ...result.data } as HomeworkResponse;
     },
     retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 5, // 5 min
@@ -161,9 +161,9 @@ export function useHomeworkById(id: string) {
   return useQuery({
     queryKey: queryKeys.homeworkById(id),
     queryFn: async () => {
-        const result = await getHomeworkByIdAction(id);
-        if (result.error) throw new Error(result.error);
-        return result.data as Homework;
+      const result = await getHomeworkByIdAction(id);
+      if (result.error) throw new Error(result.error);
+      return result.data as Homework;
     },
     enabled: !!id, // Only run if ID exists
     staleTime: 1000 * 60 * 5,
@@ -178,9 +178,9 @@ export function useCreateHomework() {
 
   return useMutation({
     mutationFn: async (data: Partial<Homework>) => {
-        const result = await createHomeworkAction(data as any);
-        if (result.error) throw new Error(result.error);
-        return result.data as Homework;
+      const result = await createHomeworkAction(data as any);
+      if (result.error) throw new Error(result.error);
+      return result.data as Homework;
     },
     onSuccess: () => {
       // Invalidate homework list to refetch
@@ -197,9 +197,9 @@ export function useUpdateHomework(id: string) {
 
   return useMutation({
     mutationFn: async (data: Partial<Homework>) => {
-        const result = await updateHomeworkAction(id, data as any);
-        if (result.error) throw new Error(result.error);
-        return result.data as Homework;
+      const result = await updateHomeworkAction(id, data as any);
+      if (result.error) throw new Error(result.error);
+      return result.data as Homework;
     },
     onSuccess: () => {
       // Invalidate specific homework and list
@@ -217,9 +217,9 @@ export function useDeleteHomework() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-        const result = await deleteHomeworkAction(id);
-        if (result.error) throw new Error(result.error);
-        return result.data;
+      const result = await deleteHomeworkAction(id);
+      if (result.error) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.homework });
@@ -260,17 +260,17 @@ export function useGrades(params?: {
   period?: string;
 }) {
   // ... (keep params logic if needed for query key)
-  
+
   return useQuery({
     queryKey: [...queryKeys.grades, params],
     queryFn: async () => {
-        const result = await getGradesAction();
-        if (result.error) throw new Error(result.error);
-        // Result data structure matches GradesResponse (data, stats, pagination)
-        // But getGradesAction returns { success: true, data: { data: ..., stats: ..., pagination: ... } }
-        // So result.data is { data: ..., stats: ..., pagination: ... }
-        // We need to return { success: true, ...result.data } to match GradesResponse interface
-        return { success: true, ...result.data } as GradesResponse;
+      const result = await getGradesAction();
+      if (result.error) throw new Error(result.error);
+      // Result data structure matches GradesResponse (data, stats, pagination)
+      // But getGradesAction returns { success: true, data: { data: ..., stats: ..., pagination: ... } }
+      // So result.data is { data: ..., stats: ..., pagination: ... }
+      // We need to return { success: true, ...result.data } to match GradesResponse interface
+      return { success: true, ...result.data } as GradesResponse;
     },
     retry: customRetry, // Custom retry logic
     staleTime: 1000 * 60 * 10, // 10 min (grades change less frequently)
@@ -295,14 +295,12 @@ export function useSubjects() {
   });
 }
 
-import { getScheduleAction } from "@/app/actions/schedule";
-
-import { getSubjectsAction } from "@/app/actions/subjects";
-
-import { 
-  getNotificationsAction, 
-  markNotificationsAsReadAction 
+import {
+  getNotificationsAction,
+  markNotificationsAsReadAction,
 } from "@/app/actions/notifications";
+import { getScheduleAction } from "@/app/actions/schedule";
+import { getSubjectsAction } from "@/app/actions/subjects";
 
 // ...
 
@@ -338,13 +336,13 @@ export function useSchedule(params?: { dayOfWeek?: string; limit?: number }) {
   return useQuery({
     queryKey: [...queryKeys.schedule, params],
     queryFn: async () => {
-        const result = await getScheduleAction();
-        if (result.error) throw new Error(result.error);
-        // Result data structure matches ScheduleResponse (data, pagination)
-        // But getScheduleAction returns { success: true, data: { data: ..., pagination: ... } }
-        // So result.data is { data: ..., pagination: ... }
-        // We need to return { success: true, ...result.data } to match ScheduleResponse interface
-        return { success: true, ...result.data } as ScheduleResponse;
+      const result = await getScheduleAction();
+      if (result.error) throw new Error(result.error);
+      // Result data structure matches ScheduleResponse (data, pagination)
+      // But getScheduleAction returns { success: true, data: { data: ..., pagination: ... } }
+      // So result.data is { data: ..., pagination: ... }
+      // We need to return { success: true, ...result.data } to match ScheduleResponse interface
+      return { success: true, ...result.data } as ScheduleResponse;
     },
     staleTime: 1000 * 60 * 30, // 30 min
   });
@@ -388,12 +386,12 @@ export function useProfile() {
       // The fetchApi implementation returns res.json().
       // If the API returned { success: true, profile: ..., stats: ... }
       // Then data would be that object.
-      
+
       // I'll construct the object to be safe.
       return {
         success: true,
         profile: result.data?.profile,
-        stats: result.data?.stats
+        stats: result.data?.stats,
       } as unknown as ProfileResponse;
     },
     retry: customRetry, // Custom retry logic

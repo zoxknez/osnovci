@@ -21,15 +21,22 @@ import { checkAndUnlockAchievements } from "./achievement-triggers";
 import {
   addXPCore,
   calculateLevel,
+  getLevelProgress,
+  getXPForNextLevel,
+  LEVEL_THRESHOLDS,
+  validateHomeworkSubmission,
+  XP_REWARDS,
+} from "./xp-core";
+
+// Re-export core functions and constants
+export {
+  calculateLevel,
   getXPForNextLevel,
   getLevelProgress,
   validateHomeworkSubmission,
   LEVEL_THRESHOLDS,
   XP_REWARDS,
-} from "./xp-core";
-
-// Re-export core functions and constants
-export { calculateLevel, getXPForNextLevel, getLevelProgress, validateHomeworkSubmission, LEVEL_THRESHOLDS, XP_REWARDS };
+};
 
 // ============================================
 // ENHANCED XP FUNCTIONS WITH ACHIEVEMENTS
@@ -37,7 +44,7 @@ export { calculateLevel, getXPForNextLevel, getLevelProgress, validateHomeworkSu
 
 /**
  * Add XP to student with enhanced calculation + achievement checks
- * 
+ *
  * This is a wrapper around addXPCore that also handles checkAchievements calls.
  */
 export async function addXP(
@@ -53,7 +60,7 @@ export async function addXP(
     hasDetailedNotes?: boolean;
     applyStreakMultiplier?: boolean;
   },
-  tx?: any // Prisma Transaction Client
+  tx?: any, // Prisma Transaction Client
 ) {
   // Call core XP function with achievement callback
   const result = await addXPCore(studentId, baseAmount, reason, metadata, {
@@ -72,7 +79,11 @@ export async function addXP(
 /**
  * Enhanced streak update with freeze power-up
  */
-export async function updateStreak(studentId: string, forceIncrement = false, tx?: any) {
+export async function updateStreak(
+  studentId: string,
+  forceIncrement = false,
+  tx?: any,
+) {
   try {
     const db = tx || prisma;
     const gamif = await db.gamification.findUnique({
@@ -116,7 +127,7 @@ export async function updateStreak(studentId: string, forceIncrement = false, tx
           {
             applyStreakMultiplier: false,
           },
-          db
+          db,
         );
 
         // Check streak achievements
@@ -149,7 +160,13 @@ export async function updateStreak(studentId: string, forceIncrement = false, tx
 
         // Comeback achievement if returning after 7+ days
         if (daysSinceLastActivity >= 7) {
-          await addXP(studentId, XP_REWARDS.COMEBACK, "Welcome back!", undefined, db);
+          await addXP(
+            studentId,
+            XP_REWARDS.COMEBACK,
+            "Welcome back!",
+            undefined,
+            db,
+          );
           await checkAndUnlockAchievements(studentId);
         }
 
@@ -255,7 +272,10 @@ export async function trackHomeworkCompletion(
     // Anti-gaming check
     const validation = await validateHomeworkSubmission(studentId);
     if (!validation.allowed) {
-      log.warn("XP blocked by anti-gaming check", { studentId, reason: validation.reason });
+      log.warn("XP blocked by anti-gaming check", {
+        studentId,
+        reason: validation.reason,
+      });
       return;
     }
 
@@ -281,7 +301,7 @@ export async function trackHomeworkCompletion(
       const xpAmount = early
         ? XP_REWARDS.HOMEWORK_EARLY
         : XP_REWARDS.HOMEWORK_COMPLETED;
-        
+
       await addXP(
         studentId,
         xpAmount,
@@ -289,7 +309,7 @@ export async function trackHomeworkCompletion(
         {
           applyStreakMultiplier: true,
         },
-        tx
+        tx,
       );
 
       // Update streak
@@ -298,7 +318,7 @@ export async function trackHomeworkCompletion(
 
     // Check milestones (outside transaction to avoid long locks)
     await checkAndUnlockAchievements(studentId);
-    
+
     // Trigger specific achievement checks
     if (early) {
       // Check early submission achievements specifically if needed

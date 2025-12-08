@@ -5,10 +5,10 @@
 
 "use client";
 
-import { AlertCircle, RefreshCw, Home } from "lucide-react";
+import { AlertCircle, Home, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
 
 interface ErrorRecoveryProps {
   error: Error;
@@ -35,7 +35,7 @@ export function ErrorRecovery({
         <p className="text-sm text-gray-700">
           {error.message || "Došlo je do neočekivane greške. Pokušaj ponovo."}
         </p>
-        
+
         <div className="flex gap-2 flex-wrap">
           {onRetry && (
             <Button
@@ -47,7 +47,7 @@ export function ErrorRecovery({
               Pokušaj ponovo
             </Button>
           )}
-          
+
           {showHomeButton && (
             <Button
               onClick={() => router.push("/dashboard")}
@@ -63,4 +63,3 @@ export function ErrorRecovery({
     </Card>
   );
 }
-

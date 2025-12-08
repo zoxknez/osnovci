@@ -14,8 +14,8 @@ import {
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useCamera } from "@/hooks/use-camera";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useImageProcessor } from "@/hooks/use-image-processor";
 
 interface CameraProps {
@@ -31,9 +31,16 @@ export function ModernCamera({ onCapture, onClose }: CameraProps) {
     autoFocus: true,
     restoreFocus: true,
   });
-  
-  const { videoRef, stream: _stream, facingMode, flipCamera, stopCamera: _stopCamera } = useCamera();
-  const { enhanceDocument, processAndCompressImage, isProcessing } = useImageProcessor();
+
+  const {
+    videoRef,
+    stream: _stream,
+    facingMode,
+    flipCamera,
+    stopCamera: _stopCamera,
+  } = useCamera();
+  const { enhanceDocument, processAndCompressImage, isProcessing } =
+    useImageProcessor();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);

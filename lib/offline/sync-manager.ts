@@ -1,16 +1,16 @@
 /**
  * Background Sync Manager
- * 
+ *
  * Handles synchronization of offline changes when connection is restored
  * Uses Service Worker Background Sync API when available
  */
 
+import { log } from "@/lib/logger";
 import {
   getPendingActions,
-  removePendingAction,
   incrementPendingActionRetries,
+  removePendingAction,
 } from "./indexeddb";
-import { log } from "@/lib/logger";
 
 const MAX_RETRIES = 5;
 const SYNC_TAG = "osnovci-sync";
@@ -32,7 +32,7 @@ export async function registerBackgroundSync(): Promise<boolean> {
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    
+
     // Type assertion for experimental API
     const syncManager = (registration as any).sync;
     if (!syncManager) {
@@ -94,8 +94,9 @@ export async function syncPendingActions(): Promise<SyncResult> {
       } catch (error) {
         await incrementPendingActionRetries(action.id);
         result.failed++;
-        
-        const errorMsg = error instanceof Error ? error.message : "Unknown error";
+
+        const errorMsg =
+          error instanceof Error ? error.message : "Unknown error";
         result.errors.push(`Action ${action.id}: ${errorMsg}`);
 
         log.error("[Sync] Failed to sync action", error as Error, {
@@ -126,14 +127,20 @@ async function processPendingAction(action: any): Promise<void> {
   // Determine API endpoint and method based on action
   switch (entity) {
     case "homework":
-      endpoint = actionType === "create" ? "/api/homework" : `/api/homework/${data.id}`;
-      method = actionType === "create" ? "POST" : actionType === "update" ? "PUT" : "DELETE";
+      endpoint =
+        actionType === "create" ? "/api/homework" : `/api/homework/${data.id}`;
+      method =
+        actionType === "create"
+          ? "POST"
+          : actionType === "update"
+            ? "PUT"
+            : "DELETE";
       break;
 
-    case "attachment":
+    case "attachment": {
       endpoint = "/api/upload";
       method = "POST";
-      
+
       // Convert data to FormData for file upload
       const formData = new FormData();
       if (data.file instanceof Blob) {
@@ -142,6 +149,7 @@ async function processPendingAction(action: any): Promise<void> {
       }
       body = formData;
       break;
+    }
 
     case "note":
       endpoint = `/api/homework/${data.homeworkId}`;
@@ -195,11 +203,14 @@ export async function getPendingSyncStats(): Promise<{
 }> {
   try {
     const actions = await getPendingActions();
-    
+
     const stats = {
       total: actions.length,
       byEntity: {} as Record<string, number>,
-      oldestAction: actions.length > 0 ? Math.min(...actions.map((a) => a.createdAt)) : null,
+      oldestAction:
+        actions.length > 0
+          ? Math.min(...actions.map((a) => a.createdAt))
+          : null,
     };
 
     // Count by entity type
@@ -227,12 +238,12 @@ export function setupSyncListeners(): void {
   // Sync when coming online
   window.addEventListener("online", async () => {
     log.info("[Sync] Connection restored - triggering sync");
-    
+
     try {
       const hasPending = await hasPendingSync();
       if (hasPending) {
         await syncPendingActions();
-        
+
         // Dispatch custom event for UI updates
         window.dispatchEvent(new CustomEvent("osnovci-sync-complete"));
       }

@@ -2,7 +2,7 @@
 
 /**
  * HomeworkCalendar - Kalendarski prikaz zadaća
- * 
+ *
  * Features:
  * - Mjesečni i sedmični prikaz
  * - Drag-and-drop za promjenu rokova
@@ -12,24 +12,24 @@
  * - WCAG 2.1 AAA compliant
  */
 
-import { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  CalendarDays,
-  Clock,
   AlertCircle,
   AlertTriangle,
-  CheckCircle2,
   BookOpen,
-  Plus,
+  Calendar,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
   LayoutGrid,
+  Plus,
 } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -59,17 +59,47 @@ interface HomeworkCalendarProps {
 
 // Serbian day names
 const DAY_NAMES = ["Ned", "Pon", "Uto", "Sri", "Čet", "Pet", "Sub"];
-const DAY_NAMES_FULL = ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"];
+const DAY_NAMES_FULL = [
+  "Nedjelja",
+  "Ponedjeljak",
+  "Utorak",
+  "Srijeda",
+  "Četvrtak",
+  "Petak",
+  "Subota",
+];
 const MONTH_NAMES = [
-  "Januar", "Februar", "Mart", "April", "Maj", "Jun",
-  "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"
+  "Januar",
+  "Februar",
+  "Mart",
+  "April",
+  "Maj",
+  "Jun",
+  "Jul",
+  "Avgust",
+  "Septembar",
+  "Oktobar",
+  "Novembar",
+  "Decembar",
 ];
 
 // Priority colors and icons
 const PRIORITY_CONFIG = {
-  NORMAL: { color: "bg-blue-100 text-blue-700", icon: BookOpen, label: "Normalno" },
-  IMPORTANT: { color: "bg-amber-100 text-amber-700", icon: AlertCircle, label: "Važno" },
-  URGENT: { color: "bg-red-100 text-red-700", icon: AlertTriangle, label: "Hitno" },
+  NORMAL: {
+    color: "bg-blue-100 text-blue-700",
+    icon: BookOpen,
+    label: "Normalno",
+  },
+  IMPORTANT: {
+    color: "bg-amber-100 text-amber-700",
+    icon: AlertCircle,
+    label: "Važno",
+  },
+  URGENT: {
+    color: "bg-red-100 text-red-700",
+    icon: AlertTriangle,
+    label: "Hitno",
+  },
 };
 
 // Status config
@@ -127,8 +157,15 @@ function CalendarDay({
   const today = isToday(date);
   const past = isPast(date);
   const hasHomework = homework.length > 0;
-  const hasUrgent = homework.some(hw => hw.priority === "URGENT" && hw.status !== "DONE" && hw.status !== "SUBMITTED");
-  const hasDue = homework.some(hw => isSameDay(new Date(hw.dueDate), date) && hw.status !== "DONE");
+  const hasUrgent = homework.some(
+    (hw) =>
+      hw.priority === "URGENT" &&
+      hw.status !== "DONE" &&
+      hw.status !== "SUBMITTED",
+  );
+  const hasDue = homework.some(
+    (hw) => isSameDay(new Date(hw.dueDate), date) && hw.status !== "DONE",
+  );
 
   return (
     <motion.button
@@ -138,20 +175,24 @@ function CalendarDay({
       className={cn(
         "relative min-h-[80px] p-1 border rounded-lg transition-all",
         "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-        isCurrentMonth ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-900",
+        isCurrentMonth
+          ? "bg-white dark:bg-gray-800"
+          : "bg-gray-50 dark:bg-gray-900",
         isSelected && "ring-2 ring-primary",
         today && "ring-2 ring-blue-500",
         past && isCurrentMonth && "opacity-60",
-        !isCurrentMonth && "opacity-40"
+        !isCurrentMonth && "opacity-40",
       )}
       aria-label={`${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}, ${homework.length} zadaća`}
     >
       {/* Date number */}
-      <div className={cn(
-        "text-sm font-medium mb-1",
-        today && "text-blue-600 dark:text-blue-400",
-        !isCurrentMonth && "text-gray-400"
-      )}>
+      <div
+        className={cn(
+          "text-sm font-medium mb-1",
+          today && "text-blue-600 dark:text-blue-400",
+          !isCurrentMonth && "text-gray-400",
+        )}
+      >
         {date.getDate()}
       </div>
 
@@ -168,7 +209,7 @@ function CalendarDay({
               className={cn(
                 "text-xs truncate px-1 py-0.5 rounded cursor-pointer",
                 "border-l-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700",
-                STATUS_CONFIG[hw.status].color
+                STATUS_CONFIG[hw.status].color,
               )}
               style={{ borderLeftColor: hw.subject.color }}
             >
@@ -207,7 +248,10 @@ function HomeworkCard({
   const priorityConfig = PRIORITY_CONFIG[homework.priority];
   const statusConfig = STATUS_CONFIG[homework.status];
   const PriorityIcon = priorityConfig.icon;
-  const isDone = homework.status === "DONE" || homework.status === "SUBMITTED" || homework.status === "REVIEWED";
+  const isDone =
+    homework.status === "DONE" ||
+    homework.status === "SUBMITTED" ||
+    homework.status === "REVIEWED";
   const isOverdue = !isDone && isPast(new Date(homework.dueDate));
 
   return (
@@ -221,7 +265,8 @@ function HomeworkCard({
         "p-3 rounded-lg border cursor-pointer transition-all",
         "hover:shadow-md",
         isDone && "opacity-60",
-        isOverdue && "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
+        isOverdue &&
+          "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/20",
       )}
     >
       <div className="flex items-start gap-3">
@@ -234,11 +279,15 @@ function HomeworkCard({
         <div className="flex-1 min-w-0">
           {/* Title and status */}
           <div className="flex items-center gap-2 mb-1">
-            {isDone && <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />}
-            <h4 className={cn(
-              "font-medium text-sm truncate",
-              isDone && "line-through text-muted-foreground"
-            )}>
+            {isDone && (
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+            )}
+            <h4
+              className={cn(
+                "font-medium text-sm truncate",
+                isDone && "line-through text-muted-foreground",
+              )}
+            >
               {homework.title}
             </h4>
           </div>
@@ -264,7 +313,10 @@ function HomeworkCard({
 
           {/* Tags */}
           <div className="flex items-center gap-1 mt-2">
-            <Badge variant="outline" className={cn("text-xs", priorityConfig.color)}>
+            <Badge
+              variant="outline"
+              className={cn("text-xs", priorityConfig.color)}
+            >
               <PriorityIcon className="h-3 w-3 mr-1" />
               {priorityConfig.label}
             </Badge>
@@ -325,9 +377,12 @@ export function HomeworkCalendar({
   }, [currentYear, currentMonth]);
 
   // Get homework for a specific date
-  const getHomeworkForDate = useCallback((date: Date) => {
-    return homework.filter(hw => isSameDay(new Date(hw.dueDate), date));
-  }, [homework]);
+  const getHomeworkForDate = useCallback(
+    (date: Date) => {
+      return homework.filter((hw) => isSameDay(new Date(hw.dueDate), date));
+    },
+    [homework],
+  );
 
   // Selected date homework
   const selectedDateHomework = useMemo(() => {
@@ -362,16 +417,31 @@ export function HomeworkCalendar({
 
   // Stats for current view
   const monthStats = useMemo(() => {
-    const monthHomework = homework.filter(hw => {
+    const monthHomework = homework.filter((hw) => {
       const dueDate = new Date(hw.dueDate);
-      return dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+      return (
+        dueDate.getMonth() === currentMonth &&
+        dueDate.getFullYear() === currentYear
+      );
     });
 
     return {
       total: monthHomework.length,
-      completed: monthHomework.filter(hw => hw.status === "DONE" || hw.status === "SUBMITTED" || hw.status === "REVIEWED").length,
-      urgent: monthHomework.filter(hw => hw.priority === "URGENT" && hw.status !== "DONE").length,
-      overdue: monthHomework.filter(hw => isPast(new Date(hw.dueDate)) && hw.status !== "DONE" && hw.status !== "SUBMITTED").length,
+      completed: monthHomework.filter(
+        (hw) =>
+          hw.status === "DONE" ||
+          hw.status === "SUBMITTED" ||
+          hw.status === "REVIEWED",
+      ).length,
+      urgent: monthHomework.filter(
+        (hw) => hw.priority === "URGENT" && hw.status !== "DONE",
+      ).length,
+      overdue: monthHomework.filter(
+        (hw) =>
+          isPast(new Date(hw.dueDate)) &&
+          hw.status !== "DONE" &&
+          hw.status !== "SUBMITTED",
+      ).length,
     };
   }, [homework, currentMonth, currentYear]);
 
@@ -463,7 +533,7 @@ export function HomeworkCalendar({
                   className={cn(
                     "text-center text-xs font-medium py-2",
                     index === 0 && "text-red-500",
-                    index === 6 && "text-blue-500"
+                    index === 6 && "text-blue-500",
                   )}
                 >
                   {day}
@@ -479,7 +549,9 @@ export function HomeworkCalendar({
                   date={date}
                   homework={getHomeworkForDate(date)}
                   isCurrentMonth={date.getMonth() === currentMonth}
-                  isSelected={selectedDate ? isSameDay(date, selectedDate) : false}
+                  isSelected={
+                    selectedDate ? isSameDay(date, selectedDate) : false
+                  }
                   onClick={() => handleDateClick(date)}
                   onHomeworkClick={handleHomeworkClick}
                 />
@@ -498,7 +570,9 @@ export function HomeworkCalendar({
               >
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium">
-                    {DAY_NAMES_FULL[selectedDate.getDay()]}, {selectedDate.getDate()}. {MONTH_NAMES[selectedDate.getMonth()]}
+                    {DAY_NAMES_FULL[selectedDate.getDay()]},{" "}
+                    {selectedDate.getDate()}.{" "}
+                    {MONTH_NAMES[selectedDate.getMonth()]}
                   </h3>
                   {onAddHomework && (
                     <Button

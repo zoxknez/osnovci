@@ -3,7 +3,7 @@
  * Provides retry mechanism for failed operations
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { showErrorToast } from "@/components/features/error-toast";
 
 interface UseRetryOptions {
@@ -16,7 +16,7 @@ interface UseRetryOptions {
 
 export function useRetry<T extends (...args: any[]) => Promise<any>>(
   fn: T,
-  options: UseRetryOptions = {}
+  options: UseRetryOptions = {},
 ) {
   const {
     maxRetries = 3,
@@ -40,12 +40,14 @@ export function useRetry<T extends (...args: any[]) => Promise<any>>(
 
           if (attempt > 0) {
             // Wait before retry
-            await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
+            await new Promise((resolve) =>
+              setTimeout(resolve, retryDelay * attempt),
+            );
             onRetry?.();
           }
 
           const result = await fn(...args);
-          
+
           // Success
           setIsRetrying(false);
           setRetryCount(0);
@@ -62,7 +64,9 @@ export function useRetry<T extends (...args: any[]) => Promise<any>>(
 
             showErrorToast({
               error: lastError,
-              retry: async () => { await executeWithRetry(...args); },
+              retry: async () => {
+                await executeWithRetry(...args);
+              },
             });
 
             return null;
@@ -72,7 +76,7 @@ export function useRetry<T extends (...args: any[]) => Promise<any>>(
 
       return null;
     },
-    [fn, maxRetries, retryDelay, onRetry, onSuccess, onFailure]
+    [fn, maxRetries, retryDelay, onRetry, onSuccess, onFailure],
   );
 
   return {
@@ -81,4 +85,3 @@ export function useRetry<T extends (...args: any[]) => Promise<any>>(
     retryCount,
   };
 }
-

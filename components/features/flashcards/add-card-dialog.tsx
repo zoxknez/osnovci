@@ -1,5 +1,8 @@
 "use client";
 
+import { Loader2, Plus } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,9 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateCard } from "@/lib/hooks/use-flashcards";
-import { Loader2, Plus } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 interface AddCardDialogProps {
   deckId: string;
@@ -50,7 +50,7 @@ export function AddCardDialog({ deckId }: AddCardDialogProps) {
         onError: () => {
           toast.error("Greška pri dodavanju kartice");
         },
-      }
+      },
     );
   };
 

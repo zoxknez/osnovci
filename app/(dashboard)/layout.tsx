@@ -2,9 +2,9 @@
 // This layout wraps ALL dashboard routes and ensures authentication
 
 import { redirect } from "next/navigation";
+import { InactivityMonitor } from "@/components/features/inactivity-monitor-wrapper";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { InactivityMonitor } from "@/components/features/inactivity-monitor-wrapper";
 
 export default async function DashboardGroupLayout({
   children,

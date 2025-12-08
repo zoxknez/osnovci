@@ -1,8 +1,10 @@
 /**
  * Verification Email Template
  */
-// @ts-expect-error - createPlainText reserved for future plain text emails
-import { createBaseTemplate, createPlainText, type EmailTemplate } from './base';
+import {
+  createBaseTemplate,
+  type EmailTemplate,
+} from "./base";
 
 export function createVerificationEmailTemplate(
   userName: string,
@@ -32,8 +34,8 @@ export function createVerificationEmailTemplate(
     </p>
   `;
 
-  const html = createBaseTemplate(content, '📧 Potvrdi Svoj Email ✉️');
-  
+  const html = createBaseTemplate(content, "📧 Potvrdi Svoj Email ✉️");
+
   const text = `
 POTVRDI SVOJ EMAIL
 =====================
@@ -58,7 +60,7 @@ Osnovci - Aplikacija za Učenike i Roditelje
   `.trim();
 
   return {
-    subject: '✅ Potvrdi svoj email | Osnovci',
+    subject: "✅ Potvrdi svoj email | Osnovci",
     html,
     text,
   };
@@ -66,12 +68,11 @@ Osnovci - Aplikacija za Učenike i Roditelje
 
 function escapeHtml(text: string): string {
   const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   };
   return text.replace(/[&<>"']/g, (m) => map[m] ?? m);
 }
-

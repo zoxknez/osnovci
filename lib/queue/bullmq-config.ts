@@ -3,20 +3,22 @@
  * Handles background job processing for scalability
  */
 
-import { Queue, Worker, Job } from 'bullmq';
-import { Redis } from 'ioredis';
-import { log } from '@/lib/logger';
+import { type Job, Queue, Worker } from "bullmq";
+import { Redis } from "ioredis";
+import { log } from "@/lib/logger";
 
 // Redis connection for BullMQ
 const connection = new Redis({
-  host: process.env['REDIS_HOST'] || 'localhost',
-  port: parseInt(process.env['REDIS_PORT'] || '6379', 10),
+  host: process.env["REDIS_HOST"] || "localhost",
+  port: parseInt(process.env["REDIS_PORT"] || "6379", 10),
   maxRetriesPerRequest: null, // Required for BullMQ
   enableReadyCheck: false,
   // Prevent infinite retries in development to avoid log spam
   retryStrategy: (times) => {
-    if (process.env.NODE_ENV === 'development' && times > 3) {
-      log.warn('Redis connection failed too many times - disabling BullMQ connection retries');
+    if (process.env.NODE_ENV === "development" && times > 3) {
+      log.warn(
+        "Redis connection failed too many times - disabling BullMQ connection retries",
+      );
       return null; // Stop retrying
     }
     return Math.min(times * 50, 2000);
@@ -24,12 +26,15 @@ const connection = new Redis({
 });
 
 // Handle connection errors to prevent crash/spam
-connection.on('error', (err) => {
+connection.on("error", (err) => {
   // In development, suppress ECONNREFUSED after we've logged the warning
-  if (process.env.NODE_ENV === 'development' && (err as any).code === 'ECONNREFUSED') {
+  if (
+    process.env.NODE_ENV === "development" &&
+    (err as any).code === "ECONNREFUSED"
+  ) {
     return;
   }
-  log.error('Redis connection error', err);
+  log.error("Redis connection error", err);
 });
 
 // Queue options with retry strategy
@@ -38,7 +43,7 @@ const defaultQueueOptions = {
   defaultJobOptions: {
     attempts: 3,
     backoff: {
-      type: 'exponential' as const,
+      type: "exponential" as const,
       delay: 1000, // Start with 1 second
     },
     removeOnComplete: {
@@ -70,38 +75,44 @@ export interface EmailJobData {
   }>;
 }
 
-export const emailQueue = new Queue<EmailJobData>('email', defaultQueueOptions);
+export const emailQueue = new Queue<EmailJobData>("email", defaultQueueOptions);
 
 export const createEmailWorker = () => {
   return new Worker<EmailJobData>(
-    'email',
+    "email",
     async (job: Job<EmailJobData>) => {
-      log.info('Processing email job', { jobId: job.id, to: job.data.to });
+      log.info("Processing email job", { jobId: job.id, to: job.data.to });
 
       try {
         // Import dynamically to avoid loading Nodemailer on every request
         try {
-          const { sendEmail } = await import('@/lib/email');
+          const { sendEmail } = await import("@/lib/email");
           await sendEmail(
             job.data.to,
             job.data.subject,
             job.data.html,
-            job.data.text
+            job.data.text,
           );
         } catch (importError) {
-          log.warn('Email module not available, skipping email send', { error: importError });
+          log.warn("Email module not available, skipping email send", {
+            error: importError,
+          });
           // Email module not implemented yet, just log
-          return { success: true, sentAt: new Date().toISOString(), skipped: true };
+          return {
+            success: true,
+            sentAt: new Date().toISOString(),
+            skipped: true,
+          };
         }
 
-        log.info('Email sent successfully', { jobId: job.id });
+        log.info("Email sent successfully", { jobId: job.id });
         return { success: true, sentAt: new Date().toISOString() };
       } catch (error) {
-        log.error('Email sending failed', error as Error, { jobId: job.id });
+        log.error("Email sending failed", error as Error, { jobId: job.id });
         throw error; // Will trigger retry
       }
     },
-    { connection }
+    { connection },
   );
 };
 
@@ -113,41 +124,57 @@ export interface NotificationJobData {
   userId: string;
   title: string;
   body: string;
-  type: 'homework' | 'grade' | 'announcement' | 'achievement' | 'reminder';
+  type: "homework" | "grade" | "announcement" | "achievement" | "reminder";
   data?: Record<string, string>;
-  priority?: 'low' | 'normal' | 'high';
+  priority?: "low" | "normal" | "high";
 }
 
-export const notificationQueue = new Queue<NotificationJobData>('notification', defaultQueueOptions);
+export const notificationQueue = new Queue<NotificationJobData>(
+  "notification",
+  defaultQueueOptions,
+);
 
 export const createNotificationWorker = () => {
   return new Worker<NotificationJobData>(
-    'notification',
+    "notification",
     async (job: Job<NotificationJobData>) => {
-      log.info('Processing notification job', { jobId: job.id, userId: job.data.userId });
+      log.info("Processing notification job", {
+        jobId: job.id,
+        userId: job.data.userId,
+      });
 
       try {
         try {
-          const { sendPushNotification } = await import('@/lib/notifications/push-server');
+          const { sendPushNotification } = await import(
+            "@/lib/notifications/push-server"
+          );
           await sendPushNotification({
             userId: job.data.userId,
             title: job.data.title,
             body: job.data.body,
-            ...(job.data.data && { data: job.data.data })
+            ...(job.data.data && { data: job.data.data }),
           });
         } catch (importError) {
-          log.warn('Notification module not available, skipping notification', { error: importError });
-          return { success: true, sentAt: new Date().toISOString(), skipped: true };
+          log.warn("Notification module not available, skipping notification", {
+            error: importError,
+          });
+          return {
+            success: true,
+            sentAt: new Date().toISOString(),
+            skipped: true,
+          };
         }
 
-        log.info('Notification sent successfully', { jobId: job.id });
+        log.info("Notification sent successfully", { jobId: job.id });
         return { success: true, sentAt: new Date().toISOString() };
       } catch (error) {
-        log.error('Notification sending failed', error as Error, { jobId: job.id });
+        log.error("Notification sending failed", error as Error, {
+          jobId: job.id,
+        });
         throw error;
       }
     },
-    { connection }
+    { connection },
   );
 };
 
@@ -158,14 +185,14 @@ export const createNotificationWorker = () => {
 export interface ReportJobData {
   reportId: string;
   studentId: string;
-  reportType: 'weekly' | 'monthly' | 'semester' | 'annual';
+  reportType: "weekly" | "monthly" | "semester" | "annual";
   startDate: Date;
   endDate: Date;
-  format: 'pdf' | 'excel' | 'json';
+  format: "pdf" | "excel" | "json";
   recipientEmail?: string;
 }
 
-export const reportQueue = new Queue<ReportJobData>('report', {
+export const reportQueue = new Queue<ReportJobData>("report", {
   ...defaultQueueOptions,
   defaultJobOptions: {
     ...defaultQueueOptions.defaultJobOptions,
@@ -175,14 +202,17 @@ export const reportQueue = new Queue<ReportJobData>('report', {
 
 export const createReportWorker = () => {
   return new Worker<ReportJobData>(
-    'report',
+    "report",
     async (job: Job<ReportJobData>) => {
-      log.info('Processing report job', { jobId: job.id, reportId: job.data.reportId });
+      log.info("Processing report job", {
+        jobId: job.id,
+        reportId: job.data.reportId,
+      });
 
       try {
         let reportUrl: string;
         try {
-          const { generateReport } = await import('@/lib/reports/generator');
+          const { generateReport } = await import("@/lib/reports/generator");
           const reportResult = await generateReport({
             studentId: job.data.studentId,
             reportType: job.data.reportType,
@@ -191,17 +221,20 @@ export const createReportWorker = () => {
             format: job.data.format,
           });
           // Extract URL from report result or use placeholder
-          reportUrl = reportResult.success && reportResult.filename 
-            ? `/reports/${reportResult.filename}` 
-            : '/reports/placeholder.pdf';
+          reportUrl =
+            reportResult.success && reportResult.filename
+              ? `/reports/${reportResult.filename}`
+              : "/reports/placeholder.pdf";
         } catch (importError) {
-          log.warn('Report generator not available, returning placeholder', { error: importError });
-          reportUrl = '/reports/placeholder.pdf';
+          log.warn("Report generator not available, returning placeholder", {
+            error: importError,
+          });
+          reportUrl = "/reports/placeholder.pdf";
         }
 
         // Send email with report if recipient specified
         if (job.data.recipientEmail) {
-          await emailQueue.add('report-email', {
+          await emailQueue.add("report-email", {
             to: job.data.recipientEmail,
             subject: `Izveštaj - ${job.data.reportType}`,
             html: `
@@ -212,14 +245,20 @@ export const createReportWorker = () => {
           });
         }
 
-        log.info('Report generated successfully', { jobId: job.id, reportUrl });
-        return { success: true, reportUrl, generatedAt: new Date().toISOString() };
+        log.info("Report generated successfully", { jobId: job.id, reportUrl });
+        return {
+          success: true,
+          reportUrl,
+          generatedAt: new Date().toISOString(),
+        };
       } catch (error) {
-        log.error('Report generation failed', error as Error, { jobId: job.id });
+        log.error("Report generation failed", error as Error, {
+          jobId: job.id,
+        });
         throw error;
       }
     },
-    { connection }
+    { connection },
   );
 };
 
@@ -229,49 +268,63 @@ export const createReportWorker = () => {
 
 export interface ScheduleJobData {
   studentId: string;
-  action: 'sync' | 'reminder' | 'conflict-check';
+  action: "sync" | "reminder" | "conflict-check";
   scheduleId?: string;
   date?: Date;
 }
 
-export const scheduleQueue = new Queue<ScheduleJobData>('schedule', defaultQueueOptions);
+export const scheduleQueue = new Queue<ScheduleJobData>(
+  "schedule",
+  defaultQueueOptions,
+);
 
 export const createScheduleWorker = () => {
   return new Worker<ScheduleJobData>(
-    'schedule',
+    "schedule",
     async (job: Job<ScheduleJobData>) => {
-      log.info('Processing schedule job', { jobId: job.id, action: job.data.action });
+      log.info("Processing schedule job", {
+        jobId: job.id,
+        action: job.data.action,
+      });
 
       try {
         switch (job.data.action) {
-          case 'sync':
+          case "sync":
             // TODO: Implement calendar sync logic
-            log.info('Calendar sync triggered', { studentId: job.data.studentId });
+            log.info("Calendar sync triggered", {
+              studentId: job.data.studentId,
+            });
             break;
 
-          case 'reminder':
+          case "reminder":
             try {
-              const { sendScheduleReminders } = await import('@/lib/notifications/reminders');
+              const { sendScheduleReminders } = await import(
+                "@/lib/notifications/reminders"
+              );
               await sendScheduleReminders(job.data.studentId, job.data.date!);
             } catch (importError) {
-              log.warn('Reminders module not available, skipping reminder', { error: importError });
+              log.warn("Reminders module not available, skipping reminder", {
+                error: importError,
+              });
             }
             break;
 
-          case 'conflict-check':
+          case "conflict-check":
             // TODO: Implement conflict checking logic
-            log.info('Schedule conflict check triggered', { studentId: job.data.studentId });
+            log.info("Schedule conflict check triggered", {
+              studentId: job.data.studentId,
+            });
             break;
         }
 
-        log.info('Schedule job completed', { jobId: job.id });
+        log.info("Schedule job completed", { jobId: job.id });
         return { success: true, completedAt: new Date().toISOString() };
       } catch (error) {
-        log.error('Schedule job failed', error as Error, { jobId: job.id });
+        log.error("Schedule job failed", error as Error, { jobId: job.id });
         throw error;
       }
     },
-    { connection }
+    { connection },
   );
 };
 
@@ -283,11 +336,11 @@ export const createScheduleWorker = () => {
  * Add email to queue
  */
 export async function queueEmail(data: EmailJobData, priority?: number) {
-  const job = await emailQueue.add('send-email', data, {
+  const job = await emailQueue.add("send-email", data, {
     priority: priority || 5,
   });
-  
-  log.info('Email queued', { jobId: job.id, to: data.to });
+
+  log.info("Email queued", { jobId: job.id, to: data.to });
   return job.id;
 }
 
@@ -296,11 +349,11 @@ export async function queueEmail(data: EmailJobData, priority?: number) {
  */
 export async function queueNotification(data: NotificationJobData) {
   const priorityMap = { low: 10, normal: 5, high: 1 };
-  const job = await notificationQueue.add('send-notification', data, {
-    priority: priorityMap[data.priority || 'normal'],
+  const job = await notificationQueue.add("send-notification", data, {
+    priority: priorityMap[data.priority || "normal"],
   });
-  
-  log.info('Notification queued', { jobId: job.id, userId: data.userId });
+
+  log.info("Notification queued", { jobId: job.id, userId: data.userId });
   return job.id;
 }
 
@@ -308,11 +361,11 @@ export async function queueNotification(data: NotificationJobData) {
  * Add report generation to queue
  */
 export async function queueReport(data: ReportJobData) {
-  const job = await reportQueue.add('generate-report', data, {
+  const job = await reportQueue.add("generate-report", data, {
     priority: 3, // Reports have medium priority
   });
-  
-  log.info('Report queued', { jobId: job.id, reportId: data.reportId });
+
+  log.info("Report queued", { jobId: job.id, reportId: data.reportId });
   return job.id;
 }
 
@@ -321,15 +374,17 @@ export async function queueReport(data: ReportJobData) {
  */
 export async function queueScheduleTask(data: ScheduleJobData) {
   const job = await scheduleQueue.add(`schedule-${data.action}`, data);
-  
-  log.info('Schedule task queued', { jobId: job.id, action: data.action });
+
+  log.info("Schedule task queued", { jobId: job.id, action: data.action });
   return job.id;
 }
 
 /**
  * Get queue statistics
  */
-export async function getQueueStats(queueName: 'email' | 'notification' | 'report' | 'schedule') {
+export async function getQueueStats(
+  queueName: "email" | "notification" | "report" | "schedule",
+) {
   const queueMap = {
     email: emailQueue,
     notification: notificationQueue,
@@ -338,7 +393,7 @@ export async function getQueueStats(queueName: 'email' | 'notification' | 'repor
   };
 
   const queue = queueMap[queueName];
-  
+
   const [waiting, active, completed, failed, delayed] = await Promise.all([
     queue.getWaitingCount(),
     queue.getActiveCount(),
@@ -362,10 +417,10 @@ export async function getQueueStats(queueName: 'email' | 'notification' | 'repor
  */
 export async function getAllQueueStats() {
   const [email, notification, report, schedule] = await Promise.all([
-    getQueueStats('email'),
-    getQueueStats('notification'),
-    getQueueStats('report'),
-    getQueueStats('schedule'),
+    getQueueStats("email"),
+    getQueueStats("notification"),
+    getQueueStats("report"),
+    getQueueStats("schedule"),
   ]);
 
   return { email, notification, report, schedule };
@@ -374,7 +429,9 @@ export async function getAllQueueStats() {
 /**
  * Pause queue
  */
-export async function pauseQueue(queueName: 'email' | 'notification' | 'report' | 'schedule') {
+export async function pauseQueue(
+  queueName: "email" | "notification" | "report" | "schedule",
+) {
   const queueMap = {
     email: emailQueue,
     notification: notificationQueue,
@@ -383,13 +440,15 @@ export async function pauseQueue(queueName: 'email' | 'notification' | 'report' 
   };
 
   await queueMap[queueName].pause();
-  log.info('Queue paused', { queueName });
+  log.info("Queue paused", { queueName });
 }
 
 /**
  * Resume queue
  */
-export async function resumeQueue(queueName: 'email' | 'notification' | 'report' | 'schedule') {
+export async function resumeQueue(
+  queueName: "email" | "notification" | "report" | "schedule",
+) {
   const queueMap = {
     email: emailQueue,
     notification: notificationQueue,
@@ -398,7 +457,7 @@ export async function resumeQueue(queueName: 'email' | 'notification' | 'report'
   };
 
   await queueMap[queueName].resume();
-  log.info('Queue resumed', { queueName });
+  log.info("Queue resumed", { queueName });
 }
 
 /**
@@ -406,16 +465,16 @@ export async function resumeQueue(queueName: 'email' | 'notification' | 'report'
  */
 export async function cleanupQueues() {
   const queues = [emailQueue, notificationQueue, reportQueue, scheduleQueue];
-  
+
   for (const queue of queues) {
     // Clean completed jobs older than 24 hours
-    await queue.clean(24 * 3600 * 1000, 100, 'completed');
-    
+    await queue.clean(24 * 3600 * 1000, 100, "completed");
+
     // Clean failed jobs older than 7 days
-    await queue.clean(7 * 24 * 3600 * 1000, 500, 'failed');
+    await queue.clean(7 * 24 * 3600 * 1000, 500, "failed");
   }
-  
-  log.info('Queue cleanup completed');
+
+  log.info("Queue cleanup completed");
 }
 
 /**
@@ -430,13 +489,13 @@ export function initializeWorkers() {
   ];
 
   // Graceful shutdown
-  process.on('SIGTERM', async () => {
-    log.info('SIGTERM received, closing workers...');
-    await Promise.all(workers.map(w => w.close()));
+  process.on("SIGTERM", async () => {
+    log.info("SIGTERM received, closing workers...");
+    await Promise.all(workers.map((w) => w.close()));
     await connection.quit();
     process.exit(0);
   });
 
-  log.info('All BullMQ workers initialized');
+  log.info("All BullMQ workers initialized");
   return workers;
 }

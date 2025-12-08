@@ -17,7 +17,7 @@ function safeMathEval(expression: string): number {
 
   const firstToken = tokens[0];
   if (!firstToken) return 0;
-  
+
   let result = Number.parseFloat(firstToken) || 0;
   for (let i = 1; i < tokens.length; i += 2) {
     const operator = tokens[i];

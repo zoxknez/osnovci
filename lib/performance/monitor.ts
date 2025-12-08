@@ -1,6 +1,6 @@
 /**
  * Performance Monitoring & Metrics
- * 
+ *
  * Tracks and reports application performance metrics:
  * - Core Web Vitals (LCP, FID, CLS, FCP, TTFB)
  * - Custom performance marks
@@ -65,7 +65,7 @@ export function markPerformance(name: string) {
 export function measurePerformance(
   name: string,
   startMark: string,
-  endMark: string
+  endMark: string,
 ): number | null {
   if (typeof performance !== "undefined" && performance.measure) {
     try {
@@ -112,7 +112,7 @@ const MAX_METRICS = 100; // Keep last 100 metrics
  */
 export function trackApiCall(metrics: ApiMetrics) {
   apiMetrics.push(metrics);
-  
+
   // Keep only last MAX_METRICS
   if (apiMetrics.length > MAX_METRICS) {
     apiMetrics.shift();
@@ -153,10 +153,10 @@ export function getApiStats(): {
   return {
     averageDuration: Math.round(avg),
     slowestCall: apiMetrics.reduce((prev, curr) =>
-      curr.duration > prev.duration ? curr : prev
+      curr.duration > prev.duration ? curr : prev,
     ),
     fastestCall: apiMetrics.reduce((prev, curr) =>
-      curr.duration < prev.duration ? curr : prev
+      curr.duration < prev.duration ? curr : prev,
     ),
     totalCalls: apiMetrics.length,
   };
@@ -274,7 +274,7 @@ export function getQueryStats(): {
   return {
     averageDuration: Math.round(avg),
     slowestQuery: queryMetrics.reduce((prev, curr) =>
-      curr.duration > prev.duration ? curr : prev
+      curr.duration > prev.duration ? curr : prev,
     ),
     totalQueries: queryMetrics.length,
   };
@@ -287,7 +287,11 @@ export function createQueryTracker() {
   return {
     name: "queryTracker",
     query: {
-      async $allOperations({ operation, model, query }: {
+      async $allOperations({
+        operation,
+        model,
+        query,
+      }: {
         operation: string;
         model?: string;
         query: () => Promise<unknown>;
@@ -347,7 +351,7 @@ export const PERFORMANCE_BUDGET: PerformanceBudget = {
  */
 export function isWithinBudget(
   metricName: keyof PerformanceBudget,
-  value: number
+  value: number,
 ): boolean {
   return value <= PERFORMANCE_BUDGET[metricName];
 }
@@ -357,7 +361,7 @@ export function isWithinBudget(
  */
 export function getPerformanceRating(
   metricName: keyof PerformanceBudget,
-  value: number
+  value: number,
 ): "good" | "needs-improvement" | "poor" {
   const budget = PERFORMANCE_BUDGET[metricName];
   const threshold1 = budget;
@@ -389,7 +393,7 @@ declare global {
     gtag?: (
       command: string,
       eventName: string,
-      params: Record<string, unknown>
+      params: Record<string, unknown>,
     ) => void;
   }
 }

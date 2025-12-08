@@ -1,7 +1,7 @@
 "use client";
 
+import { Crown, Flame, Sparkles, Star, Trophy } from "lucide-react";
 import { useMemo } from "react";
-import { Flame, Star, Trophy, Crown, Sparkles } from "lucide-react";
 
 interface StreakBannerProps {
   currentStreak: number;
@@ -28,7 +28,7 @@ const STREAK_LEVELS = [
   {
     minDays: 14,
     title: "Dve nedelje u nizu!",
-    message: "Prava mašina za učenje! Blizu si \"Nepokolebljivog\" bedža! 🎯",
+    message: 'Prava mašina za učenje! Blizu si "Nepokolebljivog" bedža! 🎯',
     gradient: "from-red-500 to-pink-500",
     icon: Trophy,
     badge: "Fokusiran",
@@ -67,7 +67,9 @@ export function StreakBanner({ currentStreak }: StreakBannerProps) {
 
   // Izračunaj progress do sledećeg nivoa
   const nextLevel = useMemo(() => {
-    const currentIndex = STREAK_LEVELS.findIndex(l => l.minDays === streakLevel.minDays);
+    const currentIndex = STREAK_LEVELS.findIndex(
+      (l) => l.minDays === streakLevel.minDays,
+    );
     if (currentIndex < STREAK_LEVELS.length - 1) {
       return STREAK_LEVELS[currentIndex + 1];
     }
@@ -78,14 +80,15 @@ export function StreakBanner({ currentStreak }: StreakBannerProps) {
     if (!nextLevel) return 100;
     const prevThreshold = streakLevel.minDays;
     const nextThreshold = nextLevel.minDays;
-    const progress = ((currentStreak - prevThreshold) / (nextThreshold - prevThreshold)) * 100;
+    const progress =
+      ((currentStreak - prevThreshold) / (nextThreshold - prevThreshold)) * 100;
     return Math.min(Math.round(progress), 100);
   }, [currentStreak, streakLevel, nextLevel]);
 
   const Icon = streakLevel.icon;
 
   return (
-    <div 
+    <div
       className={`bg-gradient-to-r ${streakLevel.gradient} text-white rounded-xl p-6 shadow-lg relative overflow-hidden`}
       role="status"
       aria-label={`Streak: ${currentStreak} dana u nizu`}
@@ -95,12 +98,15 @@ export function StreakBanner({ currentStreak }: StreakBannerProps) {
         <div className="absolute top-0 right-0 text-8xl">🔥</div>
         <div className="absolute bottom-0 left-0 text-6xl">🔥</div>
       </div>
-      
+
       <div className="relative flex items-center gap-4">
-        <div className="text-5xl flex items-center justify-center" aria-hidden="true">
+        <div
+          className="text-5xl flex items-center justify-center"
+          aria-hidden="true"
+        >
           <Icon className="h-12 w-12 animate-pulse" />
         </div>
-        
+
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <span className="font-bold text-2xl">{streakLevel.title}</span>
@@ -110,19 +116,19 @@ export function StreakBanner({ currentStreak }: StreakBannerProps) {
               </span>
             )}
           </div>
-          <p className="text-white/90 text-sm mb-2">
-            {streakLevel.message}
-          </p>
-          
+          <p className="text-white/90 text-sm mb-2">{streakLevel.message}</p>
+
           {/* Progress do sledećeg nivoa */}
           {nextLevel && (
             <div className="mt-3">
               <div className="flex justify-between text-xs text-white/80 mb-1">
                 <span>{currentStreak} dana</span>
-                <span>{nextLevel.minDays} dana do "{nextLevel.title}"</span>
+                <span>
+                  {nextLevel.minDays} dana do "{nextLevel.title}"
+                </span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-1.5 overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-white rounded-full transition-all duration-500"
                   style={{ width: `${progressToNext}%` }}
                 />
@@ -130,9 +136,11 @@ export function StreakBanner({ currentStreak }: StreakBannerProps) {
             </div>
           )}
         </div>
-        
+
         <div className="text-right">
-          <div className="text-4xl font-bold" aria-hidden="true">{currentStreak}</div>
+          <div className="text-4xl font-bold" aria-hidden="true">
+            {currentStreak}
+          </div>
           <div className="text-sm opacity-90">dana</div>
         </div>
       </div>

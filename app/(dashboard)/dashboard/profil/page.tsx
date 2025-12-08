@@ -9,8 +9,6 @@ import { PageHeader } from "@/components/features/page-header";
 import { LastUpdatedNotice } from "@/components/features/profile/last-updated";
 import { PrivacyNotice } from "@/components/features/profile/privacy-notice";
 import { ProfileHeader } from "@/components/features/profile/profile-header";
-import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
-import { log } from "@/lib/logger";
 import {
   ActivitiesSection,
   BasicInfoSection,
@@ -19,20 +17,21 @@ import {
   HealthSection,
   PhysicalSection,
 } from "@/components/features/profile/sections";
-import type {
-  ProfileUpdateHandler,
-} from "@/components/features/profile/types";
+import type { ProfileUpdateHandler } from "@/components/features/profile/types";
 import { calculateAge } from "@/components/features/profile/utils";
-import { staggerContainer } from "@/lib/animations/variants";
-import { apiPatch } from "@/lib/utils/api";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 import { useOfflineProfile } from "@/hooks/use-offline-profile";
+import { staggerContainer } from "@/lib/animations/variants";
+import { log } from "@/lib/logger";
+import { apiPatch } from "@/lib/utils/api";
 
 export default function ProfilPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  
-  const { profile, setProfile, stats, loading, isOffline } = useOfflineProfile();
+
+  const { profile, setProfile, stats, loading, isOffline } =
+    useOfflineProfile();
 
   const handleFieldChange: ProfileUpdateHandler = (key, value) => {
     setProfile((previous) => ({
@@ -40,7 +39,7 @@ export default function ProfilPage() {
       [key]: value,
     }));
   };
-// ...existing code...
+  // ...existing code...
 
   const handleSave = async () => {
     if (isOffline) {

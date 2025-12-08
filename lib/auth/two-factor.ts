@@ -5,7 +5,9 @@ import crypto from "crypto";
 import QRCode from "qrcode";
 import speakeasy from "speakeasy";
 
-const ENCRYPTION_KEY = process.env["ENCRYPTION_KEY"] || "default-encryption-key-change-in-production";
+const ENCRYPTION_KEY =
+  process.env["ENCRYPTION_KEY"] ||
+  "default-encryption-key-change-in-production";
 const ALGORITHM = "aes-256-cbc";
 
 /**
@@ -15,10 +17,10 @@ export function encrypt(text: string): string {
   const key = crypto.scryptSync(ENCRYPTION_KEY, "salt", 32);
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-  
+
   let encrypted = cipher.update(text, "utf8", "hex");
   encrypted += cipher.final("hex");
-  
+
   return `${iv.toString("hex")}:${encrypted}`;
 }
 
@@ -30,14 +32,15 @@ export function decrypt(encryptedText: string): string {
   if (parts.length !== 2) {
     throw new Error("Invalid encrypted text format");
   }
-  
+
   const [ivHex, encrypted] = parts;
   const key = crypto.scryptSync(ENCRYPTION_KEY, "salt", 32);
   const iv = Buffer.from(ivHex!, "hex");
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-  
-  const decrypted = decipher.update(encrypted!, "hex", "utf8") + decipher.final("utf8");
-  
+
+  const decrypted =
+    decipher.update(encrypted!, "hex", "utf8") + decipher.final("utf8");
+
   return decrypted;
 }
 
@@ -87,7 +90,7 @@ export async function generateQRCode(otpauthUrl: string): Promise<string> {
 export function verifyTOTPToken(token: string, secret: string): boolean {
   // Remove spaces and validate format
   const cleanToken = token.replace(/\s/g, "");
-  
+
   if (!/^\d{6}$/.test(cleanToken)) {
     return false;
   }
@@ -106,13 +109,13 @@ export function verifyTOTPToken(token: string, secret: string): boolean {
  */
 export function generateBackupCodes(count = 10): string[] {
   const codes: string[] = [];
-  
+
   for (let i = 0; i < count; i++) {
     // Generate 8-character alphanumeric code
     const code = crypto.randomBytes(4).toString("hex").toUpperCase();
     codes.push(code);
   }
-  
+
   return codes;
 }
 
@@ -129,17 +132,17 @@ export function verifyBackupCode(
   try {
     const decryptedCodes = decrypt(encryptedCodes);
     const codes: string[] = JSON.parse(decryptedCodes);
-    
+
     const cleanInput = inputCode.replace(/\s/g, "").toUpperCase();
     const index = codes.indexOf(cleanInput);
-    
+
     if (index === -1) {
       return { valid: false, remainingCodes: codes };
     }
-    
+
     // Remove used code
     codes.splice(index, 1);
-    
+
     return { valid: true, remainingCodes: codes };
   } catch (error) {
     return { valid: false, remainingCodes: [] };
@@ -162,17 +165,17 @@ export function formatBackupCode(code: string): string {
 export async function setupTwoFactorAuth(userName: string) {
   // Generate TOTP secret
   const { secret, otpauthUrl } = generateTOTPSecret(userName);
-  
+
   // Generate QR code
   const qrCodeDataUrl = await generateQRCode(otpauthUrl);
-  
+
   // Generate backup codes
   const backupCodes = generateBackupCodes();
-  
+
   // Encrypt sensitive data
   const encryptedSecret = encrypt(secret);
   const encryptedBackupCodes = encrypt(JSON.stringify(backupCodes));
-  
+
   return {
     encryptedSecret, // Store in database
     encryptedBackupCodes, // Store in database
@@ -199,23 +202,23 @@ export function verifyTwoFactorAuth(
   newEncryptedBackupCodes?: string;
 } {
   const cleanToken = token.replace(/\s|-/g, "").toUpperCase();
-  
+
   // Try TOTP token first (6 digits)
   if (/^\d{6}$/.test(cleanToken)) {
     const secret = decrypt(encryptedSecret);
     const isValid = verifyTOTPToken(cleanToken, secret);
-    
+
     return { valid: isValid, usedBackupCode: false };
   }
-  
+
   // Try backup code (8 characters)
   if (/^[A-Z0-9]{8}$/.test(cleanToken) && encryptedBackupCodes) {
     const result = verifyBackupCode(cleanToken, encryptedBackupCodes);
-    
+
     if (result.valid) {
       // Re-encrypt remaining codes
       const newEncryptedCodes = encrypt(JSON.stringify(result.remainingCodes));
-      
+
       return {
         valid: true,
         usedBackupCode: true,
@@ -223,6 +226,6 @@ export function verifyTwoFactorAuth(
       };
     }
   }
-  
+
   return { valid: false, usedBackupCode: false };
 }

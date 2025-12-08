@@ -1,10 +1,10 @@
 "use client";
 
-import { getCalendarViewAction } from "@/app/actions/calendar";
+import { addDays, format, startOfWeek } from "date-fns";
 import { useEffect, useState } from "react";
-import { format, startOfWeek, addDays } from "date-fns";
-import { CalendarEvent } from "./calendar-event";
+import { getCalendarViewAction } from "@/app/actions/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarEvent } from "./calendar-event";
 
 interface WeekViewData {
   weekStart: Date;
@@ -92,11 +92,13 @@ export function WeekView({ studentId, date, onEventClick }: WeekViewProps) {
             <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
               {dayNames[i]}
             </div>
-            <div className={`mt-1 text-lg font-semibold ${
-              format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd")
-                ? "text-blue-600"
-                : "text-gray-900 dark:text-gray-100"
-            }`}>
+            <div
+              className={`mt-1 text-lg font-semibold ${
+                format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd")
+                  ? "text-blue-600"
+                  : "text-gray-900 dark:text-gray-100"
+              }`}
+            >
               {format(day, "d")}
             </div>
           </div>

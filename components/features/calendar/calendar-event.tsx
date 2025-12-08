@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { format } from "date-fns";
-import { Clock, AlertCircle, BookOpen, FileText } from "lucide-react";
+import { AlertCircle, BookOpen, Clock, FileText } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface CalendarEventProps {
@@ -72,7 +72,7 @@ export function CalendarEvent({
         onDragEnd={handleDragEnd}
         className={cn(
           "group relative mb-1 flex w-full items-center gap-1 rounded px-1.5 py-0.5 text-left text-xs transition-all hover:shadow-md",
-          isDragging && "opacity-50"
+          isDragging && "opacity-50",
         )}
         style={{
           backgroundColor: `${event.color}20`,
@@ -96,7 +96,7 @@ export function CalendarEvent({
         "group relative flex w-full flex-col gap-1 rounded-lg p-2 text-left shadow-sm transition-all hover:shadow-md",
         "border-l-4",
         isDragging && "opacity-50 cursor-grabbing",
-        !isDragging && "cursor-grab hover:scale-[1.02]"
+        !isDragging && "cursor-grab hover:scale-[1.02]",
       )}
       style={{
         backgroundColor: `${event.color}15`,

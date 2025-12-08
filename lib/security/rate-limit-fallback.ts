@@ -1,14 +1,14 @@
 /**
  * Rate Limiting Fallback - In-Memory LRU Cache
  * Used when Redis is unavailable to prevent DDoS attacks
- * 
+ *
  * Production: Always use Redis (Upstash, Railway, or self-hosted)
  * This is ONLY a fallback for development or Redis outages
  */
 
-import { LRUCache } from 'lru-cache';
-import type { NextRequest } from 'next/server';
-import { log } from '@/lib/logger';
+import { LRUCache } from "lru-cache";
+import type { NextRequest } from "next/server";
+import { log } from "@/lib/logger";
 
 interface RateLimitEntry {
   requests: number[];
@@ -42,15 +42,15 @@ const memoryCache = new LRUCache<string, RateLimitEntry>({
  */
 function getIdentifier(request: NextRequest): string {
   // Try to get user ID from headers
-  const userId = request.headers.get('x-user-id');
+  const userId = request.headers.get("x-user-id");
   if (userId) {
     return `user:${userId}`;
   }
 
   // Fallback to IP address
-  const forwarded = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const ip = forwarded ? forwarded.split(',')[0] : realIp || 'unknown';
+  const forwarded = request.headers.get("x-forwarded-for");
+  const realIp = request.headers.get("x-real-ip");
+  const ip = forwarded ? forwarded.split(",")[0] : realIp || "unknown";
   return `ip:${ip}`;
 }
 
@@ -61,7 +61,7 @@ export async function rateLimitMemory(
   request: NextRequest,
   config: RateLimitConfig,
 ): Promise<RateLimitResult> {
-  const { limit, window, prefix = 'ratelimit' } = config;
+  const { limit, window, prefix = "ratelimit" } = config;
   const identifier = getIdentifier(request);
   const key = `${prefix}:${identifier}`;
   const now = Date.now();
@@ -76,7 +76,7 @@ export async function rateLimitMemory(
   // Check if currently blocked
   if (entry.blocked && entry.blockedUntil && now < entry.blockedUntil) {
     const remainingMs = entry.blockedUntil - now;
-    log.warn('Rate limit exceeded (memory fallback)', {
+    log.warn("Rate limit exceeded (memory fallback)", {
       identifier,
       blocked: true,
       remainingSeconds: Math.ceil(remainingMs / 1000),
@@ -99,20 +99,22 @@ export async function rateLimitMemory(
 
   // Filter out old requests (sliding window)
   const windowStart = now - windowMs;
-  entry.requests = entry.requests.filter(timestamp => timestamp > windowStart);
+  entry.requests = entry.requests.filter(
+    (timestamp) => timestamp > windowStart,
+  );
 
   // Check if limit exceeded
   if (entry.requests.length >= limit) {
     // Block for the remaining window duration
     const oldestRequest = Math.min(...entry.requests);
     const resetTime = oldestRequest + windowMs;
-    
+
     entry.blocked = true;
     entry.blockedUntil = resetTime;
-    
+
     memoryCache.set(key, entry);
 
-    log.warn('Rate limit exceeded - blocking (memory fallback)', {
+    log.warn("Rate limit exceeded - blocking (memory fallback)", {
       identifier,
       limit,
       requests: entry.requests.length,
@@ -145,16 +147,19 @@ export async function rateLimitMemory(
 /**
  * Manually clear rate limit for identifier (admin function)
  */
-export function clearRateLimit(identifier: string, prefix = 'ratelimit'): void {
+export function clearRateLimit(identifier: string, prefix = "ratelimit"): void {
   const key = `${prefix}:${identifier}`;
   memoryCache.delete(key);
-  log.info('Rate limit cleared (memory fallback)', { identifier });
+  log.info("Rate limit cleared (memory fallback)", { identifier });
 }
 
 /**
  * Get current rate limit stats for identifier
  */
-export function getRateLimitStats(identifier: string, prefix = 'ratelimit'): {
+export function getRateLimitStats(
+  identifier: string,
+  prefix = "ratelimit",
+): {
   requests: number;
   blocked: boolean;
   blockedUntil?: Date;
@@ -170,11 +175,11 @@ export function getRateLimitStats(identifier: string, prefix = 'ratelimit'): {
     requests: entry.requests.length,
     blocked: entry.blocked,
   };
-  
+
   if (entry.blockedUntil) {
     result.blockedUntil = new Date(entry.blockedUntil);
   }
-  
+
   return result;
 }
 

@@ -1,8 +1,9 @@
 /**
  * Weekly Report Email Template
  */
-import { createBaseTemplate, escapeHtml, type EmailTemplate } from './base';
-import type { WeeklyReportData } from '@/lib/reports/weekly-report-generator';
+
+import type { WeeklyReportData } from "@/lib/reports/weekly-report-generator";
+import { createBaseTemplate, type EmailTemplate, escapeHtml } from "./base";
 
 export function createWeeklyReportTemplate(
   guardianName: string,
@@ -11,7 +12,7 @@ export function createWeeklyReportTemplate(
 ): EmailTemplate {
   const completedHomework = report.homework.completed ?? 0;
   const totalHomework = report.homework.total ?? 0;
-  const averageGrade = '0.00'; // Will be calculated from grades in future
+  const averageGrade = "0.00"; // Will be calculated from grades in future
   const attendanceRate = 95; // Placeholder - attendance tracking not implemented
   const xp = report.gamification.weeklyXP ?? 0;
 
@@ -45,8 +46,8 @@ export function createWeeklyReportTemplate(
     <p>S poštovanjem,<br><strong>Tim Osnovci</strong></p>
   `;
 
-  const html = createBaseTemplate(content, '📊 Nedeljni izveštaj');
-  
+  const html = createBaseTemplate(content, "📊 Nedeljni izveštaj");
+
   const text = `
 Nedeljni izveštaj
 
@@ -69,7 +70,7 @@ Osnovci - Aplikacija za Učenike i Roditelje
   `.trim();
 
   return {
-    subject: '📊 Nedeljni izveštaj - Osnovci',
+    subject: "📊 Nedeljni izveštaj - Osnovci",
     html,
     text,
   };

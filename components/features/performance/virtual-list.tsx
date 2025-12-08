@@ -33,7 +33,7 @@ export function VirtualList<T>({
   const { startIndex, endIndex, offsetY } = useMemo(() => {
     const visibleStart = Math.floor(scrollTop / itemHeight);
     const visibleEnd = Math.ceil((scrollTop + containerHeight) / itemHeight);
-    
+
     const startIndex = Math.max(0, visibleStart - overscan);
     const endIndex = Math.min(items.length - 1, visibleEnd + overscan);
     const offsetY = startIndex * itemHeight;
@@ -43,7 +43,7 @@ export function VirtualList<T>({
 
   const visibleItems = useMemo(
     () => items.slice(startIndex, endIndex + 1),
-    [items, startIndex, endIndex]
+    [items, startIndex, endIndex],
   );
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -68,10 +68,7 @@ export function VirtualList<T>({
           }}
         >
           {visibleItems.map((item, index) => (
-            <div
-              key={startIndex + index}
-              style={{ height: itemHeight }}
-            >
+            <div key={startIndex + index} style={{ height: itemHeight }}>
               {renderItem(item, startIndex + index)}
             </div>
           ))}
@@ -80,4 +77,3 @@ export function VirtualList<T>({
     </div>
   );
 }
-

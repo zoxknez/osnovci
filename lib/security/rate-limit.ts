@@ -7,7 +7,7 @@ import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import { log } from "@/lib/logger";
 // @ts-expect-error - Reserved for future fallback implementation
-import { rateLimitMemory } from './rate-limit-fallback';
+import { rateLimitMemory } from "./rate-limit-fallback";
 
 // Initialize Redis client
 const redis = process.env["UPSTASH_REDIS_REST_URL"]

@@ -1,10 +1,16 @@
+import { format } from "date-fns";
+import { srLatn } from "date-fns/locale";
+import {
+  ExternalLink,
+  FileText,
+  Image as ImageIcon,
+  Pin,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { KnowledgeResource, useKnowledge } from "@/hooks/use-knowledge";
-import { ExternalLink, FileText, Image as ImageIcon, Pin, Trash2 } from "lucide-react";
-import { format } from "date-fns";
-import { srLatn } from "date-fns/locale";
+import { type KnowledgeResource, useKnowledge } from "@/hooks/use-knowledge";
 
 export function ResourceCard({ resource }: { resource: KnowledgeResource }) {
   const { deleteResource, isDeleting, togglePin } = useKnowledge();
@@ -19,7 +25,9 @@ export function ResourceCard({ resource }: { resource: KnowledgeResource }) {
   const tags = resource.tags ? JSON.parse(resource.tags) : [];
 
   return (
-    <Card className={`group relative overflow-hidden transition-all hover:shadow-md ${resource.isPinned ? "border-primary/50 bg-primary/5" : ""}`}>
+    <Card
+      className={`group relative overflow-hidden transition-all hover:shadow-md ${resource.isPinned ? "border-primary/50 bg-primary/5" : ""}`}
+    >
       <div
         className="absolute left-0 top-0 h-full w-1"
         style={{ backgroundColor: resource.subject.color }}
@@ -32,7 +40,9 @@ export function ResourceCard({ resource }: { resource: KnowledgeResource }) {
                 {resource.subject.name}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {format(new Date(resource.createdAt), "d. MMM", { locale: srLatn })}
+                {format(new Date(resource.createdAt), "d. MMM", {
+                  locale: srLatn,
+                })}
               </span>
             </div>
             <CardTitle className="text-base line-clamp-1 flex items-center gap-2">
@@ -41,13 +51,17 @@ export function ResourceCard({ resource }: { resource: KnowledgeResource }) {
             </CardTitle>
           </div>
           <div className="flex gap-1">
-             <Button
+            <Button
               variant="ghost"
               size="icon"
               className={`h-8 w-8 transition-opacity ${resource.isPinned ? "opacity-100 text-primary" : "opacity-0 group-hover:opacity-100 text-muted-foreground"}`}
-              onClick={() => togglePin({ id: resource.id, isPinned: !resource.isPinned })}
+              onClick={() =>
+                togglePin({ id: resource.id, isPinned: !resource.isPinned })
+              }
             >
-              <Pin className={`h-4 w-4 ${resource.isPinned ? "fill-current" : ""}`} />
+              <Pin
+                className={`h-4 w-4 ${resource.isPinned ? "fill-current" : ""}`}
+              />
             </Button>
             <Button
               variant="ghost"
@@ -80,7 +94,11 @@ export function ResourceCard({ resource }: { resource: KnowledgeResource }) {
         {tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1">
             {tags.map((tag: string) => (
-              <Badge key={tag} variant="secondary" className="text-[10px] px-1 py-0">
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="text-[10px] px-1 py-0"
+              >
                 #{tag}
               </Badge>
             ))}

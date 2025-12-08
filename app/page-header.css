@@ -25,9 +25,17 @@
 }
 
 .page-header-pattern {
-  background-image: 
-    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 50%);
+  background-image:
+    radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 255, 255, 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 50%
+    );
 }
 
 .page-header-shadow {

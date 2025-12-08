@@ -22,7 +22,11 @@ export class APIError extends Error {
 
 // Specific error types
 export class ValidationError extends APIError {
-  constructor(message: string, errors?: Record<string, string[]>, code = "VALIDATION_ERROR") {
+  constructor(
+    message: string,
+    errors?: Record<string, string[]>,
+    code = "VALIDATION_ERROR",
+  ) {
     super(400, message, errors, code);
     this.name = "ValidationError";
   }
@@ -84,10 +88,20 @@ export function formatErrorResponse(error: unknown) {
       message: error.message,
       stack: error.stack,
     });
-    apiError = new APIError(500, "Interna greška servera", undefined, "INTERNAL_ERROR");
+    apiError = new APIError(
+      500,
+      "Interna greška servera",
+      undefined,
+      "INTERNAL_ERROR",
+    );
   } else {
     log.error("Unknown error", { error });
-    apiError = new APIError(500, "Nepoznata greška", undefined, "UNKNOWN_ERROR");
+    apiError = new APIError(
+      500,
+      "Nepoznata greška",
+      undefined,
+      "UNKNOWN_ERROR",
+    );
   }
 
   return {

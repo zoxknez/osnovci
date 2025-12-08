@@ -6,36 +6,40 @@
 
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Download,
-  Shield,
-  Loader2,
+  Activity,
   AlertCircle,
+  Award,
+  BookOpen,
+  CheckCircle,
+  Download,
   FileJson,
   FileSpreadsheet,
   FileText,
+  Loader2,
+  Shield,
   User,
-  BookOpen,
-  Award,
-  Activity,
-  CheckCircle,
 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -45,13 +49,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 
 type ExportFormat = "json" | "csv" | "pdf";
@@ -80,14 +80,29 @@ const DATA_CATEGORIES: DataCategory[] = [
     name: "Profil učenika",
     description: "Osnovne informacije o učeniku",
     icon: User,
-    dataFields: ["Ime i prezime", "Email", "Datum rođenja", "Razred", "Škola", "Datum registracije"],
+    dataFields: [
+      "Ime i prezime",
+      "Email",
+      "Datum rođenja",
+      "Razred",
+      "Škola",
+      "Datum registracije",
+    ],
   },
   {
     id: "homework",
     name: "Domaći zadaci",
     description: "Svi domaći zadaci i prilozi",
     icon: BookOpen,
-    dataFields: ["Naslov", "Opis", "Predmet", "Status", "Rok", "Datum predaje", "Prilozi"],
+    dataFields: [
+      "Naslov",
+      "Opis",
+      "Predmet",
+      "Status",
+      "Rok",
+      "Datum predaje",
+      "Prilozi",
+    ],
   },
   {
     id: "grades",
@@ -108,7 +123,12 @@ const DATA_CATEGORIES: DataCategory[] = [
     name: "Dnevnik aktivnosti",
     description: "Sva aktivnost na platformi",
     icon: Activity,
-    dataFields: ["Tip aktivnosti", "Detalji", "Datum i vreme", "IP adresa (anonimizovana)"],
+    dataFields: [
+      "Tip aktivnosti",
+      "Detalji",
+      "Datum i vreme",
+      "IP adresa (anonimizovana)",
+    ],
   },
 ];
 
@@ -119,7 +139,7 @@ export function GDPRExport({
   onExportComplete,
 }: GDPRExportProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    DATA_CATEGORIES.map((c) => c.id)
+    DATA_CATEGORIES.map((c) => c.id),
   );
   const [exportFormat, setExportFormat] = useState<ExportFormat>("json");
   const [status, setStatus] = useState<ExportStatus>("idle");
@@ -131,7 +151,7 @@ export function GDPRExport({
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   };
 
@@ -173,10 +193,13 @@ export function GDPRExport({
           studentId,
           requestedBy: guardianId,
           categories: selectedCategories,
-          data: selectedCategories.reduce((acc, cat) => {
-            acc[cat] = { records: [], message: "Podaci su prikupljeni" };
-            return acc;
-          }, {} as Record<string, unknown>),
+          data: selectedCategories.reduce(
+            (acc, cat) => {
+              acc[cat] = { records: [], message: "Podaci su prikupljeni" };
+              return acc;
+            },
+            {} as Record<string, unknown>,
+          ),
         };
 
         setProgress(100);
@@ -185,7 +208,7 @@ export function GDPRExport({
 
         // Download the file
         downloadExport(simulatedData, exportFormat);
-        
+
         onExportComplete?.(exportFormat, simulatedData);
         toast.success("Izvoz podataka je uspešno završen!");
         return;
@@ -217,12 +240,13 @@ export function GDPRExport({
         });
         filename = `gdpr_export_${studentId}_${Date.now()}.json`;
         break;
-      case "csv":
+      case "csv": {
         // Convert to CSV format
         const csvContent = convertToCSV(data);
         blob = new Blob([csvContent], { type: "text/csv" });
         filename = `gdpr_export_${studentId}_${Date.now()}.csv`;
         break;
+      }
       case "pdf":
         // For PDF, we'd typically generate on the server
         // Here we'll just download JSON with .txt extension as fallback
@@ -252,10 +276,17 @@ export function GDPRExport({
     rows.push("Kategorija,Polje,Vrednost");
 
     if (typeof data === "object" && data !== null) {
-      const flattenObject = (obj: Record<string, unknown>, prefix = ""): void => {
+      const flattenObject = (
+        obj: Record<string, unknown>,
+        prefix = "",
+      ): void => {
         for (const [key, value] of Object.entries(obj)) {
           const newKey = prefix ? `${prefix}.${key}` : key;
-          if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+          if (
+            typeof value === "object" &&
+            value !== null &&
+            !Array.isArray(value)
+          ) {
             flattenObject(value as Record<string, unknown>, newKey);
           } else {
             rows.push(`"${newKey}","${String(value)}"`);
@@ -361,7 +392,7 @@ export function GDPRExport({
                   htmlFor="json"
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer",
-                    exportFormat === "json" && "border-primary bg-primary/5"
+                    exportFormat === "json" && "border-primary bg-primary/5",
                   )}
                 >
                   <RadioGroupItem value="json" id="json" className="sr-only" />
@@ -372,7 +403,7 @@ export function GDPRExport({
                   htmlFor="csv"
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer",
-                    exportFormat === "csv" && "border-primary bg-primary/5"
+                    exportFormat === "csv" && "border-primary bg-primary/5",
                   )}
                 >
                   <RadioGroupItem value="csv" id="csv" className="sr-only" />
@@ -383,7 +414,7 @@ export function GDPRExport({
                   htmlFor="pdf"
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer",
-                    exportFormat === "pdf" && "border-primary bg-primary/5"
+                    exportFormat === "pdf" && "border-primary bg-primary/5",
                   )}
                 >
                   <RadioGroupItem value="pdf" id="pdf" className="sr-only" />
@@ -489,15 +520,16 @@ export function GDPRExport({
                   <div className="flex flex-wrap gap-2">
                     {selectedCategories.map((catId) => {
                       const cat = DATA_CATEGORIES.find((c) => c.id === catId);
-                      return cat ? (
-                        <Badge key={catId}>{cat.name}</Badge>
-                      ) : null;
+                      return cat ? <Badge key={catId}>{cat.name}</Badge> : null;
                     })}
                   </div>
                 </div>
 
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
                     Otkaži
                   </Button>
                   <Button

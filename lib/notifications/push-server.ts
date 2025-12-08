@@ -5,15 +5,15 @@
 
 import webpush from "web-push";
 import { prisma } from "@/lib/db/prisma";
-import { log } from "@/lib/logger";
 import { env } from "@/lib/env";
+import { log } from "@/lib/logger";
 
 // Configure web-push VAPID details
 if (env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
     "mailto:noreply@osnovci.app",
     env.VAPID_PUBLIC_KEY,
-    env.VAPID_PRIVATE_KEY
+    env.VAPID_PRIVATE_KEY,
   );
 } else {
   log.warn("VAPID keys not configured - push notifications disabled");
@@ -34,7 +34,7 @@ export interface PushNotificationPayload {
  * Sends to all active subscriptions for the user
  */
 export async function sendPushNotification(
-  payload: PushNotificationPayload
+  payload: PushNotificationPayload,
 ): Promise<{ sent: number; failed: number }> {
   const { userId, title, body, data, icon, badge, actions } = payload;
 
@@ -139,7 +139,7 @@ export async function sendPushNotification(
  * Send push notification to multiple users
  */
 export async function sendPushNotificationBatch(
-  payloads: PushNotificationPayload[]
+  payloads: PushNotificationPayload[],
 ): Promise<{ totalSent: number; totalFailed: number }> {
   let totalSent = 0;
   let totalFailed = 0;

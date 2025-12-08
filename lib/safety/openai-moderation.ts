@@ -43,7 +43,7 @@ export interface OpenAIModerationResult {
  * Moderate text using OpenAI Moderation API (FREE)
  */
 export async function moderateTextWithAI(
-  text: string
+  text: string,
 ): Promise<OpenAIModerationResult> {
   const apiKey = process.env["OPENAI_API_KEY"];
 
@@ -68,7 +68,10 @@ export async function moderateTextWithAI(
 
     if (!response.ok) {
       const error = await response.text();
-      log.error("OpenAI Moderation API error", { status: response.status, error });
+      log.error("OpenAI Moderation API error", {
+        status: response.status,
+        error,
+      });
       return createFallbackResult();
     }
 
@@ -83,7 +86,7 @@ export async function moderateTextWithAI(
     // Calculate severity based on scores
     const scores = result.category_scores;
     const highestScore = Math.max(...Object.values(scores).map(Number));
-    
+
     let severity: "none" | "low" | "medium" | "high" | "critical" = "none";
     if (highestScore >= 0.9) severity = "critical";
     else if (highestScore >= 0.7) severity = "high";
@@ -125,7 +128,7 @@ export async function moderateTextWithAI(
  * Batch moderate multiple texts (optimized)
  */
 export async function moderateTextsWithAI(
-  texts: string[]
+  texts: string[],
 ): Promise<OpenAIModerationResult[]> {
   const apiKey = process.env["OPENAI_API_KEY"];
 

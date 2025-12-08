@@ -3,9 +3,9 @@
  * Retry logic, error handling, and helper functions
  */
 
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
-import { log } from '@/lib/logger';
+import type { Transporter } from "nodemailer";
+import nodemailer from "nodemailer";
+import { log } from "@/lib/logger";
 
 export interface EmailResult {
   success: boolean;
@@ -28,7 +28,7 @@ const RETRY_CONFIG = {
  */
 export async function sendEmailWithRetry(
   transporter: Transporter,
-  mailOptions: Parameters<Transporter['sendMail']>[0],
+  mailOptions: Parameters<Transporter["sendMail"]>[0],
   retries = RETRY_CONFIG.maxRetries,
 ): Promise<EmailResult> {
   let lastError: Error | undefined;
@@ -40,7 +40,7 @@ export async function sendEmailWithRetry(
 
       // Get preview URL for Ethereal (development)
       let previewUrl: string | false = false;
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         try {
           const url = nodemailer.getTestMessageUrl(info);
           previewUrl = url;
@@ -59,10 +59,13 @@ export async function sendEmailWithRetry(
 
       // Don't retry on last attempt
       if (attempt < retries) {
-        log.warn(`Email send failed, retrying... (attempt ${attempt + 1}/${retries})`, {
-          error: lastError.message,
-          delay,
-        });
+        log.warn(
+          `Email send failed, retrying... (attempt ${attempt + 1}/${retries})`,
+          {
+            error: lastError.message,
+            delay,
+          },
+        );
 
         // Wait before retry with exponential backoff
         await new Promise((resolve) => setTimeout(resolve, delay));
@@ -72,11 +75,11 @@ export async function sendEmailWithRetry(
   }
 
   // All retries failed
-  const errorMessage = lastError?.message ?? 'Unknown error';
-  log.error('Email send failed after all retries', {
+  const errorMessage = lastError?.message ?? "Unknown error";
+  log.error("Email send failed after all retries", {
     error: errorMessage,
     attempts: retries + 1,
-    to: typeof mailOptions.to === 'string' ? mailOptions.to : 'multiple',
+    to: typeof mailOptions.to === "string" ? mailOptions.to : "multiple",
   });
 
   return {
@@ -99,4 +102,3 @@ export function isValidEmail(email: string): boolean {
 export function sanitizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
-

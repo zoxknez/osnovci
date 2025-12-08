@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { offlineStorage } from "@/lib/db/offline-storage";
-import type { StoredGamificationData } from "@/lib/db/offline-storage";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getAchievementsAction } from "@/app/actions/achievements";
+import type { StoredGamificationData } from "@/lib/db/offline-storage";
+import { offlineStorage } from "@/lib/db/offline-storage";
 
 export function useOfflineAchievements() {
   const [data, setData] = useState<StoredGamificationData | null>(null);
@@ -13,31 +13,43 @@ export function useOfflineAchievements() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Check online status
-      const online = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      const online = typeof navigator !== "undefined" ? navigator.onLine : true;
       setIsOnline(online);
 
       if (online) {
         try {
           const result = await getAchievementsAction();
-          
+
           if (result.error) {
-             throw new Error(result.error);
+            throw new Error(result.error);
           }
-          
+
           if (result.data) {
-             const gamificationData: StoredGamificationData = {
-               achievements: result.data.achievements.map((a: { id: string; achievementType: string; title: string; description: string; xpReward: number; unlockedAt: string | Date }) => ({
-                 ...a,
-                 unlockedAt: typeof a.unlockedAt === 'string' ? a.unlockedAt : a.unlockedAt.toISOString()
-               })),
-               progress: result.data.progress,
-               stats: result.data.stats
-             };
-             await offlineStorage.saveGamificationData(gamificationData);
-             setData(gamificationData);
-             errorShownRef.current = false; // Reset on success
+            const gamificationData: StoredGamificationData = {
+              achievements: result.data.achievements.map(
+                (a: {
+                  id: string;
+                  achievementType: string;
+                  title: string;
+                  description: string;
+                  xpReward: number;
+                  unlockedAt: string | Date;
+                }) => ({
+                  ...a,
+                  unlockedAt:
+                    typeof a.unlockedAt === "string"
+                      ? a.unlockedAt
+                      : a.unlockedAt.toISOString(),
+                }),
+              ),
+              progress: result.data.progress,
+              stats: result.data.stats,
+            };
+            await offlineStorage.saveGamificationData(gamificationData);
+            setData(gamificationData);
+            errorShownRef.current = false; // Reset on success
           }
         } catch (error) {
           console.error("Error fetching online achievements:", error);
@@ -47,7 +59,9 @@ export function useOfflineAchievements() {
             setData(cached);
             if (online && !errorShownRef.current) {
               errorShownRef.current = true;
-              toast.error("Greška pri učitavanju. Prikazujem sačuvane podatke.");
+              toast.error(
+                "Greška pri učitavanju. Prikazujem sačuvane podatke.",
+              );
             }
           }
         }
@@ -87,6 +101,6 @@ export function useOfflineAchievements() {
     data,
     loading,
     isOnline,
-    refresh: loadData
+    refresh: loadData,
   };
 }

@@ -5,20 +5,23 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertTriangle,
+  Ban,
+  Clock,
+  RefreshCw,
+  Shield,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  getRateLimitViolationsAction,
+  resetRateLimitViolationsAction,
+} from "@/app/actions/admin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Shield, 
-  AlertTriangle, 
-  Ban,
-  RefreshCw,
-  Users,
-  Clock
-} from "lucide-react";
-import { toast } from "sonner";
-import { getRateLimitViolationsAction, resetRateLimitViolationsAction } from "@/app/actions/admin";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ViolationRecord {
   identifier: string;
@@ -65,7 +68,7 @@ export default function RateLimitDashboard() {
   const resetViolations = async (identifier: string) => {
     try {
       setResetting(identifier);
-      
+
       const response = await resetRateLimitViolationsAction(identifier);
 
       if (response.error) throw new Error(response.error);
@@ -92,8 +95,14 @@ export default function RateLimitDashboard() {
   };
 
   const getViolationBadge = (count: number) => {
-    if (count >= 5) return <Badge variant="destructive">Critical ({count})</Badge>;
-    if (count >= 3) return <Badge variant="outline" className="border-orange-500 text-orange-600">High ({count})</Badge>;
+    if (count >= 5)
+      return <Badge variant="destructive">Critical ({count})</Badge>;
+    if (count >= 3)
+      return (
+        <Badge variant="outline" className="border-orange-500 text-orange-600">
+          High ({count})
+        </Badge>
+      );
     return <Badge variant="outline">Moderate ({count})</Badge>;
   };
 
@@ -102,7 +111,9 @@ export default function RateLimitDashboard() {
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <Shield className="mx-auto h-12 w-12 animate-pulse text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">Loading rate limit data...</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Loading rate limit data...
+          </p>
         </div>
       </div>
     );
@@ -128,7 +139,9 @@ export default function RateLimitDashboard() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Violators</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Violators
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -138,21 +151,29 @@ export default function RateLimitDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Blocks</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Blocks
+              </CardTitle>
               <Ban className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.activeBlocks}</div>
+              <div className="text-2xl font-bold text-red-600">
+                {stats.activeBlocks}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">High Violators</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                High Violators
+              </CardTitle>
               <AlertTriangle className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{stats.highViolators}</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {stats.highViolators}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -168,7 +189,9 @@ export default function RateLimitDashboard() {
             {violations.length === 0 ? (
               <div className="py-12 text-center">
                 <Shield className="mx-auto h-12 w-12 text-muted-foreground" />
-                <p className="mt-2 text-muted-foreground">No violations recorded</p>
+                <p className="mt-2 text-muted-foreground">
+                  No violations recorded
+                </p>
               </div>
             ) : (
               violations.map((violation) => (
@@ -205,7 +228,10 @@ export default function RateLimitDashboard() {
                             <Clock className="h-4 w-4" />
                             <span className="font-medium">Blocked Until:</span>{" "}
                             {formatDate(violation.blockedUntil)} (
-                            {formatDuration(violation.blockedUntil - Date.now())})
+                            {formatDuration(
+                              violation.blockedUntil - Date.now(),
+                            )}
+                            )
                           </div>
                         )}
                       </div>

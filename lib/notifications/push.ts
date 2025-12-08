@@ -1,7 +1,10 @@
 // Web Push Notifications - Cross-platform
 "use client";
 
-import { subscribeToPushAction, unsubscribeFromPushAction } from "@/app/actions/notifications";
+import {
+  subscribeToPushAction,
+  unsubscribeFromPushAction,
+} from "@/app/actions/notifications";
 
 /**
  * Check if push notifications are supported
@@ -236,4 +239,3 @@ export const notificationTemplates = {
     data: { type: "level_up" },
   }),
 };
-

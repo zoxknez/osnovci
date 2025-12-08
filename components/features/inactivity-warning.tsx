@@ -9,17 +9,17 @@ interface InactivityWarningProps {
    * Remaining seconds before logout
    */
   seconds: number;
-  
+
   /**
    * Whether dialog is open
    */
   open: boolean;
-  
+
   /**
    * Callback when user extends session
    */
   onExtend: () => void;
-  
+
   /**
    * Callback when user chooses to logout
    */
@@ -51,7 +51,7 @@ export function InactivityWarning({
             Nisi aktivan/na
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Nisi bio/bila aktivan/na već duže vreme. 
+            Nisi bio/bila aktivan/na već duže vreme.
             <br />
             <strong className="text-lg text-red-600 dark:text-red-400">
               Automatsko odjavljivanje za {timeString}
@@ -65,14 +65,14 @@ export function InactivityWarning({
               Zašto se ovo dešava?
             </p>
             <p className="text-yellow-700 dark:text-yellow-300 mt-1">
-              Ovo je sigurnosna mera koja te štiti ako zaboraviš da se odjaviš 
+              Ovo je sigurnosna mera koja te štiti ako zaboraviš da se odjaviš
               ili ostaviš uređaj bez nadzora.
             </p>
           </div>
 
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Klikni na dugme "Ostani prijavljen/a" da nastaviš sa radom, 
-            ili "Odjavi me" da se odmah odjaviš.
+            Klikni na dugme "Ostani prijavljen/a" da nastaviš sa radom, ili
+            "Odjavi me" da se odmah odjaviš.
           </p>
         </div>
 
@@ -84,10 +84,7 @@ export function InactivityWarning({
           >
             Odjavi me
           </Button>
-          <Button
-            onClick={onExtend}
-            className="w-full sm:w-auto flex-1"
-          >
+          <Button onClick={onExtend} className="w-full sm:w-auto flex-1">
             ✅ Ostani prijavljen/a
           </Button>
         </div>

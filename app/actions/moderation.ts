@@ -1,11 +1,15 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { log } from "@/lib/logger";
-import { getModerationStats, moderateContent, quickModerate } from "@/lib/safety/moderation-service";
-import { ContentType } from "@prisma/client";
+import type { ContentType } from "@prisma/client";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { auth } from "@/lib/auth/config";
+import { log } from "@/lib/logger";
+import {
+  getModerationStats,
+  moderateContent,
+  quickModerate,
+} from "@/lib/safety/moderation-service";
 
 const moderateSchema = z.object({
   text: z.string().min(1).max(10000),
@@ -30,7 +34,9 @@ type ActionResponse<T = any> = {
   details?: any;
 };
 
-export async function moderateContentAction(data: z.infer<typeof moderateSchema>): Promise<ActionResponse> {
+export async function moderateContentAction(
+  data: z.infer<typeof moderateSchema>,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -47,7 +53,10 @@ export async function moderateContentAction(data: z.infer<typeof moderateSchema>
 
     // Full moderation with logging
     const headersList = await headers();
-    const ipAddress = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || undefined;
+    const ipAddress =
+      headersList.get("x-forwarded-for") ||
+      headersList.get("x-real-ip") ||
+      undefined;
     const userAgent = headersList.get("user-agent") || undefined;
 
     const result = await moderateContent({
@@ -79,7 +88,9 @@ export async function moderateContentAction(data: z.infer<typeof moderateSchema>
   }
 }
 
-export async function getModerationStatsAction(userId?: string): Promise<ActionResponse> {
+export async function getModerationStatsAction(
+  userId?: string,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

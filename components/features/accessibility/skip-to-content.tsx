@@ -50,7 +50,7 @@ export function SkipToContent() {
       className={cn(
         "fixed top-4 left-4 z-[9999] bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200",
         "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-        !isVisible && "sr-only focus:not-sr-only focus:block"
+        !isVisible && "sr-only focus:not-sr-only focus:block",
       )}
       aria-label="Preskoči na glavni sadržaj"
     >
@@ -58,4 +58,3 @@ export function SkipToContent() {
     </a>
   );
 }
-

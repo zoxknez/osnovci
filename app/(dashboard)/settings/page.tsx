@@ -3,13 +3,19 @@
  * Centralna stranica za sva podešavanja aplikacije
  */
 
-import { auth } from "@/lib/auth/config";
+import { Bell, Eye, Shield, User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { DyslexiaSettings } from "@/components/features/accessibility/dyslexia-settings";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/features/page-header";
-import { Eye, Bell, Shield, User } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { auth } from "@/lib/auth/config";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -28,11 +34,17 @@ export default async function SettingsPage() {
 
       <Tabs defaultValue="accessibility" className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-          <TabsTrigger value="accessibility" className="flex items-center gap-2">
+          <TabsTrigger
+            value="accessibility"
+            className="flex items-center gap-2"
+          >
             <Eye className="h-4 w-4" />
             Pristupačnost
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
+          <TabsTrigger
+            value="notifications"
+            className="flex items-center gap-2"
+          >
             <Bell className="h-4 w-4" />
             Notifikacije
           </TabsTrigger>
@@ -101,4 +113,3 @@ export default async function SettingsPage() {
     </div>
   );
 }
-

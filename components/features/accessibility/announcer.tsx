@@ -12,7 +12,8 @@ interface AnnouncerContextType {
   announce: (message: string, urgent?: boolean) => void;
 }
 
-export const AnnouncerContext = React.createContext<AnnouncerContextType | null>(null);
+export const AnnouncerContext =
+  React.createContext<AnnouncerContextType | null>(null);
 
 export function AnnouncerProvider({ children }: { children: React.ReactNode }) {
   const { announce, AriaLiveRegion } = useAriaAnnouncer();
@@ -45,4 +46,3 @@ export function useAnnouncer() {
   }
   return context;
 }
-

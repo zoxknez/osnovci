@@ -1,8 +1,8 @@
 "use server";
 
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth/config";
 import { getRateLimitStatus } from "@/lib/security/enhanced-rate-limit";
-import { headers } from "next/headers";
 
 type ActionResponse<T = any> = {
   data?: T;
@@ -17,18 +17,18 @@ export async function getRateLimitStatsAction(): Promise<ActionResponse> {
     }
 
     const headersList = await headers();
-    
+
     // Get detailed rate limit info across all presets
     const presets = ["api", "auth", "upload", "read", "moderation"] as const;
     const stats: Record<string, any> = {};
 
     for (const preset of presets) {
       const result = await getRateLimitStatus(
-        { headers: headersList }, 
-        preset, 
-        session.user.id
+        { headers: headersList },
+        preset,
+        session.user.id,
       );
-      
+
       stats[preset] = {
         limit: result.limit,
         remaining: result.remaining,
@@ -46,7 +46,7 @@ export async function getRateLimitStatsAction(): Promise<ActionResponse> {
         role: session.user.role,
         stats,
         timestamp: Date.now(),
-      }
+      },
     };
   } catch (error) {
     console.error("Rate limit stats Action error:", error);

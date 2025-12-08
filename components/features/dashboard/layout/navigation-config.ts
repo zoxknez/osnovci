@@ -1,16 +1,16 @@
 import {
+  Backpack,
   BarChart3,
   BookOpen,
   Bot,
   Calendar,
   Clock,
-  Home,
-  Users,
-  UserCircle,
   Heart,
-  Trophy,
+  Home,
   ShoppingBag,
-  Backpack,
+  Trophy,
+  UserCircle,
+  Users,
 } from "lucide-react";
 
 export const navigation = [

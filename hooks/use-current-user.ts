@@ -38,4 +38,3 @@ export function useCurrentUser() {
     retry: 1,
   });
 }
-

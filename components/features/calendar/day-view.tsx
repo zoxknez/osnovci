@@ -1,9 +1,9 @@
 "use client";
 
-import { getCalendarViewAction } from "@/app/actions/calendar";
 import { useEffect, useState } from "react";
-import { CalendarEvent } from "./calendar-event";
+import { getCalendarViewAction } from "@/app/actions/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarEvent } from "./calendar-event";
 
 interface TimeSlot {
   hour: number;
@@ -147,7 +147,7 @@ function CurrentTimeIndicator() {
         // Calculate position (80px per hour)
         const hoursSince6AM = hour - 6;
         const minuteOffset = (minute / 60) * 80;
-        setPosition((hoursSince6AM * 80) + minuteOffset + 56); // +56 for header
+        setPosition(hoursSince6AM * 80 + minuteOffset + 56); // +56 for header
         setVisible(true);
       } else {
         setVisible(false);

@@ -1,10 +1,10 @@
 "use server";
 
+import webpush from "web-push";
+import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { z } from "zod";
-import webpush from "web-push";
 
 type ActionResponse<T = any> = {
   success?: boolean;
@@ -15,12 +15,15 @@ type ActionResponse<T = any> = {
 // Configure web-push
 const vapidPublicKey = process.env["NEXT_PUBLIC_VAPID_PUBLIC_KEY"];
 const vapidPrivateKey = process.env["VAPID_PRIVATE_KEY"];
-const vapidSubject = process.env["VAPID_SUBJECT"] || "mailto:kontakt@osnovci.app";
+const vapidSubject =
+  process.env["VAPID_SUBJECT"] || "mailto:kontakt@osnovci.app";
 
 if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 } else {
-  console.warn("[Push] VAPID keys not configured - push notifications disabled");
+  console.warn(
+    "[Push] VAPID keys not configured - push notifications disabled",
+  );
 }
 
 const notificationSchema = z.object({
@@ -37,12 +40,14 @@ const notificationSchema = z.object({
         action: z.string(),
         title: z.string(),
         icon: z.string().optional(),
-      })
+      }),
     )
     .optional(),
 });
 
-export async function sendPushNotificationAction(data: z.infer<typeof notificationSchema>): Promise<ActionResponse> {
+export async function sendPushNotificationAction(
+  data: z.infer<typeof notificationSchema>,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
 
@@ -107,7 +112,7 @@ export async function sendPushNotificationAction(data: z.infer<typeof notificati
                 auth: sub.auth,
               },
             },
-            pushPayload
+            pushPayload,
           );
 
           // Update lastUsed timestamp
@@ -133,7 +138,7 @@ export async function sendPushNotificationAction(data: z.infer<typeof notificati
 
           throw error;
         }
-      })
+      }),
     );
 
     const successful = results.filter((r) => r.status === "fulfilled").length;

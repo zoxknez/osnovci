@@ -3,9 +3,9 @@
  * Main page for viewing and managing content moderation
  */
 
-import { auth } from "@/lib/auth/config";
 import { redirect } from "next/navigation";
 import AdminModerationDashboard from "@/components/admin/moderation-dashboard";
+import { auth } from "@/lib/auth/config";
 
 export default async function AdminModerationPage() {
   const session = await auth();

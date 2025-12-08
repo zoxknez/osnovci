@@ -5,7 +5,10 @@
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { showSuccessToast, showErrorToast } from "@/components/features/error-toast";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "@/components/features/error-toast";
 
 interface HomeworkItem {
   id: string;
@@ -22,7 +25,7 @@ interface HomeworkItem {
  */
 export function exportHomeworkToPDF(
   homework: HomeworkItem[],
-  studentName: string = "Učenik"
+  studentName: string = "Učenik",
 ) {
   try {
     const doc = new jsPDF({
@@ -48,24 +51,20 @@ export function exportHomeworkToPDF(
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.text(`Učenik: ${studentName}`, 20, 40);
-    doc.text(
-      `Datum: ${new Date().toLocaleDateString("sr-RS")}`,
-      20,
-      46
-    );
+    doc.text(`Datum: ${new Date().toLocaleDateString("sr-RS")}`, 20, 46);
     doc.text(`Ukupno zadataka: ${homework.length}`, 20, 52);
 
     // Statistics
     const stats = {
       total: homework.length,
       completed: homework.filter((h) =>
-        ["done", "submitted", "DONE", "SUBMITTED"].includes(h.status)
+        ["done", "submitted", "DONE", "SUBMITTED"].includes(h.status),
       ).length,
       pending: homework.filter(
-        (h) => !["done", "submitted", "DONE", "SUBMITTED"].includes(h.status)
+        (h) => !["done", "submitted", "DONE", "SUBMITTED"].includes(h.status),
       ).length,
       urgent: homework.filter(
-        (h) => h.priority === "urgent" || h.priority === "URGENT"
+        (h) => h.priority === "urgent" || h.priority === "URGENT",
       ).length,
     };
 
@@ -89,8 +88,8 @@ export function exportHomeworkToPDF(
 
     // Homework list
     const currentY =
-      (doc as typeof doc & { lastAutoTable?: { finalY: number } })
-        .lastAutoTable?.finalY ?? 90;
+      (doc as typeof doc & { lastAutoTable?: { finalY: number } }).lastAutoTable
+        ?.finalY ?? 90;
     const nextY = currentY + 10;
 
     doc.setFontSize(14);
@@ -127,12 +126,7 @@ export function exportHomeworkToPDF(
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text(
-        `Strana ${i} od ${pageCount}`,
-        105,
-        287,
-        { align: "center" }
-      );
+      doc.text(`Strana ${i} od ${pageCount}`, 105, 287, { align: "center" });
     }
 
     // Save PDF
@@ -153,7 +147,7 @@ export function exportHomeworkToPDF(
  */
 export function exportHomeworkToCSV(
   homework: HomeworkItem[],
-  filename: string = "domaci-zadaci"
+  filename: string = "domaci-zadaci",
 ) {
   try {
     const headers = ["Predmet", "Naslov", "Status", "Prioritet", "Rok", "Opis"];
@@ -169,7 +163,7 @@ export function exportHomeworkToCSV(
     const csvContent = [
       headers.join(","),
       ...rows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
       ),
     ].join("\n");
 
@@ -178,7 +172,10 @@ export function exportHomeworkToCSV(
     const url = URL.createObjectURL(blob);
 
     link.setAttribute("href", url);
-    link.setAttribute("download", `${filename}-${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `${filename}-${new Date().toISOString().split("T")[0]}.csv`,
+    );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -223,4 +220,3 @@ function formatPriority(priority?: string): string {
   };
   return priorityMap[priority] || priority;
 }
-

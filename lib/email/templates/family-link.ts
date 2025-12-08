@@ -1,7 +1,7 @@
 /**
  * Family Link Invitation Email Template
  */
-import { createBaseTemplate, type EmailTemplate } from './base';
+import { createBaseTemplate, type EmailTemplate } from "./base";
 
 export function createFamilyLinkTemplate(
   linkCode: string,
@@ -27,8 +27,8 @@ export function createFamilyLinkTemplate(
     <p>S poštovanjem,<br><strong>Tim Osnovci</strong></p>
   `;
 
-  const html = createBaseTemplate(content, '📧 Poziv za povezivanje');
-  
+  const html = createBaseTemplate(content, "📧 Poziv za povezivanje");
+
   const text = `
 Poziv za povezivanje
 
@@ -50,7 +50,7 @@ Osnovci - Aplikacija za Učenike i Roditelje
   `.trim();
 
   return {
-    subject: '📧 Poziv za povezivanje sa Osnovci',
+    subject: "📧 Poziv za povezivanje sa Osnovci",
     html,
     text,
   };
@@ -58,12 +58,11 @@ Osnovci - Aplikacija za Učenike i Roditelje
 
 function escapeHtml(text: string): string {
   const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   };
   return text.replace(/[&<>"']/g, (m) => map[m] ?? m);
 }
-

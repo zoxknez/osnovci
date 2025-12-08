@@ -35,20 +35,32 @@ export function ListSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
-export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
+export function TableSkeleton({
+  rows = 5,
+  cols = 4,
+}: {
+  rows?: number;
+  cols?: number;
+}) {
   return (
     <div className="space-y-2">
       {/* Header */}
       <div className="flex gap-4 pb-2 border-b">
         {Array.from({ length: cols }).map((_, i) => (
-          <div key={i} className="flex-1 h-4 bg-gray-200 rounded animate-pulse" />
+          <div
+            key={i}
+            className="flex-1 h-4 bg-gray-200 rounded animate-pulse"
+          />
         ))}
       </div>
       {/* Rows */}
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex gap-4 py-2">
           {Array.from({ length: cols }).map((_, j) => (
-            <div key={j} className="flex-1 h-4 bg-gray-200 rounded animate-pulse" />
+            <div
+              key={j}
+              className="flex-1 h-4 bg-gray-200 rounded animate-pulse"
+            />
           ))}
         </div>
       ))}
@@ -93,4 +105,3 @@ export function FormSkeleton() {
     </Card>
   );
 }
-

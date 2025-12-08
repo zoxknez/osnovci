@@ -9,7 +9,10 @@ type ActionResponse<T = any> = {
   error?: string;
 };
 
-export async function getActivityLogAction(studentId: string, limit: number = 50): Promise<ActionResponse> {
+export async function getActivityLogAction(
+  studentId: string,
+  limit: number = 50,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

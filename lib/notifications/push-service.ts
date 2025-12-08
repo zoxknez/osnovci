@@ -20,7 +20,7 @@ interface NotificationPayload {
  */
 export async function sendPushNotification(
   userId: string,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<void> {
   try {
     // TODO: Implement push notification sending
@@ -49,7 +49,7 @@ export async function sendParentalAlertNotification(
     type: string;
     severity: string;
     message: string;
-  }
+  },
 ): Promise<void> {
   const severityEmoji = {
     critical: "🚨",
@@ -64,7 +64,8 @@ export async function sendParentalAlertNotification(
     icon: "/icon-192x192.png",
     badge: "/badge-72x72.png",
     tag: `alert-${alert.type}`,
-    requireInteraction: alert.severity === "critical" || alert.severity === "high",
+    requireInteraction:
+      alert.severity === "critical" || alert.severity === "high",
     data: {
       type: "parental_alert",
       alertType: alert.type,
@@ -81,7 +82,7 @@ export async function sendHomeworkReminderNotification(
   homework: {
     title: string;
     dueDate: Date;
-  }
+  },
 ): Promise<void> {
   await sendPushNotification(studentId, {
     title: "📚 Podsetnik za domaći",
@@ -94,4 +95,3 @@ export async function sendHomeworkReminderNotification(
     },
   });
 }
-

@@ -1,13 +1,13 @@
 "use client";
 
+import { LogOut, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { X, Settings, LogOut } from "lucide-react";
+import { toast } from "sonner";
+import { clearOfflineData } from "@/lib/offline/indexeddb";
 import { cn } from "@/lib/utils";
 import { SidebarNavItems } from "./sidebar-nav-items";
-import { clearOfflineData } from "@/lib/offline/indexeddb";
-import { toast } from "sonner";
 
 interface MobileSidebarProps {
   sidebarOpen: boolean;
@@ -15,7 +15,11 @@ interface MobileSidebarProps {
   pathname: string;
 }
 
-export function MobileSidebar({ sidebarOpen, setSidebarOpen, pathname }: MobileSidebarProps) {
+export function MobileSidebar({
+  sidebarOpen,
+  setSidebarOpen,
+  pathname,
+}: MobileSidebarProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -77,9 +81,9 @@ export function MobileSidebar({ sidebarOpen, setSidebarOpen, pathname }: MobileS
           className="flex flex-1 flex-col p-4"
           aria-label="Glavna navigacija"
         >
-          <SidebarNavItems 
-            pathname={pathname} 
-            onItemClick={() => setSidebarOpen(false)} 
+          <SidebarNavItems
+            pathname={pathname}
+            onItemClick={() => setSidebarOpen(false)}
             variant="mobile"
           />
 

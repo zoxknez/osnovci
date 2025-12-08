@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Trash2, 
-  GripVertical, 
-  CheckCircle2, 
+import {
+  CheckCircle2,
   Circle,
   Clock,
+  GripVertical,
+  Plus,
+  Trash2,
 } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface Subtask {
@@ -61,7 +61,7 @@ export function SubtaskEditor({
     const updated = [...subtasks];
     const current = updated[index];
     if (!current) return;
-    
+
     updated[index] = {
       ...current,
       status: current.status === "SUBMITTED" ? "ASSIGNED" : "SUBMITTED",
@@ -80,7 +80,7 @@ export function SubtaskEditor({
     const updated = [...subtasks];
     const draggedItem = updated[draggedIndex];
     if (!draggedItem) return;
-    
+
     updated.splice(draggedIndex, 1);
     updated.splice(index, 0, draggedItem);
 
@@ -92,10 +92,13 @@ export function SubtaskEditor({
     setDraggedIndex(null);
   };
 
-  const completedCount = subtasks.filter(s => s.status === "SUBMITTED").length;
-  const progress = subtasks.length > 0 
-    ? Math.round((completedCount / subtasks.length) * 100) 
-    : 0;
+  const completedCount = subtasks.filter(
+    (s) => s.status === "SUBMITTED",
+  ).length;
+  const progress =
+    subtasks.length > 0
+      ? Math.round((completedCount / subtasks.length) * 100)
+      : 0;
 
   return (
     <Card>
@@ -131,11 +134,11 @@ export function SubtaskEditor({
               onDragEnd={handleDragEnd}
               className={cn(
                 "flex items-center gap-3 p-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors",
-                draggedIndex === index && "opacity-50"
+                draggedIndex === index && "opacity-50",
               )}
             >
               <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
-              
+
               <button
                 onClick={() => toggleSubtask(index)}
                 className="flex-shrink-0"
@@ -148,10 +151,13 @@ export function SubtaskEditor({
               </button>
 
               <div className="flex-1">
-                <p className={cn(
-                  "text-sm",
-                  subtask.status === "SUBMITTED" && "line-through text-gray-500"
-                )}>
+                <p
+                  className={cn(
+                    "text-sm",
+                    subtask.status === "SUBMITTED" &&
+                      "line-through text-gray-500",
+                  )}
+                >
                   {subtask.title}
                 </p>
                 {subtask.estimatedMinutes && (

@@ -3,7 +3,7 @@
 
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, CheckCircle, Key, Shield } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ export function TwoFactorModal({
 
   const handleVerify = async () => {
     const code = useBackupCode ? backupCode : token;
-    
+
     if (!code) {
       toast.error("Unesi kod");
       return;
@@ -40,12 +40,12 @@ export function TwoFactorModal({
 
     try {
       const success = await onVerify(code);
-      
+
       if (!success) {
         toast.error(
-          useBackupCode 
-            ? "Nevažeći backup kod. Proveri da li je već iskorišćen." 
-            : "Nevažeći kod. Proveri Authenticator aplikaciju."
+          useBackupCode
+            ? "Nevažeći backup kod. Proveri da li je već iskorišćen."
+            : "Nevažeći kod. Proveri Authenticator aplikaciju.",
         );
       }
     } catch (error) {
@@ -70,7 +70,7 @@ export function TwoFactorModal({
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
             {/* Header with gradient */}
             <div className="h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" />
-            
+
             <div className="p-6 sm:p-8">
               {/* Icon and Title */}
               <div className="text-center mb-6">
@@ -96,11 +96,13 @@ export function TwoFactorModal({
                   <Key className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-900 dark:text-blue-100">
                     <p className="font-semibold mb-1">
-                      {useBackupCode ? "Unesi backup kod" : "Unesi 6-cifreni kod"}
+                      {useBackupCode
+                        ? "Unesi backup kod"
+                        : "Unesi 6-cifreni kod"}
                     </p>
                     <p className="text-blue-700 dark:text-blue-300">
-                      {useBackupCode 
-                        ? "Backup kod je 8-karakterni kod koji si dobio/la pri podešavanju 2FA." 
+                      {useBackupCode
+                        ? "Backup kod je 8-karakterni kod koji si dobio/la pri podešavanju 2FA."
                         : "Otvori svoju Authenticator aplikaciju (Google Authenticator, Authy, itd.) i unesi prikazani kod."}
                     </p>
                   </div>
@@ -115,7 +117,9 @@ export function TwoFactorModal({
                     type="text"
                     placeholder="123456"
                     value={token}
-                    onChange={(e) => setToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) =>
+                      setToken(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
                     maxLength={6}
                     disabled={isVerifying}
                     autoFocus
@@ -128,13 +132,15 @@ export function TwoFactorModal({
                     placeholder="AB12-CD34"
                     value={backupCode}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+                      const value = e.target.value
+                        .replace(/[^A-Z0-9]/gi, "")
+                        .toUpperCase();
                       // Auto-format as AB12-CD34
                       if (value.length <= 8) {
                         setBackupCode(
-                          value.length > 4 
-                            ? `${value.slice(0, 4)}-${value.slice(4)}` 
-                            : value
+                          value.length > 4
+                            ? `${value.slice(0, 4)}-${value.slice(4)}`
+                            : value,
                         );
                       }
                     }}
@@ -153,7 +159,9 @@ export function TwoFactorModal({
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold shadow-lg hover:shadow-xl transition-all"
                   size="lg"
                   loading={isVerifying}
-                  disabled={useBackupCode ? backupCode.length < 8 : token.length !== 6}
+                  disabled={
+                    useBackupCode ? backupCode.length < 8 : token.length !== 6
+                  }
                 >
                   {!isVerifying && (
                     <>
@@ -185,8 +193,8 @@ export function TwoFactorModal({
                   disabled={isVerifying}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium hover:underline disabled:opacity-50"
                 >
-                  {useBackupCode 
-                    ? "← Koristi Authenticator kod" 
+                  {useBackupCode
+                    ? "← Koristi Authenticator kod"
                     : "Koristi backup kod →"}
                 </button>
               </div>
@@ -200,11 +208,16 @@ export function TwoFactorModal({
                 <ul className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
                   <li className="flex items-start gap-2">
                     <span className="text-blue-600 font-bold">•</span>
-                    <span>Proveri da li je vreme na telefonu tačno (TOTP zavisi od vremena)</span>
+                    <span>
+                      Proveri da li je vreme na telefonu tačno (TOTP zavisi od
+                      vremena)
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-blue-600 font-bold">•</span>
-                    <span>Ako ne možeš pristupiti telefonu, koristi backup kod</span>
+                    <span>
+                      Ako ne možeš pristupiti telefonu, koristi backup kod
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-blue-600 font-bold">•</span>

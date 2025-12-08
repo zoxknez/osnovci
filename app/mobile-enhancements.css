@@ -76,7 +76,9 @@
   .touch-target:active {
     transform: scale(0.97);
     opacity: 0.9;
-    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    transition:
+      transform 0.1s ease-out,
+      opacity 0.1s ease-out;
   }
 
   /* Better touch targets for small interactive elements */

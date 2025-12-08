@@ -5,9 +5,9 @@
 
 "use client";
 
-import { useOfflineMode } from "@/hooks/use-offline-mode";
+import { AlertCircle, Check, Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { Cloud, CloudOff, RefreshCw, Check, AlertCircle } from "lucide-react";
+import { useOfflineMode } from "@/hooks/use-offline-mode";
 
 export function OfflineStatusBanner() {
   const {
@@ -61,7 +61,8 @@ export function OfflineStatusBanner() {
 
           {hasPendingChanges && (
             <span className="ml-4 rounded-full bg-white/20 px-3 py-1 text-xs">
-              {pendingCount} nesinhronizovan{pendingCount === 1 ? "a promena" : "ih promena"}
+              {pendingCount} nesinhronizovan
+              {pendingCount === 1 ? "a promena" : "ih promena"}
             </span>
           )}
         </div>
@@ -90,7 +91,9 @@ export function OfflineStatusBanner() {
               disabled={isSyncing}
               className="flex items-center gap-2 rounded-md bg-white/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/30 disabled:opacity-50"
             >
-              <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+              />
               {isSyncing ? "Sinhronizacija..." : "Sinhronizuj"}
             </button>
           )}

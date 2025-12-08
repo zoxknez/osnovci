@@ -14,8 +14,8 @@
  * @module lib/conflicts/optimistic-locking
  */
 
-import { log } from "@/lib/logger";
 import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 // ============================================
 // Types & Interfaces
@@ -67,7 +67,7 @@ export interface ConflictResolution {
 export async function checkVersion(
   modelType: ModelType,
   id: string,
-  expectedVersion: number
+  expectedVersion: number,
 ): Promise<{ version: number; data: Record<string, unknown> }> {
   let currentEntity: { version: number; [key: string]: unknown } | null = null;
 
@@ -186,7 +186,7 @@ export async function checkVersion(
 export function detectConflict(
   clientData: Record<string, unknown>,
   serverData: Record<string, unknown>,
-  baseData?: Record<string, unknown> // Original data before edits (if available)
+  baseData?: Record<string, unknown>, // Original data before edits (if available)
 ): FieldDiff[] {
   const diffs: FieldDiff[] = [];
 
@@ -225,9 +225,7 @@ export function detectConflict(
 
     // Conflict occurs when both changed the same field differently
     const isConflict =
-      clientChanged &&
-      serverChanged &&
-      !deepEqual(clientValue, serverValue);
+      clientChanged && serverChanged && !deepEqual(clientValue, serverValue);
 
     if (clientChanged || serverChanged) {
       diffs.push({
@@ -239,7 +237,7 @@ export function detectConflict(
           field,
           clientValue,
           serverValue,
-          isConflict
+          isConflict,
         ),
       });
     }
@@ -255,7 +253,7 @@ function generateDiffDescription(
   field: string,
   clientValue: unknown,
   serverValue: unknown,
-  isConflict: boolean
+  isConflict: boolean,
 ): string {
   const fieldLabels: Record<string, string> = {
     title: "Naslov",
@@ -360,11 +358,9 @@ export async function resolveConflict(
   strategy: ConflictStrategy,
   clientData: Record<string, unknown>,
   serverData: Record<string, unknown>,
-  diff: FieldDiff[]
+  diff: FieldDiff[],
 ): Promise<ConflictResolution> {
-  const conflictedFields = diff
-    .filter((d) => d.isConflict)
-    .map((d) => d.field);
+  const conflictedFields = diff.filter((d) => d.isConflict).map((d) => d.field);
   const mergedFields: string[] = [];
 
   let resolvedData: Record<string, unknown> = {};
@@ -421,7 +417,7 @@ export async function resolveConflict(
   return {
     strategy,
     resolvedData,
-    newVersion: (serverData['version'] as number) + 1,
+    newVersion: (serverData["version"] as number) + 1,
     mergedFields,
     conflictedFields,
   };
@@ -441,7 +437,7 @@ export async function updateWithVersionCheck(
   data: Record<string, unknown>,
   expectedVersion: number,
   retryStrategy: ConflictStrategy = "SMART_MERGE",
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<{
   success: boolean;
   data?: Record<string, unknown>;
@@ -453,11 +449,7 @@ export async function updateWithVersionCheck(
   while (retries < maxRetries) {
     try {
       // Check version
-      const { version } = await checkVersion(
-        modelType,
-        id,
-        expectedVersion
-      );
+      const { version } = await checkVersion(modelType, id, expectedVersion);
 
       // Version matches, perform update
       const updateData = {
@@ -521,7 +513,7 @@ export async function updateWithVersionCheck(
         const { data: serverData } = await checkVersion(
           modelType,
           id,
-          conflictError.serverVersion
+          conflictError.serverVersion,
         );
 
         // Detect conflicts
@@ -541,7 +533,7 @@ export async function updateWithVersionCheck(
           retryStrategy,
           data,
           serverData,
-          diff
+          diff,
         );
 
         // Retry with resolved data
@@ -588,9 +580,7 @@ export async function updateWithVersionCheck(
 /**
  * Generate human-readable conflict report
  */
-export function generateConflictReport(
-  conflict: VersionConflictError
-): string {
+export function generateConflictReport(conflict: VersionConflictError): string {
   const lines: string[] = [];
 
   lines.push(`⚠️ KONFLIKT PROMENA`);

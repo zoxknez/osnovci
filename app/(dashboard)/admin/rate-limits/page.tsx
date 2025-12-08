@@ -3,9 +3,9 @@
  * Route: /admin/rate-limits
  */
 
-import { auth } from "@/lib/auth/config";
 import { redirect } from "next/navigation";
 import RateLimitDashboard from "@/components/admin/rate-limit-dashboard";
+import { auth } from "@/lib/auth/config";
 
 export default async function AdminRateLimitsPage() {
   const session = await auth();

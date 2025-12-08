@@ -1,59 +1,63 @@
 // Domaći zadaci stranica - lista svih zadataka
 "use client";
 
-import {
-  Loader,
-  Plus,
-  RefreshCw,
-  Wifi,
-  WifiOff,
-} from "lucide-react";
-import { useState, lazy, Suspense } from "react";
-import { useDebounce } from "@/hooks/use-debounce";
+import { Loader, Plus, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { lazy, Suspense, useState } from "react";
 import { toast } from "sonner";
-import { showErrorToast, showSuccessToast } from "@/components/features/error-toast";
-import { HomeworkCelebration } from "@/components/features/homework-celebration";
-import { PageHeader } from "@/components/features/page-header";
-import { HomeworkCard } from "@/components/features/homework/homework-card";
-import { HomeworkKanbanView } from "@/components/features/homework/homework-kanban-view";
-import { HomeworkFilters } from "@/components/features/homework/homework-filters";
-import { HomeworkStats } from "@/components/features/homework/homework-stats";
-import { HomeworkEmptyState } from "@/components/features/homework/homework-empty-state";
-import { HomeworkBulkSelection } from "@/components/features/homework/homework-bulk-selection";
-import { HomeworkBulkActions } from "@/components/features/homework/homework-bulk-actions";
-import { HomeworkItemCheckbox } from "@/components/features/homework/homework-bulk-selection";
-import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
-import { LoadingWithRetry } from "@/components/features/loading-states";
-import { exportHomeworkToPDF } from "@/lib/utils/homework-export";
-import { 
-  bulkCompleteHomeworkAction, 
-  bulkDeleteHomeworkAction, 
+import {
+  bulkCompleteHomeworkAction,
+  bulkDeleteHomeworkAction,
+  bulkUpdateDueDateAction,
   bulkUpdatePriorityAction,
-  bulkUpdateDueDateAction 
 } from "@/app/actions/tasks";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "@/components/features/error-toast";
+import { HomeworkBulkActions } from "@/components/features/homework/homework-bulk-actions";
+import {
+  HomeworkBulkSelection,
+  HomeworkItemCheckbox,
+} from "@/components/features/homework/homework-bulk-selection";
+import { HomeworkCard } from "@/components/features/homework/homework-card";
+import { HomeworkEmptyState } from "@/components/features/homework/homework-empty-state";
+import { HomeworkFilters } from "@/components/features/homework/homework-filters";
+import { HomeworkKanbanView } from "@/components/features/homework/homework-kanban-view";
+import { HomeworkStats } from "@/components/features/homework/homework-stats";
+import { HomeworkCelebration } from "@/components/features/homework-celebration";
+import { LoadingWithRetry } from "@/components/features/loading-states";
+import { PageHeader } from "@/components/features/page-header";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 import { Button } from "@/components/ui/button";
+import { useDebounce } from "@/hooks/use-debounce";
+import { exportHomeworkToPDF } from "@/lib/utils/homework-export";
 
 // Lazy load heavy components (Camera uses MediaStream API)
-const ModernCamera = lazy(() => 
-  import("@/components/features/modern-camera").then((mod) => ({ 
-    default: mod.ModernCamera 
-  }))
+const ModernCamera = lazy(() =>
+  import("@/components/features/modern-camera").then((mod) => ({
+    default: mod.ModernCamera,
+  })),
 );
+
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AddHomeworkModal,
   type HomeworkFormData,
 } from "@/components/modals/add-homework-modal";
-import { useSyncStore } from "@/store";
-import { useCreateHomework, useMarkHomeworkComplete, homeworkKeys } from "@/hooks/use-homework";
+import {
+  homeworkKeys,
+  useCreateHomework,
+  useMarkHomeworkComplete,
+} from "@/hooks/use-homework";
 import { useHomeworkList } from "@/hooks/use-homework-list";
-import { useQueryClient } from "@tanstack/react-query";
+import { useSyncStore } from "@/store";
 
 export default function DomaciPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "done">(
     "all",
   );
-  
+
   // Debounce search query za bolje performanse
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -80,7 +84,7 @@ export default function DomaciPage() {
     hasOfflineItems,
     unsyncedCount,
   } = useHomeworkList(page, debouncedSearchQuery, filterStatus);
-  
+
   const queryClient = useQueryClient();
   const createHomeworkMutation = useCreateHomework();
   const markCompleteMutation = useMarkHomeworkComplete();
@@ -88,8 +92,12 @@ export default function DomaciPage() {
 
   // Group homework for Kanban
   const kanbanColumns = {
-    todo: filteredHomework.filter(h => h.status === "assigned" || h.status === "in_progress"),
-    done: filteredHomework.filter(h => h.status === "done" || h.status === "submitted")
+    todo: filteredHomework.filter(
+      (h) => h.status === "assigned" || h.status === "in_progress",
+    ),
+    done: filteredHomework.filter(
+      (h) => h.status === "done" || h.status === "submitted",
+    ),
   };
 
   const handleOpenCamera = (homeworkId: string) => {
@@ -109,14 +117,11 @@ export default function DomaciPage() {
       formData.append("file", file);
       formData.append("homeworkId", selectedHomeworkId);
 
-      const response = await fetch(
-        `/api/upload`,
-        {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        },
-      );
+      const response = await fetch(`/api/upload`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error("Upload failed");
@@ -124,14 +129,14 @@ export default function DomaciPage() {
 
       showSuccessToast(
         "📸 Fotografija je uspešno sačuvana!",
-        "Prilog je dodat domaćem zadatku."
+        "Prilog je dodat domaćem zadatku.",
       );
 
       setCameraOpen(false);
       setSelectedHomeworkId(null);
     } catch {
       // Error uploading photo
-      showErrorToast({ 
+      showErrorToast({
         error: new Error("Greška prilikom čuvanja fotografije"),
         retry: () => handlePhotoCapture(file),
       });
@@ -145,11 +150,11 @@ export default function DomaciPage() {
         showSuccessToast("✅ Zadatak je označen kao urađen!");
       },
       onError: () => {
-        showErrorToast({ 
+        showErrorToast({
           error: new Error("Greška pri ažuriranju zadatka"),
           retry: () => handleMarkComplete(hwId),
         });
-      }
+      },
     });
   };
 
@@ -175,7 +180,10 @@ export default function DomaciPage() {
     }
   };
 
-  const handleBulkUpdatePriority = async (ids: string[], priority: "NORMAL" | "IMPORTANT" | "URGENT") => {
+  const handleBulkUpdatePriority = async (
+    ids: string[],
+    priority: "NORMAL" | "IMPORTANT" | "URGENT",
+  ) => {
     try {
       await bulkUpdatePriorityAction(ids, priority);
       // Invalidate cache umesto reload
@@ -222,32 +230,34 @@ export default function DomaciPage() {
       }
 
       // Pokušaj online
-      createHomeworkMutation.mutate({
-        ...data,
-        dueDate: new Date(data.dueDate),
-        status: "ASSIGNED",
-      }, {
-        onSuccess: () => {
-          // Reset page to 1 to see new item
-          setPage(1);
+      createHomeworkMutation.mutate(
+        {
+          ...data,
+          dueDate: new Date(data.dueDate),
+          status: "ASSIGNED",
         },
-        onError: async () => {
-           // Ako API ne uspije, sačuvaj offline kao fallback
-           await saveOffline({
-            title: data.title,
-            subjectId: data.subjectId,
-            description: data.description,
-            dueDate: new Date(data.dueDate),
-            priority: data.priority,
-            status: "ASSIGNED",
-          });
-          toast.warning("⚠️ Sačuvano offline", {
-            description:
-              "API nije dostupan - zadatak će biti sinhronizovan kasnije",
-          });
-        }
-      });
-
+        {
+          onSuccess: () => {
+            // Reset page to 1 to see new item
+            setPage(1);
+          },
+          onError: async () => {
+            // Ako API ne uspije, sačuvaj offline kao fallback
+            await saveOffline({
+              title: data.title,
+              subjectId: data.subjectId,
+              description: data.description,
+              dueDate: new Date(data.dueDate),
+              priority: data.priority,
+              status: "ASSIGNED",
+            });
+            toast.warning("⚠️ Sačuvano offline", {
+              description:
+                "API nije dostupan - zadatak će biti sinhronizovan kasnije",
+            });
+          },
+        },
+      );
     } catch (_err) {
       throw new Error(
         _err instanceof Error ? _err.message : "Nepoznata greška",
@@ -271,9 +281,15 @@ export default function DomaciPage() {
   }
 
   const total = pagination?.total || 0;
-  const activeCount = filteredHomework.filter(h => h.status !== "done" && h.status !== "submitted").length;
-  const completedCount = filteredHomework.filter(h => h.status === "done" || h.status === "submitted").length;
-  const urgentCount = filteredHomework.filter(h => h.priority === "urgent" && h.status !== "done").length;
+  const activeCount = filteredHomework.filter(
+    (h) => h.status !== "done" && h.status !== "submitted",
+  ).length;
+  const completedCount = filteredHomework.filter(
+    (h) => h.status === "done" || h.status === "submitted",
+  ).length;
+  const urgentCount = filteredHomework.filter(
+    (h) => h.priority === "urgent" && h.status !== "done",
+  ).length;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -382,11 +398,13 @@ export default function DomaciPage() {
           <div className="space-y-4">
             {error && (
               <LoadingWithRetry
-                error={error instanceof Error ? error : new Error(String(error))}
+                error={
+                  error instanceof Error ? error : new Error(String(error))
+                }
                 onRetry={() => window.location.reload()}
               />
             )}
-            
+
             {filteredHomework.length === 0 ? (
               <HomeworkEmptyState
                 searchQuery={searchQuery}
@@ -402,7 +420,9 @@ export default function DomaciPage() {
                         checked={selectedIds.includes(task.id)}
                         onToggle={(id) => {
                           if (selectedIds.includes(id)) {
-                            setSelectedIds(selectedIds.filter((sid) => sid !== id));
+                            setSelectedIds(
+                              selectedIds.filter((sid) => sid !== id),
+                            );
                           } else {
                             setSelectedIds([...selectedIds, id]);
                           }
@@ -410,8 +430,8 @@ export default function DomaciPage() {
                       />
                     </div>
                     <div className="flex-1">
-                      <HomeworkCard 
-                        task={task} 
+                      <HomeworkCard
+                        task={task}
                         onComplete={() => handleMarkComplete(task.id)}
                         onCamera={() => handleOpenCamera(task.id)}
                       />
@@ -450,11 +470,13 @@ export default function DomaciPage() {
       {/* Camera Modal - Lazy Loaded with Error Boundary */}
       {cameraOpen && (
         <SectionErrorBoundary sectionName="Camera">
-          <Suspense fallback={
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-              <Loader className="h-8 w-8 animate-spin text-white" />
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                <Loader className="h-8 w-8 animate-spin text-white" />
+              </div>
+            }
+          >
             <ModernCamera
               onClose={() => {
                 setCameraOpen(false);

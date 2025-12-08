@@ -3,7 +3,7 @@
  * Consolidates all email functionality
  */
 
-export { sendCustomEmail as sendEmail, sendVerificationEmail } from './service';
-export { createTransporter } from './transporter';
-export * from './templates';
-export * from './utils';
+export { sendCustomEmail as sendEmail, sendVerificationEmail } from "./service";
+export * from "./templates";
+export { createTransporter } from "./transporter";
+export * from "./utils";

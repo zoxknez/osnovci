@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { getXPForNextLevel } from "@/lib/gamification/xp-system";
 import { maskLeaderboardName } from "@/lib/utils/privacy";
 
@@ -45,7 +45,9 @@ function formatGamification(gamification: any) {
   };
 }
 
-export async function getGamificationAction(studentId?: string): Promise<ActionState> {
+export async function getGamificationAction(
+  studentId?: string,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -102,7 +104,10 @@ const updateSettingsSchema = z.object({
   showOnLeaderboard: z.boolean(),
 });
 
-export async function updateGamificationSettingsAction(studentId: string, data: z.infer<typeof updateSettingsSchema>): Promise<ActionState> {
+export async function updateGamificationSettingsAction(
+  studentId: string,
+  data: z.infer<typeof updateSettingsSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -116,20 +121,20 @@ export async function updateGamificationSettingsAction(studentId: string, data: 
   try {
     // Verify access
     if (session.user.student?.id !== studentId) {
-        if (session.user.guardian) {
-             const link = await prisma.link.findFirst({
-                where: {
-                    guardianId: session.user.guardian.id,
-                    studentId: studentId,
-                    isActive: true,
-                },
-            });
-            if (!link) {
-                return { error: "Nemate pristup" };
-            }
-        } else {
-            return { error: "Nemate pristup" };
+      if (session.user.guardian) {
+        const link = await prisma.link.findFirst({
+          where: {
+            guardianId: session.user.guardian.id,
+            studentId: studentId,
+            isActive: true,
+          },
+        });
+        if (!link) {
+          return { error: "Nemate pristup" };
         }
+      } else {
+        return { error: "Nemate pristup" };
+      }
     }
 
     const updated = await prisma.gamification.update({
@@ -141,7 +146,7 @@ export async function updateGamificationSettingsAction(studentId: string, data: 
     });
 
     revalidatePath("/dashboard");
-    
+
     return { success: true, data: formatGamification(updated) };
   } catch (error) {
     console.error("Update gamification settings error:", error);
@@ -149,13 +154,15 @@ export async function updateGamificationSettingsAction(studentId: string, data: 
   }
 }
 
-export async function getLeaderboardAction(period: "weekly" | "monthly" | "all-time" = "weekly"): Promise<ActionState> {
+export async function getLeaderboardAction(
+  period: "weekly" | "monthly" | "all-time" = "weekly",
+): Promise<ActionState> {
   const session = await auth();
   const currentUserId = session?.user?.id;
 
   try {
     let orderBy: any = {};
-    let where: any = {
+    const where: any = {
       showOnLeaderboard: true,
     };
 
@@ -189,7 +196,7 @@ export async function getLeaderboardAction(period: "weekly" | "monthly" | "all-t
 
     const leaderboard = topStudents.map((entry, index) => {
       const isCurrentUser = entry.student.userId === currentUserId;
-      
+
       return {
         rank: index + 1,
         studentId: entry.studentId,
@@ -217,16 +224,16 @@ export async function getLeaderboardAction(period: "weekly" | "monthly" | "all-t
         });
 
         if (userGamif && !leaderboard.some((e) => e.studentId === student.id)) {
-          let rankWhere: any = {
-             showOnLeaderboard: true,
+          const rankWhere: any = {
+            showOnLeaderboard: true,
           };
-          
+
           if (period === "weekly") {
-             rankWhere.weeklyXP = { gt: userGamif.weeklyXP };
+            rankWhere.weeklyXP = { gt: userGamif.weeklyXP };
           } else if (period === "monthly") {
-             rankWhere.monthlyXP = { gt: userGamif.monthlyXP };
+            rankWhere.monthlyXP = { gt: userGamif.monthlyXP };
           } else {
-             rankWhere.xp = { gt: userGamif.xp };
+            rankWhere.xp = { gt: userGamif.xp };
           }
 
           const rank = await prisma.gamification.count({

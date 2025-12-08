@@ -6,8 +6,8 @@
 "use client";
 
 import { Loader, RefreshCw } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface LoadingStateProps {
@@ -19,10 +19,10 @@ interface LoadingStateProps {
 /**
  * Simple loading spinner
  */
-export function LoadingSpinner({ 
-  message = "Učitavanje...", 
+export function LoadingSpinner({
+  message = "Učitavanje...",
   size = "md",
-  className 
+  className,
 }: LoadingStateProps) {
   const sizeClasses = {
     sm: "h-4 w-4",
@@ -31,11 +31,14 @@ export function LoadingSpinner({
   };
 
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
-      <Loader className={cn("animate-spin text-blue-600", sizeClasses[size])} />
-      {message && (
-        <p className="text-sm text-gray-600">{message}</p>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3",
+        className,
       )}
+    >
+      <Loader className={cn("animate-spin text-blue-600", sizeClasses[size])} />
+      {message && <p className="text-sm text-gray-600">{message}</p>}
     </div>
   );
 }
@@ -43,7 +46,11 @@ export function LoadingSpinner({
 /**
  * Loading card with skeleton
  */
-export function LoadingCard({ message = "Učitavanje podataka..." }: { message?: string }) {
+export function LoadingCard({
+  message = "Učitavanje podataka...",
+}: {
+  message?: string;
+}) {
   return (
     <Card className="border-none shadow-sm">
       <CardContent className="p-6">
@@ -119,11 +126,11 @@ export function InlineLoading({ className }: { className?: string }) {
 /**
  * Button loading state
  */
-export function ButtonLoading({ 
-  children, 
+export function ButtonLoading({
+  children,
   isLoading,
-  className 
-}: { 
+  className,
+}: {
   children: React.ReactNode;
   isLoading: boolean;
   className?: string;
@@ -135,4 +142,3 @@ export function ButtonLoading({
     </div>
   );
 }
-

@@ -1,22 +1,22 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
-import { log } from "@/lib/logger";
-import { revalidatePath } from "next/cache";
 import {
-  getDayView,
-  getWeekView,
-  getMonthView,
-  getAgendaView,
-  rescheduleHomework,
-  createCustomEvent,
-  updateEventTime,
-  deleteCustomEvent,
   checkConflicts,
-  getFreeTimeSlots,
+  createCustomEvent,
+  deleteCustomEvent,
   exportToICalendar,
+  getAgendaView,
+  getDayView,
+  getFreeTimeSlots,
+  getMonthView,
+  getWeekView,
+  rescheduleHomework,
+  updateEventTime,
 } from "@/lib/calendar/calendar-manager";
+import { log } from "@/lib/logger";
 
 // Schemas
 const getCalendarSchema = z.object({
@@ -29,10 +29,21 @@ const getCalendarSchema = z.object({
 const createCustomEventSchema = z.object({
   studentId: z.string().cuid(),
   title: z.string().min(1).max(100),
-  dayOfWeek: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
+  dayOfWeek: z.enum([
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
+  ]),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   endTime: z.string().regex(/^\d{2}:\d{2}$/),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
   notes: z.string().optional(),
   specificDate: z.string().optional(),
 });
@@ -74,13 +85,16 @@ const exportCalendarSchema = z.object({
 
 // Actions
 
-export async function getCalendarViewAction(params: z.infer<typeof getCalendarSchema>) {
+export async function getCalendarViewAction(
+  params: z.infer<typeof getCalendarSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = getCalendarSchema.safeParse(params);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const { studentId, view, date: dateStr, agendaDays = 7 } = validated.data;
     const date = dateStr ? new Date(dateStr) : new Date();
@@ -108,27 +122,38 @@ export async function getCalendarViewAction(params: z.infer<typeof getCalendarSc
   }
 }
 
-export async function createCustomEventAction(data: z.infer<typeof createCustomEventSchema>) {
+export async function createCustomEventAction(
+  data: z.infer<typeof createCustomEventSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = createCustomEventSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
-    const { studentId, title, notes, color, specificDate, startTime: startTimeStr, endTime: endTimeStr } = validated.data;
+    const {
+      studentId,
+      title,
+      notes,
+      color,
+      specificDate,
+      startTime: startTimeStr,
+      endTime: endTimeStr,
+    } = validated.data;
 
     const baseDate = specificDate ? new Date(specificDate) : new Date();
-    const startParts = startTimeStr.split(':').map(Number);
-    const endParts = endTimeStr.split(':').map(Number);
+    const startParts = startTimeStr.split(":").map(Number);
+    const endParts = endTimeStr.split(":").map(Number);
     const startHour = startParts[0] ?? 0;
     const startMinute = startParts[1] ?? 0;
     const endHour = endParts[0] ?? 0;
     const endMinute = endParts[1] ?? 0;
-    
+
     const startTime = new Date(baseDate);
     startTime.setHours(startHour, startMinute, 0, 0);
-    
+
     const endTime = new Date(baseDate);
     endTime.setHours(endHour, endMinute, 0, 0);
 
@@ -148,17 +173,20 @@ export async function createCustomEventAction(data: z.infer<typeof createCustomE
   }
 }
 
-export async function rescheduleHomeworkAction(data: z.infer<typeof rescheduleHomeworkSchema>) {
+export async function rescheduleHomeworkAction(
+  data: z.infer<typeof rescheduleHomeworkSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = rescheduleHomeworkSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const homework = await rescheduleHomework(
       validated.data.homeworkId,
-      new Date(validated.data.newDueDate)
+      new Date(validated.data.newDueDate),
     );
 
     revalidatePath("/calendar");
@@ -170,27 +198,31 @@ export async function rescheduleHomeworkAction(data: z.infer<typeof rescheduleHo
   }
 }
 
-export async function updateEventTimeAction(data: z.infer<typeof updateEventTimeSchema>) {
+export async function updateEventTimeAction(
+  data: z.infer<typeof updateEventTimeSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = updateEventTimeSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
-    const { eventId, eventType, newDate, newStartTime, newEndTime } = validated.data;
+    const { eventId, eventType, newDate, newStartTime, newEndTime } =
+      validated.data;
 
     const baseDate = newDate ? new Date(newDate) : new Date();
-    const startParts = newStartTime.split(':').map(Number);
-    const endParts = newEndTime.split(':').map(Number);
+    const startParts = newStartTime.split(":").map(Number);
+    const endParts = newEndTime.split(":").map(Number);
     const startHour = startParts[0] ?? 0;
     const startMinute = startParts[1] ?? 0;
     const endHour = endParts[0] ?? 0;
     const endMinute = endParts[1] ?? 0;
-    
+
     const startTime = new Date(baseDate);
     startTime.setHours(startHour, startMinute, 0, 0);
-    
+
     const endTime = new Date(baseDate);
     endTime.setHours(endHour, endMinute, 0, 0);
 
@@ -204,13 +236,16 @@ export async function updateEventTimeAction(data: z.infer<typeof updateEventTime
   }
 }
 
-export async function deleteCustomEventAction(data: z.infer<typeof deleteCustomEventSchema>) {
+export async function deleteCustomEventAction(
+  data: z.infer<typeof deleteCustomEventSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = deleteCustomEventSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     await deleteCustomEvent(validated.data.eventId);
 
@@ -222,18 +257,21 @@ export async function deleteCustomEventAction(data: z.infer<typeof deleteCustomE
   }
 }
 
-export async function checkConflictsAction(data: z.infer<typeof checkConflictsSchema>) {
+export async function checkConflictsAction(
+  data: z.infer<typeof checkConflictsSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = checkConflictsSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const result = await checkConflicts(
       validated.data.studentId,
       new Date(validated.data.startTime),
-      new Date(validated.data.endTime)
+      new Date(validated.data.endTime),
     );
 
     return { success: true, ...result };
@@ -243,18 +281,21 @@ export async function checkConflictsAction(data: z.infer<typeof checkConflictsSc
   }
 }
 
-export async function getFreeTimeSlotsAction(data: z.infer<typeof getFreeTimeSlotsSchema>) {
+export async function getFreeTimeSlotsAction(
+  data: z.infer<typeof getFreeTimeSlotsSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = getFreeTimeSlotsSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const slots = await getFreeTimeSlots(
       validated.data.studentId,
       new Date(validated.data.date),
-      validated.data.minDuration
+      validated.data.minDuration,
     );
 
     return { success: true, freeSlots: slots };
@@ -264,18 +305,21 @@ export async function getFreeTimeSlotsAction(data: z.infer<typeof getFreeTimeSlo
   }
 }
 
-export async function exportCalendarAction(data: z.infer<typeof exportCalendarSchema>) {
+export async function exportCalendarAction(
+  data: z.infer<typeof exportCalendarSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = exportCalendarSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const icalData = await exportToICalendar(
       validated.data.studentId,
       new Date(validated.data.startDate),
-      new Date(validated.data.endDate)
+      new Date(validated.data.endDate),
     );
 
     return { success: true, icalData };

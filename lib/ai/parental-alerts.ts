@@ -8,7 +8,12 @@ import { log } from "@/lib/logger";
 
 interface Alert {
   id: string;
-  type: "grade_drop" | "homework_backlog" | "study_time" | "behavior_change" | "achievement";
+  type:
+    | "grade_drop"
+    | "homework_backlog"
+    | "study_time"
+    | "behavior_change"
+    | "achievement";
   severity: "low" | "medium" | "high" | "critical";
   message: string;
   details: Record<string, any>;
@@ -107,11 +112,17 @@ async function checkStudyTimeDecrease(studentId: string): Promise<boolean> {
  */
 async function generateGradeDropAlert(
   studentId: string,
-  data: { recentAverage: number; previousAverage: number }
+  data: { recentAverage: number; previousAverage: number },
 ): Promise<Alert> {
   const drop = data.previousAverage - data.recentAverage;
   const severity =
-    drop > 1.5 ? "critical" : drop > 1.0 ? "high" : drop > 0.5 ? "medium" : "low";
+    drop > 1.5
+      ? "critical"
+      : drop > 1.0
+        ? "high"
+        : drop > 0.5
+          ? "medium"
+          : "low";
 
   return {
     id: `alert-${Date.now()}`,
@@ -139,7 +150,7 @@ async function generateGradeDropAlert(
  */
 async function generateHomeworkBacklogAlert(
   studentId: string,
-  data: { overdueCount: number }
+  data: { overdueCount: number },
 ): Promise<Alert> {
   const severity =
     data.overdueCount > 7
@@ -200,7 +211,7 @@ export async function checkParentalAlerts(studentId: string): Promise<Alert[]> {
         await generateGradeDropAlert(studentId, {
           recentAverage,
           previousAverage,
-        })
+        }),
       );
     }
 
@@ -215,7 +226,7 @@ export async function checkParentalAlerts(studentId: string): Promise<Alert[]> {
       });
 
       alerts.push(
-        await generateHomeworkBacklogAlert(studentId, { overdueCount })
+        await generateHomeworkBacklogAlert(studentId, { overdueCount }),
       );
     }
 
@@ -241,7 +252,7 @@ export async function checkParentalAlerts(studentId: string): Promise<Alert[]> {
  */
 export async function sendParentalAlert(
   guardianId: string,
-  alert: Alert
+  alert: Alert,
 ): Promise<void> {
   // TODO: Implement email/push notification
   log.info("Parental alert generated", {
@@ -250,4 +261,3 @@ export async function sendParentalAlert(
     severity: alert.severity,
   });
 }
-

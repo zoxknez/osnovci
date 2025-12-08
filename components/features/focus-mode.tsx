@@ -2,7 +2,7 @@
 
 /**
  * FocusMode - Komponenta za režim fokusiranog učenja
- * 
+ *
  * Features:
  * - Blokira distrakcije tokom učenja
  * - Prilagođeno okruženje za koncentraciju
@@ -11,30 +11,31 @@
  * - WCAG 2.1 AAA compliant za djecu
  */
 
-import * as React from "react";
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Eye,
-  EyeOff,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  Timer,
-  Moon,
-  Sun,
-  Sparkles,
+  Bird,
   BookOpen,
-  Target,
-  X,
   CheckCircle2,
   CloudRain,
-  Wind,
-  Bird,
-  Music,
   Coffee,
+  Eye,
+  EyeOff,
+  Moon,
+  Music,
+  Pause,
+  Play,
+  Sparkles,
+  Sun,
+  Target,
+  Timer,
+  Volume2,
+  VolumeX,
+  Wind,
+  X,
 } from "lucide-react";
+import type * as React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -44,7 +45,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 // Ambient sound types
@@ -66,7 +66,10 @@ interface FocusModeProps {
   defaultDuration?: number;
 }
 
-const AMBIENT_SOUNDS: Record<AmbientSound, { name: string; icon: React.ElementType; color: string }> = {
+const AMBIENT_SOUNDS: Record<
+  AmbientSound,
+  { name: string; icon: React.ElementType; color: string }
+> = {
   rain: { name: "Kiša", icon: CloudRain, color: "text-blue-500" },
   wind: { name: "Vjetar", icon: Wind, color: "text-cyan-500" },
   birds: { name: "Ptice", icon: Bird, color: "text-green-500" },
@@ -101,7 +104,7 @@ export function FocusMode({
   const [showMotivation, setShowMotivation] = useState(false);
   const [sessionXP, setSessionXP] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   // Refs
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionStartRef = useRef<Date | null>(null);
@@ -118,8 +121,11 @@ export function FocusMode({
     "Super si učenik/ca! 📚",
   ];
 
-  const [currentMotivation] = useState(() => 
-    motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]
+  const [currentMotivation] = useState(
+    () =>
+      motivationalMessages[
+        Math.floor(Math.random() * motivationalMessages.length)
+      ],
   );
 
   // Format time display
@@ -138,8 +144,10 @@ export function FocusMode({
 
   // Calculate XP earned so far
   const calculateCurrentXP = useCallback((): number => {
-    const minutesCompleted = Math.floor((targetDuration * 60 - timeRemaining) / 60);
-    let xp = Math.floor(minutesCompleted / 5) * XP_PER_5_MIN;
+    const minutesCompleted = Math.floor(
+      (targetDuration * 60 - timeRemaining) / 60,
+    );
+    const xp = Math.floor(minutesCompleted / 5) * XP_PER_5_MIN;
     return xp;
   }, [timeRemaining, targetDuration]);
 
@@ -152,7 +160,7 @@ export function FocusMode({
     setSessionXP(0);
     sessionStartRef.current = new Date();
     setShowMotivation(true);
-    
+
     // Hide motivation after 3 seconds
     setTimeout(() => setShowMotivation(false), 3000);
   }, [targetDuration]);
@@ -160,7 +168,7 @@ export function FocusMode({
   // Pause session
   const pauseSession = useCallback(() => {
     setIsPaused(true);
-    setDistractionCount(prev => prev + 1);
+    setDistractionCount((prev) => prev + 1);
   }, []);
 
   // Resume session
@@ -169,44 +177,55 @@ export function FocusMode({
   }, []);
 
   // End session
-  const endSession = useCallback((completed: boolean = false) => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    const minutesCompleted = Math.floor((targetDuration * 60 - timeRemaining) / 60);
-    let xpEarned = Math.floor(minutesCompleted / 5) * XP_PER_5_MIN;
-    
-    if (completed) {
-      xpEarned += XP_COMPLETION_BONUS;
-      if (distractionCount === 0) {
-        xpEarned += XP_NO_DISTRACTION_BONUS;
+  const endSession = useCallback(
+    (completed: boolean = false) => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
-    }
 
-    const session: FocusSession = {
-      startTime: sessionStartRef.current || new Date(),
-      targetMinutes: targetDuration,
-      completedMinutes: minutesCompleted,
-      distractions: distractionCount,
-      xpEarned,
-    };
+      const minutesCompleted = Math.floor(
+        (targetDuration * 60 - timeRemaining) / 60,
+      );
+      let xpEarned = Math.floor(minutesCompleted / 5) * XP_PER_5_MIN;
 
-    setSessionXP(xpEarned);
-    onSessionComplete?.(session);
-    onXPEarned?.(xpEarned);
+      if (completed) {
+        xpEarned += XP_COMPLETION_BONUS;
+        if (distractionCount === 0) {
+          xpEarned += XP_NO_DISTRACTION_BONUS;
+        }
+      }
 
-    setIsActive(false);
-    setIsPaused(false);
-    sessionStartRef.current = null;
-  }, [targetDuration, timeRemaining, distractionCount, onSessionComplete, onXPEarned]);
+      const session: FocusSession = {
+        startTime: sessionStartRef.current || new Date(),
+        targetMinutes: targetDuration,
+        completedMinutes: minutesCompleted,
+        distractions: distractionCount,
+        xpEarned,
+      };
+
+      setSessionXP(xpEarned);
+      onSessionComplete?.(session);
+      onXPEarned?.(xpEarned);
+
+      setIsActive(false);
+      setIsPaused(false);
+      sessionStartRef.current = null;
+    },
+    [
+      targetDuration,
+      timeRemaining,
+      distractionCount,
+      onSessionComplete,
+      onXPEarned,
+    ],
+  );
 
   // Timer effect
   useEffect(() => {
     if (isActive && !isPaused) {
       intervalRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
+        setTimeRemaining((prev) => {
           if (prev <= 1) {
             // Session completed!
             endSession(true);
@@ -235,12 +254,13 @@ export function FocusMode({
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (isActive && !isPaused && document.hidden) {
-        setDistractionCount(prev => prev + 1);
+        setDistractionCount((prev) => prev + 1);
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isActive, isPaused]);
 
   // Keyboard shortcuts
@@ -262,7 +282,8 @@ export function FocusMode({
   // Circle progress for timer
   const circleRadius = 90;
   const circleCircumference = 2 * Math.PI * circleRadius;
-  const strokeDashoffset = circleCircumference - (progressPercent / 100) * circleCircumference;
+  const strokeDashoffset =
+    circleCircumference - (progressPercent / 100) * circleCircumference;
 
   if (isActive) {
     return (
@@ -272,8 +293,10 @@ export function FocusMode({
         exit={{ opacity: 0, scale: 0.95 }}
         className={cn(
           "fixed inset-0 z-50 flex items-center justify-center",
-          darkMode ? "bg-gray-900" : "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500",
-          className
+          darkMode
+            ? "bg-gray-900"
+            : "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500",
+          className,
         )}
       >
         {/* Background particles for visual interest */}
@@ -283,7 +306,7 @@ export function FocusMode({
               key={i}
               className={cn(
                 "absolute rounded-full",
-                darkMode ? "bg-white/10" : "bg-white/20"
+                darkMode ? "bg-white/10" : "bg-white/20",
               )}
               style={{
                 width: Math.random() * 20 + 5,
@@ -314,7 +337,10 @@ export function FocusMode({
                 exit={{ opacity: 0, y: -20 }}
                 className="absolute -top-16 text-center"
               >
-                <Badge variant="secondary" className="text-lg px-4 py-2 bg-white/90 text-purple-700">
+                <Badge
+                  variant="secondary"
+                  className="text-lg px-4 py-2 bg-white/90 text-purple-700"
+                >
                   {currentMotivation}
                 </Badge>
               </motion.div>
@@ -322,11 +348,13 @@ export function FocusMode({
           </AnimatePresence>
 
           {/* Subject badge */}
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={cn(
               "text-lg px-4 py-1",
-              darkMode ? "bg-gray-800 text-white border-gray-600" : "bg-white/90 text-purple-700"
+              darkMode
+                ? "bg-gray-800 text-white border-gray-600"
+                : "bg-white/90 text-purple-700",
             )}
           >
             <BookOpen className="h-4 w-4 mr-2" />
@@ -341,7 +369,9 @@ export function FocusMode({
                 cx="110"
                 cy="110"
                 r={circleRadius}
-                stroke={darkMode ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.3)"}
+                stroke={
+                  darkMode ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.3)"
+                }
                 strokeWidth="8"
                 fill="none"
               />
@@ -363,23 +393,25 @@ export function FocusMode({
                 transition={{ duration: 0.5 }}
               />
             </svg>
-            
+
             {/* Time display */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <motion.span
                 className={cn(
                   "text-5xl font-bold font-mono",
-                  darkMode ? "text-white" : "text-white"
+                  darkMode ? "text-white" : "text-white",
                 )}
                 animate={{ scale: isPaused ? [1, 1.02, 1] : 1 }}
                 transition={{ repeat: isPaused ? Infinity : 0, duration: 1 }}
               >
                 {formatTime(timeRemaining)}
               </motion.span>
-              <span className={cn(
-                "text-sm mt-1",
-                darkMode ? "text-gray-400" : "text-white/80"
-              )}>
+              <span
+                className={cn(
+                  "text-sm mt-1",
+                  darkMode ? "text-gray-400" : "text-white/80",
+                )}
+              >
                 {isPaused ? "PAUZIRANO" : "FOKUS"}
               </span>
             </div>
@@ -389,13 +421,23 @@ export function FocusMode({
           <motion.div
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-full",
-              darkMode ? "bg-gray-800" : "bg-white/20"
+              darkMode ? "bg-gray-800" : "bg-white/20",
             )}
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ repeat: Infinity, duration: 2 }}
           >
-            <Sparkles className={cn("h-5 w-5", darkMode ? "text-yellow-400" : "text-yellow-300")} />
-            <span className={cn("font-bold", darkMode ? "text-white" : "text-white")}>
+            <Sparkles
+              className={cn(
+                "h-5 w-5",
+                darkMode ? "text-yellow-400" : "text-yellow-300",
+              )}
+            />
+            <span
+              className={cn(
+                "font-bold",
+                darkMode ? "text-white" : "text-white",
+              )}
+            >
               +{sessionXP} XP
             </span>
           </motion.div>
@@ -408,11 +450,19 @@ export function FocusMode({
               onClick={() => setDarkMode(!darkMode)}
               className={cn(
                 "rounded-full",
-                darkMode ? "text-white hover:bg-white/10" : "text-white hover:bg-white/20"
+                darkMode
+                  ? "text-white hover:bg-white/10"
+                  : "text-white hover:bg-white/20",
               )}
-              aria-label={darkMode ? "Isključi tamni režim" : "Uključi tamni režim"}
+              aria-label={
+                darkMode ? "Isključi tamni režim" : "Uključi tamni režim"
+              }
             >
-              {darkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+              {darkMode ? (
+                <Sun className="h-6 w-6" />
+              ) : (
+                <Moon className="h-6 w-6" />
+              )}
             </Button>
 
             <Button
@@ -420,9 +470,9 @@ export function FocusMode({
               onClick={isPaused ? resumeSession : pauseSession}
               className={cn(
                 "rounded-full w-16 h-16",
-                darkMode 
-                  ? "bg-purple-600 hover:bg-purple-700" 
-                  : "bg-white text-purple-600 hover:bg-white/90"
+                darkMode
+                  ? "bg-purple-600 hover:bg-purple-700"
+                  : "bg-white text-purple-600 hover:bg-white/90",
               )}
               aria-label={isPaused ? "Nastavi" : "Pauziraj"}
             >
@@ -439,7 +489,9 @@ export function FocusMode({
               onClick={() => endSession(false)}
               className={cn(
                 "rounded-full",
-                darkMode ? "text-white hover:bg-white/10" : "text-white hover:bg-white/20"
+                darkMode
+                  ? "text-white hover:bg-white/10"
+                  : "text-white hover:bg-white/20",
               )}
               aria-label="Završi sesiju"
             >
@@ -448,28 +500,37 @@ export function FocusMode({
           </div>
 
           {/* Ambient sound selector */}
-          <div className={cn(
-            "flex items-center gap-2 p-2 rounded-lg",
-            darkMode ? "bg-gray-800" : "bg-white/20"
-          )}>
-            {Object.entries(AMBIENT_SOUNDS).map(([key, { name, icon: Icon, color }]) => (
-              <Button
-                key={key}
-                variant="ghost"
-                size="sm"
-                onClick={() => setAmbientSound(key as AmbientSound)}
-                className={cn(
-                  "rounded-full p-2",
-                  ambientSound === key && "bg-white/30",
-                  darkMode ? "hover:bg-white/10" : "hover:bg-white/20"
-                )}
-                title={name}
-                aria-label={`Ambient zvuk: ${name}`}
-                aria-pressed={ambientSound === key}
-              >
-                <Icon className={cn("h-5 w-5", ambientSound === key ? color : "text-white/70")} />
-              </Button>
-            ))}
+          <div
+            className={cn(
+              "flex items-center gap-2 p-2 rounded-lg",
+              darkMode ? "bg-gray-800" : "bg-white/20",
+            )}
+          >
+            {Object.entries(AMBIENT_SOUNDS).map(
+              ([key, { name, icon: Icon, color }]) => (
+                <Button
+                  key={key}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAmbientSound(key as AmbientSound)}
+                  className={cn(
+                    "rounded-full p-2",
+                    ambientSound === key && "bg-white/30",
+                    darkMode ? "hover:bg-white/10" : "hover:bg-white/20",
+                  )}
+                  title={name}
+                  aria-label={`Ambient zvuk: ${name}`}
+                  aria-pressed={ambientSound === key}
+                >
+                  <Icon
+                    className={cn(
+                      "h-5 w-5",
+                      ambientSound === key ? color : "text-white/70",
+                    )}
+                  />
+                </Button>
+              ),
+            )}
           </div>
 
           {/* Distraction counter */}
@@ -479,19 +540,24 @@ export function FocusMode({
               animate={{ opacity: 1, scale: 1 }}
               className={cn(
                 "text-sm px-3 py-1 rounded-full",
-                darkMode ? "bg-red-900/50 text-red-300" : "bg-red-500/30 text-white"
+                darkMode
+                  ? "bg-red-900/50 text-red-300"
+                  : "bg-red-500/30 text-white",
               )}
             >
               <EyeOff className="h-4 w-4 inline mr-1" />
-              {distractionCount} {distractionCount === 1 ? "distrakcija" : "distrakcije"}
+              {distractionCount}{" "}
+              {distractionCount === 1 ? "distrakcija" : "distrakcije"}
             </motion.div>
           )}
 
           {/* Keyboard shortcuts hint */}
-          <p className={cn(
-            "text-xs mt-4",
-            darkMode ? "text-gray-500" : "text-white/60"
-          )}>
+          <p
+            className={cn(
+              "text-xs mt-4",
+              darkMode ? "text-gray-500" : "text-white/60",
+            )}
+          >
             Pritisni SPACE za pauzu/nastavak • ESC za pauzu
           </p>
         </div>
@@ -507,7 +573,7 @@ export function FocusMode({
           className={cn(
             "cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg",
             "bg-gradient-to-br from-indigo-500 to-purple-600 text-white",
-            className
+            className,
           )}
         >
           <CardHeader className="pb-2">
@@ -524,7 +590,13 @@ export function FocusMode({
               <Timer className="h-4 w-4" />
               <span className="text-sm">{targetDuration} minuta</span>
               <Sparkles className="h-4 w-4 ml-auto" />
-              <span className="text-sm">Do +{Math.floor(targetDuration / 5) * XP_PER_5_MIN + XP_COMPLETION_BONUS + XP_NO_DISTRACTION_BONUS} XP</span>
+              <span className="text-sm">
+                Do +
+                {Math.floor(targetDuration / 5) * XP_PER_5_MIN +
+                  XP_COMPLETION_BONUS +
+                  XP_NO_DISTRACTION_BONUS}{" "}
+                XP
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -550,7 +622,8 @@ export function FocusMode({
                   size="sm"
                   onClick={() => setTargetDuration(duration)}
                   className={cn(
-                    targetDuration === duration && "bg-purple-600 hover:bg-purple-700"
+                    targetDuration === duration &&
+                      "bg-purple-600 hover:bg-purple-700",
                   )}
                 >
                   {duration} min
@@ -563,21 +636,29 @@ export function FocusMode({
           <div className="space-y-3">
             <label className="text-sm font-medium">Ambijentalni zvuk</label>
             <div className="grid grid-cols-3 gap-2">
-              {Object.entries(AMBIENT_SOUNDS).map(([key, { name, icon: Icon, color }]) => (
-                <Button
-                  key={key}
-                  variant={ambientSound === key ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setAmbientSound(key as AmbientSound)}
-                  className={cn(
-                    "flex flex-col gap-1 h-auto py-3",
-                    ambientSound === key && "bg-purple-600 hover:bg-purple-700"
-                  )}
-                >
-                  <Icon className={cn("h-5 w-5", ambientSound === key ? "text-white" : color)} />
-                  <span className="text-xs">{name}</span>
-                </Button>
-              ))}
+              {Object.entries(AMBIENT_SOUNDS).map(
+                ([key, { name, icon: Icon, color }]) => (
+                  <Button
+                    key={key}
+                    variant={ambientSound === key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setAmbientSound(key as AmbientSound)}
+                    className={cn(
+                      "flex flex-col gap-1 h-auto py-3",
+                      ambientSound === key &&
+                        "bg-purple-600 hover:bg-purple-700",
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-5 w-5",
+                        ambientSound === key ? "text-white" : color,
+                      )}
+                    />
+                    <span className="text-xs">{name}</span>
+                  </Button>
+                ),
+              )}
             </div>
           </div>
 
@@ -610,9 +691,16 @@ export function FocusMode({
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Završetak sesije: +{XP_COMPLETION_BONUS} XP</li>
               <li>• Bez distrakcija: +{XP_NO_DISTRACTION_BONUS} XP</li>
-              <li>• {targetDuration} min učenja: +{Math.floor(targetDuration / 5) * XP_PER_5_MIN} XP</li>
+              <li>
+                • {targetDuration} min učenja: +
+                {Math.floor(targetDuration / 5) * XP_PER_5_MIN} XP
+              </li>
               <li className="font-medium text-purple-600">
-                Ukupno: do +{Math.floor(targetDuration / 5) * XP_PER_5_MIN + XP_COMPLETION_BONUS + XP_NO_DISTRACTION_BONUS} XP
+                Ukupno: do +
+                {Math.floor(targetDuration / 5) * XP_PER_5_MIN +
+                  XP_COMPLETION_BONUS +
+                  XP_NO_DISTRACTION_BONUS}{" "}
+                XP
               </li>
             </ul>
           </div>
@@ -648,7 +736,7 @@ export function FocusSessionComplete({
   onClose: () => void;
 }) {
   const isPerfect = session.distractions === 0;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -681,18 +769,17 @@ export function FocusSessionComplete({
         <h2 className="text-2xl font-bold mb-2">
           {isPerfect ? "Savršeno! 🌟" : "Odlično! 🎉"}
         </h2>
-        
+
         <p className="text-muted-foreground mb-6">
-          {isPerfect 
+          {isPerfect
             ? "Završio/la si sesiju bez ijedne distrakcije!"
-            : `Završio/la si ${session.completedMinutes} minuta fokusiranog učenja!`
-          }
+            : `Završio/la si ${session.completedMinutes} minuta fokusiranog učenja!`}
         </p>
 
         <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-center gap-2 text-3xl font-bold text-purple-600">
-            <Sparkles className="h-8 w-8 text-yellow-500" />
-            +{session.xpEarned} XP
+            <Sparkles className="h-8 w-8 text-yellow-500" />+{session.xpEarned}{" "}
+            XP
           </div>
         </div>
 

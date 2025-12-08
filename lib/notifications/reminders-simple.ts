@@ -2,14 +2,14 @@
  * Notification Reminders Module - Simplified
  */
 
-import { log } from '@/lib/logger';
-import { prisma } from '@/lib/db/prisma';
+import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 /**
  * Get upcoming homework due soon
  */
 export async function getUpcomingHomework(studentId: string) {
-  log.info('Fetching upcoming homework', { studentId });
+  log.info("Fetching upcoming homework", { studentId });
 
   try {
     const tomorrow = new Date();
@@ -19,7 +19,7 @@ export async function getUpcomingHomework(studentId: string) {
     const homework = await prisma.homework.findMany({
       where: {
         studentId,
-        status: 'ASSIGNED',
+        status: "ASSIGNED",
         dueDate: {
           lte: tomorrow,
         },
@@ -28,13 +28,13 @@ export async function getUpcomingHomework(studentId: string) {
         subject: true,
       },
       orderBy: {
-        dueDate: 'asc',
+        dueDate: "asc",
       },
     });
 
     return homework;
   } catch (error) {
-    log.error('Error fetching homework', error as Error);
+    log.error("Error fetching homework", error as Error);
     return [];
   }
 }
@@ -43,7 +43,7 @@ export async function getUpcomingHomework(studentId: string) {
  * Get daily summary data
  */
 export async function getDailySummary(studentId: string, date: Date) {
-  log.info('Generating daily summary', { studentId, date });
+  log.info("Generating daily summary", { studentId, date });
 
   try {
     const startOfDay = new Date(date);
@@ -56,7 +56,7 @@ export async function getDailySummary(studentId: string, date: Date) {
     const homeworkToday = await prisma.homework.findMany({
       where: {
         studentId,
-        status: { in: ['ASSIGNED', 'IN_PROGRESS'] },
+        status: { in: ["ASSIGNED", "IN_PROGRESS"] },
         dueDate: {
           gte: startOfDay,
           lte: endOfDay,
@@ -74,7 +74,7 @@ export async function getDailySummary(studentId: string, date: Date) {
     const completedCount = await prisma.homework.count({
       where: {
         studentId,
-        status: 'SUBMITTED',
+        status: "SUBMITTED",
         createdAt: {
           gte: startOfDay,
           lte: endOfDay,
@@ -88,7 +88,7 @@ export async function getDailySummary(studentId: string, date: Date) {
       homework: homeworkToday,
     };
   } catch (error) {
-    log.error('Error generating daily summary', error as Error);
+    log.error("Error generating daily summary", error as Error);
     return { homeworkDueToday: 0, completedToday: 0, homework: [] };
   }
 }

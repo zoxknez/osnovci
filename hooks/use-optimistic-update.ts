@@ -3,7 +3,7 @@
  * Provides optimistic UI updates for better UX
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { showErrorToast } from "@/components/features/error-toast";
 
 interface OptimisticUpdateOptions<T> {
@@ -14,7 +14,7 @@ interface OptimisticUpdateOptions<T> {
 
 export function useOptimisticUpdate<T>(
   updateFn: (data: T) => Promise<T>,
-  options: OptimisticUpdateOptions<T> = {}
+  options: OptimisticUpdateOptions<T> = {},
 ) {
   const { onSuccess, onError, rollbackOnError = true } = options;
   const [isUpdating, setIsUpdating] = useState(false);
@@ -35,15 +35,15 @@ export function useOptimisticUpdate<T>(
       try {
         // Execute update
         const result = await updateFn(optimisticData);
-        
+
         setIsUpdating(false);
         onSuccess?.(result);
-        
+
         return { success: true, data: result };
       } catch (error) {
         setIsUpdating(false);
         const err = error instanceof Error ? error : new Error(String(error));
-        
+
         if (rollbackOnError && rollbackRef.current) {
           onError?.(err, rollbackRef.current);
         } else {
@@ -52,13 +52,15 @@ export function useOptimisticUpdate<T>(
 
         showErrorToast({
           error: err,
-          retry: async () => { await update(optimisticData, currentData); },
+          retry: async () => {
+            await update(optimisticData, currentData);
+          },
         });
 
         return { success: false, error: err };
       }
     },
-    [updateFn, onSuccess, onError, rollbackOnError]
+    [updateFn, onSuccess, onError, rollbackOnError],
   );
 
   return {
@@ -66,4 +68,3 @@ export function useOptimisticUpdate<T>(
     isUpdating,
   };
 }
-

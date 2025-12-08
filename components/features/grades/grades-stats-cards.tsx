@@ -21,7 +21,11 @@ interface GradesStatsCardsProps {
   bestSubject: string;
 }
 
-export function GradesStatsCards({ stats, grades, bestSubject }: GradesStatsCardsProps) {
+export function GradesStatsCards({
+  stats,
+  grades,
+  bestSubject,
+}: GradesStatsCardsProps) {
   return (
     <>
       {/* Overall Average */}
@@ -40,7 +44,10 @@ export function GradesStatsCards({ stats, grades, bestSubject }: GradesStatsCard
               </div>
             </div>
             <div className="mt-4">
-              <Progress value={(stats.average / 5) * 100} className="h-2 bg-blue-800/30" />
+              <Progress
+                value={(stats.average / 5) * 100}
+                className="h-2 bg-blue-800/30"
+              />
             </div>
           </CardContent>
         </Card>
@@ -52,7 +59,9 @@ export function GradesStatsCards({ stats, grades, bestSubject }: GradesStatsCard
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1 font-medium">Ukupne ocene</p>
+                <p className="text-sm text-gray-500 mb-1 font-medium">
+                  Ukupne ocene
+                </p>
                 <p className="text-3xl font-bold text-gray-900">
                   {stats.total}
                 </p>
@@ -63,17 +72,28 @@ export function GradesStatsCards({ stats, grades, bestSubject }: GradesStatsCard
             </div>
             <div className="mt-4 flex gap-1">
               {/* Mini histogram visual */}
-              {[5, 4, 3, 2, 1].map(g => {
-                const count = grades.filter((x) => parseInt(String(x.grade)) === g).length;
+              {[5, 4, 3, 2, 1].map((g) => {
+                const count = grades.filter(
+                  (x) => parseInt(String(x.grade)) === g,
+                ).length;
                 const height = Math.max(4, Math.min(24, count * 2));
                 return (
-                  <div key={g} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    key={g}
+                    className="flex-1 flex flex-col items-center gap-1"
+                  >
                     <div className="w-full bg-gray-100 rounded-t-sm relative group">
-                      <div 
+                      <div
                         className={`w-full rounded-t-sm ${
-                          g === 5 ? 'bg-green-500' : g === 4 ? 'bg-blue-500' : g === 3 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`} 
-                        style={{ height: `${height}px` }} 
+                          g === 5
+                            ? "bg-green-500"
+                            : g === 4
+                              ? "bg-blue-500"
+                              : g === 3
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
+                        }`}
+                        style={{ height: `${height}px` }}
                       />
                     </div>
                     <span className="text-[10px] text-gray-400">{g}</span>
@@ -115,7 +135,9 @@ export function GradesStatsCards({ stats, grades, bestSubject }: GradesStatsCard
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1 font-medium">Kategorije</p>
+                <p className="text-sm text-gray-500 mb-1 font-medium">
+                  Kategorije
+                </p>
                 <p className="text-3xl font-bold text-orange-600">
                   {Object.keys(stats.byCategory).length}
                 </p>
@@ -124,13 +146,10 @@ export function GradesStatsCards({ stats, grades, bestSubject }: GradesStatsCard
                 <Calendar className="h-6 w-6 text-orange-600" />
               </div>
             </div>
-            <div className="mt-4 text-xs text-gray-400">
-              Raznovrsnost ocena
-            </div>
+            <div className="mt-4 text-xs text-gray-400">Raznovrsnost ocena</div>
           </CardContent>
         </Card>
       </motion.div>
     </>
   );
 }
-

@@ -6,23 +6,26 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
+import { sr } from "date-fns/locale";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertTriangle,
   Bell,
   BellRing,
   BookOpen,
-  GraduationCap,
-  Trophy,
-  Clock,
-  AlertTriangle,
   CheckCircle,
-  X,
+  Clock,
+  Filter,
+  GraduationCap,
   Settings,
+  Trophy,
   Volume2,
   VolumeX,
-  Filter,
+  X,
 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,8 +34,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
@@ -42,15 +49,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { formatDistanceToNow } from "date-fns";
-import { sr } from "date-fns/locale";
 
 type AlertType =
   | "GRADE_RECEIVED"
@@ -213,16 +213,20 @@ export function RealTimeAlerts({
 
   useEffect(() => {
     fetchAlerts();
-    
+
     // In production, set up WebSocket or polling here
     const interval = setInterval(fetchAlerts, 60000); // Refresh every minute
-    
+
     return () => clearInterval(interval);
   }, [fetchAlerts]);
 
   // Filter alerts based on settings and selected types
   const filteredAlerts = alerts.filter((alert) => {
-    if (settings.urgentOnly && alert.priority !== "urgent" && alert.priority !== "high") {
+    if (
+      settings.urgentOnly &&
+      alert.priority !== "urgent" &&
+      alert.priority !== "high"
+    ) {
       return false;
     }
 
@@ -234,7 +238,8 @@ export function RealTimeAlerts({
     const typeCategory = getAlertCategory(alert.type);
     if (typeCategory === "grade" && !settings.gradeAlerts) return false;
     if (typeCategory === "homework" && !settings.homeworkAlerts) return false;
-    if (typeCategory === "achievement" && !settings.achievementAlerts) return false;
+    if (typeCategory === "achievement" && !settings.achievementAlerts)
+      return false;
     if (typeCategory === "activity" && !settings.activityAlerts) return false;
 
     return true;
@@ -257,7 +262,7 @@ export function RealTimeAlerts({
 
   const markAsRead = (alertId: string) => {
     setAlerts((prev) =>
-      prev.map((a) => (a.id === alertId ? { ...a, read: true } : a))
+      prev.map((a) => (a.id === alertId ? { ...a, read: true } : a)),
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
   };
@@ -277,7 +282,7 @@ export function RealTimeAlerts({
 
   const toggleTypeFilter = (type: AlertType) => {
     setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
   };
 
@@ -303,7 +308,9 @@ export function RealTimeAlerts({
             </div>
             <div>
               <CardTitle>Obaveštenja</CardTitle>
-              <CardDescription>Aktivnost vaše dece u realnom vremenu</CardDescription>
+              <CardDescription>
+                Aktivnost vaše dece u realnom vremenu
+              </CardDescription>
             </div>
           </div>
 
@@ -319,7 +326,9 @@ export function RealTimeAlerts({
                 {(Object.keys(ALERT_CONFIG) as AlertType[]).map((type) => (
                   <DropdownMenuCheckboxItem
                     key={type}
-                    checked={selectedTypes.length === 0 || selectedTypes.includes(type)}
+                    checked={
+                      selectedTypes.length === 0 || selectedTypes.includes(type)
+                    }
                     onCheckedChange={() => toggleTypeFilter(type)}
                   >
                     {getAlertTypeName(type)}
@@ -488,7 +497,7 @@ export function RealTimeAlerts({
                         "flex items-start gap-3 p-3 rounded-lg border-l-4 cursor-pointer",
                         "hover:bg-muted/50 transition-colors",
                         PRIORITY_STYLES[alert.priority],
-                        !alert.read && "bg-muted/30"
+                        !alert.read && "bg-muted/30",
                       )}
                       onClick={() => {
                         markAsRead(alert.id);
@@ -498,7 +507,7 @@ export function RealTimeAlerts({
                       <div
                         className={cn(
                           "p-2 rounded-full shrink-0",
-                          config.bgColor
+                          config.bgColor,
                         )}
                       >
                         <Icon className={cn("h-4 w-4", config.color)} />

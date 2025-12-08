@@ -1,6 +1,6 @@
 /**
  * Study Timer - Pomodoro Timer za Učenje
- * 
+ *
  * Pomoć za fokusirano učenje:
  * - Pomodoro tehnika (25/5 minuta)
  * - Praćenje vremena učenja
@@ -10,22 +10,22 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Coffee, 
+import {
   Book,
   Clock,
+  Coffee,
   Flame,
-  Trophy,
+  Pause,
+  Play,
+  RotateCcw,
   Settings,
+  Trophy,
   Volume2,
-  VolumeX
+  VolumeX,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface StudyTimerProps {
@@ -61,15 +61,17 @@ const XP_REWARDS = {
 // Zvučne notifikacije
 function playNotification(type: "complete" | "break") {
   if (typeof window === "undefined" || !("AudioContext" in window)) return;
-  
+
   try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-    
+
     if (type === "complete") {
       oscillator.frequency.value = 800;
       oscillator.type = "sine";
@@ -77,10 +79,13 @@ function playNotification(type: "complete" | "break") {
       oscillator.frequency.value = 600;
       oscillator.type = "triangle";
     }
-    
+
     gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-    
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.01,
+      audioCtx.currentTime + 0.5,
+    );
+
     oscillator.start(audioCtx.currentTime);
     oscillator.stop(audioCtx.currentTime + 0.5);
   } catch {
@@ -103,15 +108,18 @@ export function StudyTimer({
   const [todayXP, setTodayXP] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Izračunaj ukupno trajanje za trenutni mod
   const getTotalDuration = useCallback(() => {
     switch (mode) {
-      case "study": return settings.studyDuration * 60;
-      case "shortBreak": return settings.shortBreakDuration * 60;
-      case "longBreak": return settings.longBreakDuration * 60;
+      case "study":
+        return settings.studyDuration * 60;
+      case "shortBreak":
+        return settings.shortBreakDuration * 60;
+      case "longBreak":
+        return settings.longBreakDuration * 60;
     }
   }, [mode, settings]);
 
@@ -128,36 +136,37 @@ export function StudyTimer({
   // Obradi završetak sesije
   const handleSessionComplete = useCallback(() => {
     if (soundEnabled) playNotification(mode === "study" ? "complete" : "break");
-    
+
     if (mode === "study") {
       const newSessionsCompleted = sessionsCompleted + 1;
       setSessionsCompleted(newSessionsCompleted);
-      setTodayMinutes(prev => prev + settings.studyDuration);
-      
+      setTodayMinutes((prev) => prev + settings.studyDuration);
+
       // XP nagrada
       let xp = XP_REWARDS.SESSION_COMPLETE;
       if (newSessionsCompleted % settings.sessionsUntilLongBreak === 0) {
         xp += XP_REWARDS.LONG_BREAK_BONUS;
       }
       xp += Math.min(sessionsCompleted, 5) * XP_REWARDS.STREAK_BONUS;
-      
-      setTodayXP(prev => prev + xp);
+
+      setTodayXP((prev) => prev + xp);
       onSessionComplete?.(settings.studyDuration, xp);
-      
+
       // Prebaci na pauzu
-      const isLongBreak = newSessionsCompleted % settings.sessionsUntilLongBreak === 0;
+      const isLongBreak =
+        newSessionsCompleted % settings.sessionsUntilLongBreak === 0;
       setMode(isLongBreak ? "longBreak" : "shortBreak");
       setTimeLeft(
-        isLongBreak 
-          ? settings.longBreakDuration * 60 
-          : settings.shortBreakDuration * 60
+        isLongBreak
+          ? settings.longBreakDuration * 60
+          : settings.shortBreakDuration * 60,
       );
     } else {
       // Završena pauza - nazad na učenje
       setMode("study");
       setTimeLeft(settings.studyDuration * 60);
     }
-    
+
     setIsRunning(false);
   }, [mode, sessionsCompleted, settings, soundEnabled, onSessionComplete]);
 
@@ -166,7 +175,7 @@ export function StudyTimer({
     if (!isRunning) return;
 
     intervalRef.current = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           handleSessionComplete();
           return 0;
@@ -184,7 +193,7 @@ export function StudyTimer({
 
   // Toggle play/pause
   const toggleTimer = () => {
-    setIsRunning(prev => !prev);
+    setIsRunning((prev) => !prev);
   };
 
   // Reset timer
@@ -212,39 +221,43 @@ export function StudyTimer({
 
   const getModeColor = () => {
     switch (mode) {
-      case "study": return subjectColor;
-      case "shortBreak": return "#22c55e";
-      case "longBreak": return "#8b5cf6";
+      case "study":
+        return subjectColor;
+      case "shortBreak":
+        return "#22c55e";
+      case "longBreak":
+        return "#8b5cf6";
     }
   };
 
   const getModeLabel = () => {
     switch (mode) {
-      case "study": return subjectName || "Vrijeme za učenje";
-      case "shortBreak": return "Kratka pauza";
-      case "longBreak": return "Duga pauza";
+      case "study":
+        return subjectName || "Vrijeme za učenje";
+      case "shortBreak":
+        return "Kratka pauza";
+      case "longBreak":
+        return "Duga pauza";
     }
   };
 
   const getModeIcon = () => {
     switch (mode) {
-      case "study": return <Book className="w-5 h-5" />;
-      case "shortBreak": return <Coffee className="w-5 h-5" />;
-      case "longBreak": return <Coffee className="w-5 h-5" />;
+      case "study":
+        return <Book className="w-5 h-5" />;
+      case "shortBreak":
+        return <Coffee className="w-5 h-5" />;
+      case "longBreak":
+        return <Coffee className="w-5 h-5" />;
     }
   };
 
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardHeader 
-        className="pb-3" 
-        style={{ backgroundColor: getModeColor() }}
-      >
+      <CardHeader className="pb-3" style={{ backgroundColor: getModeColor() }}>
         <div className="flex items-center justify-between text-white">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-xl">
-              {getModeIcon()}
-            </div>
+            <div className="p-2 bg-white/20 rounded-xl">{getModeIcon()}</div>
             <div>
               <CardTitle className="text-base font-semibold">
                 Study Timer
@@ -252,7 +265,7 @@ export function StudyTimer({
               <p className="text-xs text-white/80">{getModeLabel()}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -290,10 +303,7 @@ export function StudyTimer({
               key={m}
               variant={mode === m ? "default" : "outline"}
               size="sm"
-              className={cn(
-                "flex-1",
-                mode === m && "ring-2 ring-offset-2"
-              )}
+              className={cn("flex-1", mode === m && "ring-2 ring-offset-2")}
               style={mode === m ? { backgroundColor: getModeColor() } : {}}
               onClick={() => changeMode(m)}
             >
@@ -330,7 +340,7 @@ export function StudyTimer({
                 className="transition-all duration-1000"
               />
             </svg>
-            
+
             {/* Time Display */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-5xl font-bold text-gray-800 tabular-nums">
@@ -353,7 +363,7 @@ export function StudyTimer({
           >
             <RotateCcw className="w-5 h-5" />
           </Button>
-          
+
           <Button
             size="icon"
             className="h-16 w-16 rounded-full"
@@ -366,7 +376,7 @@ export function StudyTimer({
               <Play className="w-7 h-7 ml-1" />
             )}
           </Button>
-          
+
           <Button
             variant="outline"
             size="icon"
@@ -387,7 +397,7 @@ export function StudyTimer({
             </span>
             <span className="text-xs text-gray-500">Sesija</span>
           </div>
-          
+
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-blue-500 mb-1">
               <Clock className="w-4 h-4" />
@@ -397,7 +407,7 @@ export function StudyTimer({
             </span>
             <span className="text-xs text-gray-500">Minuta</span>
           </div>
-          
+
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-amber-500 mb-1">
               <Trophy className="w-4 h-4" />
@@ -413,20 +423,25 @@ export function StudyTimer({
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
             <span>Do duge pauze</span>
-            <span>{sessionsCompleted % settings.sessionsUntilLongBreak}/{settings.sessionsUntilLongBreak}</span>
+            <span>
+              {sessionsCompleted % settings.sessionsUntilLongBreak}/
+              {settings.sessionsUntilLongBreak}
+            </span>
           </div>
           <div className="flex gap-1">
-            {Array.from({ length: settings.sessionsUntilLongBreak }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex-1 h-2 rounded-full transition-colors",
-                  i < (sessionsCompleted % settings.sessionsUntilLongBreak)
-                    ? "bg-green-500"
-                    : "bg-gray-200"
-                )}
-              />
-            ))}
+            {Array.from({ length: settings.sessionsUntilLongBreak }).map(
+              (_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "flex-1 h-2 rounded-full transition-colors",
+                    i < sessionsCompleted % settings.sessionsUntilLongBreak
+                      ? "bg-green-500"
+                      : "bg-gray-200",
+                  )}
+                />
+              ),
+            )}
           </div>
         </div>
       </CardContent>

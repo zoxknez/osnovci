@@ -272,7 +272,7 @@ export function getShortcutDisplay(shortcut: Shortcut): string {
  */
 export function matchesShortcut(
   event: KeyboardEvent,
-  shortcut: Shortcut
+  shortcut: Shortcut,
 ): boolean {
   // Check modifiers
   const ctrlMatch = !!shortcut.modifiers?.ctrl === event.ctrlKey;
@@ -295,7 +295,7 @@ export function matchesShortcut(
  * Get shortcuts by category
  */
 export function getShortcutsByCategory(
-  shortcuts: Shortcut[]
+  shortcuts: Shortcut[],
 ): Record<ShortcutCategory, Shortcut[]> {
   const categorized: Record<ShortcutCategory, Shortcut[]> = {
     navigation: [],
@@ -317,10 +317,10 @@ export function getShortcutsByCategory(
  */
 export function getShortcutsByScope(
   shortcuts: Shortcut[],
-  scope: string
+  scope: string,
 ): Shortcut[] {
   return shortcuts.filter(
-    (s) => s.enabled && (s.scope === "global" || s.scope === scope)
+    (s) => s.enabled && (s.scope === "global" || s.scope === scope),
   );
 }
 

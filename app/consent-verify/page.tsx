@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { verifyConsentAction } from "@/app/actions/parental-consent";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,7 +19,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { verifyConsentAction } from "@/app/actions/parental-consent";
 
 export default function ConsentVerifyPage() {
   const router = useRouter();
@@ -51,7 +51,9 @@ export default function ConsentVerifyPage() {
         router.push("/prijava?verified=true");
       }, 2000);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Greška pri verifikaciji");
+      toast.error(
+        error instanceof Error ? error.message : "Greška pri verifikaciji",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +112,9 @@ export default function ConsentVerifyPage() {
               </div>
               <div>
                 <CardTitle className="text-2xl font-extrabold">
-                  {verified ? "Saglasnost verifikovana! ✅" : "Unesi kod iz email-a"}
+                  {verified
+                    ? "Saglasnost verifikovana! ✅"
+                    : "Unesi kod iz email-a"}
                 </CardTitle>
                 <CardDescription className="text-sm">
                   {verified
@@ -128,11 +132,13 @@ export default function ConsentVerifyPage() {
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-900">
-                      <p className="font-semibold mb-1">Zašto je ovo potrebno?</p>
+                      <p className="font-semibold mb-1">
+                        Zašto je ovo potrebno?
+                      </p>
                       <p className="text-blue-700 leading-relaxed">
-                        Prema COPPA zakonu (Children's Online Privacy Protection Act), 
-                        deca mlađa od 13 godina moraju imati roditeljsku saglasnost 
-                        pre korišćenja online platformi.
+                        Prema COPPA zakonu (Children's Online Privacy Protection
+                        Act), deca mlađa od 13 godina moraju imati roditeljsku
+                        saglasnost pre korišćenja online platformi.
                       </p>
                     </div>
                   </div>
@@ -144,7 +150,9 @@ export default function ConsentVerifyPage() {
                     type="text"
                     placeholder="123456"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) =>
+                      setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
                     required
                     disabled={isLoading}
                     maxLength={6}
@@ -175,7 +183,9 @@ export default function ConsentVerifyPage() {
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li className="flex items-start gap-2">
                       <span className="text-blue-600 font-bold">•</span>
-                      <span>Proveri <strong>spam/junk</strong> folder</span>
+                      <span>
+                        Proveri <strong>spam/junk</strong> folder
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-blue-600 font-bold">•</span>
@@ -203,8 +213,8 @@ export default function ConsentVerifyPage() {
                     Sve je u redu!
                   </h3>
                   <p className="text-green-700">
-                    Roditeljska saglasnost je uspešno verifikovana. 
-                    Tvoj nalog je sada aktivan.
+                    Roditeljska saglasnost je uspešno verifikovana. Tvoj nalog
+                    je sada aktivan.
                   </p>
                 </div>
 

@@ -16,7 +16,7 @@ export const subjectKeys = {
 // Fetch subjects
 async function fetchSubjects(): Promise<Subject[]> {
   const response = await fetch("/api/subjects");
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Greška prilikom dohvatanja predmeta");

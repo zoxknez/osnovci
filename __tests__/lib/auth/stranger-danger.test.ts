@@ -1,11 +1,12 @@
 // Stranger Danger Protection Tests
-import { describe, expect, it, vi, beforeEach } from "vitest";
+
+import { VerificationStep } from "@prisma/client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  initiateLink,
   childApproves,
+  initiateLink,
   verifyEmailCodeAndLink,
 } from "@/lib/auth/stranger-danger";
-import { VerificationStep } from "@prisma/client";
 
 // Mock Prisma
 vi.mock("@/lib/db/prisma", () => ({
@@ -200,7 +201,11 @@ describe("Stranger Danger Protection", () => {
         expiresAt: null,
       });
 
-      const result = await verifyEmailCodeAndLink("ABC123", "12345678", "student-1");
+      const result = await verifyEmailCodeAndLink(
+        "ABC123",
+        "12345678",
+        "student-1",
+      );
 
       expect(result.success).toBe(true);
       expect(prisma.link.create).toHaveBeenCalled();
@@ -221,10 +226,16 @@ describe("Stranger Danger Protection", () => {
         createdAt: new Date(),
       });
 
-      const result = await verifyEmailCodeAndLink("ABC123", "WRONGCODE", "student-1");
+      const result = await verifyEmailCodeAndLink(
+        "ABC123",
+        "WRONGCODE",
+        "student-1",
+      );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Pogrešan kod! Proveri email i unesi tačan kod.");
+      expect(result.error).toBe(
+        "Pogrešan kod! Proveri email i unesi tačan kod.",
+      );
     });
   });
 });

@@ -5,13 +5,13 @@
 
 "use client";
 
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SmartAlerts } from "@/components/features/parent/smart-alerts";
-import { ChatInterface } from "@/components/features/messaging/chat-interface";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, MessageSquare, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { ChatInterface } from "@/components/features/messaging/chat-interface";
+import { SmartAlerts } from "@/components/features/parent/smart-alerts";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ParentalDashboardEnhancedProps {
   studentId: string;
@@ -36,7 +36,9 @@ export function ParentalDashboardEnhanced({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Dashboard za {studentName}</h2>
-          <p className="text-gray-600">Prati napredak i komuniciraj sa detetom</p>
+          <p className="text-gray-600">
+            Prati napredak i komuniciraj sa detetom
+          </p>
         </div>
       </div>
 
@@ -111,7 +113,10 @@ export function ParentalDashboardEnhanced({
             <CardContent>
               <p className="text-sm text-gray-600">
                 Detaljna analitika je dostupna na stranici{" "}
-                <a href={`/dashboard/roditelj?studentId=${studentId}`} className="text-blue-600 hover:underline">
+                <a
+                  href={`/dashboard/roditelj?studentId=${studentId}`}
+                  className="text-blue-600 hover:underline"
+                >
                   Roditeljski Dashboard
                 </a>
                 .
@@ -123,4 +128,3 @@ export function ParentalDashboardEnhanced({
     </div>
   );
 }
-

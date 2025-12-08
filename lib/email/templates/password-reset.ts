@@ -2,7 +2,7 @@
  * Password Reset Email Template
  * Template za email sa linkom za resetovanje lozinke
  */
-import { createBaseTemplate, escapeHtml, type EmailTemplate } from './base';
+import { createBaseTemplate, type EmailTemplate, escapeHtml } from "./base";
 
 export function createPasswordResetEmailTemplate(
   userName: string,
@@ -37,8 +37,8 @@ export function createPasswordResetEmailTemplate(
     </p>
   `;
 
-  const html = createBaseTemplate(content, '🔐 Resetovanje Lozinke');
-  
+  const html = createBaseTemplate(content, "🔐 Resetovanje Lozinke");
+
   const text = `
 RESETOVANJE LOZINKE
 =====================
@@ -62,7 +62,7 @@ Osnovci - Aplikacija za Učenike i Roditelje
   `.trim();
 
   return {
-    subject: '🔐 Resetuj svoju lozinku | Osnovci',
+    subject: "🔐 Resetuj svoju lozinku | Osnovci",
     html,
     text,
   };

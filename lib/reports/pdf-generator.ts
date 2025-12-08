@@ -6,18 +6,18 @@
 
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { AggregatedStudentData } from "./data-aggregator";
 import { log } from "@/lib/logger";
+import type { AggregatedStudentData } from "./data-aggregator";
 
 // Colors
 const COLORS = {
-  primary: [59, 130, 246] as [number, number, number],      // Blue
-  secondary: [100, 116, 139] as [number, number, number],   // Slate
-  success: [34, 197, 94] as [number, number, number],       // Green
-  warning: [234, 179, 8] as [number, number, number],       // Yellow
-  danger: [239, 68, 68] as [number, number, number],        // Red
-  text: [30, 41, 59] as [number, number, number],           // Slate-800
-  lightGray: [241, 245, 249] as [number, number, number],   // Slate-100
+  primary: [59, 130, 246] as [number, number, number], // Blue
+  secondary: [100, 116, 139] as [number, number, number], // Slate
+  success: [34, 197, 94] as [number, number, number], // Green
+  warning: [234, 179, 8] as [number, number, number], // Yellow
+  danger: [239, 68, 68] as [number, number, number], // Red
+  text: [30, 41, 59] as [number, number, number], // Slate-800
+  lightGray: [241, 245, 249] as [number, number, number], // Slate-100
 };
 
 /**
@@ -25,7 +25,7 @@ const COLORS = {
  */
 export async function generatePDFReport(
   data: AggregatedStudentData,
-  reportType: "weekly" | "monthly" | "semester" | "annual"
+  reportType: "weekly" | "monthly" | "semester" | "annual",
 ): Promise<Blob> {
   try {
     const doc = new jsPDF({
@@ -70,7 +70,6 @@ export async function generatePDFReport(
     });
 
     return doc.output("blob");
-
   } catch (error) {
     log.error("Error generating PDF report", { error });
     throw new Error("Greška pri generisanju PDF izveštaja");
@@ -84,7 +83,7 @@ function addHeader(
   doc: jsPDF,
   data: AggregatedStudentData,
   reportType: string,
-  y: number
+  y: number,
 ): number {
   // Title
   doc.setFontSize(24);
@@ -106,7 +105,7 @@ function addHeader(
   doc.setFontSize(14);
   doc.setTextColor(...COLORS.text);
   doc.text(`Učenik: ${data.student.name}`, 20, y + 22);
-  
+
   if (data.student.grade) {
     doc.setFontSize(11);
     doc.text(`Razred: ${data.student.grade}`, 20, y + 30);
@@ -135,7 +134,7 @@ function addHeader(
 function addSummarySection(
   doc: jsPDF,
   data: AggregatedStudentData,
-  y: number
+  y: number,
 ): number {
   doc.setFontSize(14);
   doc.setTextColor(...COLORS.text);
@@ -152,7 +151,10 @@ function addSummarySection(
   // Box 1: Average Grade
   drawSummaryBox(doc, x, y, boxWidth, boxHeight, {
     label: "Prosek",
-    value: data.grades.overallAverage > 0 ? data.grades.overallAverage.toFixed(2) : "-",
+    value:
+      data.grades.overallAverage > 0
+        ? data.grades.overallAverage.toFixed(2)
+        : "-",
     color: getGradeColor(data.grades.overallAverage),
   });
   x += boxWidth + gap;
@@ -161,8 +163,12 @@ function addSummarySection(
   drawSummaryBox(doc, x, y, boxWidth, boxHeight, {
     label: "Domaći",
     value: `${data.homework.completionRate}%`,
-    color: data.homework.completionRate >= 80 ? COLORS.success : 
-           data.homework.completionRate >= 50 ? COLORS.warning : COLORS.danger,
+    color:
+      data.homework.completionRate >= 80
+        ? COLORS.success
+        : data.homework.completionRate >= 50
+          ? COLORS.warning
+          : COLORS.danger,
   });
   x += boxWidth + gap;
 
@@ -193,7 +199,7 @@ function drawSummaryBox(
   y: number,
   width: number,
   height: number,
-  content: { label: string; value: string; color: [number, number, number] }
+  content: { label: string; value: string; color: [number, number, number] },
 ): void {
   // Background
   doc.setFillColor(...COLORS.lightGray);
@@ -216,7 +222,7 @@ function drawSummaryBox(
 function addGradesSection(
   doc: jsPDF,
   data: AggregatedStudentData,
-  y: number
+  y: number,
 ): number {
   // Check if we need a new page
   if (y > 220) {
@@ -231,7 +237,7 @@ function addGradesSection(
   y += 6;
 
   // Grades by subject table
-  const tableData = data.grades.bySubject.map(item => [
+  const tableData = data.grades.bySubject.map((item) => [
     item.subject,
     item.grades.join(", "),
     item.count.toString(),
@@ -269,7 +275,7 @@ function addGradesSection(
 function addHomeworkSection(
   doc: jsPDF,
   data: AggregatedStudentData,
-  y: number
+  y: number,
 ): number {
   // Check if we need a new page
   if (y > 220) {
@@ -287,13 +293,13 @@ function addHomeworkSection(
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.secondary);
   doc.text(`Ukupno: ${data.homework.total}  |  `, 20, y);
-  
+
   doc.setTextColor(...COLORS.success);
   doc.text(`Završeno: ${data.homework.completed}  |  `, 60, y);
-  
+
   doc.setTextColor(...COLORS.warning);
   doc.text(`Na čekanju: ${data.homework.pending}  |  `, 105, y);
-  
+
   doc.setTextColor(...COLORS.danger);
   doc.text(`Zakasnelo: ${data.homework.overdue}`, 150, y);
 
@@ -301,7 +307,7 @@ function addHomeworkSection(
 
   // Homework by subject table
   if (data.homework.bySubject.length > 0) {
-    const tableData = data.homework.bySubject.map(item => [
+    const tableData = data.homework.bySubject.map((item) => [
       item.subject,
       item.completed.toString(),
       item.total.toString(),
@@ -342,7 +348,7 @@ function addHomeworkSection(
 function addGamificationSection(
   doc: jsPDF,
   data: AggregatedStudentData,
-  y: number
+  y: number,
 ): number {
   // Check if we need a new page
   if (y > 240) {
@@ -389,7 +395,7 @@ function addGamificationSection(
 function addAchievementsSection(
   doc: jsPDF,
   data: AggregatedStudentData,
-  y: number
+  y: number,
 ): number {
   // Check if we need a new page
   if (y > 240) {
@@ -403,11 +409,13 @@ function addAchievementsSection(
 
   y += 6;
 
-  const tableData = data.achievements.slice(0, 10).map(a => [
-    getRarityEmoji(a.rarity) + " " + a.title,
-    a.description.substring(0, 50) + (a.description.length > 50 ? "..." : ""),
-    formatDate(a.unlockedAt),
-  ]);
+  const tableData = data.achievements
+    .slice(0, 10)
+    .map((a) => [
+      getRarityEmoji(a.rarity) + " " + a.title,
+      a.description.substring(0, 50) + (a.description.length > 50 ? "..." : ""),
+      formatDate(a.unlockedAt),
+    ]);
 
   autoTable(doc, {
     startY: y,
@@ -444,21 +452,12 @@ function addFooter(doc: jsPDF): void {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(...COLORS.secondary);
-    
+
     // Footer text
-    doc.text(
-      `Generisano: ${formatDate(now)} | Osnovci App`,
-      20,
-      285
-    );
-    
+    doc.text(`Generisano: ${formatDate(now)} | Osnovci App`, 20, 285);
+
     // Page number
-    doc.text(
-      `Strana ${i} od ${pageCount}`,
-      190,
-      285,
-      { align: "right" }
-    );
+    doc.text(`Strana ${i} od ${pageCount}`, 190, 285, { align: "right" });
   }
 }
 
@@ -473,10 +472,14 @@ function getGradeColor(average: number): [number, number, number] {
 
 function getRarityEmoji(rarity: string): string {
   switch (rarity) {
-    case "LEGENDARY": return "🌟";
-    case "EPIC": return "💎";
-    case "RARE": return "✨";
-    default: return "⭐";
+    case "LEGENDARY":
+      return "🌟";
+    case "EPIC":
+      return "💎";
+    case "RARE":
+      return "✨";
+    default:
+      return "⭐";
   }
 }
 
@@ -493,7 +496,7 @@ function formatDate(date: Date): string {
  */
 export async function generatePDFBase64(
   data: AggregatedStudentData,
-  reportType: "weekly" | "monthly" | "semester" | "annual"
+  reportType: "weekly" | "monthly" | "semester" | "annual",
 ): Promise<string> {
   const blob = await generatePDFReport(data, reportType);
   const arrayBuffer = await blob.arrayBuffer();

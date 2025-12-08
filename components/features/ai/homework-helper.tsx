@@ -6,15 +6,31 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
-import { Camera, Loader, Lightbulb, CheckCircle2, ArrowRight, BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { showErrorToast, showSuccessToast } from "@/components/features/error-toast";
+import {
+  ArrowRight,
+  BookOpen,
+  Camera,
+  CheckCircle2,
+  Lightbulb,
+  Loader,
+} from "lucide-react";
+import { useCallback, useState } from "react";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "@/components/features/error-toast";
 import { ModernCamera } from "@/components/features/modern-camera";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Step {
   number: number;
@@ -78,7 +94,8 @@ export function HomeworkHelper({
       showSuccessToast("Fotografija je uspešno učitana!");
     } catch (error) {
       showErrorToast({
-        error: error instanceof Error ? error : new Error("Greška pri upload-u"),
+        error:
+          error instanceof Error ? error : new Error("Greška pri upload-u"),
       });
     }
   };
@@ -118,7 +135,10 @@ export function HomeworkHelper({
       showSuccessToast("Evo koraka za rešavanje zadatka!");
     } catch (error) {
       showErrorToast({
-        error: error instanceof Error ? error : new Error("Greška pri dobijanju pomoći"),
+        error:
+          error instanceof Error
+            ? error
+            : new Error("Greška pri dobijanju pomoći"),
       });
     } finally {
       setIsLoading(false);
@@ -145,12 +165,16 @@ export function HomeworkHelper({
             AI Pomoćnik za Domaći
           </CardTitle>
           <CardDescription>
-            Slikaj ili unesi zadatak, a ja ću te voditi kroz korake rešavanja. Neću ti dati direktan odgovor, već ću te naučiti kako da ga sam/la nađeš! 🎓
+            Slikaj ili unesi zadatak, a ja ću te voditi kroz korake rešavanja.
+            Neću ti dati direktan odgovor, već ću te naučiti kako da ga sam/la
+            nađeš! 🎓
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Tekst zadatka (ili slikaj ispod)</label>
+            <label className="text-sm font-medium">
+              Tekst zadatka (ili slikaj ispod)
+            </label>
             <Textarea
               placeholder="Unesi tekst zadatka ovde..."
               value={text}
@@ -251,9 +275,7 @@ export function HomeworkHelper({
                 <h3 className="font-semibold text-lg">
                   {currentStepData.instruction}
                 </h3>
-                <p className="text-gray-600">
-                  {currentStepData.explanation}
-                </p>
+                <p className="text-gray-600">{currentStepData.explanation}</p>
               </div>
             </div>
 
@@ -329,7 +351,10 @@ export function HomeworkHelper({
               </h4>
               <ul className="space-y-1">
                 {helpData.learningTips.map((tip, idx) => (
-                  <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
+                  <li
+                    key={idx}
+                    className="text-sm text-gray-600 flex items-start gap-2"
+                  >
                     <span>•</span>
                     <span>{tip}</span>
                   </li>
@@ -353,7 +378,8 @@ export function HomeworkHelper({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-700">
-            Odlično! Prošao/la si kroz sve korake. Sada pokušaj da sam/la rešiš zadatak koristeći ove korake.
+            Odlično! Prošao/la si kroz sve korake. Sada pokušaj da sam/la rešiš
+            zadatak koristeći ove korake.
           </p>
 
           {/* Similar Problems */}
@@ -400,4 +426,3 @@ export function HomeworkHelper({
 
   return null;
 }
-

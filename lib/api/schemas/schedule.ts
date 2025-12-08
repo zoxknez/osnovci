@@ -22,36 +22,44 @@ const timeFormat = z
   );
 
 // Create schedule entry schema - with sanitization
-export const CreateScheduleSchema = z.object({
-  subjectId: z.string().cuid().optional(),
-  dayOfWeek: DayOfWeek,
-  startTime: timeFormat,
-  endTime: timeFormat,
-  room: z
-    .string()
-    .max(100, "Učionica može biti najviše 100 karaktera")
-    .transform(sanitizePlainText)
-    .optional(),
-  notes: z
-    .string()
-    .max(1000, "Napomene mogu biti najviše 1000 karaktera")
-    .transform(sanitizeRichText)
-    .optional(),
-  isAWeek: z.boolean().default(true),
-  isBWeek: z.boolean().default(true),
-  isCustomEvent: z.boolean().default(false),
-  customTitle: z.string().max(255).optional(),
-  customColor: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
-  customDate: z.string().datetime().optional().or(z.date().optional()),
-}).refine((data) => {
-  if (data.isCustomEvent) {
-    return !!data.customTitle;
-  }
-  return !!data.subjectId;
-}, {
-  message: "Morate izabrati predmet ili uneti naziv događaja",
-  path: ["subjectId"],
-});
+export const CreateScheduleSchema = z
+  .object({
+    subjectId: z.string().cuid().optional(),
+    dayOfWeek: DayOfWeek,
+    startTime: timeFormat,
+    endTime: timeFormat,
+    room: z
+      .string()
+      .max(100, "Učionica može biti najviše 100 karaktera")
+      .transform(sanitizePlainText)
+      .optional(),
+    notes: z
+      .string()
+      .max(1000, "Napomene mogu biti najviše 1000 karaktera")
+      .transform(sanitizeRichText)
+      .optional(),
+    isAWeek: z.boolean().default(true),
+    isBWeek: z.boolean().default(true),
+    isCustomEvent: z.boolean().default(false),
+    customTitle: z.string().max(255).optional(),
+    customColor: z
+      .string()
+      .regex(/^#[0-9A-F]{6}$/i)
+      .optional(),
+    customDate: z.string().datetime().optional().or(z.date().optional()),
+  })
+  .refine(
+    (data) => {
+      if (data.isCustomEvent) {
+        return !!data.customTitle;
+      }
+      return !!data.subjectId;
+    },
+    {
+      message: "Morate izabrati predmet ili uneti naziv događaja",
+      path: ["subjectId"],
+    },
+  );
 
 export type CreateScheduleInput = z.infer<typeof CreateScheduleSchema>;
 
@@ -73,12 +81,15 @@ export type QueryScheduleInput = z.infer<typeof QueryScheduleSchema>;
 // Response schema
 export const ScheduleResponseSchema = z.object({
   id: z.string().cuid(),
-  subject: z.object({
-    id: z.string().cuid(),
-    name: z.string(),
-    color: z.string().optional(),
-    icon: z.string().optional(),
-  }).optional().nullable(),
+  subject: z
+    .object({
+      id: z.string().cuid(),
+      name: z.string(),
+      color: z.string().optional(),
+      icon: z.string().optional(),
+    })
+    .optional()
+    .nullable(),
   dayOfWeek: DayOfWeek,
   startTime: z.string(),
   endTime: z.string(),

@@ -3,11 +3,11 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { useProfile } from "@/hooks/use-profile";
+import { DesktopSidebar } from "@/components/features/dashboard/layout/desktop-sidebar";
 import { MobileHeader } from "@/components/features/dashboard/layout/mobile-header";
 import { MobileSidebar } from "@/components/features/dashboard/layout/mobile-sidebar";
-import { DesktopSidebar } from "@/components/features/dashboard/layout/desktop-sidebar";
+import { useProfile } from "@/hooks/use-profile";
+import { cn } from "@/lib/utils";
 
 export default function DashboardLayout({
   children,
@@ -37,25 +37,21 @@ export default function DashboardLayout({
         sidebarOpen && "overflow-hidden",
       )}
     >
-      <MobileHeader 
-        sidebarOpen={sidebarOpen} 
-        setSidebarOpen={setSidebarOpen} 
-        pathname={pathname} 
-        level={level} 
-        xp={xp} 
+      <MobileHeader
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        pathname={pathname}
+        level={level}
+        xp={xp}
       />
 
-      <MobileSidebar 
-        sidebarOpen={sidebarOpen} 
-        setSidebarOpen={setSidebarOpen} 
-        pathname={pathname} 
+      <MobileSidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        pathname={pathname}
       />
 
-      <DesktopSidebar 
-        pathname={pathname} 
-        level={level} 
-        xp={xp} 
-      />
+      <DesktopSidebar pathname={pathname} level={level} xp={xp} />
 
       {/* Main content */}
       <div className="lg:pl-72">

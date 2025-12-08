@@ -5,13 +5,19 @@
 
 "use client";
 
-import { useOfflineMode } from "@/hooks/use-offline-mode";
+import { AlertCircle, CheckCircle2, Database, Download } from "lucide-react";
 import { useState } from "react";
-import { Download, Database, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useOfflineMode } from "@/hooks/use-offline-mode";
 
 export function OfflineDataManager() {
   const {
@@ -37,7 +43,9 @@ export function OfflineDataManager() {
       setCacheSuccess(true);
       setTimeout(() => setCacheSuccess(false), 3000);
     } catch (error) {
-      setCacheError(error instanceof Error ? error.message : "Failed to cache data");
+      setCacheError(
+        error instanceof Error ? error.message : "Failed to cache data",
+      );
     } finally {
       setIsCaching(false);
     }
@@ -48,7 +56,7 @@ export function OfflineDataManager() {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / k ** i) * 100) / 100 + " " + sizes[i];
   };
 
   return (
@@ -66,9 +74,12 @@ export function OfflineDataManager() {
         {/* Storage Usage */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Iskorišćenost skladišta</span>
+            <span className="text-muted-foreground">
+              Iskorišćenost skladišta
+            </span>
             <span className="font-medium">
-              {formatBytes(storageUsage.used)} / {formatBytes(storageUsage.total)}
+              {formatBytes(storageUsage.used)} /{" "}
+              {formatBytes(storageUsage.total)}
             </span>
           </div>
           <Progress value={storageUsage.percentUsed} className="h-2" />
@@ -87,7 +98,9 @@ export function OfflineDataManager() {
                 }`}
               />
               <span className="text-sm font-medium">
-                {isOfflineModeEnabled ? "Offline režim aktivan" : "Offline režim neaktivan"}
+                {isOfflineModeEnabled
+                  ? "Offline režim aktivan"
+                  : "Offline režim neaktivan"}
               </span>
             </div>
           </div>
@@ -129,7 +142,8 @@ export function OfflineDataManager() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Trenutno ste offline. Povežite se na internet da preuzmete nove podatke.
+              Trenutno ste offline. Povežite se na internet da preuzmete nove
+              podatke.
             </AlertDescription>
           </Alert>
         )}
@@ -153,8 +167,9 @@ export function OfflineDataManager() {
         {/* Help Text */}
         <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
           <p>
-            <strong>Napomena:</strong> Preuzeti podaci će biti dostupni dok ste offline.
-            Sve promene će biti automatski sinhronizovane kada se povežete na internet.
+            <strong>Napomena:</strong> Preuzeti podaci će biti dostupni dok ste
+            offline. Sve promene će biti automatski sinhronizovane kada se
+            povežete na internet.
           </p>
         </div>
       </CardContent>

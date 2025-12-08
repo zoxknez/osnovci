@@ -1,16 +1,16 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
+import { NotificationEventType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { NotificationEventType } from "@prisma/client";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import {
   bulkUpdatePreferences,
+  createDefaultPreferences,
   getGroupedPreferences,
   getNotificationPreferences,
   updateNotificationPreference,
-  createDefaultPreferences,
 } from "@/lib/notifications/preferences";
 
 export type ActionState = {
@@ -53,7 +53,9 @@ export async function getNotificationsAction(): Promise<ActionState> {
   }
 }
 
-export async function markNotificationsAsReadAction(notificationIds: string[]): Promise<ActionState> {
+export async function markNotificationsAsReadAction(
+  notificationIds: string[],
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -78,7 +80,9 @@ export async function markNotificationsAsReadAction(notificationIds: string[]): 
   }
 }
 
-export async function getNotificationPreferencesAction(grouped: boolean = false): Promise<ActionState> {
+export async function getNotificationPreferencesAction(
+  grouped: boolean = false,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -109,7 +113,9 @@ const updatePreferenceSchema = z.object({
   instantOnly: z.boolean().optional(),
 });
 
-export async function updateNotificationPreferenceAction(data: z.infer<typeof updatePreferenceSchema>): Promise<ActionState> {
+export async function updateNotificationPreferenceAction(
+  data: z.infer<typeof updatePreferenceSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -153,7 +159,9 @@ const bulkUpdateSchema = z.object({
   inAppEnabled: z.boolean().optional(),
 });
 
-export async function bulkUpdateNotificationPreferencesAction(data: z.infer<typeof bulkUpdateSchema>): Promise<ActionState> {
+export async function bulkUpdateNotificationPreferencesAction(
+  data: z.infer<typeof bulkUpdateSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -166,11 +174,18 @@ export async function bulkUpdateNotificationPreferencesAction(data: z.infer<type
 
   try {
     // Filter out undefined values
-    const filteredData: { emailEnabled?: boolean; pushEnabled?: boolean; inAppEnabled?: boolean } = {};
-    if (validated.data.emailEnabled !== undefined) filteredData.emailEnabled = validated.data.emailEnabled;
-    if (validated.data.pushEnabled !== undefined) filteredData.pushEnabled = validated.data.pushEnabled;
-    if (validated.data.inAppEnabled !== undefined) filteredData.inAppEnabled = validated.data.inAppEnabled;
-    
+    const filteredData: {
+      emailEnabled?: boolean;
+      pushEnabled?: boolean;
+      inAppEnabled?: boolean;
+    } = {};
+    if (validated.data.emailEnabled !== undefined)
+      filteredData.emailEnabled = validated.data.emailEnabled;
+    if (validated.data.pushEnabled !== undefined)
+      filteredData.pushEnabled = validated.data.pushEnabled;
+    if (validated.data.inAppEnabled !== undefined)
+      filteredData.inAppEnabled = validated.data.inAppEnabled;
+
     const result = await bulkUpdatePreferences(session.user.id, filteredData);
 
     if (!result.success) {
@@ -214,7 +229,9 @@ const SubscriptionSchema = z.object({
   }),
 });
 
-export async function subscribeToPushAction(data: z.infer<typeof SubscriptionSchema>): Promise<ActionState> {
+export async function subscribeToPushAction(
+  data: z.infer<typeof SubscriptionSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -251,7 +268,9 @@ export async function subscribeToPushAction(data: z.infer<typeof SubscriptionSch
   }
 }
 
-export async function unsubscribeFromPushAction(endpoint: string): Promise<ActionState> {
+export async function unsubscribeFromPushAction(
+  endpoint: string,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -259,9 +278,9 @@ export async function unsubscribeFromPushAction(endpoint: string): Promise<Actio
 
   try {
     await prisma.pushSubscription.deleteMany({
-      where: { 
+      where: {
         endpoint: endpoint,
-        userId: session.user.id 
+        userId: session.user.id,
       },
     });
 

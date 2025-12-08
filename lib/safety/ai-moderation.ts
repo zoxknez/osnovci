@@ -1,24 +1,28 @@
 /**
  * AI-Powered Image Moderation
  * Using AWS Rekognition for child-safe content detection
- * 
+ *
  * Cost: $0.001 per image (first 5,000 images/month FREE)
  * Alternative: Google Cloud Vision API or Azure Computer Vision
  */
 
-import { RekognitionClient, DetectModerationLabelsCommand } from '@aws-sdk/client-rekognition';
-import { log } from '@/lib/logger';
+import {
+  DetectModerationLabelsCommand,
+  RekognitionClient,
+} from "@aws-sdk/client-rekognition";
+import { log } from "@/lib/logger";
 
 // Initialize AWS Rekognition client
-const rekognitionClient = process.env['AWS_REGION'] && process.env['AWS_ACCESS_KEY_ID']
-  ? new RekognitionClient({
-      region: process.env['AWS_REGION'],
-      credentials: {
-        accessKeyId: process.env['AWS_ACCESS_KEY_ID'],
-        secretAccessKey: process.env['AWS_SECRET_ACCESS_KEY']!,
-      },
-    })
-  : null;
+const rekognitionClient =
+  process.env["AWS_REGION"] && process.env["AWS_ACCESS_KEY_ID"]
+    ? new RekognitionClient({
+        region: process.env["AWS_REGION"],
+        credentials: {
+          accessKeyId: process.env["AWS_ACCESS_KEY_ID"],
+          secretAccessKey: process.env["AWS_SECRET_ACCESS_KEY"]!,
+        },
+      })
+    : null;
 
 export interface ModerationResult {
   safe: boolean;
@@ -50,7 +54,7 @@ export interface ModerationResult {
 export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
   // Fallback if AWS not configured
   if (!rekognitionClient) {
-    log.warn('AWS Rekognition not configured - using basic checks only');
+    log.warn("AWS Rekognition not configured - using basic checks only");
     return {
       safe: true,
       confidence: 0,
@@ -96,24 +100,40 @@ export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
 
     for (const label of labels) {
       const confidence = label.Confidence || 0;
-      const name = label.Name || '';
+      const name = label.Name || "";
 
       // Map AWS labels to our categories
-      if (name.includes('Explicit Nudity')) categories.explicitNudity = Math.max(categories.explicitNudity, confidence);
-      if (name.includes('Suggestive')) categories.suggestive = Math.max(categories.suggestive, confidence);
-      if (name.includes('Violence') || name.includes('Weapons')) categories.violence = Math.max(categories.violence, confidence);
-      if (name.includes('Visually Disturbing') || name.includes('Graphic')) categories.visuallyDisturbing = Math.max(categories.visuallyDisturbing, confidence);
-      if (name.includes('Rude Gestures')) categories.rude = Math.max(categories.rude, confidence);
-      if (name.includes('Drugs') || name.includes('Drug')) categories.drugs = Math.max(categories.drugs, confidence);
-      if (name.includes('Tobacco')) categories.tobacco = Math.max(categories.tobacco, confidence);
-      if (name.includes('Alcohol')) categories.alcohol = Math.max(categories.alcohol, confidence);
-      if (name.includes('Gambling')) categories.gambling = Math.max(categories.gambling, confidence);
-      if (name.includes('Hate Symbols')) categories.hate = Math.max(categories.hate, confidence);
+      if (name.includes("Explicit Nudity"))
+        categories.explicitNudity = Math.max(
+          categories.explicitNudity,
+          confidence,
+        );
+      if (name.includes("Suggestive"))
+        categories.suggestive = Math.max(categories.suggestive, confidence);
+      if (name.includes("Violence") || name.includes("Weapons"))
+        categories.violence = Math.max(categories.violence, confidence);
+      if (name.includes("Visually Disturbing") || name.includes("Graphic"))
+        categories.visuallyDisturbing = Math.max(
+          categories.visuallyDisturbing,
+          confidence,
+        );
+      if (name.includes("Rude Gestures"))
+        categories.rude = Math.max(categories.rude, confidence);
+      if (name.includes("Drugs") || name.includes("Drug"))
+        categories.drugs = Math.max(categories.drugs, confidence);
+      if (name.includes("Tobacco"))
+        categories.tobacco = Math.max(categories.tobacco, confidence);
+      if (name.includes("Alcohol"))
+        categories.alcohol = Math.max(categories.alcohol, confidence);
+      if (name.includes("Gambling"))
+        categories.gambling = Math.max(categories.gambling, confidence);
+      if (name.includes("Hate Symbols"))
+        categories.hate = Math.max(categories.hate, confidence);
     }
 
     // Determine safety - STRICT for children's app
-    const criticalThreshold = 70;  // Block if 70%+ confidence
-    const reviewThreshold = 50;     // Flag for review if 50%+
+    const criticalThreshold = 70; // Block if 70%+ confidence
+    const reviewThreshold = 50; // Flag for review if 50%+
 
     const highestConfidence = Math.max(...Object.values(categories));
 
@@ -124,16 +144,16 @@ export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
     // Critical violations (immediate block)
     if (categories.explicitNudity > criticalThreshold) {
       safe = false;
-      blockReason = 'Explicit content detected';
+      blockReason = "Explicit content detected";
     } else if (categories.violence > criticalThreshold) {
       safe = false;
-      blockReason = 'Violent content detected';
+      blockReason = "Violent content detected";
     } else if (categories.drugs > criticalThreshold) {
       safe = false;
-      blockReason = 'Drug-related content detected';
+      blockReason = "Drug-related content detected";
     } else if (categories.hate > criticalThreshold) {
       safe = false;
-      blockReason = 'Hate symbols detected';
+      blockReason = "Hate symbols detected";
     }
 
     // Flag for manual review
@@ -144,8 +164,8 @@ export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
     const result: ModerationResult = {
       safe,
       confidence: highestConfidence,
-      labels: labels.map(l => ({
-        name: l.Name || '',
+      labels: labels.map((l) => ({
+        name: l.Name || "",
         confidence: l.Confidence || 0,
         ...(l.ParentName ? { parentName: l.ParentName } : {}),
       })),
@@ -154,7 +174,7 @@ export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
       ...(blockReason ? { blockReason } : {}),
     };
 
-    log.info('Image moderation completed', {
+    log.info("Image moderation completed", {
       safe,
       confidence: highestConfidence.toFixed(2),
       labelsCount: labels.length,
@@ -163,7 +183,7 @@ export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
 
     return result;
   } catch (error) {
-    log.error('AWS Rekognition moderation failed', { error });
+    log.error("AWS Rekognition moderation failed", { error });
 
     // Fail-safe: If AI fails, flag for manual review
     return {
@@ -183,7 +203,7 @@ export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
         hate: 0,
       },
       requiresReview: true,
-      blockReason: 'AI moderation unavailable - manual review required',
+      blockReason: "AI moderation unavailable - manual review required",
     };
   }
 }
@@ -191,7 +211,9 @@ export async function moderateImage(buffer: Buffer): Promise<ModerationResult> {
 /**
  * Batch moderate multiple images (optimized)
  */
-export async function moderateImages(buffers: Buffer[]): Promise<ModerationResult[]> {
+export async function moderateImages(
+  buffers: Buffer[],
+): Promise<ModerationResult[]> {
   // Process in parallel with concurrency limit
   const BATCH_SIZE = 5; // AWS limit
   const results: ModerationResult[] = [];

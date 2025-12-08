@@ -2,9 +2,9 @@
 // Sprečava kreiranje previše konekcija u development-u
 // Production-ready sa connection pooling i optimizacijama
 
-import { PrismaClient, Prisma } from "@prisma/client";
-import { configurePrismaLogging } from "./query-monitor";
+import { type Prisma, PrismaClient } from "@prisma/client";
 import { log } from "@/lib/logger";
+import { configurePrismaLogging } from "./query-monitor";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -88,8 +88,11 @@ export async function checkDatabaseConnection(): Promise<{
   } catch (error) {
     const latency = Date.now() - startTime;
     const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-    log.error('Database connection check failed', { error: errorMessage, latency });
+      error instanceof Error ? error.message : "Unknown error";
+    log.error("Database connection check failed", {
+      error: errorMessage,
+      latency,
+    });
     return { connected: false, latency, error: errorMessage };
   }
 }
@@ -115,36 +118,39 @@ export async function checkDatabaseHealth(): Promise<{
  */
 export async function executeTransaction<T>(
   callback: (tx: PrismaClient) => Promise<T>,
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<T> {
   let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        return await callback(tx as PrismaClient);
-      }, {
-        maxWait: 5000, // 5 seconds max wait to start transaction
-        timeout: 10000, // 10 seconds max transaction time
-      });
+      return await prisma.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+          return await callback(tx as PrismaClient);
+        },
+        {
+          maxWait: 5000, // 5 seconds max wait to start transaction
+          timeout: 10000, // 10 seconds max transaction time
+        },
+      );
     } catch (error) {
       lastError = error as Error;
-      
+
       // Check if error is retryable (deadlock, serialization failure, etc.)
-      const isRetryable = 
-        lastError.message.includes('deadlock') ||
-        lastError.message.includes('serialization') ||
-        lastError.message.includes('lock timeout');
+      const isRetryable =
+        lastError.message.includes("deadlock") ||
+        lastError.message.includes("serialization") ||
+        lastError.message.includes("lock timeout");
 
       if (!isRetryable || attempt === maxRetries) {
         throw lastError;
       }
 
       // Exponential backoff
-      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
-      log.warn('Transaction retry', {
+      const delay = Math.min(1000 * 2 ** (attempt - 1), 5000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      log.warn("Transaction retry", {
         attempt,
         maxRetries,
         error: lastError.message,
@@ -161,21 +167,21 @@ export async function executeTransaction<T>(
  */
 export async function executeBatch<T>(
   operations: Array<Promise<T>>,
-  batchSize = 10
+  batchSize = 10,
 ): Promise<T[]> {
   const results: T[] = [];
-  
+
   for (let i = 0; i < operations.length; i += batchSize) {
     const batch = operations.slice(i, i + batchSize);
     const batchResults = await Promise.all(batch);
     results.push(...batchResults);
-    
+
     // Small delay between batches to prevent overwhelming the database
     if (i + batchSize < operations.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
-  
+
   return results;
 }
 
@@ -185,7 +191,7 @@ export async function executeBatch<T>(
 export async function disconnectDatabase() {
   if (globalForPrisma.prisma) {
     await globalForPrisma.prisma.$disconnect();
-    log.info('Database connection closed');
+    log.info("Database connection closed");
   }
 }
 
@@ -200,17 +206,17 @@ export async function getDatabaseStats() {
       connected: health.connected,
       latency: health.latency,
       timestamp: new Date().toISOString(),
-      provider: process.env["DATABASE_URL"]?.includes('postgresql')
-        ? 'postgresql'
-        : 'sqlite',
+      provider: process.env["DATABASE_URL"]?.includes("postgresql")
+        ? "postgresql"
+        : "sqlite",
     };
     return info;
   } catch (error) {
-    log.error('Failed to get database stats', { error });
+    log.error("Failed to get database stats", { error });
     return {
       connected: false,
       timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

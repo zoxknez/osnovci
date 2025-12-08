@@ -7,13 +7,13 @@ import { log } from "@/lib/logger";
 
 /**
  * GET /api/cron/cleanup-consents
- * 
+ *
  * Cleanup expired parental consent requests
  * - Marks expired PENDING consents as EXPIRED
  * - Deletes old EXPIRED/REVOKED consents (30+ days)
- * 
+ *
  * Should be called by Vercel Cron or external scheduler
- * 
+ *
  * Authentication: CRON_SECRET header
  */
 export async function GET(request: NextRequest) {
@@ -34,10 +34,7 @@ export async function GET(request: NextRequest) {
       log.warn("Unauthorized cron job attempt", {
         providedAuth: authHeader ? "present" : "missing",
       });
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     log.info("Starting parental consent cleanup job");
@@ -61,10 +58,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     log.error("Consent cleanup job failed", error);
-    return NextResponse.json(
-      { error: "Cleanup job failed" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Cleanup job failed" }, { status: 500 });
   }
 }
 

@@ -29,7 +29,7 @@ const fallbackAttempts = new Map<string, LockoutInfo>();
  * Capped at 24 hours (1440 minutes)
  */
 function calculateLockoutDuration(lockoutCount: number): number {
-  const duration = BASE_LOCKOUT_MINUTES * Math.pow(3, lockoutCount);
+  const duration = BASE_LOCKOUT_MINUTES * 3 ** lockoutCount;
   return Math.min(duration, MAX_LOCKOUT_MINUTES);
 }
 
@@ -57,7 +57,10 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
       const current = fallbackAttempts.get(key);
       if (current) {
         // Keep lockoutCount but reset other fields
-        fallbackAttempts.set(key, { count: 0, lockoutCount: current.lockoutCount });
+        fallbackAttempts.set(key, {
+          count: 0,
+          lockoutCount: current.lockoutCount,
+        });
       }
     }
 
@@ -69,7 +72,8 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
   if (redis) {
     // Redis implementation (persistent)
     const count = await redis.incr(getRedisKey(key));
-    const lockoutCount = (await redis.get<number>(getRedisKey(key, "lockoutCount"))) || 0;
+    const lockoutCount =
+      (await redis.get<number>(getRedisKey(key, "lockoutCount"))) || 0;
 
     // Set expiration on first failure (auto-cleanup after 24h)
     if (count === 1) {
@@ -87,16 +91,19 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
     if (count >= MAX_FAILED_ATTEMPTS) {
       const lockoutDuration = calculateLockoutDuration(lockoutCount);
       const lockedUntil = new Date(Date.now() + lockoutDuration * 60 * 1000);
-      
+
       // Increment lockout count for next time
       const newLockoutCount = lockoutCount + 1;
-      await redis.set(getRedisKey(key, "lockoutCount"), newLockoutCount, { 
-        ex: 7 * 24 * 60 * 60 // Keep lockout history for 7 days
+      await redis.set(getRedisKey(key, "lockoutCount"), newLockoutCount, {
+        ex: 7 * 24 * 60 * 60, // Keep lockout history for 7 days
       });
 
       await redis.set(
         getRedisKey(key, "locked"),
-        JSON.stringify({ timestamp: lockedUntil.getTime(), lockoutCount: newLockoutCount }),
+        JSON.stringify({
+          timestamp: lockedUntil.getTime(),
+          lockoutCount: newLockoutCount,
+        }),
         { ex: lockoutDuration * 60 },
       );
 
@@ -112,7 +119,7 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
         locked: true,
         lockedUntil,
         lockoutNumber: newLockoutCount,
-        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${lockoutDuration} minuta.${newLockoutCount > 1 ? ` Ovo je ${newLockoutCount}. zaključavanje.` : ''}`,
+        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${lockoutDuration} minuta.${newLockoutCount > 1 ? ` Ovo je ${newLockoutCount}. zaključavanje.` : ""}`,
       };
     }
 
@@ -136,7 +143,7 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
     if (current.count >= MAX_FAILED_ATTEMPTS) {
       const lockoutDuration = calculateLockoutDuration(current.lockoutCount);
       const lockedUntil = new Date(Date.now() + lockoutDuration * 60 * 1000);
-      
+
       current.lockedUntil = lockedUntil;
       current.lockoutCount += 1;
 
@@ -154,7 +161,7 @@ export async function recordLoginAttempt({ email, success, ip }: LoginAttempt) {
         locked: true,
         lockedUntil,
         lockoutNumber: current.lockoutCount,
-        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${lockoutDuration} minuta.${current.lockoutCount > 1 ? ` Ovo je ${current.lockoutCount}. zaključavanje.` : ''}`,
+        message: `Nalog je zaključan zbog previše neuspešnih pokušaja. Pokušaj ponovo posle ${lockoutDuration} minuta.${current.lockoutCount > 1 ? ` Ovo je ${current.lockoutCount}. zaključavanje.` : ""}`,
       };
     }
 
@@ -190,7 +197,7 @@ export async function isAccountLocked(email: string): Promise<{
     // Parse the locked data (can be old format or new JSON format)
     let lockedUntil: Date;
     let lockoutNumber = 1;
-    
+
     try {
       const parsed = JSON.parse(lockedData);
       lockedUntil = new Date(parsed.timestamp);
@@ -217,7 +224,7 @@ export async function isAccountLocked(email: string): Promise<{
       locked: true,
       lockedUntil,
       lockoutNumber,
-      message: `Nalog je zaključan. Pokušaj ponovo za ${minutesRemaining} minuta.${lockoutNumber > 1 ? ` (${lockoutNumber}. zaključavanje)` : ''}`,
+      message: `Nalog je zaključan. Pokušaj ponovo za ${minutesRemaining} minuta.${lockoutNumber > 1 ? ` (${lockoutNumber}. zaključavanje)` : ""}`,
     };
   } else {
     // Fallback in-memory implementation

@@ -1,6 +1,6 @@
 /**
  * Homework Reminder System - Cron Job
- * 
+ *
  * Features:
  * - Automatic reminders 24h and 1h before deadline
  * - Smart notification batching (avoid spam)
@@ -9,18 +9,18 @@
  * - Configurable reminder preferences
  * - Timezone-aware scheduling
  * - Rate limiting protection
- * 
+ *
  * Schedule:
  * - Runs every 15 minutes
  * - Checks homework due in next 24h, 1h, or overdue
  * - Sends notifications via push, email, and in-app
  */
 
-import { prisma } from "@/lib/db/prisma";
-import { log } from "@/lib/logger";
-import { sendCustomEmail } from "@/lib/email/service";
-import { sendPushNotification } from "@/lib/notifications/push-server";
 import { HomeworkStatus } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
+import { sendCustomEmail } from "@/lib/email/service";
+import { log } from "@/lib/logger";
+import { sendPushNotification } from "@/lib/notifications/push-server";
 
 // Reminder thresholds (in milliseconds)
 const REMINDER_THRESHOLDS = {
@@ -78,9 +78,10 @@ export async function processHomeworkReminders(): Promise<{
         await markReminderSent(job.homeworkId, job.reminderType);
       } catch (error) {
         failed++;
-        const errorMsg = error instanceof Error ? error.message : "Unknown error";
+        const errorMsg =
+          error instanceof Error ? error.message : "Unknown error";
         errors.push(`Homework ${job.homeworkId}: ${errorMsg}`);
-        
+
         log.error("[CRON] Failed to send reminder", error as Error, {
           homeworkId: job.homeworkId,
           reminderType: job.reminderType,
@@ -115,7 +116,9 @@ export async function processHomeworkReminders(): Promise<{
 async function findHomeworkNeedingReminders(): Promise<ReminderJob[]> {
   const now = new Date();
   const oneDayFromNow = new Date(now.getTime() + REMINDER_THRESHOLDS.ONE_DAY);
-  const oneDayAgo = new Date(now.getTime() - REMINDER_THRESHOLDS.OVERDUE_CHECK_HOURS * 60 * 60 * 1000);
+  const oneDayAgo = new Date(
+    now.getTime() - REMINDER_THRESHOLDS.OVERDUE_CHECK_HOURS * 60 * 60 * 1000,
+  );
 
   // Find homework that's:
   // 1. ASSIGNED or IN_PROGRESS status
@@ -227,7 +230,7 @@ async function findHomeworkNeedingReminders(): Promise<ReminderJob[]> {
  */
 async function hasReminderBeenSent(
   _homeworkId: string,
-  reminderType: ReminderType
+  reminderType: ReminderType,
 ): Promise<boolean> {
   // Check if notification exists with specific data
   // TODO: Filter by homeworkId when data field querying is implemented
@@ -266,7 +269,15 @@ function getReminderTitleKeyword(reminderType: ReminderType): string {
  * Send reminders via multiple channels
  */
 async function sendReminders(job: ReminderJob): Promise<void> {
-  const { homeworkId, studentId, guardianIds, title, subject, dueDate, reminderType } = job;
+  const {
+    homeworkId,
+    studentId,
+    guardianIds,
+    title,
+    subject,
+    dueDate,
+    reminderType,
+  } = job;
 
   // Format due date
   const dueDateStr = dueDate.toLocaleDateString("sr-Latn-RS", {
@@ -278,7 +289,13 @@ async function sendReminders(job: ReminderJob): Promise<void> {
   });
 
   // Build notification content
-  const content = buildReminderContent(reminderType, title, subject, dueDateStr, job);
+  const content = buildReminderContent(
+    reminderType,
+    title,
+    subject,
+    dueDateStr,
+    job,
+  );
 
   // 1. Send in-app notification to student
   await prisma.notification.create({
@@ -374,7 +391,7 @@ function buildReminderContent(
   title: string,
   subject: string,
   dueDateStr: string,
-  job: ReminderJob
+  job: ReminderJob,
 ): { title: string; message: string } {
   switch (reminderType) {
     case "24h_before":
@@ -389,12 +406,13 @@ function buildReminderContent(
         message: `Zadatak "${title}" treba predati za sat vremena! Rok: ${dueDateStr}`,
       };
 
-    case "overdue":
+    case "overdue": {
       const hoursOverdue = Math.floor(job.hoursOverdue || 0);
       return {
         title: `❗ Istekao rok: ${subject}`,
         message: `Zadatak "${title}" je trebao biti predat pre ${hoursOverdue}h. Predaj što pre!`,
       };
+    }
 
     default:
       return {
@@ -504,7 +522,10 @@ async function sendOverdueEmailToGuardians(job: ReminderJob): Promise<void> {
 /**
  * Mark reminder as sent in database
  */
-async function markReminderSent(homeworkId: string, reminderType: ReminderType): Promise<void> {
+async function markReminderSent(
+  homeworkId: string,
+  reminderType: ReminderType,
+): Promise<void> {
   // Store in a separate tracking table or use metadata
   // For now, we rely on notification creation timestamp
   log.info("[CRON] Reminder marked as sent", {

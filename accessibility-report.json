@@ -12,9 +12,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h3 className=\"text-sm font-medium\">"
-      ]
+      "matches": ["<h3 className=\"text-sm font-medium\">"]
     },
     {
       "file": "components\\features\\camera-error-boundary.tsx",
@@ -22,9 +20,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h2 className=\"text-xl font-bold text-gray-900 mb-2\">"
-      ]
+      "matches": ["<h2 className=\"text-xl font-bold text-gray-900 mb-2\">"]
     },
     {
       "file": "components\\features\\file-upload-error-boundary.tsx",
@@ -32,9 +28,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h3 className=\"text-lg font-bold text-gray-900 mb-2\">"
-      ]
+      "matches": ["<h3 className=\"text-lg font-bold text-gray-900 mb-2\">"]
     },
     {
       "file": "components\\features\\file-upload.tsx",
@@ -72,11 +66,7 @@
       "severity": "medium",
       "occurrences": 5,
       "fix": "Add aria-label or associate with a <label> using id",
-      "matches": [
-        "<Input",
-        "<Input",
-        "<Input"
-      ]
+      "matches": ["<Input", "<Input", "<Input"]
     },
     {
       "file": "components\\features\\settings\\profile-section.tsx",
@@ -84,9 +74,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h3 className=\"font-semibold text-gray-900\">"
-      ]
+      "matches": ["<h3 className=\"font-semibold text-gray-900\">"]
     },
     {
       "file": "components\\gamification\\Leaderboard.tsx",
@@ -94,9 +82,7 @@
       "severity": "medium",
       "occurrences": 1,
       "fix": "Add aria-label or associate with a <label> using id",
-      "matches": [
-        "<input"
-      ]
+      "matches": ["<input"]
     },
     {
       "file": "components\\gamification\\Leaderboard.tsx",
@@ -104,9 +90,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h3 className=\"text-lg font-bold\">"
-      ]
+      "matches": ["<h3 className=\"text-lg font-bold\">"]
     },
     {
       "file": "components\\modals\\add-homework-modal.tsx",
@@ -114,10 +98,7 @@
       "severity": "medium",
       "occurrences": 2,
       "fix": "Add aria-label or associate with a <label> using id",
-      "matches": [
-        "<Input",
-        "<Input"
-      ]
+      "matches": ["<Input", "<Input"]
     },
     {
       "file": "components\\modals\\add-homework-modal.tsx",
@@ -198,9 +179,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h4 className=\"font-semibold text-gray-900\">"
-      ]
+      "matches": ["<h4 className=\"font-semibold text-gray-900\">"]
     },
     {
       "file": "app\\(auth)\\prijava\\page.tsx",
@@ -208,10 +187,7 @@
       "severity": "medium",
       "occurrences": 2,
       "fix": "Add aria-label or associate with a <label> using id",
-      "matches": [
-        "<Input",
-        "<Input"
-      ]
+      "matches": ["<Input", "<Input"]
     },
     {
       "file": "app\\(auth)\\prijava\\page.tsx",
@@ -241,11 +217,7 @@
       "severity": "medium",
       "occurrences": 7,
       "fix": "Add aria-label or associate with a <label> using id",
-      "matches": [
-        "<Input",
-        "<Input",
-        "<Input"
-      ]
+      "matches": ["<Input", "<Input", "<Input"]
     },
     {
       "file": "app\\(auth)\\registracija\\page.tsx",
@@ -277,9 +249,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"
-      ]
+      "matches": ["<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"]
     },
     {
       "file": "app\\(auth)\\verify-pending\\page.tsx",
@@ -287,9 +257,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h1 className=\"text-3xl font-bold text-gray-800 mb-2\">"
-      ]
+      "matches": ["<h1 className=\"text-3xl font-bold text-gray-800 mb-2\">"]
     },
     {
       "file": "app\\(auth)\\verify-success\\page.tsx",
@@ -297,9 +265,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"
-      ]
+      "matches": ["<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"]
     },
     {
       "file": "app\\(auth)\\zaboravljena-lozinka\\page.tsx",
@@ -317,9 +283,7 @@
       "severity": "medium",
       "occurrences": 1,
       "fix": "Add aria-label or associate with a <label> using id",
-      "matches": [
-        "<Input"
-      ]
+      "matches": ["<Input"]
     },
     {
       "file": "app\\(dashboard)\\dashboard\\domaci\\page.tsx",
@@ -327,9 +291,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h3 className=\"text-lg font-semibold text-gray-900\">"
-      ]
+      "matches": ["<h3 className=\"text-lg font-semibold text-gray-900\">"]
     },
     {
       "file": "app\\(dashboard)\\dashboard\\layout.tsx",
@@ -348,9 +310,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h3 className=\"font-semibold text-gray-900\">"
-      ]
+      "matches": ["<h3 className=\"font-semibold text-gray-900\">"]
     },
     {
       "file": "app\\(dashboard)\\dashboard\\page.tsx",
@@ -380,9 +340,7 @@
       "severity": "medium",
       "occurrences": 1,
       "fix": "Add aria-label or associate with a <label> using id",
-      "matches": [
-        "<Input"
-      ]
+      "matches": ["<Input"]
     },
     {
       "file": "app\\(dashboard)\\dashboard\\porodica\\page.tsx",
@@ -414,9 +372,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h3 className=\"font-semibold text-yellow-900 mb-2\">"
-      ]
+      "matches": ["<h3 className=\"font-semibold text-yellow-900 mb-2\">"]
     },
     {
       "file": "app\\consent-required\\page.tsx",
@@ -434,9 +390,7 @@
       "severity": "low",
       "occurrences": 1,
       "fix": "Ensure proper heading order (h1 -> h2 -> h3)",
-      "matches": [
-        "<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"
-      ]
+      "matches": ["<h1 className=\"text-3xl font-bold text-gray-900 mb-2\">"]
     },
     {
       "file": "app\\page.tsx",

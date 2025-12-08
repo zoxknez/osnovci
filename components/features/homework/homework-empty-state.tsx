@@ -14,7 +14,10 @@ interface HomeworkEmptyStateProps {
   onAddClick: () => void;
 }
 
-export function HomeworkEmptyState({ searchQuery, onAddClick }: HomeworkEmptyStateProps) {
+export function HomeworkEmptyState({
+  searchQuery,
+  onAddClick,
+}: HomeworkEmptyStateProps) {
   return (
     <Card className="border-dashed border-2 bg-gray-50/50">
       <CardContent className="p-12 text-center flex flex-col items-center justify-center">
@@ -23,18 +26,14 @@ export function HomeworkEmptyState({ searchQuery, onAddClick }: HomeworkEmptySta
         </div>
         <h3 className="text-lg font-bold text-gray-900">Nema zadataka</h3>
         <p className="text-gray-500 mt-1 max-w-xs mx-auto">
-          {searchQuery 
-            ? "Nismo našli ništa za tvoju pretragu." 
+          {searchQuery
+            ? "Nismo našli ništa za tvoju pretragu."
             : "Trenutno nemaš domaćih zadataka. Uživaj u slobodnom vremenu! 🎉"}
         </p>
-        <Button 
-          className="mt-6"
-          onClick={onAddClick}
-        >
+        <Button className="mt-6" onClick={onAddClick}>
           Dodaj novi zadatak
         </Button>
       </CardContent>
     </Card>
   );
 }
-

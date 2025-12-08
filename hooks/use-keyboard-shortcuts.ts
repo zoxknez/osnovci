@@ -17,13 +17,13 @@
  * @module hooks/use-keyboard-shortcuts
  */
 
-import { useEffect, useCallback, useRef } from "react";
-import {
-  type Shortcut,
-  matchesShortcut,
-  isEditableElement,
-} from "@/lib/shortcuts/config";
+import { useCallback, useEffect, useRef } from "react";
 import { log } from "@/lib/logger";
+import {
+  isEditableElement,
+  matchesShortcut,
+  type Shortcut,
+} from "@/lib/shortcuts/config";
 
 export interface ShortcutHandler {
   shortcut: Shortcut;
@@ -61,7 +61,7 @@ export interface UseKeyboardShortcutsOptions {
  */
 export function useKeyboardShortcuts(
   handlers: ShortcutHandler[],
-  options: UseKeyboardShortcutsOptions = {}
+  options: UseKeyboardShortcutsOptions = {},
 ) {
   const {
     scope = "global",
@@ -86,7 +86,11 @@ export function useKeyboardShortcuts(
       }
 
       // Check each handler
-      for (const { shortcut, handler, preventDefault = true } of handlersRef.current) {
+      for (const {
+        shortcut,
+        handler,
+        preventDefault = true,
+      } of handlersRef.current) {
         if (!shortcut.enabled) continue;
 
         // Check scope
@@ -123,7 +127,7 @@ export function useKeyboardShortcuts(
         }
       }
     },
-    [scope, disableInInputs, enableLogging, shouldHandle]
+    [scope, disableInInputs, enableLogging, shouldHandle],
   );
 
   useEffect(() => {
@@ -141,12 +145,9 @@ export function useKeyboardShortcuts(
 export function useKeyboardShortcut(
   shortcut: Shortcut,
   handler: (event: KeyboardEvent) => void,
-  options: UseKeyboardShortcutsOptions = {}
+  options: UseKeyboardShortcutsOptions = {},
 ) {
-  useKeyboardShortcuts(
-    [{ shortcut, handler, preventDefault: true }],
-    options
-  );
+  useKeyboardShortcuts([{ shortcut, handler, preventDefault: true }], options);
 }
 
 /**
@@ -165,7 +166,7 @@ export function useEscapeKey(handler: () => void) {
       customizable: false,
       scope: "global",
     },
-    handler
+    handler,
   );
 }
 
@@ -186,6 +187,6 @@ export function useCtrlEnter(handler: () => void) {
       customizable: false,
       scope: "global",
     },
-    handler
+    handler,
   );
 }

@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 
 const shiftSettingsSchema = z.object({
   enabled: z.boolean(),
@@ -50,7 +50,9 @@ export async function getShiftSettingsAction(): Promise<ActionResponse> {
   }
 }
 
-export async function updateShiftSettingsAction(data: z.infer<typeof shiftSettingsSchema>): Promise<ActionResponse> {
+export async function updateShiftSettingsAction(
+  data: z.infer<typeof shiftSettingsSchema>,
+): Promise<ActionResponse> {
   try {
     const student = await getStudent();
     const validated = shiftSettingsSchema.parse(data);
@@ -59,7 +61,9 @@ export async function updateShiftSettingsAction(data: z.infer<typeof shiftSettin
       where: { id: student.id },
       data: {
         shiftSystemEnabled: validated.enabled,
-        shiftReferenceDate: validated.referenceDate ? new Date(validated.referenceDate) : null,
+        shiftReferenceDate: validated.referenceDate
+          ? new Date(validated.referenceDate)
+          : null,
         shiftReferenceType: validated.referenceType ?? null,
       },
     });

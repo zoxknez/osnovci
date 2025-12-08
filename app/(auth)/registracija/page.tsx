@@ -46,17 +46,25 @@ export default function RegistracijaPage() {
     grade: 1,
     class: "",
   });
-  
+
   // Accessibility: respect reduced motion preferences
   const prefersReducedMotion = useReducedMotion();
-  
+
   // Memoize animation props for performance
-  const backgroundAnimation = useMemo(() => 
-    prefersReducedMotion ? {} : {
-      animate: { x: [0, 100, 0], y: [0, 50, 0] },
-      transition: { duration: 20, repeat: Infinity, ease: "easeInOut" as Easing }
-    }
-  , [prefersReducedMotion]);
+  const backgroundAnimation = useMemo(
+    () =>
+      prefersReducedMotion
+        ? {}
+        : {
+            animate: { x: [0, 100, 0], y: [0, 50, 0] },
+            transition: {
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut" as Easing,
+            },
+          },
+    [prefersReducedMotion],
+  );
 
   // Auto-focus kada se pređe na details step
   useEffect(() => {
@@ -119,10 +127,16 @@ export default function RegistracijaPage() {
         />
         <motion.div
           className="absolute bottom-10 sm:bottom-20 -right-10 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-          {...(prefersReducedMotion ? {} : {
-            animate: { x: [0, -100, 0], y: [0, -50, 0] },
-            transition: { duration: 15, repeat: Infinity, ease: "easeInOut" }
-          })}
+          {...(prefersReducedMotion
+            ? {}
+            : {
+                animate: { x: [0, -100, 0], y: [0, -50, 0] },
+                transition: {
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+              })}
         />
       </div>
 
@@ -413,12 +427,19 @@ export default function RegistracijaPage() {
                       type="date"
                       value={formData.dateOfBirth}
                       onChange={(e) =>
-                        setFormData({ ...formData, dateOfBirth: e.target.value })
+                        setFormData({
+                          ...formData,
+                          dateOfBirth: e.target.value,
+                        })
                       }
                       required={role === "STUDENT"}
                       disabled={isLoading}
-                      helperText={role === "STUDENT" ? "Obavezno za učenike (COPPA zakon)" : "Opciono za roditelje"}
-                      max={new Date().toISOString().split('T')[0]}
+                      helperText={
+                        role === "STUDENT"
+                          ? "Obavezno za učenike (COPPA zakon)"
+                          : "Opciono za roditelje"
+                      }
+                      max={new Date().toISOString().split("T")[0]}
                     />
 
                     {role === "STUDENT" && (

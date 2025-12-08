@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Plus, 
-  Trash2, 
-  Link as LinkIcon,
+import {
   AlertCircle,
   CheckCircle2,
+  Link as LinkIcon,
+  Plus,
+  Trash2,
 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 interface Task {
   id: string;
@@ -50,11 +50,11 @@ export function DependencyManager({
   };
 
   const getBlockedTasks = (taskId: string): string[] => {
-    return dependencies.filter(d => d.from === taskId).map(d => d.to);
+    return dependencies.filter((d) => d.from === taskId).map((d) => d.to);
   };
 
   const getBlockingTasks = (taskId: string): string[] => {
-    return dependencies.filter(d => d.to === taskId).map(d => d.from);
+    return dependencies.filter((d) => d.to === taskId).map((d) => d.from);
   };
 
   return (
@@ -76,14 +76,16 @@ export function DependencyManager({
               onChange={(e) => setSelectedTask(e.target.value)}
             >
               <option value="">Odaberi zadatak...</option>
-              {tasks.map(task => (
+              {tasks.map((task) => (
                 <option key={task.id} value={task.id}>
                   {task.title}
                 </option>
               ))}
             </select>
 
-            <span className="flex items-center text-sm text-gray-500">zavisi od</span>
+            <span className="flex items-center text-sm text-gray-500">
+              zavisi od
+            </span>
 
             <select
               className="flex-1 border rounded-md p-2 text-sm"
@@ -91,11 +93,13 @@ export function DependencyManager({
               onChange={(e) => setDependsOn(e.target.value)}
             >
               <option value="">Odaberi zadatak...</option>
-              {tasks.filter(t => t.id !== selectedTask).map(task => (
-                <option key={task.id} value={task.id}>
-                  {task.title}
-                </option>
-              ))}
+              {tasks
+                .filter((t) => t.id !== selectedTask)
+                .map((task) => (
+                  <option key={task.id} value={task.id}>
+                    {task.title}
+                  </option>
+                ))}
             </select>
 
             <Button onClick={handleAddDependency} size="sm">
@@ -106,7 +110,7 @@ export function DependencyManager({
 
         {/* Dependency List */}
         <div className="space-y-3">
-          {tasks.map(task => {
+          {tasks.map((task) => {
             const blocking = getBlockingTasks(task.id);
             const blocked = getBlockedTasks(task.id);
 
@@ -115,22 +119,29 @@ export function DependencyManager({
             return (
               <div key={task.id} className="border rounded-lg p-3 space-y-2">
                 <p className="font-medium text-sm">{task.title}</p>
-                
+
                 {blocking.length > 0 && (
                   <div className="text-xs text-gray-600 flex items-start gap-2">
                     <AlertCircle className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-medium">Blokiran sa:</span>
                       <ul className="mt-1 space-y-1">
-                        {blocking.map(blockingId => {
-                          const blockingTask = tasks.find(t => t.id === blockingId);
+                        {blocking.map((blockingId) => {
+                          const blockingTask = tasks.find(
+                            (t) => t.id === blockingId,
+                          );
                           return blockingTask ? (
-                            <li key={blockingId} className="flex items-center justify-between">
+                            <li
+                              key={blockingId}
+                              className="flex items-center justify-between"
+                            >
                               <span>• {blockingTask.title}</span>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => onRemoveDependency(blockingId, task.id)}
+                                onClick={() =>
+                                  onRemoveDependency(blockingId, task.id)
+                                }
                                 className="h-6 px-2"
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -149,8 +160,10 @@ export function DependencyManager({
                     <div>
                       <span className="font-medium">Blokira:</span>
                       <ul className="mt-1 space-y-1">
-                        {blocked.map(blockedId => {
-                          const blockedTask = tasks.find(t => t.id === blockedId);
+                        {blocked.map((blockedId) => {
+                          const blockedTask = tasks.find(
+                            (t) => t.id === blockedId,
+                          );
                           return blockedTask ? (
                             <li key={blockedId}>• {blockedTask.title}</li>
                           ) : null;

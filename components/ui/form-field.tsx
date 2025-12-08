@@ -5,11 +5,11 @@
 
 "use client";
 
-import { forwardRef, useState } from "react";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { forwardRef, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Input } from "./input";
 import { Label } from "./label";
-import { cn } from "@/lib/utils";
 
 interface FormFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -39,7 +39,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
       onFocus,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [isFocused, setIsFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -73,7 +73,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
               hasError &&
                 "border-red-300 focus:border-red-500 focus:ring-red-500",
               isFocused && !hasError && "border-blue-500",
-              className
+              className,
             )}
             onFocus={(e) => {
               setIsFocused(true);
@@ -85,7 +85,11 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             }}
             aria-invalid={hasError}
             aria-describedby={
-              hasError ? `${props.id}-error` : helperText ? `${props.id}-helper` : undefined
+              hasError
+                ? `${props.id}-error`
+                : helperText
+                  ? `${props.id}-helper`
+                  : undefined
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             {...(props as any)}
@@ -98,7 +102,9 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}
+                  aria-label={
+                    showPassword ? "Sakrij lozinku" : "Prikaži lozinku"
+                  }
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -143,8 +149,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 FormField.displayName = "FormField";
-

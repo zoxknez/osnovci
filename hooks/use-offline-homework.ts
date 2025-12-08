@@ -3,9 +3,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { createHomework } from "@/hooks/use-homework";
 import { offlineStorage, type StoredHomework } from "@/lib/db/offline-storage";
 import { useSyncStore } from "@/store";
-import { createHomework } from "@/hooks/use-homework";
 
 export type OfflineHomeworkStatus =
   | "ASSIGNED"
@@ -124,12 +124,12 @@ export function useOfflineHomework() {
       try {
         // Upload to API using the shared function
         await createHomework({
-            title: item.title,
-            description: item.description,
-            dueDate: item.dueDate.toISOString(),
-            priority: item.priority,
-            subjectId: item.subjectId, // Already stored as ID in offline storage
-            status: "ASSIGNED" // Default status for new items
+          title: item.title,
+          description: item.description,
+          dueDate: item.dueDate.toISOString(),
+          priority: item.priority,
+          subjectId: item.subjectId, // Already stored as ID in offline storage
+          status: "ASSIGNED", // Default status for new items
         });
 
         // Remove from offline storage

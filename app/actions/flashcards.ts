@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 
 // Schemas
 const createDeckSchema = z.object({
@@ -59,11 +59,18 @@ export async function getDecksAction(): Promise<ActionResponse> {
     return { data: decks };
   } catch (error) {
     console.error("Error getting decks:", error);
-    return { error: error instanceof Error ? error.message : "Greška pri učitavanju špilova" };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Greška pri učitavanju špilova",
+    };
   }
 }
 
-export async function createDeckAction(data: z.infer<typeof createDeckSchema>): Promise<ActionResponse> {
+export async function createDeckAction(
+  data: z.infer<typeof createDeckSchema>,
+): Promise<ActionResponse> {
   try {
     const student = await getStudent();
     const validated = createDeckSchema.parse(data);
@@ -81,7 +88,10 @@ export async function createDeckAction(data: z.infer<typeof createDeckSchema>): 
     return { data: deck };
   } catch (error) {
     console.error("Error creating deck:", error);
-    return { error: error instanceof Error ? error.message : "Greška pri kreiranju špila" };
+    return {
+      error:
+        error instanceof Error ? error.message : "Greška pri kreiranju špila",
+    };
   }
 }
 
@@ -106,7 +116,10 @@ export async function getDeckAction(id: string): Promise<ActionResponse> {
     return { data: deck };
   } catch (error) {
     console.error("Error getting deck:", error);
-    return { error: error instanceof Error ? error.message : "Greška pri učitavanju špila" };
+    return {
+      error:
+        error instanceof Error ? error.message : "Greška pri učitavanju špila",
+    };
   }
 }
 
@@ -130,11 +143,17 @@ export async function deleteDeckAction(id: string): Promise<ActionResponse> {
     return { data: { success: true } };
   } catch (error) {
     console.error("Error deleting deck:", error);
-    return { error: error instanceof Error ? error.message : "Greška pri brisanju špila" };
+    return {
+      error:
+        error instanceof Error ? error.message : "Greška pri brisanju špila",
+    };
   }
 }
 
-export async function createCardAction(deckId: string, data: z.infer<typeof createCardSchema>): Promise<ActionResponse> {
+export async function createCardAction(
+  deckId: string,
+  data: z.infer<typeof createCardSchema>,
+): Promise<ActionResponse> {
   try {
     const student = await getStudent();
     const validated = createCardSchema.parse(data);
@@ -159,6 +178,9 @@ export async function createCardAction(deckId: string, data: z.infer<typeof crea
     return { data: card };
   } catch (error) {
     console.error("Error creating card:", error);
-    return { error: error instanceof Error ? error.message : "Greška pri kreiranju kartice" };
+    return {
+      error:
+        error instanceof Error ? error.message : "Greška pri kreiranju kartice",
+    };
   }
 }

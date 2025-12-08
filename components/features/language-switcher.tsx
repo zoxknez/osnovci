@@ -1,10 +1,10 @@
 // components/features/language-switcher.tsx
 "use client";
 
+import { Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Globe } from "lucide-react";
 
 const languages = [
   { code: "sr", name: "Srpski (latinica)", flag: "🇷🇸" },
@@ -21,7 +21,7 @@ export function LanguageSwitcher() {
   const [currentLocale, setCurrentLocale] = useState<string>(
     typeof document !== "undefined"
       ? document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1] || "sr"
-      : "sr"
+      : "sr",
   );
 
   const handleLanguageChange = (locale: string) => {

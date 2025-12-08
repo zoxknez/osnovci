@@ -5,11 +5,21 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Eye,
+  Filter,
+  Flag,
+  Shield,
+  XCircle,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -17,16 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
-  Flag,
-  Eye,
-  Shield,
-  Filter
-} from "lucide-react";
-import { toast } from "sonner";
 
 interface ModerationLog {
   id: string;
@@ -75,7 +75,7 @@ export default function AdminModerationDashboard() {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams();
       if (filterStatus !== "all") params.set("status", filterStatus);
       if (filterFlagged === "true") params.set("flagged", "true");
@@ -89,9 +89,15 @@ export default function AdminModerationDashboard() {
       // Calculate stats
       const total = data.pagination.total;
       const flagged = data.logs.filter((l: ModerationLog) => l.flagged).length;
-      const blocked = data.logs.filter((l: ModerationLog) => l.status === "REJECTED").length;
-      const pending = data.logs.filter((l: ModerationLog) => l.status === "PENDING").length;
-      const approved = data.logs.filter((l: ModerationLog) => l.status === "APPROVED").length;
+      const blocked = data.logs.filter(
+        (l: ModerationLog) => l.status === "REJECTED",
+      ).length;
+      const pending = data.logs.filter(
+        (l: ModerationLog) => l.status === "PENDING",
+      ).length;
+      const approved = data.logs.filter(
+        (l: ModerationLog) => l.status === "APPROVED",
+      ).length;
 
       setStats({
         total,
@@ -139,7 +145,13 @@ export default function AdminModerationDashboard() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: "default" | "destructive" | "secondary" | "outline"; icon: any }> = {
+    const variants: Record<
+      string,
+      {
+        variant: "default" | "destructive" | "secondary" | "outline";
+        icon: any;
+      }
+    > = {
       APPROVED: { variant: "secondary", icon: CheckCircle },
       REJECTED: { variant: "destructive", icon: XCircle },
       FLAGGED: { variant: "outline", icon: Flag },
@@ -173,7 +185,9 @@ export default function AdminModerationDashboard() {
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <Shield className="mx-auto h-12 w-12 animate-pulse text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">Loading moderation logs...</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Loading moderation logs...
+          </p>
         </div>
       </div>
     );
@@ -199,7 +213,9 @@ export default function AdminModerationDashboard() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Checks</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Checks
+              </CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -213,7 +229,9 @@ export default function AdminModerationDashboard() {
               <Flag className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.flagged}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.flagged}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {stats.flagRate.toFixed(1)}% flag rate
               </p>
@@ -226,17 +244,23 @@ export default function AdminModerationDashboard() {
               <XCircle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.blocked}</div>
+              <div className="text-2xl font-bold text-red-600">
+                {stats.blocked}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Pending Review
+              </CardTitle>
               <AlertTriangle className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {stats.pending}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -323,9 +347,13 @@ export default function AdminModerationDashboard() {
                           </span>
                         )}
                         {log.aiConfidence && (
-                          <span>AI Confidence: {log.aiConfidence.toFixed(1)}%</span>
+                          <span>
+                            AI Confidence: {log.aiConfidence.toFixed(1)}%
+                          </span>
                         )}
-                        <span>{new Date(log.createdAt).toLocaleDateString("sr")}</span>
+                        <span>
+                          {new Date(log.createdAt).toLocaleDateString("sr")}
+                        </span>
                       </div>
                     </div>
 
@@ -351,7 +379,9 @@ export default function AdminModerationDashboard() {
             <CardContent className="space-y-4">
               <div>
                 <h4 className="mb-2 font-semibold">Original Text</h4>
-                <p className="rounded border p-3 text-sm">{selectedLog.originalText}</p>
+                <p className="rounded border p-3 text-sm">
+                  {selectedLog.originalText}
+                </p>
               </div>
 
               {selectedLog.moderatedText && (
@@ -378,11 +408,13 @@ export default function AdminModerationDashboard() {
                 <div>
                   <h4 className="mb-2 font-semibold">Flagged Words</h4>
                   <div className="flex flex-wrap gap-2">
-                    {JSON.parse(selectedLog.flaggedWords).map((word: string, i: number) => (
-                      <Badge key={i} variant="destructive">
-                        {word}
-                      </Badge>
-                    ))}
+                    {JSON.parse(selectedLog.flaggedWords).map(
+                      (word: string, i: number) => (
+                        <Badge key={i} variant="destructive">
+                          {word}
+                        </Badge>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
@@ -405,7 +437,9 @@ export default function AdminModerationDashboard() {
                 <h4 className="mb-2 font-semibold">Review Notes (Optional)</h4>
                 <Textarea
                   value={reviewNotes}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReviewNotes(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setReviewNotes(e.target.value)
+                  }
                   placeholder="Add notes about your decision..."
                   rows={3}
                 />

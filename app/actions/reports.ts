@@ -10,7 +10,10 @@ type ActionResponse<T = any> = {
   error?: string;
 };
 
-export async function getWeeklyReportsAction(studentId?: string, weekOffset: number = 0): Promise<ActionResponse> {
+export async function getWeeklyReportsAction(
+  studentId?: string,
+  weekOffset: number = 0,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -82,7 +85,10 @@ export async function getWeeklyReportsAction(studentId?: string, weekOffset: num
   }
 }
 
-export async function generateAndSendWeeklyReportAction(studentId: string, sendEmail: boolean = false): Promise<ActionResponse> {
+export async function generateAndSendWeeklyReportAction(
+  studentId: string,
+  sendEmail: boolean = false,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -159,7 +165,7 @@ export async function generateAndSendWeeklyReportAction(studentId: string, sendE
           report,
           emailsSent,
           emailsFailed,
-        }
+        },
       };
     }
 

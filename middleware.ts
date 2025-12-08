@@ -1,15 +1,16 @@
 // middleware.ts
 // Enhanced Security: Auth Check + CSP nonce injection + Security Headers + Rate Limiting
 
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { buildCSP, generateNonce } from "@/lib/security/csp";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 
 // Initialize Redis for Rate Limiting (Edge-compatible)
 const redis =
-  process.env["UPSTASH_REDIS_REST_URL"] && process.env["UPSTASH_REDIS_REST_TOKEN"]
+  process.env["UPSTASH_REDIS_REST_URL"] &&
+  process.env["UPSTASH_REDIS_REST_TOKEN"]
     ? new Redis({
         url: process.env["UPSTASH_REDIS_REST_URL"],
         token: process.env["UPSTASH_REDIS_REST_TOKEN"],
@@ -29,7 +30,10 @@ const ratelimit = redis
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const forwardedFor = request.headers.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",")[0]?.trim() ?? request.headers.get("x-real-ip") ?? "127.0.0.1";
+  const ip =
+    forwardedFor?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "127.0.0.1";
 
   // 1. Rate Limiting (Skip for static assets)
   if (
@@ -39,7 +43,7 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/icons")
   ) {
     const { success, limit, reset, remaining } = await ratelimit.limit(ip);
-    
+
     if (!success) {
       return new NextResponse("Too Many Requests", {
         status: 429,
@@ -77,7 +81,8 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/favicon.ico")
   ) {
     // Check for session cookie - lightweight check
-    const sessionToken = request.cookies.get("authjs.session-token") || 
+    const sessionToken =
+      request.cookies.get("authjs.session-token") ||
       request.cookies.get("__Secure-authjs.session-token");
 
     // Redirect to login if no session cookie
@@ -86,7 +91,7 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    
+
     // Additional checks (email verification, consent, etc.) moved to page layouts
     // This keeps middleware lean for Edge Runtime
   }

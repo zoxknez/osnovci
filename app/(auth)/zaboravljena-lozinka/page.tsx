@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { 
-  Mail, 
-  ArrowLeft, 
-  Send, 
-  CheckCircle2, 
+import { AnimatePresence, motion } from "framer-motion";
+import {
   AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
   Loader2,
+  Mail,
+  Send,
+  Shield,
   Sparkles,
-  Shield
 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +42,7 @@ export default function ZaboravljenaLozinkaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       setError("Unesite email adresu");
       return;
@@ -81,9 +81,9 @@ export default function ZaboravljenaLozinkaPage() {
 
   const handleResend = async () => {
     if (countdown > 0) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       await fetch("/api/auth/password-reset/request", {
         method: "POST",
@@ -126,7 +126,7 @@ export default function ZaboravljenaLozinkaPage() {
             ease: "easeInOut",
           }}
         />
-        
+
         {/* Floating Icons */}
         <motion.div
           className="absolute top-20 left-[10%] text-4xl"
@@ -151,14 +151,14 @@ export default function ZaboravljenaLozinkaPage() {
         </motion.div>
       </div>
 
-      <motion.div 
+      <motion.div
         className="max-w-md w-full relative z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         {/* Back Link */}
-        <motion.div 
+        <motion.div
           className="mb-6"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -174,7 +174,7 @@ export default function ZaboravljenaLozinkaPage() {
         </motion.div>
 
         {/* Main Card */}
-        <motion.div 
+        <motion.div
           className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -203,14 +203,18 @@ export default function ZaboravljenaLozinkaPage() {
                     Zaboravljena lozinka?
                   </h1>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Unesite email adresu i poslaćemo vam link za resetovanje lozinke
+                    Unesite email adresu i poslaćemo vam link za resetovanje
+                    lozinke
                   </p>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">
+                    <Label
+                      htmlFor="email"
+                      className="text-gray-700 dark:text-gray-300"
+                    >
                       Email adresa
                     </Label>
                     <div className="relative">
@@ -266,7 +270,8 @@ export default function ZaboravljenaLozinkaPage() {
                   <div className="flex items-start gap-3">
                     <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      <strong>Bezbednost:</strong> Link za resetovanje lozinke je validan samo 1 sat i može se koristiti samo jednom.
+                      <strong>Bezbednost:</strong> Link za resetovanje lozinke
+                      je validan samo 1 sat i može se koristiti samo jednom.
                     </p>
                   </div>
                 </div>
@@ -289,15 +294,19 @@ export default function ZaboravljenaLozinkaPage() {
                 >
                   <CheckCircle2 className="w-10 h-10" />
                 </motion.div>
-                
+
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                   Email je poslat! ✉️
                 </h2>
-                
+
                 <p className="text-gray-600 dark:text-gray-400 mb-2">
-                  Ako nalog sa emailom <strong className="text-gray-900 dark:text-white">{email}</strong> postoji, poslaćemo vam link za resetovanje lozinke.
+                  Ako nalog sa emailom{" "}
+                  <strong className="text-gray-900 dark:text-white">
+                    {email}
+                  </strong>{" "}
+                  postoji, poslaćemo vam link za resetovanje lozinke.
                 </p>
-                
+
                 <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
                   Proverite svoj inbox (i spam folder)
                 </p>
@@ -359,11 +368,11 @@ export default function ZaboravljenaLozinkaPage() {
                 >
                   <AlertCircle className="w-10 h-10" />
                 </motion.div>
-                
+
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                   Ups! Nešto nije u redu 😔
                 </h2>
-                
+
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
                   {error || "Došlo je do greške. Pokušajte ponovo."}
                 </p>

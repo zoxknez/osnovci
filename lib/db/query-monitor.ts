@@ -40,7 +40,7 @@ export function configurePrismaLogging(prisma: PrismaClient) {
         process.env["SLOW_QUERY_THRESHOLD"] || "100",
         10,
       );
-      
+
       if (duration > slowQueryThreshold) {
         log.warn("Slow database query detected", {
           query: e.query,
@@ -70,7 +70,13 @@ export function configurePrismaLogging(prisma: PrismaClient) {
 export function createQueryMetricsMiddleware() {
   const queryMetrics: Map<
     string,
-    { count: number; totalDuration: number; avgDuration: number; maxDuration: number; minDuration: number }
+    {
+      count: number;
+      totalDuration: number;
+      avgDuration: number;
+      maxDuration: number;
+      minDuration: number;
+    }
   > = new Map();
 
   // Limit metrics to prevent memory leak
@@ -168,7 +174,10 @@ export const queryMetrics = createQueryMetricsMiddleware();
 /**
  * Log metrics periodically (only if enabled)
  */
-if (process.env.NODE_ENV === "production" && process.env["ENABLE_QUERY_METRICS"] === "true") {
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env["ENABLE_QUERY_METRICS"] === "true"
+) {
   setInterval(
     () => {
       try {

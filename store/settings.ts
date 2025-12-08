@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { LanguageOption, NotificationsSettings } from "@/components/features/settings/types";
+import type {
+  LanguageOption,
+  NotificationsSettings,
+} from "@/components/features/settings/types";
 
 interface SettingsState {
   language: LanguageOption;
   notifications: NotificationsSettings;
   biometricEnabled: boolean;
-  
+
   setLanguage: (lang: LanguageOption) => void;
   setNotifications: (settings: NotificationsSettings) => void;
   toggleNotification: (key: keyof NotificationsSettings) => void;
@@ -30,8 +33,8 @@ export const useSettingsStore = create<SettingsState>()(
       setLanguage: (language) => {
         set({ language });
         // Side effect: Set cookie for next-intl if needed
-        if (typeof document !== 'undefined') {
-            document.cookie = `NEXT_LOCALE=${language}; path=/; max-age=31536000; SameSite=Lax`;
+        if (typeof document !== "undefined") {
+          document.cookie = `NEXT_LOCALE=${language}; path=/; max-age=31536000; SameSite=Lax`;
         }
       },
       setNotifications: (notifications) => set({ notifications }),

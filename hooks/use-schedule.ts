@@ -1,38 +1,41 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  CreateScheduleInput, 
-  UpdateScheduleInput,
-  PaginatedSchedule 
-} from "@/lib/api/schemas/schedule";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { 
-  createScheduleAction, 
-  updateScheduleAction, 
+import {
+  createScheduleAction,
   deleteScheduleAction,
-  getScheduleAction 
+  getScheduleAction,
+  updateScheduleAction,
 } from "@/app/actions/schedule";
+import type {
+  CreateScheduleInput,
+  PaginatedSchedule,
+  UpdateScheduleInput,
+} from "@/lib/api/schemas/schedule";
 
 // Keys for React Query
 export const scheduleKeys = {
   all: ["schedule"] as const,
   lists: () => [...scheduleKeys.all, "list"] as const,
-  list: (filters: Record<string, unknown>) => [...scheduleKeys.lists(), filters] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...scheduleKeys.lists(), filters] as const,
   details: () => [...scheduleKeys.all, "detail"] as const,
   detail: (id: string) => [...scheduleKeys.details(), id] as const,
 };
 
 // Fetch schedule sa filterima
-async function fetchSchedule(filters: Record<string, unknown> = {}): Promise<PaginatedSchedule> {
+async function fetchSchedule(
+  filters: Record<string, unknown> = {},
+): Promise<PaginatedSchedule> {
   // Prosleđujemo dayOfWeek filter ako postoji
   const scheduleFilters: { dayOfWeek?: string } = {};
   const dayOfWeekValue = filters["dayOfWeek"];
-  if (dayOfWeekValue && typeof dayOfWeekValue === 'string') {
+  if (dayOfWeekValue && typeof dayOfWeekValue === "string") {
     scheduleFilters.dayOfWeek = dayOfWeekValue;
   }
-  
+
   const result = await getScheduleAction(scheduleFilters);
   if (result.error) throw new Error(result.error);
-  
+
   // Wrap response u PaginatedSchedule format
   const data = result.data || [];
   return {
@@ -41,8 +44,8 @@ async function fetchSchedule(filters: Record<string, unknown> = {}): Promise<Pag
       page: 1,
       limit: data.length,
       total: data.length,
-      pages: 1
-    }
+      pages: 1,
+    },
   };
 }
 
@@ -81,7 +84,13 @@ export function useUpdateSchedule() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateScheduleInput }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateScheduleInput;
+    }) => {
       const result = await updateScheduleAction(id, data);
       if (result.error) {
         throw new Error(result.error);

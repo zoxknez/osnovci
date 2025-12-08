@@ -6,7 +6,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Sparkles, Users, BookOpen, Star, Zap } from "lucide-react";
+import { BookOpen, Sparkles, Star, Users, Zap } from "lucide-react";
 import Link from "next/link";
 
 const STATS = [
@@ -25,29 +25,37 @@ export function HeroSection() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ 
+          animate={{
             opacity: 0.2,
             x: prefersReducedMotion ? 0 : [0, 100, 0],
             y: prefersReducedMotion ? 0 : [0, 50, 0],
           }}
           transition={{
             opacity: { duration: 0.8, ease: "easeOut" },
-            x: prefersReducedMotion ? {} : { duration: 20, repeat: Infinity, ease: "easeInOut" },
-            y: prefersReducedMotion ? {} : { duration: 20, repeat: Infinity, ease: "easeInOut" },
+            x: prefersReducedMotion
+              ? {}
+              : { duration: 20, repeat: Infinity, ease: "easeInOut" },
+            y: prefersReducedMotion
+              ? {}
+              : { duration: 20, repeat: Infinity, ease: "easeInOut" },
           }}
           className="absolute top-10 sm:top-20 -left-10 sm:left-10 w-48 h-48 sm:w-72 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl"
         />
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ 
+          animate={{
             opacity: 0.2,
             x: prefersReducedMotion ? 0 : [0, -100, 0],
             y: prefersReducedMotion ? 0 : [0, -50, 0],
           }}
           transition={{
             opacity: { duration: 0.8, ease: "easeOut", delay: 0.2 },
-            x: prefersReducedMotion ? {} : { duration: 15, repeat: Infinity, ease: "easeInOut" },
-            y: prefersReducedMotion ? {} : { duration: 15, repeat: Infinity, ease: "easeInOut" },
+            x: prefersReducedMotion
+              ? {}
+              : { duration: 15, repeat: Infinity, ease: "easeInOut" },
+            y: prefersReducedMotion
+              ? {}
+              : { duration: 15, repeat: Infinity, ease: "easeInOut" },
           }}
           className="absolute bottom-10 sm:bottom-20 -right-10 sm:right-10 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl"
         />
@@ -88,8 +96,8 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mb-8 sm:mb-10 max-w-3xl text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 leading-relaxed px-4"
           >
-            Domaći zadaci sa dokazima, raspored časova, ocene, analitika i
-            mnogo više.
+            Domaći zadaci sa dokazima, raspored časova, ocene, analitika i mnogo
+            više.
             <br className="hidden sm:block" />
             <span className="block mt-2 sm:mt-1 sm:inline font-semibold text-gray-900">
               Prilagođeno deci, sigurno za roditelje.
@@ -149,7 +157,9 @@ export function HeroSection() {
                 className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-100"
               >
                 <stat.icon className="h-5 w-5 text-blue-500 mx-auto mb-2" />
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {stat.value}
+                </p>
                 <p className="text-xs sm:text-sm text-gray-600">{stat.label}</p>
               </motion.div>
             ))}
@@ -159,4 +169,3 @@ export function HeroSection() {
     </section>
   );
 }
-

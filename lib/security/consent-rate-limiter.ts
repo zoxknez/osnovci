@@ -1,16 +1,16 @@
 /**
  * Parental Consent Verification Rate Limiter
  * CRITICAL SECURITY: Prevents brute-force attacks on 6-digit consent codes
- * 
+ *
  * Attack Vector: 1 million combinations (000000-999999) can be brute-forced
  * Mitigation: Exponential backoff + code invalidation after failures
  */
 
-import { redis } from '@/lib/upstash';
-import { log } from '@/lib/logger';
+import { log } from "@/lib/logger";
+import { redis } from "@/lib/upstash";
 
-const CONSENT_ATTEMPTS_PREFIX = 'consent:attempts:';
-const CONSENT_LOCKOUT_PREFIX = 'consent:lockout:';
+const CONSENT_ATTEMPTS_PREFIX = "consent:attempts:";
+const CONSENT_LOCKOUT_PREFIX = "consent:lockout:";
 
 const MAX_ATTEMPTS = 5; // Max attempts before lockout
 const LOCKOUT_DURATION = 15 * 60; // 15 minutes lockout
@@ -43,7 +43,7 @@ interface LockoutRecord {
  */
 export async function canAttemptConsentVerification(
   code: string,
-  ipAddress: string
+  ipAddress: string,
 ): Promise<{
   allowed: boolean;
   retryAfter?: number;
@@ -51,7 +51,7 @@ export async function canAttemptConsentVerification(
   attemptsRemaining?: number;
 }> {
   if (!redis) {
-    log.warn('Redis unavailable - consent rate limiting disabled', { code });
+    log.warn("Redis unavailable - consent rate limiting disabled", { code });
     return { allowed: true };
   }
 
@@ -62,11 +62,11 @@ export async function canAttemptConsentVerification(
   if (lockout) {
     const now = Date.now();
     const unlockAt = lockout.unlockAt;
-    
+
     if (now < unlockAt) {
       const retryAfter = Math.ceil((unlockAt - now) / 1000);
-      
-      log.warn('Consent code lockout - attempt blocked', {
+
+      log.warn("Consent code lockout - attempt blocked", {
         code,
         ipAddress,
         retryAfter,
@@ -94,16 +94,20 @@ export async function canAttemptConsentVerification(
   }
 
   const now = Date.now();
-  const windowStart = now - (ATTEMPT_WINDOW * 1000);
+  const windowStart = now - ATTEMPT_WINDOW * 1000;
 
   // Count recent attempts within window
   const recentAttempts = record.attempts.filter(
-    a => a.timestamp > windowStart
+    (a) => a.timestamp > windowStart,
   );
 
   if (recentAttempts.length >= MAX_ATTEMPTS) {
     // Exceeded max attempts - lock out the code
-    await lockoutConsentCode(code, 'MAX_ATTEMPTS_EXCEEDED', recentAttempts.length);
+    await lockoutConsentCode(
+      code,
+      "MAX_ATTEMPTS_EXCEEDED",
+      recentAttempts.length,
+    );
 
     return {
       allowed: false,
@@ -126,7 +130,7 @@ export async function recordConsentAttempt(
   code: string,
   success: boolean,
   ipAddress: string,
-  userAgent: string
+  userAgent: string,
 ): Promise<void> {
   if (!redis) return;
 
@@ -155,11 +159,11 @@ export async function recordConsentAttempt(
       await redis.set(attemptsKey, newRecord, { ex: ATTEMPT_WINDOW });
     } else {
       // Update existing record
-      const windowStart = now - (ATTEMPT_WINDOW * 1000);
-      
+      const windowStart = now - ATTEMPT_WINDOW * 1000;
+
       // Keep only recent attempts
       const recentAttempts = record.attempts.filter(
-        a => a.timestamp > windowStart
+        (a) => a.timestamp > windowStart,
       );
 
       const updatedRecord: AttemptRecord = {
@@ -172,7 +176,7 @@ export async function recordConsentAttempt(
       await redis.set(attemptsKey, updatedRecord, { ex: ATTEMPT_WINDOW });
     }
 
-    log.info('Consent attempt recorded', {
+    log.info("Consent attempt recorded", {
       code,
       success,
       ipAddress,
@@ -182,10 +186,10 @@ export async function recordConsentAttempt(
     // If successful, clear the attempts
     if (success) {
       await redis.del(attemptsKey);
-      log.info('Consent verification successful - attempts cleared', { code });
+      log.info("Consent verification successful - attempts cleared", { code });
     }
   } catch (error) {
-    log.error('Failed to record consent attempt', { error, code });
+    log.error("Failed to record consent attempt", { error, code });
   }
 }
 
@@ -196,13 +200,13 @@ export async function recordConsentAttempt(
 async function lockoutConsentCode(
   code: string,
   reason: string,
-  attemptCount: number
+  attemptCount: number,
 ): Promise<void> {
   if (!redis) return;
 
   const lockoutKey = `${CONSENT_LOCKOUT_PREFIX}${code}`;
   const now = Date.now();
-  const unlockAt = now + (LOCKOUT_DURATION * 1000);
+  const unlockAt = now + LOCKOUT_DURATION * 1000;
 
   const lockoutRecord: LockoutRecord = {
     code,
@@ -215,7 +219,7 @@ async function lockoutConsentCode(
   try {
     await redis.set(lockoutKey, lockoutRecord, { ex: LOCKOUT_DURATION });
 
-    log.warn('Consent code locked out', {
+    log.warn("Consent code locked out", {
       code,
       reason,
       attemptCount,
@@ -223,23 +227,22 @@ async function lockoutConsentCode(
     });
 
     // Invalidate the consent code in database
-    const { prisma } = await import('@/lib/db/prisma');
+    const { prisma } = await import("@/lib/db/prisma");
     await prisma.parentalConsent.updateMany({
-      where: { 
+      where: {
         code,
-        status: 'PENDING',
+        status: "PENDING",
       },
       data: {
-        status: 'EXPIRED',
+        status: "EXPIRED",
         revokedAt: new Date(),
       },
     });
 
     // Notify parent via email
     await notifyParentAboutLockout(code, attemptCount);
-
   } catch (error) {
-    log.error('Failed to lockout consent code', { error, code });
+    log.error("Failed to lockout consent code", { error, code });
   }
 }
 
@@ -248,10 +251,10 @@ async function lockoutConsentCode(
  */
 async function notifyParentAboutLockout(
   code: string,
-  attemptCount: number
+  attemptCount: number,
 ): Promise<void> {
   try {
-    const { prisma } = await import('@/lib/db/prisma');
+    const { prisma } = await import("@/lib/db/prisma");
     const consent = await prisma.parentalConsent.findUnique({
       where: { code },
       include: {
@@ -264,20 +267,16 @@ async function notifyParentAboutLockout(
     if (!consent) return;
 
     // Send parent alert email using template system
-    const { sendParentalAlert } = await import('@/lib/email/service');
-    
-    await sendParentalAlert(
-      consent.parentEmail,
-      'consent_lockout',
-      {
-        studentName: consent.student.name,
-        attemptCount: attemptCount.toString(),
-      }
-    ).catch((err) => {
-      log.warn('Failed to send parent alert email', { error: err });
+    const { sendParentalAlert } = await import("@/lib/email/service");
+
+    await sendParentalAlert(consent.parentEmail, "consent_lockout", {
+      studentName: consent.student.name,
+      attemptCount: attemptCount.toString(),
+    }).catch((err) => {
+      log.warn("Failed to send parent alert email", { error: err });
     });
   } catch (error) {
-    log.error('Failed to send parent lockout notification', error, { code });
+    log.error("Failed to send parent lockout notification", error, { code });
   }
 }
 
@@ -313,7 +312,7 @@ export async function getConsentRateLimitStatus(code: string): Promise<{
       attempts: record ? record.count : 0,
     };
   } catch (error) {
-    log.error('Failed to get consent rate limit status', { error, code });
+    log.error("Failed to get consent rate limit status", { error, code });
     return { isLocked: false, attempts: 0 };
   }
 }
@@ -331,10 +330,10 @@ export async function clearConsentRateLimit(code: string): Promise<boolean> {
     await redis.del(attemptsKey);
     await redis.del(lockoutKey);
 
-    log.info('Consent rate limit cleared', { code });
+    log.info("Consent rate limit cleared", { code });
     return true;
   } catch (error) {
-    log.error('Failed to clear consent rate limit', { error, code });
+    log.error("Failed to clear consent rate limit", { error, code });
     return false;
   }
 }

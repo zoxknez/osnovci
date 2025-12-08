@@ -7,10 +7,14 @@
 
 import { useEffect } from "react";
 
-export function ReducedMotionProvider({ children }: { children: React.ReactNode }) {
+export function ReducedMotionProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    
+
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       if (e.matches) {
         document.documentElement.classList.add("reduce-motion");
@@ -41,4 +45,3 @@ export function ReducedMotionProvider({ children }: { children: React.ReactNode 
 
   return <>{children}</>;
 }
-

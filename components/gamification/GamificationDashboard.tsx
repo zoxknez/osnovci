@@ -18,6 +18,10 @@
 
 import { Eye, EyeOff, Flame, Star, TrendingUp, Trophy } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import {
+  getGamificationAction,
+  updateGamificationSettingsAction,
+} from "@/app/actions/gamification";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +34,6 @@ import { cn } from "@/lib/utils";
 import { AchievementBadge } from "./AchievementBadge";
 import { LevelProgressBar } from "./LevelProgressBar";
 import { StreakDisplay } from "./StreakDisplay";
-import { getGamificationAction, updateGamificationSettingsAction } from "@/app/actions/gamification";
 
 interface GamificationData {
   level: number;
@@ -105,7 +108,9 @@ export function GamificationDashboard({
 
       if (result.success && result.data) {
         setData((prev) =>
-          prev ? { ...prev, showOnLeaderboard: result.data.showOnLeaderboard } : null,
+          prev
+            ? { ...prev, showOnLeaderboard: result.data.showOnLeaderboard }
+            : null,
         );
       }
     } catch (error) {

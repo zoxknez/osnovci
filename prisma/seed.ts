@@ -73,7 +73,7 @@ async function main() {
         student: {
           create: {
             name: STUDENT_NAMES[i] || `Student ${i + 1}`,
-            school: SCHOOLS[i % SCHOOLS.length] || 'OŠ Demo',
+            school: SCHOOLS[i % SCHOOLS.length] || "OŠ Demo",
             grade: (Math.floor(i / 4) % 8) + 1, // 1–8
             class: String.fromCharCode(65 + (i % 4)), // A–D
           },
@@ -98,7 +98,7 @@ async function main() {
       student: {
         create: {
           name: "Demo Učenik",
-          school: SCHOOLS[0] || 'OŠ Demo',
+          school: SCHOOLS[0] || "OŠ Demo",
           grade: 5,
           class: "A",
         },
@@ -108,7 +108,7 @@ async function main() {
   });
 
   if (!demoStudentUser.student) {
-    throw new Error('Failed to create demo student');
+    throw new Error("Failed to create demo student");
   }
 
   const demoGuardianUser = await prisma.user.create({
@@ -464,7 +464,7 @@ async function main() {
       { code: "TROPHY", name: "Pehar", icon: "🏆", cost: 100, minLevel: 10 },
       { code: "HEART", name: "Srce", icon: "❤️", cost: 15, minLevel: 1 },
       { code: "FIRE", name: "Vatra", icon: "🔥", cost: 30, minLevel: 3 },
-    ]
+    ],
   });
   console.log("✅ Stikeri kreirani (6)");
 

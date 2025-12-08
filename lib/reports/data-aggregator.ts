@@ -77,7 +77,7 @@ export async function aggregateStudentData(
   studentId: string,
   startDate: Date,
   endDate: Date,
-  reportType: "weekly" | "monthly" | "semester" | "annual"
+  reportType: "weekly" | "monthly" | "semester" | "annual",
 ): Promise<AggregatedStudentData | null> {
   try {
     // Get student info
@@ -114,25 +114,35 @@ export async function aggregateStudentData(
     });
 
     // Calculate grades by subject
-    const gradesBySubject = new Map<string, { grades: string[]; sum: number }>();
+    const gradesBySubject = new Map<
+      string,
+      { grades: string[]; sum: number }
+    >();
     for (const grade of grades) {
       const subjectName = grade.subject.name;
-      const existing = gradesBySubject.get(subjectName) || { grades: [], sum: 0 };
+      const existing = gradesBySubject.get(subjectName) || {
+        grades: [],
+        sum: 0,
+      };
       existing.grades.push(grade.grade);
       existing.sum += parseFloat(grade.grade);
       gradesBySubject.set(subjectName, existing);
     }
 
-    const gradesBySubjectArray = Array.from(gradesBySubject.entries()).map(([subject, data]) => ({
-      subject,
-      grades: data.grades,
-      average: data.grades.length > 0 ? data.sum / data.grades.length : 0,
-      count: data.grades.length,
-    }));
+    const gradesBySubjectArray = Array.from(gradesBySubject.entries()).map(
+      ([subject, data]) => ({
+        subject,
+        grades: data.grades,
+        average: data.grades.length > 0 ? data.sum / data.grades.length : 0,
+        count: data.grades.length,
+      }),
+    );
 
-    const overallAverage = grades.length > 0
-      ? grades.reduce((sum, g) => sum + parseFloat(g.grade), 0) / grades.length
-      : 0;
+    const overallAverage =
+      grades.length > 0
+        ? grades.reduce((sum, g) => sum + parseFloat(g.grade), 0) /
+          grades.length
+        : 0;
 
     // Get homework stats
     const homework = await prisma.homework.findMany({
@@ -151,15 +161,28 @@ export async function aggregateStudentData(
     });
 
     const now = new Date();
-    const completedHomework = homework.filter(h => h.status === "DONE" || h.status === "SUBMITTED");
-    const pendingHomework = homework.filter(h => h.status !== "DONE" && h.status !== "SUBMITTED" && h.dueDate >= now);
-    const overdueHomework = homework.filter(h => h.status !== "DONE" && h.status !== "SUBMITTED" && h.dueDate < now);
+    const completedHomework = homework.filter(
+      (h) => h.status === "DONE" || h.status === "SUBMITTED",
+    );
+    const pendingHomework = homework.filter(
+      (h) =>
+        h.status !== "DONE" && h.status !== "SUBMITTED" && h.dueDate >= now,
+    );
+    const overdueHomework = homework.filter(
+      (h) => h.status !== "DONE" && h.status !== "SUBMITTED" && h.dueDate < now,
+    );
 
     // Homework by subject
-    const homeworkBySubject = new Map<string, { total: number; completed: number }>();
+    const homeworkBySubject = new Map<
+      string,
+      { total: number; completed: number }
+    >();
     for (const hw of homework) {
       const subjectName = hw.subject.name;
-      const existing = homeworkBySubject.get(subjectName) || { total: 0, completed: 0 };
+      const existing = homeworkBySubject.get(subjectName) || {
+        total: 0,
+        completed: 0,
+      };
       existing.total++;
       if (hw.status === "DONE" || hw.status === "SUBMITTED") {
         existing.completed++;
@@ -167,12 +190,15 @@ export async function aggregateStudentData(
       homeworkBySubject.set(subjectName, existing);
     }
 
-    const homeworkBySubjectArray = Array.from(homeworkBySubject.entries()).map(([subject, data]) => ({
-      subject,
-      total: data.total,
-      completed: data.completed,
-      rate: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0,
-    }));
+    const homeworkBySubjectArray = Array.from(homeworkBySubject.entries()).map(
+      ([subject, data]) => ({
+        subject,
+        total: data.total,
+        completed: data.completed,
+        rate:
+          data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0,
+      }),
+    );
 
     // Get gamification data
     const gamification = await prisma.gamification.findUnique({
@@ -218,7 +244,7 @@ export async function aggregateStudentData(
 
     // Calculate active days
     const activeDays = new Set(
-      activityLogs.map(log => log.createdAt.toISOString().split("T")[0])
+      activityLogs.map((log) => log.createdAt.toISOString().split("T")[0]),
     ).size;
 
     // Calculate most active day of week
@@ -227,10 +253,18 @@ export async function aggregateStudentData(
       const day = log.createdAt.getDay();
       dayOfWeekCounts.set(day, (dayOfWeekCounts.get(day) || 0) + 1);
     }
-    
+
     let mostActiveDay: string | null = null;
     let maxCount = 0;
-    const dayNames = ["Nedelja", "Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"];
+    const dayNames = [
+      "Nedelja",
+      "Ponedeljak",
+      "Utorak",
+      "Sreda",
+      "Četvrtak",
+      "Petak",
+      "Subota",
+    ];
     for (const [day, count] of dayOfWeekCounts.entries()) {
       if (count > maxCount) {
         maxCount = count;
@@ -254,7 +288,7 @@ export async function aggregateStudentData(
         label: periodLabel,
       },
       grades: {
-        all: grades.map(g => ({
+        all: grades.map((g) => ({
           subject: g.subject.name,
           grade: g.grade,
           date: g.createdAt,
@@ -269,9 +303,10 @@ export async function aggregateStudentData(
         completed: completedHomework.length,
         pending: pendingHomework.length,
         overdue: overdueHomework.length,
-        completionRate: homework.length > 0 
-          ? Math.round((completedHomework.length / homework.length) * 100) 
-          : 0,
+        completionRate:
+          homework.length > 0
+            ? Math.round((completedHomework.length / homework.length) * 100)
+            : 0,
         bySubject: homeworkBySubjectArray,
       },
       gamification: {
@@ -289,14 +324,14 @@ export async function aggregateStudentData(
         mostActiveDay,
         averageSessionMinutes: 0, // Would need session duration tracking
       },
-      achievements: gamification?.achievements.map(a => ({
-        title: a.title,
-        description: a.description || '',
-        unlockedAt: a.unlockedAt,
-        rarity: a.rarity,
-      })) || [],
+      achievements:
+        gamification?.achievements.map((a) => ({
+          title: a.title,
+          description: a.description || "",
+          unlockedAt: a.unlockedAt,
+          rarity: a.rarity,
+        })) || [],
     };
-
   } catch (error) {
     log.error("Error aggregating student data", { error, studentId });
     return null;
@@ -309,11 +344,21 @@ export async function aggregateStudentData(
 function buildPeriodLabel(
   startDate: Date,
   endDate: Date,
-  reportType: "weekly" | "monthly" | "semester" | "annual"
+  reportType: "weekly" | "monthly" | "semester" | "annual",
 ): string {
   const months = [
-    "januar", "februar", "mart", "april", "maj", "jun",
-    "jul", "avgust", "septembar", "oktobar", "novembar", "decembar"
+    "januar",
+    "februar",
+    "mart",
+    "april",
+    "maj",
+    "jun",
+    "jul",
+    "avgust",
+    "septembar",
+    "oktobar",
+    "novembar",
+    "decembar",
   ];
 
   switch (reportType) {
@@ -321,9 +366,10 @@ function buildPeriodLabel(
       return `${startDate.getDate()}. - ${endDate.getDate()}. ${months[endDate.getMonth()]} ${endDate.getFullYear()}.`;
     case "monthly":
       return `${months[startDate.getMonth()]} ${startDate.getFullYear()}.`;
-    case "semester":
+    case "semester": {
       const semesterNum = startDate.getMonth() < 6 ? "Drugo" : "Prvo";
       return `${semesterNum} polugodište ${startDate.getFullYear()}/${startDate.getFullYear() + 1}.`;
+    }
     case "annual":
       return `Školska godina ${startDate.getFullYear()}/${startDate.getFullYear() + 1}.`;
     default:
@@ -336,7 +382,7 @@ function buildPeriodLabel(
  */
 export function getReportDateRange(
   reportType: "weekly" | "monthly" | "semester" | "annual",
-  referenceDate?: Date
+  referenceDate?: Date,
 ): { startDate: Date; endDate: Date } {
   const now = referenceDate || new Date();
   let startDate: Date;
@@ -355,8 +401,16 @@ export function getReportDateRange(
       // First semester: Sep 1 - Jan 31, Second: Feb 1 - Jun 30
       if (now.getMonth() >= 8 || now.getMonth() === 0) {
         // First semester
-        startDate = new Date(now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1, 8, 1);
-        endDate = new Date(now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear(), 0, 31);
+        startDate = new Date(
+          now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1,
+          8,
+          1,
+        );
+        endDate = new Date(
+          now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear(),
+          0,
+          31,
+        );
       } else {
         // Second semester
         startDate = new Date(now.getFullYear(), 1, 1);

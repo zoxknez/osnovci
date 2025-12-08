@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 import { safeStringSchema } from "@/lib/security/validators";
 
 export type ActionState = {
@@ -54,7 +54,9 @@ export async function getSubjectsAction(): Promise<ActionState> {
   }
 }
 
-export async function createSubjectAction(data: z.infer<typeof createSubjectSchema>): Promise<ActionState> {
+export async function createSubjectAction(
+  data: z.infer<typeof createSubjectSchema>,
+): Promise<ActionState> {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -64,9 +66,9 @@ export async function createSubjectAction(data: z.infer<typeof createSubjectSche
   const validated = createSubjectSchema.safeParse(data);
 
   if (!validated.success) {
-    return { 
-      error: "Nevalidni podaci", 
-      details: validated.error.flatten().fieldErrors 
+    return {
+      error: "Nevalidni podaci",
+      details: validated.error.flatten().fieldErrors,
     };
   }
 

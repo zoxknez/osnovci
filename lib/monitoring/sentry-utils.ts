@@ -1,6 +1,6 @@
 /**
  * Enhanced Sentry Utilities
- * 
+ *
  * Provides helper functions for Sentry error tracking:
  * - User context management
  * - Breadcrumb tracking
@@ -38,7 +38,7 @@ export function clearSentryUser() {
 export function addBreadcrumb(
   message: string,
   data?: Record<string, unknown>,
-  level: "debug" | "info" | "warning" | "error" = "info"
+  level: "debug" | "info" | "warning" | "error" = "info",
 ) {
   Sentry.addBreadcrumb({
     message,
@@ -57,7 +57,7 @@ export function captureError(
     tags?: Record<string, string>;
     extra?: Record<string, unknown>;
     level?: Sentry.SeverityLevel;
-  }
+  },
 ) {
   Sentry.withScope((scope) => {
     if (context?.tags) {
@@ -65,17 +65,17 @@ export function captureError(
         scope.setTag(key, value);
       });
     }
-    
+
     if (context?.extra) {
       Object.entries(context.extra).forEach(([key, value]) => {
         scope.setExtra(key, value);
       });
     }
-    
+
     if (context?.level) {
       scope.setLevel(context.level);
     }
-    
+
     Sentry.captureException(error);
   });
 }
@@ -89,7 +89,7 @@ export function captureMessage(
   context?: {
     tags?: Record<string, string>;
     extra?: Record<string, unknown>;
-  }
+  },
 ) {
   Sentry.withScope((scope) => {
     if (context?.tags) {
@@ -97,13 +97,13 @@ export function captureMessage(
         scope.setTag(key, value);
       });
     }
-    
+
     if (context?.extra) {
       Object.entries(context.extra).forEach(([key, value]) => {
         scope.setExtra(key, value);
       });
     }
-    
+
     scope.setLevel(level);
     Sentry.captureMessage(message);
   });
@@ -119,10 +119,7 @@ export function trackPageView(url: string) {
 /**
  * Track user action
  */
-export function trackAction(
-  action: string,
-  data?: Record<string, unknown>
-) {
+export function trackAction(action: string, data?: Record<string, unknown>) {
   addBreadcrumb(`User action: ${action}`, data, "info");
 }
 
@@ -133,7 +130,7 @@ export function trackApiCall(
   endpoint: string,
   method: string,
   status: number,
-  duration: number
+  duration: number,
 ) {
   addBreadcrumb(
     `API call: ${method} ${endpoint}`,
@@ -143,7 +140,7 @@ export function trackApiCall(
       status,
       duration: `${duration}ms`,
     },
-    status >= 400 ? "error" : "info"
+    status >= 400 ? "error" : "info",
   );
 }
 
@@ -153,7 +150,7 @@ export function trackApiCall(
 export function trackDatabaseQuery(
   query: string,
   duration: number,
-  result?: string
+  result?: string,
 ) {
   addBreadcrumb(
     `Database query: ${query}`,
@@ -162,6 +159,6 @@ export function trackDatabaseQuery(
       duration: `${duration}ms`,
       ...(result && { result }),
     },
-    duration > 500 ? "warning" : "debug"
+    duration > 500 ? "warning" : "debug",
   );
 }

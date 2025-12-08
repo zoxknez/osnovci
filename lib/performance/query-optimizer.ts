@@ -1,6 +1,6 @@
 /**
  * Database Query Optimizer
- * 
+ *
  * Provides optimized query functions with:
  * - Selective field loading (only necessary fields)
  * - Compound indexes utilization
@@ -9,15 +9,15 @@
  * - Query result caching
  */
 
-import { prisma } from "@/lib/db/prisma";
 import {
-  getCachedHomework,
-  setCachedHomework,
-  getCachedSchedule,
-  setCachedSchedule,
   getCachedGrades,
+  getCachedHomework,
+  getCachedSchedule,
   setCachedGrades,
+  setCachedHomework,
+  setCachedSchedule,
 } from "@/lib/cache/redis";
+import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
 
 // ===========================================
@@ -35,7 +35,7 @@ export async function getHomeworkList(
     subjectId?: string;
     fromDate?: Date;
     toDate?: Date;
-  } = {}
+  } = {},
 ) {
   const cacheKey = `${studentId}:${JSON.stringify(filters)}`;
   const cached = await getCachedHomework(studentId, cacheKey);
@@ -180,10 +180,7 @@ export async function getWeeklySchedule(studentId: string) {
         },
       },
     },
-    orderBy: [
-      { dayOfWeek: "asc" },
-      { startTime: "asc" },
-    ],
+    orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
   });
 
   await setCachedSchedule(studentId, schedule);
@@ -199,7 +196,7 @@ export async function getWeeklySchedule(studentId: string) {
  */
 export async function getGradeStatistics(
   studentId: string,
-  period?: { from: Date; to: Date }
+  period?: { from: Date; to: Date },
 ) {
   const cacheKey = period ? `${period.from}-${period.to}` : "all";
   const cached = await getCachedGrades(studentId, cacheKey);
@@ -232,18 +229,19 @@ export async function getGradeStatistics(
     select: { id: true, name: true, color: true },
   });
 
-  const subjectMap = new Map(subjects.map((s: { id: string; name: string; color: string }) => [s.id, s]));
+  const subjectMap = new Map(
+    subjects.map((s: { id: string; name: string; color: string }) => [s.id, s]),
+  );
 
-  const result = stats.map((stat: {
-    subjectId: string;
-    _count: { id: number };
-  }) => ({
-    subject: subjectMap.get(stat.subjectId),
-    average: null, // TODO: Calculate from grade strings
-    count: stat._count.id,
-    min: null,
-    max: null,
-  }));
+  const result = stats.map(
+    (stat: { subjectId: string; _count: { id: number } }) => ({
+      subject: subjectMap.get(stat.subjectId),
+      average: null, // TODO: Calculate from grade strings
+      count: stat._count.id,
+      min: null,
+      max: null,
+    }),
+  );
 
   await setCachedGrades(studentId, result, cacheKey);
   return result;
@@ -287,7 +285,7 @@ export async function getPaginatedHomework(
     cursor?: string;
     limit?: number;
     status?: string;
-  } = {}
+  } = {},
 ) {
   const limit = options.limit ?? 20;
 
@@ -345,17 +343,17 @@ export async function batchCreateHomework(
     subjectId: string;
     dueDate: Date;
     priority?: string;
-  }>
+  }>,
 ) {
   return prisma.$transaction(
     homeworkList.map((hw) =>
       prisma.homework.create({
         data: {
           studentId,
-          ...hw as any,
+          ...(hw as any),
         },
-      })
-    )
+      }),
+    ),
   );
 }
 
@@ -364,7 +362,7 @@ export async function batchCreateHomework(
  */
 export async function batchUpdateHomeworkStatus(
   homeworkIds: string[],
-  status: string
+  status: string,
 ) {
   return prisma.homework.updateMany({
     where: {
@@ -383,7 +381,7 @@ export async function batchUpdateHomeworkStatus(
  */
 export async function getHomeworkCompletionStats(
   studentId: string,
-  period: { from: Date; to: Date }
+  period: { from: Date; to: Date },
 ) {
   const [total, completed, inProgress, overdue] = await Promise.all([
     prisma.homework.count({
@@ -458,15 +456,19 @@ export async function getSubjectWorkload(studentId: string) {
     select: { id: true, name: true, color: true },
   });
 
-  const subjectMap = new Map(subjects.map((s: { id: string; name: string; color: string }) => [s.id, s]));
+  const subjectMap = new Map(
+    subjects.map((s: { id: string; name: string; color: string }) => [s.id, s]),
+  );
 
-  return workload.map((w: {
-    subjectId: string;
-    _count: number;
-    _sum: { estimatedMinutes: number | null };
-  }) => ({
-    subject: subjectMap.get(w.subjectId),
-    count: w._count,
-    totalMinutes: w._sum.estimatedMinutes ?? 0,
-  }));
+  return workload.map(
+    (w: {
+      subjectId: string;
+      _count: number;
+      _sum: { estimatedMinutes: number | null };
+    }) => ({
+      subject: subjectMap.get(w.subjectId),
+      count: w._count,
+      totalMinutes: w._sum.estimatedMinutes ?? 0,
+    }),
+  );
 }

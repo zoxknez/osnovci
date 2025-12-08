@@ -1,24 +1,29 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  CreateGradeInput, 
-  PaginatedGrades 
-} from "@/lib/api/schemas/grades";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createGradeAction, deleteGradeAction } from "@/app/actions/grades";
+import type {
+  CreateGradeInput,
+  PaginatedGrades,
+} from "@/lib/api/schemas/grades";
 
 // Keys for React Query
 export const gradeKeys = {
   all: ["grades"] as const,
   lists: () => [...gradeKeys.all, "list"] as const,
-  list: (filters: Record<string, unknown>) => [...gradeKeys.lists(), filters] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...gradeKeys.lists(), filters] as const,
   details: () => [...gradeKeys.all, "detail"] as const,
   detail: (id: string) => [...gradeKeys.details(), id] as const,
 };
 
 // Fetch grades (keeping API route for fetching for now as it supports complex filtering/pagination efficiently)
-async function fetchGrades(_filters: Record<string, unknown> = {}): Promise<PaginatedGrades> {
+async function fetchGrades(
+  _filters: Record<string, unknown> = {},
+): Promise<PaginatedGrades> {
   // Use Server Action
-  const result = await import("@/app/actions/grades").then(mod => mod.getGradesAction());
+  const result = await import("@/app/actions/grades").then((mod) =>
+    mod.getGradesAction(),
+  );
   if (result.error) throw new Error(result.error);
 
   // Adapt to PaginatedGrades structure
@@ -28,14 +33,14 @@ async function fetchGrades(_filters: Record<string, unknown> = {}): Promise<Pagi
       average: 0,
       total: result.data.length,
       byCategory: {},
-      bySubject: []
+      bySubject: [],
     },
     pagination: {
       page: 1,
       limit: result.data.length,
       total: result.data.length,
-      pages: 1
-    }
+      pages: 1,
+    },
   };
 }
 

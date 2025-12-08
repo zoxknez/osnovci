@@ -3,10 +3,10 @@
  * Handles starting, stopping, and tracking focus sessions
  */
 
+import { FocusStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { addXP } from "@/lib/gamification/xp-system";
 import { log } from "@/lib/logger";
-import { FocusStatus } from "@prisma/client";
 
 // XP Rewards for Focus
 const XP_PER_MINUTE = 1; // 1 XP per minute of focus
@@ -72,7 +72,7 @@ export async function startFocusSession({
 export async function endFocusSession(
   sessionId: string,
   studentId: string,
-  status: FocusStatus = FocusStatus.COMPLETED
+  status: FocusStatus = FocusStatus.COMPLETED,
 ) {
   try {
     const session = await prisma.focusSession.findUnique({
@@ -90,7 +90,7 @@ export async function endFocusSession(
     const endTime = new Date();
     const startTime = new Date(session.startTime);
     const actualDurationMinutes = Math.floor(
-      (endTime.getTime() - startTime.getTime()) / (1000 * 60)
+      (endTime.getTime() - startTime.getTime()) / (1000 * 60),
     );
 
     let xpEarned = 0;
@@ -99,7 +99,7 @@ export async function endFocusSession(
     if (status === FocusStatus.COMPLETED) {
       if (actualDurationMinutes >= MIN_DURATION_FOR_XP) {
         xpEarned = actualDurationMinutes * XP_PER_MINUTE;
-        
+
         // Bonus if they met their target duration (if set)
         if (session.duration && actualDurationMinutes >= session.duration) {
           xpEarned += BONUS_XP_COMPLETION;
@@ -179,7 +179,7 @@ export async function getFocusStats(studentId: string) {
       if (!s.endTime) return acc;
       const duration = Math.floor(
         (new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) /
-          (1000 * 60)
+          (1000 * 60),
       );
       return acc + duration;
     }, 0);
@@ -195,6 +195,11 @@ export async function getFocusStats(studentId: string) {
     };
   } catch (error) {
     log.error("Failed to get focus stats", { error, studentId });
-    return { totalMinutes: 0, totalSessions: 0, totalXP: 0, recentSessions: [] };
+    return {
+      totalMinutes: 0,
+      totalSessions: 0,
+      totalXP: 0,
+      recentSessions: [],
+    };
   }
 }

@@ -1,17 +1,22 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
-import { Prisma } from "@prisma/client";
-import { CreateHomeworkSchema, UpdateHomeworkSchema, QueryHomeworkSchema, HomeworkStatus } from "@/lib/api/schemas/homework";
+import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { trackHomeworkCompletion } from "@/lib/gamification/xp-system";
-import { 
-  getCachedHomeworkList, 
-  setCachedHomeworkList, 
-  invalidateHomeworkCache 
+import {
+  CreateHomeworkSchema,
+  type HomeworkStatus,
+  QueryHomeworkSchema,
+  UpdateHomeworkSchema,
+} from "@/lib/api/schemas/homework";
+import { auth } from "@/lib/auth/config";
+import {
+  getCachedHomeworkList,
+  invalidateHomeworkCache,
+  setCachedHomeworkList,
 } from "@/lib/cache/redis";
+import { prisma } from "@/lib/db/prisma";
+import { trackHomeworkCompletion } from "@/lib/gamification/xp-system";
 
 export type ActionState = {
   success?: boolean;
@@ -20,7 +25,9 @@ export type ActionState = {
   data?: any;
 };
 
-export async function createHomeworkAction(data: z.infer<typeof CreateHomeworkSchema>): Promise<ActionState> {
+export async function createHomeworkAction(
+  data: z.infer<typeof CreateHomeworkSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -29,9 +36,9 @@ export async function createHomeworkAction(data: z.infer<typeof CreateHomeworkSc
   // Validate input
   const validated = CreateHomeworkSchema.safeParse(data);
   if (!validated.success) {
-    return { 
-      error: "Nevalidni podaci", 
-      details: validated.error.flatten().fieldErrors 
+    return {
+      error: "Nevalidni podaci",
+      details: validated.error.flatten().fieldErrors,
     };
   }
 
@@ -82,7 +89,10 @@ export async function createHomeworkAction(data: z.infer<typeof CreateHomeworkSc
   }
 }
 
-export async function updateHomeworkAction(id: string, data: z.infer<typeof UpdateHomeworkSchema>): Promise<ActionState> {
+export async function updateHomeworkAction(
+  id: string,
+  data: z.infer<typeof UpdateHomeworkSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -90,9 +100,9 @@ export async function updateHomeworkAction(id: string, data: z.infer<typeof Upda
 
   const validated = UpdateHomeworkSchema.safeParse(data);
   if (!validated.success) {
-    return { 
-      error: "Nevalidni podaci", 
-      details: validated.error.flatten().fieldErrors 
+    return {
+      error: "Nevalidni podaci",
+      details: validated.error.flatten().fieldErrors,
     };
   }
 
@@ -119,11 +129,16 @@ export async function updateHomeworkAction(id: string, data: z.infer<typeof Upda
     const updateData: Record<string, unknown> = {};
     const validData = validated.data;
     if (validData.title !== undefined) updateData["title"] = validData.title;
-    if (validData.description !== undefined) updateData["description"] = validData.description ?? null;
-    if (validData.notes !== undefined) updateData["notes"] = validData.notes ?? null;
-    if (validData.subjectId !== undefined) updateData["subjectId"] = validData.subjectId;
-    if (validData.dueDate !== undefined) updateData["dueDate"] = validData.dueDate;
-    if (validData.priority !== undefined) updateData["priority"] = validData.priority;
+    if (validData.description !== undefined)
+      updateData["description"] = validData.description ?? null;
+    if (validData.notes !== undefined)
+      updateData["notes"] = validData.notes ?? null;
+    if (validData.subjectId !== undefined)
+      updateData["subjectId"] = validData.subjectId;
+    if (validData.dueDate !== undefined)
+      updateData["dueDate"] = validData.dueDate;
+    if (validData.priority !== undefined)
+      updateData["priority"] = validData.priority;
     if (validData.status !== undefined) updateData["status"] = validData.status;
 
     const homework = await prisma.homework.update({
@@ -170,7 +185,7 @@ export async function completeHomeworkAction(id: string): Promise<ActionState> {
 
     // Check if already completed to avoid double XP
     if (existing.status === "DONE" || existing.status === "SUBMITTED") {
-       return { error: "Zadatak je već završen" };
+      return { error: "Zadatak je već završen" };
     }
 
     const homework = await prisma.homework.update({
@@ -179,7 +194,10 @@ export async function completeHomeworkAction(id: string): Promise<ActionState> {
     });
 
     // Calculate if early
-    const dueDate = existing.dueDate instanceof Date ? existing.dueDate : new Date(existing.dueDate);
+    const dueDate =
+      existing.dueDate instanceof Date
+        ? existing.dueDate
+        : new Date(existing.dueDate);
     const isEarly = Number.isFinite(dueDate.getTime())
       ? dueDate.getTime() - Date.now() > 3 * 24 * 60 * 60 * 1000 // 3 days early
       : false;
@@ -200,7 +218,9 @@ export async function completeHomeworkAction(id: string): Promise<ActionState> {
   }
 }
 
-export async function getHomeworkAction(params: z.infer<typeof QueryHomeworkSchema>): Promise<ActionState> {
+export async function getHomeworkAction(
+  params: z.infer<typeof QueryHomeworkSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -215,9 +235,9 @@ export async function getHomeworkAction(params: z.infer<typeof QueryHomeworkSche
 
   try {
     const studentIds: string[] = [];
-    
+
     if (session.user.student?.id) {
-        studentIds.push(session.user.student.id);
+      studentIds.push(session.user.student.id);
     }
 
     // If guardian, add linked students
@@ -237,9 +257,9 @@ export async function getHomeworkAction(params: z.infer<typeof QueryHomeworkSche
         });
       }
     }
-    
+
     if (studentIds.length === 0) {
-        return { error: "Nema povezanih učenika" };
+      return { error: "Nema povezanih učenika" };
     }
 
     // Try cache for single student (most common case)
@@ -258,7 +278,9 @@ export async function getHomeworkAction(params: z.infer<typeof QueryHomeworkSche
     };
 
     if (status) {
-      where.status = Array.isArray(status) ? { in: status as HomeworkStatus[] } : status as HomeworkStatus;
+      where.status = Array.isArray(status)
+        ? { in: status as HomeworkStatus[] }
+        : (status as HomeworkStatus);
     }
     if (priority) {
       where.priority = priority;
@@ -345,21 +367,24 @@ export async function getHomeworkByIdAction(id: string): Promise<ActionState> {
 
     // Check access
     // If student, must match studentId
-    if (session.user.student && homework.studentId !== session.user.student.id) {
-       return { error: "Nemate pristup ovom zadatku" };
+    if (
+      session.user.student &&
+      homework.studentId !== session.user.student.id
+    ) {
+      return { error: "Nemate pristup ovom zadatku" };
     }
     // If guardian, must be linked to student
     if (session.user.guardian) {
-       const link = await prisma.link.findFirst({
-         where: {
-           guardianId: session.user.guardian.id,
-           studentId: homework.studentId,
-           isActive: true
-         }
-       });
-       if (!link) {
-         return { error: "Nemate pristup ovom zadatku" };
-       }
+      const link = await prisma.link.findFirst({
+        where: {
+          guardianId: session.user.guardian.id,
+          studentId: homework.studentId,
+          isActive: true,
+        },
+      });
+      if (!link) {
+        return { error: "Nemate pristup ovom zadatku" };
+      }
     }
 
     const attachments = await prisma.attachment.findMany({
@@ -436,7 +461,9 @@ const SyncItemSchema = z.object({
   data: z.any(),
 });
 
-export async function syncHomeworkAction(payload: z.infer<typeof SyncItemSchema>): Promise<ActionState> {
+export async function syncHomeworkAction(
+  payload: z.infer<typeof SyncItemSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id || !session.user.student?.id) {
     return { error: "Niste prijavljeni" };
@@ -449,9 +476,9 @@ export async function syncHomeworkAction(payload: z.infer<typeof SyncItemSchema>
     let result;
 
     switch (type) {
-      case "CREATE":
+      case "CREATE": {
         const createData = CreateHomeworkSchema.parse(data);
-        
+
         result = await prisma.homework.create({
           data: {
             title: createData.title,
@@ -465,8 +492,9 @@ export async function syncHomeworkAction(payload: z.infer<typeof SyncItemSchema>
           },
         });
         break;
+      }
 
-      case "UPDATE":
+      case "UPDATE": {
         const existing = await prisma.homework.findUnique({
           where: { id: data.id },
         });
@@ -478,17 +506,23 @@ export async function syncHomeworkAction(payload: z.infer<typeof SyncItemSchema>
         const updateData = UpdateHomeworkSchema.parse(data);
 
         const updatePayload: any = {};
-        if (updateData.title !== undefined) updatePayload.title = updateData.title;
-        if (updateData.description !== undefined) updatePayload.description = updateData.description ?? null;
-        if (updateData.subjectId !== undefined) updatePayload.subjectId = updateData.subjectId;
-        if (updateData.priority !== undefined) updatePayload.priority = updateData.priority;
-        if (updateData.status !== undefined) updatePayload.status = updateData.status;
-        if (updateData.dueDate !== undefined) updatePayload.dueDate = new Date(updateData.dueDate);
-        
+        if (updateData.title !== undefined)
+          updatePayload.title = updateData.title;
+        if (updateData.description !== undefined)
+          updatePayload.description = updateData.description ?? null;
+        if (updateData.subjectId !== undefined)
+          updatePayload.subjectId = updateData.subjectId;
+        if (updateData.priority !== undefined)
+          updatePayload.priority = updateData.priority;
+        if (updateData.status !== undefined)
+          updatePayload.status = updateData.status;
+        if (updateData.dueDate !== undefined)
+          updatePayload.dueDate = new Date(updateData.dueDate);
+
         if (updateData.status === "DONE") {
-            updatePayload.completedAt = new Date();
+          updatePayload.completedAt = new Date();
         } else if (updateData.status) {
-            updatePayload.completedAt = null;
+          updatePayload.completedAt = null;
         }
 
         result = await prisma.homework.update({
@@ -496,8 +530,9 @@ export async function syncHomeworkAction(payload: z.infer<typeof SyncItemSchema>
           data: updatePayload,
         });
         break;
+      }
 
-      case "DELETE":
+      case "DELETE": {
         const toDelete = await prisma.homework.findUnique({
           where: { id: data.id },
         });
@@ -510,6 +545,7 @@ export async function syncHomeworkAction(payload: z.infer<typeof SyncItemSchema>
           where: { id: data.id },
         });
         break;
+      }
     }
 
     // Invalidate cache

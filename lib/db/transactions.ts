@@ -3,10 +3,10 @@
  * Modern transaction utilities for safe database operations
  */
 
-import { prisma } from './prisma';
-import { log } from '@/lib/logger';
-import type { Prisma } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import type { Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { log } from "@/lib/logger";
+import { prisma } from "./prisma";
 
 /**
  * Execute a transaction with automatic retry on deadlock
@@ -45,17 +45,17 @@ export async function executeTransaction<T>(
       // Check if it's a deadlock or serialization failure (should retry)
       const isRetryableError =
         error instanceof PrismaClientKnownRequestError &&
-        (error.code === 'P2034' || // Transaction conflict
-          error.code === 'P2035' || // Transaction deadlock
-          error.code === 'P1008' || // Operations timed out
-          error.code === 'P1017'); // Server closed connection
+        (error.code === "P2034" || // Transaction conflict
+          error.code === "P2035" || // Transaction deadlock
+          error.code === "P1008" || // Operations timed out
+          error.code === "P1017"); // Server closed connection
 
       if (!isRetryableError || attempt === maxRetries - 1) {
         throw lastError;
       }
 
       // Exponential backoff
-      const delay = retryDelay * Math.pow(2, attempt);
+      const delay = retryDelay * 2 ** attempt;
       log.warn(`Transaction retry (attempt ${attempt + 1}/${maxRetries})`, {
         error: lastError.message,
         delay,
@@ -65,7 +65,7 @@ export async function executeTransaction<T>(
     }
   }
 
-  throw lastError ?? new Error('Transaction failed after all retries');
+  throw lastError ?? new Error("Transaction failed after all retries");
 }
 
 /**
@@ -105,7 +105,7 @@ export async function safeTransaction<T>(
   try {
     return await executeTransaction(callback);
   } catch (error) {
-    log.error('Transaction failed', { error });
+    log.error("Transaction failed", { error });
 
     if (fallback) {
       return fallback();
@@ -114,4 +114,3 @@ export async function safeTransaction<T>(
     return null;
   }
 }
-

@@ -7,7 +7,15 @@ interface ScheduleEntry {
   dayOfWeek: string;
   startTime: string;
   endTime: string;
-  subject?: { id: string; name: string; color?: string | undefined; icon?: string | null | undefined } | null | undefined;
+  subject?:
+    | {
+        id: string;
+        name: string;
+        color?: string | undefined;
+        icon?: string | null | undefined;
+      }
+    | null
+    | undefined;
   classroom?: string | null | undefined;
   room?: string | null | undefined;
   notes?: string | null | undefined;
@@ -58,18 +66,18 @@ export function exportScheduleToPDF(
   // ========================================
   // RASPORED TABELA
   // ========================================
-  
+
   // Pripremi podatke za tabelu
   // Kolone: Vreme, Pon, Uto, Sre, Čet, Pet
   // Redovi: Termini časova (moramo ih grupisati po vremenu ili samo listati)
-  
+
   // Jednostavniji pristup: Tabela gde je svaki dan jedna sekcija ili kolona
   // Najbolje: Kolone su dani, redovi su časovi (1. čas, 2. čas...)
-  
+
   // 1. Nađi maksimalan broj časova u danu da znamo koliko redova nam treba
   let maxLessons = 0;
-  DAYS.forEach(day => {
-    const count = schedule.filter(s => s.dayOfWeek === day.key).length;
+  DAYS.forEach((day) => {
+    const count = schedule.filter((s) => s.dayOfWeek === day.key).length;
     if (count > maxLessons) maxLessons = count;
   });
 
@@ -80,50 +88,52 @@ export function exportScheduleToPDF(
 
   for (let i = 0; i < maxLessons; i++) {
     const row: string[] = [`${i + 1}. čas`]; // Prva kolona je broj časa
-    
-    DAYS.forEach(day => {
+
+    DAYS.forEach((day) => {
       // Nađi i-ti čas za ovaj dan
       // Sortiraj po vremenu prvo
       const dayLessons = schedule
-        .filter(s => s.dayOfWeek === day.key)
+        .filter((s) => s.dayOfWeek === day.key)
         .sort((a, b) => a.startTime.localeCompare(b.startTime));
-      
+
       const lesson = dayLessons[i];
-      
+
       if (lesson) {
         const subjectName = lesson.subject?.name || "Nepoznat predmet";
         const location = lesson.classroom || lesson.room || "";
-        row.push(`${subjectName}\n${lesson.startTime}-${lesson.endTime}\n${location}`);
+        row.push(
+          `${subjectName}\n${lesson.startTime}-${lesson.endTime}\n${location}`,
+        );
       } else {
         row.push("");
       }
     });
-    
+
     tableBody.push(row);
   }
 
   autoTable(doc, {
     startY: 55,
-    head: [["", ...DAYS.map(d => d.label)]],
+    head: [["", ...DAYS.map((d) => d.label)]],
     body: tableBody,
     theme: "grid",
-    headStyles: { 
-      fillColor: [249, 115, 22], 
+    headStyles: {
+      fillColor: [249, 115, 22],
       textColor: 255,
-      halign: 'center',
-      valign: 'middle',
-      fontSize: 12
+      halign: "center",
+      valign: "middle",
+      fontSize: 12,
     },
     styles: {
       cellPadding: 3,
       fontSize: 10,
-      valign: 'middle',
-      halign: 'center',
-      overflow: 'linebreak',
-      minCellHeight: 20
+      valign: "middle",
+      halign: "center",
+      overflow: "linebreak",
+      minCellHeight: 20,
     },
     columnStyles: {
-      0: { cellWidth: 20, fontStyle: 'bold' }, // Broj časa
+      0: { cellWidth: 20, fontStyle: "bold" }, // Broj časa
       // Ostale kolone automatski
     },
   });
@@ -141,6 +151,6 @@ export function exportScheduleToPDF(
 
   const fileName = `raspored_${studentName.replace(/\s+/g, "_")}.pdf`;
   doc.save(fileName);
-  
+
   return fileName;
 }

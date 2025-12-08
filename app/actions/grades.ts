@@ -1,15 +1,15 @@
 "use server";
 
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
-import { CreateGradeSchema } from "@/lib/api/schemas/grades";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
-import { 
-  getCachedGrades, 
-  setCachedGrades, 
-  invalidateGradesCache 
+import type { z } from "zod";
+import { CreateGradeSchema } from "@/lib/api/schemas/grades";
+import { auth } from "@/lib/auth/config";
+import {
+  getCachedGrades,
+  invalidateGradesCache,
+  setCachedGrades,
 } from "@/lib/cache/redis";
+import { prisma } from "@/lib/db/prisma";
 
 export type ActionState = {
   success?: boolean;
@@ -18,7 +18,9 @@ export type ActionState = {
   data?: any;
 };
 
-export async function createGradeAction(data: z.infer<typeof CreateGradeSchema>): Promise<ActionState> {
+export async function createGradeAction(
+  data: z.infer<typeof CreateGradeSchema>,
+): Promise<ActionState> {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Niste prijavljeni" };
@@ -27,9 +29,9 @@ export async function createGradeAction(data: z.infer<typeof CreateGradeSchema>)
   // Validate input
   const validated = CreateGradeSchema.safeParse(data);
   if (!validated.success) {
-    return { 
-      error: "Nevalidni podaci", 
-      details: validated.error.flatten().fieldErrors 
+    return {
+      error: "Nevalidni podaci",
+      details: validated.error.flatten().fieldErrors,
     };
   }
 
@@ -71,7 +73,7 @@ export async function createGradeAction(data: z.infer<typeof CreateGradeSchema>)
       } as any,
     });
     */
-    
+
     // Revalidate paths
     revalidatePath("/dashboard/ocene");
     revalidatePath("/dashboard");
@@ -133,9 +135,9 @@ export async function getGradesAction(): Promise<ActionState> {
 
   try {
     const studentIds: string[] = [];
-    
+
     if (session.user.student?.id) {
-        studentIds.push(session.user.student.id);
+      studentIds.push(session.user.student.id);
     }
 
     if (session.user.guardian) {
@@ -154,9 +156,9 @@ export async function getGradesAction(): Promise<ActionState> {
         });
       }
     }
-    
+
     if (studentIds.length === 0) {
-        return { error: "Nema povezanih učenika" };
+      return { error: "Nema povezanih učenika" };
     }
 
     // Try cache for single student

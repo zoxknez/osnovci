@@ -3,10 +3,10 @@
  * Extends basic rate limiting with role-based limits and violation tracking
  */
 
-import { NextRequest } from "next/server";
-import { redis, isRedisConfigured } from "@/lib/upstash";
-import { log } from "@/lib/logger";
+import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth/config";
+import { log } from "@/lib/logger";
+import { isRedisConfigured, redis } from "@/lib/upstash";
 
 /**
  * User roles with different rate limits
@@ -117,7 +117,7 @@ async function getUserRole(_request: NextRequest): Promise<UserRole> {
   try {
     const session = await auth();
     if (!session?.user) return "UNAUTHENTICATED";
-    
+
     return (session.user.role as UserRole) || "STUDENT";
   } catch {
     return "UNAUTHENTICATED";
@@ -132,7 +132,7 @@ function getIdentifier(request: NextRequest, userId?: string): string {
     request.headers.get("x-forwarded-for")?.split(",")[0] ||
     request.headers.get("x-real-ip") ||
     "unknown";
-  
+
   return userId ? `${ip}:${userId}` : ip;
 }
 
@@ -140,7 +140,7 @@ function getIdentifier(request: NextRequest, userId?: string): string {
  * Get violation record from Redis
  */
 async function getViolationRecord(
-  identifier: string
+  identifier: string,
 ): Promise<ViolationRecord> {
   if (!isRedisConfigured() || !redis) {
     return { count: 0, firstViolation: 0, lastViolation: 0, blocked: false };
@@ -149,7 +149,7 @@ async function getViolationRecord(
   try {
     const key = `ratelimit:violations:${identifier}`;
     const data = await redis.get<string>(key);
-    
+
     if (!data) {
       return { count: 0, firstViolation: 0, lastViolation: 0, blocked: false };
     }
@@ -166,7 +166,7 @@ async function getViolationRecord(
  */
 async function updateViolationRecord(
   identifier: string,
-  record: ViolationRecord
+  record: ViolationRecord,
 ): Promise<void> {
   if (!isRedisConfigured() || !redis) return;
 
@@ -185,7 +185,9 @@ async function updateViolationRecord(
 function getBackoffMultiplier(violations: number): number {
   if (violations <= 0) return 1;
   if (violations >= 6) return BACKOFF_MULTIPLIERS[6];
-  return BACKOFF_MULTIPLIERS[violations as keyof typeof BACKOFF_MULTIPLIERS] || 1;
+  return (
+    BACKOFF_MULTIPLIERS[violations as keyof typeof BACKOFF_MULTIPLIERS] || 1
+  );
 }
 
 /**
@@ -193,7 +195,7 @@ function getBackoffMultiplier(violations: number): number {
  */
 export async function enhancedRateLimit(
   request: NextRequest,
-  preset: keyof typeof TieredRateLimitPresets
+  preset: keyof typeof TieredRateLimitPresets,
 ): Promise<EnhancedRateLimitResult> {
   const role = await getUserRole(request);
   const config = TieredRateLimitPresets[preset][role];
@@ -209,11 +211,11 @@ export async function enhancedRateLimit(
   }
 
   const identifier = getIdentifier(request, userId);
-  
+
   // Check for existing violations
   const violationRecord = await getViolationRecord(identifier);
   const backoffMultiplier = getBackoffMultiplier(violationRecord.count);
-  
+
   // Check if currently blocked
   const now = Date.now();
   if (violationRecord.blocked && violationRecord.blockedUntil) {
@@ -270,7 +272,7 @@ export async function enhancedRateLimit(
       if (violationRecord.count >= 5) {
         const blockDuration = Math.min(
           3600000, // Max 1 hour
-          60000 * Math.pow(2, violationRecord.count - 5) // Exponential: 1min, 2min, 4min, 8min...
+          60000 * 2 ** (violationRecord.count - 5), // Exponential: 1min, 2min, 4min, 8min...
         );
         violationRecord.blocked = true;
         violationRecord.blockedUntil = now + blockDuration;
@@ -339,11 +341,12 @@ export async function enhancedRateLimit(
 export async function getRateLimitStatus(
   request: NextRequest | { headers: Headers },
   preset: keyof typeof TieredRateLimitPresets,
-  userId?: string
+  userId?: string,
 ): Promise<EnhancedRateLimitResult> {
   // Mock request if needed or extract headers
-  const headers = request instanceof Request ? request.headers : request.headers;
-  
+  const headers =
+    request instanceof Request ? request.headers : request.headers;
+
   // Get role
   let role: UserRole = "UNAUTHENTICATED";
   if (userId) {
@@ -375,13 +378,13 @@ export async function getRateLimitStatus(
     headers.get("x-forwarded-for")?.split(",")[0] ||
     headers.get("x-real-ip") ||
     "unknown";
-  
+
   const identifier = userId ? `${ip}:${userId}` : ip;
-  
+
   // Check for existing violations
   const violationRecord = await getViolationRecord(identifier);
   const backoffMultiplier = getBackoffMultiplier(violationRecord.count);
-  
+
   // Check if currently blocked
   const now = Date.now();
   if (violationRecord.blocked && violationRecord.blockedUntil) {
@@ -470,7 +473,7 @@ export async function resetViolations(identifier: string): Promise<void> {
  * Get violation statistics for monitoring
  */
 export async function getViolationStats(
-  identifier: string
+  identifier: string,
 ): Promise<ViolationRecord | null> {
   return getViolationRecord(identifier);
 }

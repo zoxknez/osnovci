@@ -5,13 +5,13 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { Clock, Coffee, Eye, Activity, Droplet } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { Activity, Clock, Coffee, Droplet, Eye } from "lucide-react";
+import { useEffect, useState } from "react";
 import { showSuccessToast } from "@/components/features/error-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 interface BreakActivity {
   type: "stretch" | "walk" | "eye_rest" | "water" | "full_break";
@@ -99,7 +99,9 @@ export function BreakReminder({
 }: BreakReminderProps) {
   const [studyTime, setStudyTime] = useState(0); // seconds
   const [showBreak, setShowBreak] = useState(false);
-  const [currentActivity, setCurrentActivity] = useState<BreakActivity | null>(null);
+  const [currentActivity, setCurrentActivity] = useState<BreakActivity | null>(
+    null,
+  );
   const [breakTimeRemaining, setBreakTimeRemaining] = useState(0);
   const [breakActive, setBreakActive] = useState(false);
 
@@ -108,18 +110,28 @@ export function BreakReminder({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - studyStartTime.getTime()) / 1000);
+      const elapsed = Math.floor(
+        (Date.now() - studyStartTime.getTime()) / 1000,
+      );
       setStudyTime(elapsed);
 
       // Check if it's time for a break
-      if (elapsed >= FULL_BREAK_INTERVAL && elapsed % FULL_BREAK_INTERVAL < 60) {
+      if (
+        elapsed >= FULL_BREAK_INTERVAL &&
+        elapsed % FULL_BREAK_INTERVAL < 60
+      ) {
         // Full break every 90 minutes
-        setCurrentActivity(BREAK_ACTIVITIES.find((a) => a.type === "full_break") || null);
+        setCurrentActivity(
+          BREAK_ACTIVITIES.find((a) => a.type === "full_break") || null,
+        );
         setShowBreak(true);
       } else if (elapsed >= BREAK_INTERVAL && elapsed % BREAK_INTERVAL < 60) {
         // Regular break every 45 minutes
-        const activities = BREAK_ACTIVITIES.filter((a) => a.type !== "full_break");
-        const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+        const activities = BREAK_ACTIVITIES.filter(
+          (a) => a.type !== "full_break",
+        );
+        const randomActivity =
+          activities[Math.floor(Math.random() * activities.length)];
         setCurrentActivity(randomActivity ?? null);
         setShowBreak(true);
       }
@@ -132,7 +144,7 @@ export function BreakReminder({
     if (!breakActive || !currentActivity) {
       return;
     }
-    
+
     const interval = setInterval(() => {
       setBreakTimeRemaining((prev) => {
         if (prev <= 1) {
@@ -219,7 +231,9 @@ export function BreakReminder({
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">{currentActivity.title}</h3>
-                  <p className="text-sm text-gray-600">{currentActivity.description}</p>
+                  <p className="text-sm text-gray-600">
+                    {currentActivity.description}
+                  </p>
                 </div>
               </div>
 
@@ -227,7 +241,10 @@ export function BreakReminder({
                 <p className="font-medium">Uputstva:</p>
                 <ul className="space-y-1">
                   {currentActivity.instructions.map((instruction, idx) => (
-                    <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                    <li
+                      key={idx}
+                      className="text-sm text-gray-700 flex items-start gap-2"
+                    >
                       <span className="text-blue-500 mt-1">•</span>
                       <span>{instruction}</span>
                     </li>
@@ -284,4 +301,3 @@ export function BreakReminder({
     </>
   );
 }
-

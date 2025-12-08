@@ -8,8 +8,8 @@ import {
   isAccountLocked,
   recordLoginAttempt,
 } from "@/lib/auth/account-lockout";
-import { createSession } from "@/lib/auth/session-manager";
 import { validateSessionCached } from "@/lib/auth/session-cache";
+import { createSession } from "@/lib/auth/session-manager";
 import { prisma } from "@/lib/db/prisma";
 
 // ✅ Validate NEXTAUTH_SECRET exists
@@ -146,7 +146,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.locale = user.locale;
         token.theme = user.theme;
-        if (user.emailVerified !== undefined) token.emailVerified = user.emailVerified;
+        if (user.emailVerified !== undefined)
+          token.emailVerified = user.emailVerified;
         if (user.student !== undefined) token.student = user.student;
         if (user.guardian !== undefined) token.guardian = user.guardian;
 
@@ -165,11 +166,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // 🛡️ CRITICAL SECURITY: Check JWT blacklist
       // Prevents stolen JWT access after logout/password change
       if (token.sessionToken) {
-        const { isTokenBlacklisted } = await import('@/lib/auth/jwt-blacklist');
-        const blacklisted = await isTokenBlacklisted(token.sessionToken as string);
-        
+        const { isTokenBlacklisted } = await import("@/lib/auth/jwt-blacklist");
+        const blacklisted = await isTokenBlacklisted(
+          token.sessionToken as string,
+        );
+
         if (blacklisted) {
-          throw new Error('Token has been revoked');
+          throw new Error("Token has been revoked");
         }
       }
 

@@ -1,6 +1,14 @@
+import {
+  BookOpen,
+  Bot,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Users,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Bot, Users, Calendar, BookOpen, CheckCircle2, Zap } from "lucide-react";
 
 interface QuickStatsProps {
   todayClassesCount: number;
@@ -8,10 +16,14 @@ interface QuickStatsProps {
   completedHomeworkCount: number;
 }
 
-export function QuickStats({ todayClassesCount, activeHomeworkCount, completedHomeworkCount }: QuickStatsProps) {
+export function QuickStats({
+  todayClassesCount,
+  activeHomeworkCount,
+  completedHomeworkCount,
+}: QuickStatsProps) {
   return (
     <>
-    <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         <div>
           <Link href="/dashboard/fokus">
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-xl transition-all cursor-pointer group">
@@ -26,10 +38,7 @@ export function QuickStats({ todayClassesCount, activeHomeworkCount, completedHo
                     </p>
                   </div>
                   <div className="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-transform">
-                    <Clock
-                      className="h-7 w-7 text-white"
-                      aria-hidden="true"
-                    />
+                    <Clock className="h-7 w-7 text-white" aria-hidden="true" />
                   </div>
                 </div>
               </CardContent>
@@ -51,10 +60,7 @@ export function QuickStats({ todayClassesCount, activeHomeworkCount, completedHo
                     </p>
                   </div>
                   <div className="h-14 w-14 rounded-full bg-purple-600 flex items-center justify-center group-hover:scale-110 group-hover:-rotate-12 transition-transform">
-                    <Bot
-                      className="h-7 w-7 text-white"
-                      aria-hidden="true"
-                    />
+                    <Bot className="h-7 w-7 text-white" aria-hidden="true" />
                   </div>
                 </div>
               </CardContent>
@@ -76,10 +82,7 @@ export function QuickStats({ todayClassesCount, activeHomeworkCount, completedHo
                     </p>
                   </div>
                   <div className="h-14 w-14 rounded-full bg-green-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Users
-                      className="h-7 w-7 text-white"
-                      aria-hidden="true"
-                    />
+                    <Users className="h-7 w-7 text-white" aria-hidden="true" />
                   </div>
                 </div>
               </CardContent>
@@ -166,6 +169,6 @@ export function QuickStats({ todayClassesCount, activeHomeworkCount, completedHo
           </Card>
         </div>
       </div>
-      </>
+    </>
   );
 }

@@ -26,7 +26,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { staggerItem } from "@/lib/animations/variants";
 import type { ProfileData, ProfileUpdateHandler } from "./types";
-import { BLOOD_TYPE_OPTIONS, calculateBMI, formatDateSafe, getDateDisplayValue } from "./utils";
+import {
+  BLOOD_TYPE_OPTIONS,
+  calculateBMI,
+  formatDateSafe,
+  getDateDisplayValue,
+} from "./utils";
 
 interface UserStats {
   xp: number;
@@ -52,12 +57,12 @@ export function GamificationSection({ stats }: { stats: UserStats | null }) {
             Napredak i Postignuća
           </CardTitle>
         </CardHeader>
-        <CardContent 
+        <CardContent
           className="grid gap-4 sm:grid-cols-3"
           role="region"
           aria-label="Statistika napretka"
         >
-          <div 
+          <div
             className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center"
             role="group"
             aria-label={`Ukupno ${stats?.xp || 0} XP bodova`}
@@ -71,7 +76,7 @@ export function GamificationSection({ stats }: { stats: UserStats | null }) {
             </div>
           </div>
 
-          <div 
+          <div
             className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center"
             role="group"
             aria-label={`Nivo ${stats?.level || 1}`}
@@ -85,7 +90,7 @@ export function GamificationSection({ stats }: { stats: UserStats | null }) {
             </div>
           </div>
 
-          <div 
+          <div
             className="p-4 bg-white rounded-xl shadow-sm border border-indigo-100 text-center"
             role="group"
             aria-label={`${stats?.streak || 0} dana u nizu`}
@@ -189,7 +194,7 @@ export function PhysicalSection({
   // Memoize BMI calculation to avoid recalculating on every render
   const bmiValue = useMemo(
     () => calculateBMI(profile.height, profile.weight),
-    [profile.height, profile.weight]
+    [profile.height, profile.weight],
   );
 
   return (
@@ -235,7 +240,7 @@ export function PhysicalSection({
           />
 
           <StaticField label="BMI">
-            <div 
+            <div
               className="p-3 bg-gray-50 rounded-lg text-center"
               role="group"
               aria-label={`BMI indeks: ${bmiValue}`}
@@ -292,7 +297,7 @@ export function HealthSection({
   onChange,
 }: HealthSectionProps) {
   const bloodTypeSelectId = useId();
-  
+
   const handleCommaSeparated = (value: string) =>
     value
       .split(",")

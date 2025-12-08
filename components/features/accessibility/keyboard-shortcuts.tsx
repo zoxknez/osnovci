@@ -5,10 +5,10 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Keyboard } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface Shortcut {
@@ -62,7 +62,7 @@ export function KeyboardShortcuts({
     <div
       className={cn(
         "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm",
-        !showModal && "hidden"
+        !showModal && "hidden",
       )}
       onClick={() => setShowModal(false)}
     >
@@ -83,7 +83,9 @@ export function KeyboardShortcuts({
                 key={idx}
                 className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50"
               >
-                <span className="text-sm text-gray-600">{shortcut.description}</span>
+                <span className="text-sm text-gray-600">
+                  {shortcut.description}
+                </span>
                 <div className="flex items-center gap-1">
                   {shortcut.keys.map((key, keyIdx) => (
                     <Badge
@@ -106,4 +108,3 @@ export function KeyboardShortcuts({
     </div>
   );
 }
-

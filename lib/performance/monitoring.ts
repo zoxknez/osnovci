@@ -80,11 +80,36 @@ export function useWebVitals() {
 
     // Dynamically import web-vitals to reduce bundle size
     import("web-vitals").then(({ onCLS, onFCP, onINP, onLCP, onTTFB }) => {
-      onCLS((metric) => logWebVital({ ...metric as any, rating: getMetricRating("CLS", metric.value) }));
-      onFCP((metric) => logWebVital({ ...metric as any, rating: getMetricRating("FCP", metric.value) }));
-      onINP((metric) => logWebVital({ ...metric as any, rating: getMetricRating("FID", metric.value) })); // INP replaced FID
-      onLCP((metric) => logWebVital({ ...metric as any, rating: getMetricRating("LCP", metric.value) }));
-      onTTFB((metric) => logWebVital({ ...metric as any, rating: getMetricRating("TTFB", metric.value) }));
+      onCLS((metric) =>
+        logWebVital({
+          ...(metric as any),
+          rating: getMetricRating("CLS", metric.value),
+        }),
+      );
+      onFCP((metric) =>
+        logWebVital({
+          ...(metric as any),
+          rating: getMetricRating("FCP", metric.value),
+        }),
+      );
+      onINP((metric) =>
+        logWebVital({
+          ...(metric as any),
+          rating: getMetricRating("FID", metric.value),
+        }),
+      ); // INP replaced FID
+      onLCP((metric) =>
+        logWebVital({
+          ...(metric as any),
+          rating: getMetricRating("LCP", metric.value),
+        }),
+      );
+      onTTFB((metric) =>
+        logWebVital({
+          ...(metric as any),
+          rating: getMetricRating("TTFB", metric.value),
+        }),
+      );
     });
   }, []);
 }
@@ -100,7 +125,11 @@ export const performanceMark = {
   },
 
   end: (name: string) => {
-    if (typeof performance !== "undefined" && performance.mark && performance.measure) {
+    if (
+      typeof performance !== "undefined" &&
+      performance.mark &&
+      performance.measure
+    ) {
       performance.mark(`${name}-end`);
       try {
         performance.measure(name, `${name}-start`, `${name}-end`);
@@ -124,7 +153,7 @@ export const performanceMark = {
 export function useRenderTime(componentName: string) {
   useEffect(() => {
     performanceMark.start(`render-${componentName}`);
-    
+
     return () => {
       performanceMark.end(`render-${componentName}`);
     };
@@ -139,26 +168,26 @@ export async function measureApiCall<T>(
   apiCall: () => Promise<T>,
 ): Promise<T> {
   const startTime = performance.now();
-  
+
   try {
     const result = await apiCall();
     const duration = performance.now() - startTime;
-    
+
     log.info("API call completed", {
       endpoint: name,
       duration: `${duration.toFixed(2)}ms`,
       status: "success",
     });
-    
+
     return result;
   } catch (error) {
     const duration = performance.now() - startTime;
-    
+
     log.error("API call failed", error as Error, {
       endpoint: name,
       duration: `${duration.toFixed(2)}ms`,
     });
-    
+
     throw error;
   }
 }
@@ -174,7 +203,10 @@ export function isLowEndDevice(): boolean {
 
   // Check effective connection type
   if (connection) {
-    if (connection.effectiveType === "slow-2g" || connection.effectiveType === "2g") {
+    if (
+      connection.effectiveType === "slow-2g" ||
+      connection.effectiveType === "2g"
+    ) {
       return true;
     }
     if (connection.saveData) {

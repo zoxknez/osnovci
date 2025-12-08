@@ -88,7 +88,7 @@ const MINIMAL_CONFIG = {
  */
 export function sanitizeHtml(
   html: string,
-  mode: "strict" | "minimal" = "strict"
+  mode: "strict" | "minimal" = "strict",
 ): string {
   if (!html || typeof html !== "string") {
     return "";
@@ -200,7 +200,7 @@ export function testSanitization(): void {
     },
     {
       name: "XSS via onerror",
-      input: '<img src=x onerror="alert(\'XSS\')">',
+      input: "<img src=x onerror=\"alert('XSS')\">",
       expected: "",
     },
     {
@@ -210,7 +210,7 @@ export function testSanitization(): void {
     },
     {
       name: "Link with javascript:",
-      input: '<a href="javascript:alert(\'XSS\')">Click</a>',
+      input: "<a href=\"javascript:alert('XSS')\">Click</a>",
       expected: "<a>Click</a>", // href removed
     },
     {
@@ -240,8 +240,8 @@ export function testSanitization(): void {
 
   console.log("🔍 XSS Pattern Detection Test:\n");
   const xssTests = [
-    { input: '<script>alert(1)</script>', expected: true },
-    { input: '<img src=x onerror=alert(1)>', expected: true },
+    { input: "<script>alert(1)</script>", expected: true },
+    { input: "<img src=x onerror=alert(1)>", expected: true },
     { input: '<a href="javascript:void(0)">Link</a>', expected: true },
     { input: "<p>Normal text</p>", expected: false },
   ];
@@ -268,13 +268,16 @@ export function testSanitization(): void {
 export function sanitizeRequestBody<T extends Record<string, any>>(
   body: T,
   fields: (keyof T)[],
-  mode: "strict" | "minimal" = "strict"
+  mode: "strict" | "minimal" = "strict",
 ): T {
   const sanitized = { ...body };
 
   for (const field of fields) {
     if (typeof sanitized[field] === "string") {
-      (sanitized[field] as any) = sanitizeHtml(sanitized[field] as string, mode);
+      (sanitized[field] as any) = sanitizeHtml(
+        sanitized[field] as string,
+        mode,
+      );
     }
   }
 

@@ -270,7 +270,7 @@ export async function generateAllWeeklyReports(): Promise<
           return null;
         }
       }),
-      10 // Process 10 students at a time
+      10, // Process 10 students at a time
     );
 
     const successful = reports.filter((r) => r !== null) as Array<{

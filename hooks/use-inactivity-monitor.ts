@@ -12,22 +12,22 @@ interface InactivityConfig {
    * Timeout in milliseconds (default: 30 minutes)
    */
   timeout?: number;
-  
+
   /**
    * Warning before logout in milliseconds (default: 2 minutes)
    */
   warningTime?: number;
-  
+
   /**
    * Callback when user is about to be logged out
    */
   onWarning?: (remainingSeconds: number) => void;
-  
+
   /**
    * Callback when user is logged out
    */
   onLogout?: () => void;
-  
+
   /**
    * Disable inactivity monitoring
    */
@@ -39,28 +39,28 @@ const DEFAULT_WARNING_TIME = 2 * 60 * 1000; // 2 minutes
 
 /**
  * Hook for monitoring user inactivity and automatic logout
- * 
+ *
  * Tracks mouse movement, keyboard input, touch events, and scrolling.
  * Shows warning before logout, allowing user to extend session.
- * 
+ *
  * @example
  * ```tsx
  * function App() {
- *   const { 
- *     remainingTime, 
- *     showWarning, 
- *     resetInactivity 
+ *   const {
+ *     remainingTime,
+ *     showWarning,
+ *     resetInactivity
  *   } = useInactivityMonitor({
  *     timeout: 30 * 60 * 1000, // 30 minutes
  *     onWarning: (seconds) => {
  *       showToast(`Bićeš odjavljen za ${seconds} sekundi`);
  *     },
  *   });
- *   
+ *
  *   return (
  *     <>
  *       {showWarning && (
- *         <InactivityWarning 
+ *         <InactivityWarning
  *           seconds={remainingTime}
  *           onExtend={resetInactivity}
  *         />
@@ -93,7 +93,7 @@ export function useInactivityMonitor(config: InactivityConfig = {}) {
     setLastActivity(Date.now());
     setShowWarning(false);
     warningShownRef.current = false;
-    
+
     // Clear existing timers
     if (logoutTimerRef.current) {
       clearTimeout(logoutTimerRef.current);
@@ -108,13 +108,13 @@ export function useInactivityMonitor(config: InactivityConfig = {}) {
    */
   const forceLogout = async () => {
     log.info("Automatic logout due to inactivity");
-    
+
     if (onLogout) {
       onLogout();
     }
-    
+
     // Sign out with redirect to login
-    await signOut({ 
+    await signOut({
       callbackUrl: "/prijava?reason=inactivity",
       redirect: true,
     });
@@ -133,7 +133,7 @@ export function useInactivityMonitor(config: InactivityConfig = {}) {
     // Events to track
     const events = [
       "mousedown",
-      "mousemove", 
+      "mousemove",
       "keydown",
       "scroll",
       "touchstart",
@@ -171,9 +171,7 @@ export function useInactivityMonitor(config: InactivityConfig = {}) {
         warningShownRef.current = true;
 
         // Calculate remaining seconds
-        const remaining = Math.floor(
-          (timeout - timeSinceLastActivity) / 1000
-        );
+        const remaining = Math.floor((timeout - timeSinceLastActivity) / 1000);
         setRemainingTime(remaining);
 
         if (onWarning) {
@@ -183,9 +181,9 @@ export function useInactivityMonitor(config: InactivityConfig = {}) {
         // Start countdown
         countdownTimerRef.current = setInterval(() => {
           const newRemaining = Math.floor(
-            (timeout - (Date.now() - lastActivity)) / 1000
+            (timeout - (Date.now() - lastActivity)) / 1000,
           );
-          
+
           if (newRemaining <= 0) {
             if (countdownTimerRef.current) {
               clearInterval(countdownTimerRef.current);
@@ -222,17 +220,17 @@ export function useInactivityMonitor(config: InactivityConfig = {}) {
      * Time remaining before logout (in seconds)
      */
     remainingTime,
-    
+
     /**
      * Whether warning is currently shown
      */
     showWarning,
-    
+
     /**
      * Reset inactivity timer (extends session)
      */
     resetInactivity,
-    
+
     /**
      * Force logout immediately
      */

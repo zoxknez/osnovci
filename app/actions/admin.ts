@@ -1,10 +1,10 @@
 "use server";
 
+import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import prisma from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { z } from "zod";
-import { redis, isRedisConfigured } from "@/lib/upstash";
+import { isRedisConfigured, redis } from "@/lib/upstash";
 
 type ActionResponse<T = any> = {
   data?: T;
@@ -19,7 +19,7 @@ export async function getModerationLogsAction(
     flagged?: boolean;
     contentType?: string;
     userId?: string;
-  } = {}
+  } = {},
 ): Promise<ActionResponse> {
   try {
     const session = await auth();
@@ -70,7 +70,7 @@ const reviewSchema = z.object({
 
 export async function reviewModerationLogAction(
   id: string,
-  data: z.infer<typeof reviewSchema>
+  data: z.infer<typeof reviewSchema>,
 ): Promise<ActionResponse> {
   try {
     const session = await auth();
@@ -158,9 +158,7 @@ export async function getRateLimitViolationsAction(): Promise<ActionResponse> {
 
         // Check if still blocked
         const isBlocked =
-          record.blocked &&
-          record.blockedUntil &&
-          now < record.blockedUntil;
+          record.blocked && record.blockedUntil && now < record.blockedUntil;
 
         violations.push({
           identifier,
@@ -202,7 +200,7 @@ export async function getRateLimitViolationsAction(): Promise<ActionResponse> {
 }
 
 export async function resetRateLimitViolationsAction(
-  identifier: string
+  identifier: string,
 ): Promise<ActionResponse> {
   try {
     const session = await auth();

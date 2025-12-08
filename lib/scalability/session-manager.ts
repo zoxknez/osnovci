@@ -3,18 +3,18 @@
  * Enables horizontal scaling by storing sessions in Redis
  */
 
-import { Redis } from '@upstash/redis';
-import { log } from '@/lib/logger';
-import { v4 as uuidv4 } from 'uuid';
+import { Redis } from "@upstash/redis";
+import { v4 as uuidv4 } from "uuid";
+import { log } from "@/lib/logger";
 
 // Initialize Redis client
 const redis = new Redis({
-  url: process.env['UPSTASH_REDIS_REST_URL']!,
-  token: process.env['UPSTASH_REDIS_REST_TOKEN']!,
+  url: process.env["UPSTASH_REDIS_REST_URL"]!,
+  token: process.env["UPSTASH_REDIS_REST_TOKEN"]!,
 });
 
 // Session configuration
-const SESSION_PREFIX = 'session:';
+const SESSION_PREFIX = "session:";
 const SESSION_TTL = 24 * 60 * 60; // 24 hours
 const REFRESH_TOKEN_TTL = 30 * 24 * 60 * 60; // 30 days
 
@@ -51,10 +51,10 @@ export async function createSession(
   role: string,
   ipAddress: string,
   userAgent: string,
-  deviceId?: string
+  deviceId?: string,
 ): Promise<string> {
   const sessionId = uuidv4();
-  
+
   const sessionData: SessionData = {
     userId,
     email,
@@ -69,37 +69,39 @@ export async function createSession(
   await redis.setex(
     `${SESSION_PREFIX}${sessionId}`,
     SESSION_TTL,
-    JSON.stringify(sessionData)
+    JSON.stringify(sessionData),
   );
 
-  log.info('Session created', { sessionId, userId });
+  log.info("Session created", { sessionId, userId });
   return sessionId;
 }
 
 /**
  * Get session data
  */
-export async function getSession(sessionId: string): Promise<SessionData | null> {
+export async function getSession(
+  sessionId: string,
+): Promise<SessionData | null> {
   try {
     const data = await redis.get<string>(`${SESSION_PREFIX}${sessionId}`);
-    
+
     if (!data) {
       return null;
     }
 
     const session = JSON.parse(data) as SessionData;
-    
+
     // Update last activity
     session.lastActivity = Date.now();
     await redis.setex(
       `${SESSION_PREFIX}${sessionId}`,
       SESSION_TTL,
-      JSON.stringify(session)
+      JSON.stringify(session),
     );
 
     return session;
   } catch (error) {
-    log.error('Failed to get session', error as Error, { sessionId });
+    log.error("Failed to get session", error as Error, { sessionId });
     return null;
   }
 }
@@ -109,11 +111,11 @@ export async function getSession(sessionId: string): Promise<SessionData | null>
  */
 export async function updateSession(
   sessionId: string,
-  updates: Partial<SessionData>
+  updates: Partial<SessionData>,
 ): Promise<boolean> {
   try {
     const session = await getSession(sessionId);
-    
+
     if (!session) {
       return false;
     }
@@ -127,13 +129,13 @@ export async function updateSession(
     await redis.setex(
       `${SESSION_PREFIX}${sessionId}`,
       SESSION_TTL,
-      JSON.stringify(updatedSession)
+      JSON.stringify(updatedSession),
     );
 
-    log.info('Session updated', { sessionId, updates: Object.keys(updates) });
+    log.info("Session updated", { sessionId, updates: Object.keys(updates) });
     return true;
   } catch (error) {
-    log.error('Failed to update session', error as Error, { sessionId });
+    log.error("Failed to update session", error as Error, { sessionId });
     return false;
   }
 }
@@ -144,16 +146,18 @@ export async function updateSession(
 export async function deleteSession(sessionId: string): Promise<void> {
   try {
     await redis.del(`${SESSION_PREFIX}${sessionId}`);
-    log.info('Session deleted', { sessionId });
+    log.info("Session deleted", { sessionId });
   } catch (error) {
-    log.error('Failed to delete session', error as Error, { sessionId });
+    log.error("Failed to delete session", error as Error, { sessionId });
   }
 }
 
 /**
  * Get all sessions for user
  */
-export async function getUserSessions(userId: string): Promise<Array<SessionData & { sessionId: string }>> {
+export async function getUserSessions(
+  userId: string,
+): Promise<Array<SessionData & { sessionId: string }>> {
   try {
     const keys = await redis.keys(`${SESSION_PREFIX}*`);
     const sessions: Array<SessionData & { sessionId: string }> = [];
@@ -165,7 +169,7 @@ export async function getUserSessions(userId: string): Promise<Array<SessionData
         if (session.userId === userId) {
           sessions.push({
             ...session,
-            sessionId: key.replace(SESSION_PREFIX, ''),
+            sessionId: key.replace(SESSION_PREFIX, ""),
           });
         }
       }
@@ -173,7 +177,7 @@ export async function getUserSessions(userId: string): Promise<Array<SessionData
 
     return sessions;
   } catch (error) {
-    log.error('Failed to get user sessions', error as Error, { userId });
+    log.error("Failed to get user sessions", error as Error, { userId });
     return [];
   }
 }
@@ -184,14 +188,14 @@ export async function getUserSessions(userId: string): Promise<Array<SessionData
 export async function deleteUserSessions(userId: string): Promise<void> {
   try {
     const sessions = await getUserSessions(userId);
-    
+
     for (const session of sessions) {
       await deleteSession(session.sessionId);
     }
 
-    log.info('All user sessions deleted', { userId, count: sessions.length });
+    log.info("All user sessions deleted", { userId, count: sessions.length });
   } catch (error) {
-    log.error('Failed to delete user sessions', error as Error, { userId });
+    log.error("Failed to delete user sessions", error as Error, { userId });
   }
 }
 
@@ -209,16 +213,16 @@ export async function isSessionActive(sessionId: string): Promise<boolean> {
 export async function extendSession(sessionId: string): Promise<boolean> {
   try {
     const session = await getSession(sessionId);
-    
+
     if (!session) {
       return false;
     }
 
     await redis.expire(`${SESSION_PREFIX}${sessionId}`, SESSION_TTL);
-    log.info('Session extended', { sessionId });
+    log.info("Session extended", { sessionId });
     return true;
   } catch (error) {
-    log.error('Failed to extend session', error as Error, { sessionId });
+    log.error("Failed to extend session", error as Error, { sessionId });
     return false;
   }
 }
@@ -227,7 +231,7 @@ export async function extendSession(sessionId: string): Promise<boolean> {
 // REFRESH TOKEN MANAGEMENT
 // ============================================
 
-const REFRESH_TOKEN_PREFIX = 'refresh:';
+const REFRESH_TOKEN_PREFIX = "refresh:";
 
 /**
  * Create refresh token
@@ -236,15 +240,15 @@ export async function createRefreshToken(
   userId: string,
   sessionId: string,
   ipAddress: string,
-  userAgent: string
+  userAgent: string,
 ): Promise<string> {
   const tokenId = uuidv4();
-  
+
   const refreshToken: RefreshToken = {
     userId,
     sessionId,
     createdAt: Date.now(),
-    expiresAt: Date.now() + (REFRESH_TOKEN_TTL * 1000),
+    expiresAt: Date.now() + REFRESH_TOKEN_TTL * 1000,
     ipAddress,
     userAgent,
   };
@@ -252,26 +256,28 @@ export async function createRefreshToken(
   await redis.setex(
     `${REFRESH_TOKEN_PREFIX}${tokenId}`,
     REFRESH_TOKEN_TTL,
-    JSON.stringify(refreshToken)
+    JSON.stringify(refreshToken),
   );
 
-  log.info('Refresh token created', { tokenId, userId });
+  log.info("Refresh token created", { tokenId, userId });
   return tokenId;
 }
 
 /**
  * Verify refresh token
  */
-export async function verifyRefreshToken(tokenId: string): Promise<RefreshToken | null> {
+export async function verifyRefreshToken(
+  tokenId: string,
+): Promise<RefreshToken | null> {
   try {
     const data = await redis.get<string>(`${REFRESH_TOKEN_PREFIX}${tokenId}`);
-    
+
     if (!data) {
       return null;
     }
 
     const token = JSON.parse(data) as RefreshToken;
-    
+
     // Check if expired
     if (token.expiresAt < Date.now()) {
       await redis.del(`${REFRESH_TOKEN_PREFIX}${tokenId}`);
@@ -280,7 +286,7 @@ export async function verifyRefreshToken(tokenId: string): Promise<RefreshToken 
 
     return token;
   } catch (error) {
-    log.error('Failed to verify refresh token', error as Error, { tokenId });
+    log.error("Failed to verify refresh token", error as Error, { tokenId });
     return null;
   }
 }
@@ -291,9 +297,9 @@ export async function verifyRefreshToken(tokenId: string): Promise<RefreshToken 
 export async function deleteRefreshToken(tokenId: string): Promise<void> {
   try {
     await redis.del(`${REFRESH_TOKEN_PREFIX}${tokenId}`);
-    log.info('Refresh token deleted', { tokenId });
+    log.info("Refresh token deleted", { tokenId });
   } catch (error) {
-    log.error('Failed to delete refresh token', error as Error, { tokenId });
+    log.error("Failed to delete refresh token", error as Error, { tokenId });
   }
 }
 
@@ -309,7 +315,7 @@ export async function getActiveSessionsCount(): Promise<number> {
     const keys = await redis.keys(`${SESSION_PREFIX}*`);
     return keys.length;
   } catch (error) {
-    log.error('Failed to get active sessions count', error as Error);
+    log.error("Failed to get active sessions count", error as Error);
     return 0;
   }
 }
@@ -337,12 +343,16 @@ export async function getSessionsByDevice(): Promise<{
       if (data) {
         const session = JSON.parse(data) as SessionData;
         const ua = session.userAgent.toLowerCase();
-        
-        if (ua.includes('mobile')) {
+
+        if (ua.includes("mobile")) {
           stats.mobile++;
-        } else if (ua.includes('tablet')) {
+        } else if (ua.includes("tablet")) {
           stats.tablet++;
-        } else if (ua.includes('windows') || ua.includes('mac') || ua.includes('linux')) {
+        } else if (
+          ua.includes("windows") ||
+          ua.includes("mac") ||
+          ua.includes("linux")
+        ) {
           stats.desktop++;
         } else {
           stats.unknown++;
@@ -352,7 +362,7 @@ export async function getSessionsByDevice(): Promise<{
 
     return stats;
   } catch (error) {
-    log.error('Failed to get sessions by device', error as Error);
+    log.error("Failed to get sessions by device", error as Error);
     return { desktop: 0, mobile: 0, tablet: 0, unknown: 0 };
   }
 }
@@ -367,7 +377,7 @@ export async function cleanupExpiredSessions(): Promise<number> {
 
     for (const key of keys) {
       const ttl = await redis.ttl(key);
-      
+
       // If no TTL or expired, delete
       if (ttl === -1 || ttl === -2) {
         await redis.del(key);
@@ -375,10 +385,10 @@ export async function cleanupExpiredSessions(): Promise<number> {
       }
     }
 
-    log.info('Expired sessions cleaned', { count: cleaned });
+    log.info("Expired sessions cleaned", { count: cleaned });
     return cleaned;
   } catch (error) {
-    log.error('Failed to cleanup expired sessions', error as Error);
+    log.error("Failed to cleanup expired sessions", error as Error);
     return 0;
   }
 }

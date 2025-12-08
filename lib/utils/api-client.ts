@@ -3,8 +3,11 @@
  * Handles rate limiting errors and provides better feedback
  */
 
-import { showRateLimitToast, parseRateLimitHeaders } from "@/components/features/rate-limit-feedback";
 import { showErrorToast } from "@/components/features/error-toast";
+import {
+  parseRateLimitHeaders,
+  showRateLimitToast,
+} from "@/components/features/rate-limit-feedback";
 
 interface ApiClientOptions extends RequestInit {
   showRateLimitFeedback?: boolean;
@@ -16,7 +19,7 @@ interface ApiClientOptions extends RequestInit {
  */
 export async function apiFetch(
   url: string,
-  options: ApiClientOptions = {}
+  options: ApiClientOptions = {},
 ): Promise<Response> {
   const {
     showRateLimitFeedback = true,
@@ -34,7 +37,7 @@ export async function apiFetch(
         showRateLimitToast(
           rateLimitInfo.retryAfter,
           rateLimitInfo.violations,
-          rateLimitInfo.blockedUntil
+          rateLimitInfo.blockedUntil,
         );
       }
       return response;
@@ -65,7 +68,7 @@ export async function apiFetch(
 export async function apiPost<T = any>(
   url: string,
   data: any,
-  options: ApiClientOptions = {}
+  options: ApiClientOptions = {},
 ): Promise<T> {
   const response = await apiFetch(url, {
     ...options,
@@ -90,7 +93,7 @@ export async function apiPost<T = any>(
 export async function apiPatch<T = any>(
   url: string,
   data: any,
-  options: ApiClientOptions = {}
+  options: ApiClientOptions = {},
 ): Promise<T> {
   const response = await apiFetch(url, {
     ...options,
@@ -114,7 +117,7 @@ export async function apiPatch<T = any>(
  */
 export async function apiGet<T = any>(
   url: string,
-  options: ApiClientOptions = {}
+  options: ApiClientOptions = {},
 ): Promise<T> {
   const response = await apiFetch(url, {
     ...options,
@@ -127,4 +130,3 @@ export async function apiGet<T = any>(
 
   return response.json();
 }
-

@@ -1,6 +1,6 @@
 /**
  * Enhanced Error Boundary
- * 
+ *
  * Provides comprehensive error handling with:
  * - User-friendly error display
  * - Error reporting to Sentry
@@ -10,11 +10,11 @@
 
 "use client";
 
-import { Component, type ReactNode } from "react";
-import { captureError } from "@/lib/monitoring/sentry-utils";
-import { Button } from "@/components/ui/button";
 import { AlertTriangle, Home, RefreshCw, Send } from "lucide-react";
+import { Component, type ReactNode } from "react";
 import { submitErrorFeedbackAction } from "@/app/actions/feedback";
+import { Button } from "@/components/ui/button";
+import { captureError } from "@/lib/monitoring/sentry-utils";
 
 interface Props {
   children: ReactNode;

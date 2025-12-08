@@ -3,7 +3,7 @@
  * Testiranje sistema za otključavanje dostignuća
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock Prisma before imports
 vi.mock("@/lib/db/prisma", () => ({
@@ -136,11 +136,15 @@ describe("Achievement System", () => {
     };
 
     it("should have increasing XP for homework milestones", () => {
-      expect(xpRewardMap.HOMEWORK_5).toBeGreaterThan(xpRewardMap.FIRST_HOMEWORK!);
+      expect(xpRewardMap.HOMEWORK_5).toBeGreaterThan(
+        xpRewardMap.FIRST_HOMEWORK!,
+      );
       expect(xpRewardMap.HOMEWORK_10).toBeGreaterThan(xpRewardMap.HOMEWORK_5!);
       expect(xpRewardMap.HOMEWORK_25).toBeGreaterThan(xpRewardMap.HOMEWORK_10!);
       expect(xpRewardMap.HOMEWORK_50).toBeGreaterThan(xpRewardMap.HOMEWORK_25!);
-      expect(xpRewardMap.HOMEWORK_100).toBeGreaterThan(xpRewardMap.HOMEWORK_50!);
+      expect(xpRewardMap.HOMEWORK_100).toBeGreaterThan(
+        xpRewardMap.HOMEWORK_50!,
+      );
     });
 
     it("should have increasing XP for streak milestones", () => {
@@ -152,7 +156,9 @@ describe("Achievement System", () => {
     });
 
     it("should have legendary achievements worth more than common ones", () => {
-      expect(xpRewardMap.TOP_STUDENT).toBeGreaterThan(xpRewardMap.FIRST_HOMEWORK!);
+      expect(xpRewardMap.TOP_STUDENT).toBeGreaterThan(
+        xpRewardMap.FIRST_HOMEWORK!,
+      );
       expect(xpRewardMap.STREAK_100).toBeGreaterThan(xpRewardMap.STREAK_3!);
     });
   });
@@ -173,7 +179,7 @@ describe("Achievement System", () => {
     };
 
     it("should have Serbian titles for all achievements", () => {
-      Object.values(titles).forEach(title => {
+      Object.values(titles).forEach((title) => {
         // Check that titles are in Serbian (contain Serbian-specific characters or words)
         expect(typeof title).toBe("string");
         expect(title.length).toBeGreaterThan(0);
@@ -197,7 +203,7 @@ describe("Achievement System", () => {
     };
 
     it("should have Serbian descriptions for achievements", () => {
-      Object.values(descriptions).forEach(desc => {
+      Object.values(descriptions).forEach((desc) => {
         expect(typeof desc).toBe("string");
         expect(desc.length).toBeGreaterThan(10);
       });
@@ -205,10 +211,15 @@ describe("Achievement System", () => {
 
     it("should have action-oriented descriptions", () => {
       // Descriptions should tell user what to do
-      Object.values(descriptions).forEach(desc => {
+      Object.values(descriptions).forEach((desc) => {
         // Most descriptions should start with verbs
-        const startsWithVerb = /^(Završi|Održi|Dobij|Postini|Dostini|Budi|Pomozi|Sakupi|Uđi|Vrati)/i.test(desc);
-        expect(startsWithVerb || desc.includes("dana") || desc.includes("puta")).toBe(true);
+        const startsWithVerb =
+          /^(Završi|Održi|Dobij|Postini|Dostini|Budi|Pomozi|Sakupi|Uđi|Vrati)/i.test(
+            desc,
+          );
+        expect(
+          startsWithVerb || desc.includes("dana") || desc.includes("puta"),
+        ).toBe(true);
       });
     });
   });
@@ -233,7 +244,7 @@ describe("Achievement System", () => {
       const milestones = [1, 5, 10, 25, 50, 100];
       const currentCount = 23;
 
-      const nextMilestone = milestones.find(m => m > currentCount);
+      const nextMilestone = milestones.find((m) => m > currentCount);
       expect(nextMilestone).toBe(25);
 
       const progress = currentCount / (nextMilestone || 100);
@@ -260,10 +271,10 @@ describe("Achievement System", () => {
       const targets = [3, 7, 14, 30, 60, 100];
       const currentStreak = 20;
 
-      const nextTarget = targets.find(t => t > currentStreak);
+      const nextTarget = targets.find((t) => t > currentStreak);
       expect(nextTarget).toBe(30);
 
-      const achieved = targets.filter(t => t <= currentStreak);
+      const achieved = targets.filter((t) => t <= currentStreak);
       expect(achieved).toEqual([3, 7, 14]);
     });
   });
@@ -291,7 +302,7 @@ describe("Achievement System", () => {
 
     it("should detect consecutive grade 5 streak", () => {
       const grades = ["5", "5", "5", "4", "5", "5"];
-      
+
       let maxStreak = 0;
       let currentStreak = 0;
 
@@ -343,8 +354,8 @@ describe("Achievement System", () => {
       const milestones = [5, 10, 20, 30, 50];
       const currentLevel = 15;
 
-      const achieved = milestones.filter(m => m <= currentLevel);
-      const nextMilestone = milestones.find(m => m > currentLevel);
+      const achieved = milestones.filter((m) => m <= currentLevel);
+      const nextMilestone = milestones.find((m) => m > currentLevel);
 
       expect(achieved).toEqual([5, 10]);
       expect(nextMilestone).toBe(20);
@@ -356,7 +367,7 @@ describe("Achievement System", () => {
       const milestones = [500, 1000, 2500, 5000, 10000];
       const totalXP = 3500;
 
-      const achieved = milestones.filter(m => m <= totalXP);
+      const achieved = milestones.filter((m) => m <= totalXP);
       expect(achieved).toEqual([500, 1000, 2500]);
     });
   });
@@ -371,7 +382,8 @@ describe("Achievement System", () => {
       ];
 
       const targetStudentId = "s2";
-      const rank = mockLeaderboard.findIndex(s => s.studentId === targetStudentId) + 1;
+      const rank =
+        mockLeaderboard.findIndex((s) => s.studentId === targetStudentId) + 1;
 
       expect(rank).toBe(2);
       // LEADERBOARD_TOP_3 should be achieved
@@ -385,7 +397,7 @@ describe("Achievement System", () => {
       const now = new Date("2025-01-10");
 
       const daysSinceLastActivity = Math.floor(
-        (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24)
+        (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24),
       );
 
       expect(daysSinceLastActivity).toBe(9);

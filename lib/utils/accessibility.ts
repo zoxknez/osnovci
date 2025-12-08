@@ -55,13 +55,13 @@ function getLuminance(color: string): number {
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return null;
-  
+
   const r = result[1];
   const g = result[2];
   const b = result[3];
-  
+
   if (!r || !g || !b) return null;
-  
+
   return {
     r: parseInt(r, 16),
     g: parseInt(g, 16),

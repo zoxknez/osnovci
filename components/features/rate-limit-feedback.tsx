@@ -5,12 +5,12 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import { AlertCircle, Clock, RefreshCw } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { showErrorToast } from "./error-toast";
+import { Card, CardContent } from "@/components/ui/card";
 import { getChildFriendlyError } from "@/lib/utils/child-friendly-errors";
+import { showErrorToast } from "./error-toast";
 
 interface RateLimitFeedbackProps {
   retryAfter?: number; // seconds until retry
@@ -30,12 +30,12 @@ function formatTimeRemaining(seconds: number): string {
   }
   if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
-    return `${minutes} minut${minutes !== 1 ? 'a' : ''}`;
+    return `${minutes} minut${minutes !== 1 ? "a" : ""}`;
   }
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   if (minutes === 0) {
-    return `${hours} sat${hours !== 1 ? 'a' : ''}`;
+    return `${hours} sat${hours !== 1 ? "a" : ""}`;
   }
   return `${hours}h ${minutes}min`;
 }
@@ -56,7 +56,7 @@ export function RateLimitFeedback({
   useEffect(() => {
     if (!retryAfter && !blockedUntil) return;
 
-    const targetTime = blockedUntil 
+    const targetTime = blockedUntil
       ? Math.floor((blockedUntil - Date.now()) / 1000)
       : retryAfter || 0;
 
@@ -65,7 +65,10 @@ export function RateLimitFeedback({
     const interval = setInterval(() => {
       const remaining = blockedUntil
         ? Math.floor((blockedUntil - Date.now()) / 1000)
-        : (retryAfter || 0) - Math.floor((Date.now() - (Date.now() - (retryAfter || 0) * 1000)) / 1000);
+        : (retryAfter || 0) -
+          Math.floor(
+            (Date.now() - (Date.now() - (retryAfter || 0) * 1000)) / 1000,
+          );
 
       setTimeRemaining(Math.max(0, remaining));
 
@@ -77,12 +80,13 @@ export function RateLimitFeedback({
     return () => clearInterval(interval);
   }, [retryAfter, blockedUntil]);
 
-  const isBlocked = violations >= 5 || (blockedUntil && Date.now() < blockedUntil);
+  const isBlocked =
+    violations >= 5 || (blockedUntil && Date.now() < blockedUntil);
   const friendlyError = getChildFriendlyError(
-    isBlocked ? 'account_locked' : 'timeout',
-    isBlocked 
+    isBlocked ? "account_locked" : "timeout",
+    isBlocked
       ? `Previše pokušaja. Sačekaj ${formatTimeRemaining(timeRemaining)}.`
-      : `Previše zahteva. Pokušaj ponovo za ${formatTimeRemaining(timeRemaining)}.`
+      : `Previše zahteva. Pokušaj ponovo za ${formatTimeRemaining(timeRemaining)}.`,
   );
 
   return (
@@ -96,7 +100,7 @@ export function RateLimitFeedback({
               <Clock className="h-6 w-6 text-orange-600" />
             )}
           </div>
-          
+
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">
               {isBlocked ? "Previše pokušaja" : "Previše zahteva"}
@@ -144,7 +148,7 @@ export function RateLimitFeedback({
 export function showRateLimitToast(
   retryAfter?: number,
   violations?: number,
-  blockedUntil?: number
+  blockedUntil?: number,
 ) {
   const isBlocked = violations !== undefined && violations >= 5;
   const timeRemaining = blockedUntil
@@ -152,16 +156,16 @@ export function showRateLimitToast(
     : retryAfter || 0;
 
   const friendlyError = getChildFriendlyError(
-    isBlocked ? 'account_locked' : 'timeout',
+    isBlocked ? "account_locked" : "timeout",
     isBlocked
       ? `Previše pokušaja. Sačekaj ${formatTimeRemaining(timeRemaining)}.`
-      : `Previše zahteva. Pokušaj ponovo za ${formatTimeRemaining(timeRemaining)}.`
+      : `Previše zahteva. Pokušaj ponovo za ${formatTimeRemaining(timeRemaining)}.`,
   );
 
   const options: { error: Error; retry?: () => void } = {
     error: new Error(friendlyError.message),
   };
-  
+
   if (timeRemaining === 0) {
     options.retry = () => window.location.reload();
   }
@@ -172,19 +176,20 @@ export function showRateLimitToast(
 /**
  * Parse rate limit headers from response
  */
-export function parseRateLimitHeaders(headers: Headers): RateLimitFeedbackProps {
+export function parseRateLimitHeaders(
+  headers: Headers,
+): RateLimitFeedbackProps {
   const limit = headers.get("X-RateLimit-Limit");
   const remaining = headers.get("X-RateLimit-Remaining");
   const reset = headers.get("X-RateLimit-Reset");
   const retryAfter = headers.get("Retry-After");
 
   const result: RateLimitFeedbackProps = {};
-  
+
   if (limit) result.limit = parseInt(limit, 10);
   if (remaining) result.remaining = parseInt(remaining, 10);
   if (retryAfter) result.retryAfter = parseInt(retryAfter, 10);
   if (reset) result.blockedUntil = parseInt(reset, 10) * 1000;
-  
+
   return result;
 }
-

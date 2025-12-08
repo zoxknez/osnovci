@@ -33,15 +33,18 @@ export async function analyzeLearningPatterns(
 
     // Get focus sessions
     const focusSessions = await prisma.focusSession.findMany({
-      where: { 
+      where: {
         studentId,
-        status: "COMPLETED"
+        status: "COMPLETED",
       },
       orderBy: { startTime: "desc" },
-      take: 50
+      take: 50,
     });
 
-    const totalFocusTime = focusSessions.reduce((acc, session) => acc + (session.duration || 0), 0);
+    const totalFocusTime = focusSessions.reduce(
+      (acc, session) => acc + (session.duration || 0),
+      0,
+    );
 
     // Get gamification data
     const gamif = await prisma.gamification.findUnique({

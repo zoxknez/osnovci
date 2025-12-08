@@ -3,9 +3,15 @@
  * Auto-schedule study sessions, conflict resolution, time blocking
  */
 
-import { prisma } from "@/lib/db/prisma";
-import { addMinutes, isWithinInterval, format, isSameDay, getDay } from "date-fns";
 import { DayOfWeek } from "@prisma/client";
+import {
+  addMinutes,
+  format,
+  getDay,
+  isSameDay,
+  isWithinInterval,
+} from "date-fns";
+import { prisma } from "@/lib/db/prisma";
 
 interface StudySession {
   homeworkId: string;
@@ -102,12 +108,12 @@ async function getScheduleForDate(studentId: string, targetDate: Date) {
 
   // Convert to unified format with Date objects
   const allEntries = [
-    ...regularEntries.map(entry => ({
+    ...regularEntries.map((entry) => ({
       startTime: parseTimeToDate(entry.startTime, targetDate),
       endTime: parseTimeToDate(entry.endTime, targetDate),
       title: entry.subject?.name || entry.customTitle || "Čas",
     })),
-    ...customEntries.map(entry => ({
+    ...customEntries.map((entry) => ({
       startTime: parseTimeToDate(entry.startTime, targetDate),
       endTime: parseTimeToDate(entry.endTime, targetDate),
       title: entry.customTitle || "Događaj",
@@ -122,7 +128,7 @@ async function getScheduleForDate(studentId: string, targetDate: Date) {
  */
 export async function autoScheduleStudySessions(
   studentId: string,
-  targetDate: Date
+  targetDate: Date,
 ): Promise<{
   scheduled: Array<{
     homeworkId: string;
@@ -164,8 +170,11 @@ export async function autoScheduleStudySessions(
 
   // Generate free time slots
   const freeSlots = generateFreeTimeSlots(
-    existingSchedule.map(e => ({ startTime: e.startTime, endTime: e.endTime })), 
-    targetDate
+    existingSchedule.map((e) => ({
+      startTime: e.startTime,
+      endTime: e.endTime,
+    })),
+    targetDate,
   );
 
   // Schedule sessions into free slots
@@ -218,15 +227,21 @@ function estimateHomeworkDuration(title: string, description: string): number {
   const text = (title + " " + description).toLowerCase();
 
   // Keywords that indicate longer tasks
-  const longTaskKeywords = ["esej", "projekat", "istraživanje", "prezentacija", "analiza"];
+  const longTaskKeywords = [
+    "esej",
+    "projekat",
+    "istraživanje",
+    "prezentacija",
+    "analiza",
+  ];
   const mediumTaskKeywords = ["zadaci", "vežbe", "čitanje", "pisanje"];
   const shortTaskKeywords = ["ponovi", "nauči", "prepiši", "reši"];
 
-  if (longTaskKeywords.some(k => text.includes(k))) {
+  if (longTaskKeywords.some((k) => text.includes(k))) {
     return 90; // 1.5 hours
-  } else if (mediumTaskKeywords.some(k => text.includes(k))) {
+  } else if (mediumTaskKeywords.some((k) => text.includes(k))) {
     return 45; // 45 minutes
-  } else if (shortTaskKeywords.some(k => text.includes(k))) {
+  } else if (shortTaskKeywords.some((k) => text.includes(k))) {
     return 20; // 20 minutes
   }
 
@@ -240,7 +255,9 @@ function estimateHomeworkDuration(title: string, description: string): number {
  */
 function calculatePriority(dueDate: Date, subjectName: string): number {
   const now = new Date();
-  const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const daysUntilDue = Math.ceil(
+    (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
   // Urgency score (50 points max)
   let urgencyScore = 50;
@@ -252,9 +269,11 @@ function calculatePriority(dueDate: Date, subjectName: string): number {
 
   // Subject importance (50 points max) - core subjects get higher priority
   const coreSubjects = ["matematika", "srpski", "engleski", "fizika", "hemija"];
-  const importanceScore = coreSubjects.some(s => 
-    subjectName.toLowerCase().includes(s)
-  ) ? 50 : 30;
+  const importanceScore = coreSubjects.some((s) =>
+    subjectName.toLowerCase().includes(s),
+  )
+    ? 50
+    : 30;
 
   return urgencyScore + importanceScore;
 }
@@ -264,20 +283,20 @@ function calculatePriority(dueDate: Date, subjectName: string): number {
  */
 function generateFreeTimeSlots(
   existingSchedule: Array<{ startTime: Date; endTime: Date }>,
-  targetDate: Date
+  targetDate: Date,
 ): ScheduleSlot[] {
   const slots: ScheduleSlot[] = [];
-  
+
   // Study hours: 15:00 - 21:00 (after school)
   const dayStart = new Date(targetDate);
   dayStart.setHours(15, 0, 0, 0);
-  
+
   const dayEnd = new Date(targetDate);
   dayEnd.setHours(21, 0, 0, 0);
 
   // Sort existing schedule by start time
-  const sorted = existingSchedule.sort((a, b) => 
-    a.startTime.getTime() - b.startTime.getTime()
+  const sorted = existingSchedule.sort(
+    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
   );
 
   let currentTime = dayStart;
@@ -310,12 +329,16 @@ function generateFreeTimeSlots(
 /**
  * Find best available slot for a session
  */
-function findBestSlot(slots: ScheduleSlot[], durationMinutes: number): ScheduleSlot | null {
+function findBestSlot(
+  slots: ScheduleSlot[],
+  durationMinutes: number,
+): ScheduleSlot | null {
   for (const slot of slots) {
     if (!slot.available) continue;
 
-    const slotDuration = (slot.end.getTime() - slot.start.getTime()) / (1000 * 60);
-    
+    const slotDuration =
+      (slot.end.getTime() - slot.start.getTime()) / (1000 * 60);
+
     // Slot must have at least the required duration
     if (slotDuration >= durationMinutes) {
       return slot;
@@ -328,7 +351,11 @@ function findBestSlot(slots: ScheduleSlot[], durationMinutes: number): ScheduleS
 /**
  * Update free slots after scheduling a session
  */
-function updateFreeSlots(slots: ScheduleSlot[], startTime: Date, durationMinutes: number): void {
+function updateFreeSlots(
+  slots: ScheduleSlot[],
+  startTime: Date,
+  durationMinutes: number,
+): void {
   const endTime = addMinutes(startTime, durationMinutes);
 
   for (let i = 0; i < slots.length; i++) {
@@ -370,39 +397,44 @@ function updateFreeSlots(slots: ScheduleSlot[], startTime: Date, durationMinutes
 export async function detectScheduleConflicts(
   studentId: string,
   startDate: Date,
-  endDate: Date
-): Promise<Array<{
-  date: Date;
-  conflicts: Array<{
-    time: string;
-    items: string[];
-    resolution: string;
-  }>;
-}>> {
-  const conflictsByDay = new Map<string, Array<{
-    time: string;
-    items: string[];
-    resolution: string;
-  }>>();
+  endDate: Date,
+): Promise<
+  Array<{
+    date: Date;
+    conflicts: Array<{
+      time: string;
+      items: string[];
+      resolution: string;
+    }>;
+  }>
+> {
+  const conflictsByDay = new Map<
+    string,
+    Array<{
+      time: string;
+      items: string[];
+      resolution: string;
+    }>
+  >();
 
   // Iterate through each day in the range
   const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     const dayKey = format(currentDate, "yyyy-MM-dd");
-    
+
     // Get schedule for this day
     const scheduleEntries = await getScheduleForDate(studentId, currentDate);
-    
+
     // Sort by start time
-    const sorted = scheduleEntries.sort((a, b) => 
-      a.startTime.getTime() - b.startTime.getTime()
+    const sorted = scheduleEntries.sort(
+      (a, b) => a.startTime.getTime() - b.startTime.getTime(),
     );
 
     // Check for overlaps
     for (let i = 0; i < sorted.length - 1; i++) {
       const current = sorted[i];
       const next = sorted[i + 1];
-      
+
       if (!current || !next) continue;
 
       // Check for overlap
@@ -434,7 +466,7 @@ export async function detectScheduleConflicts(
  */
 export async function generateWeeklyStudyPlan(
   studentId: string,
-  weekStart: Date
+  weekStart: Date,
 ): Promise<{
   dailyPlans: Array<{
     date: Date;
@@ -477,19 +509,23 @@ export async function generateWeeklyStudyPlan(
   const recommendations: string[] = [];
 
   // Distribute homework across the week
-  const totalMinutes = homework.reduce((sum, hw) => 
-    sum + estimateHomeworkDuration(hw.title, hw.description || ""), 
-    0
+  const totalMinutes = homework.reduce(
+    (sum, hw) => sum + estimateHomeworkDuration(hw.title, hw.description || ""),
+    0,
   );
 
   const avgDailyMinutes = totalMinutes / 7;
 
   if (avgDailyMinutes > 120) {
-    recommendations.push("⚠️ Opterećenje je veliko ove nedelje. Razmotrite prioritizaciju zadataka.");
+    recommendations.push(
+      "⚠️ Opterećenje je veliko ove nedelje. Razmotrite prioritizaciju zadataka.",
+    );
   }
 
   if (avgDailyMinutes < 30) {
-    recommendations.push("✅ Lagana nedelja! Dobra prilika za ponavljanje gradiva.");
+    recommendations.push(
+      "✅ Lagana nedelja! Dobra prilika za ponavljanje gradiva.",
+    );
   }
 
   // Create daily plans
@@ -497,17 +533,21 @@ export async function generateWeeklyStudyPlan(
     const currentDate = new Date(weekStart);
     currentDate.setDate(currentDate.getDate() + day);
 
-    const dueSoon = homework.filter(hw => 
-      isSameDay(hw.dueDate, currentDate) || hw.dueDate < currentDate
+    const dueSoon = homework.filter(
+      (hw) => isSameDay(hw.dueDate, currentDate) || hw.dueDate < currentDate,
     );
 
-    const sessions = dueSoon.map(hw => ({
+    const sessions = dueSoon.map((hw) => ({
       time: "15:00",
       duration: estimateHomeworkDuration(hw.title, hw.description || ""),
       subject: hw.subject.name,
       task: hw.title,
-      priority: calculatePriority(hw.dueDate, hw.subject.name) > 70 ? "high" : 
-                calculatePriority(hw.dueDate, hw.subject.name) > 40 ? "medium" : "low" as "high" | "medium" | "low",
+      priority:
+        calculatePriority(hw.dueDate, hw.subject.name) > 70
+          ? "high"
+          : calculatePriority(hw.dueDate, hw.subject.name) > 40
+            ? "medium"
+            : ("low" as "high" | "medium" | "low"),
     }));
 
     const totalMinutes = sessions.reduce((sum, s) => sum + s.duration, 0);
@@ -516,7 +556,8 @@ export async function generateWeeklyStudyPlan(
       date: currentDate,
       totalStudyMinutes: totalMinutes,
       sessions,
-      workload: totalMinutes > 90 ? "heavy" : totalMinutes > 45 ? "moderate" : "light",
+      workload:
+        totalMinutes > 90 ? "heavy" : totalMinutes > 45 ? "moderate" : "light",
     });
   }
 

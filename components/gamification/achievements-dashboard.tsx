@@ -1,35 +1,35 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Trophy,
-  Star,
-  Target,
-  Zap,
-  Award,
-  Clock,
-  TrendingUp,
-  Users,
-  Loader,
-  Lock,
-  CheckCircle2,
-  RefreshCw,
-  Wifi,
-  WifiOff,
-} from "lucide-react";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
+import { motion } from "framer-motion";
+import {
+  Award,
+  CheckCircle2,
+  Clock,
+  Loader,
+  Lock,
+  RefreshCw,
+  Star,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users,
+  Wifi,
+  WifiOff,
+  Zap,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { staggerContainer, staggerItem } from "@/lib/animations/variants";
-import { useOfflineAchievements } from "@/hooks/use-offline-achievements";
-import { Celebration } from "@/components/ui/celebration";
 import { checkAchievementsAction } from "@/app/actions/achievements";
 import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Celebration } from "@/components/ui/celebration";
+import { Progress } from "@/components/ui/progress";
+import { useOfflineAchievements } from "@/hooks/use-offline-achievements";
+import { staggerContainer, staggerItem } from "@/lib/animations/variants";
 
 interface Achievement {
   id: string;
@@ -62,12 +62,27 @@ interface AchievementsData {
 }
 
 // Achievement type union for strict typing
-type AchievementType = 
-  | "FIRST_HOMEWORK" | "HOMEWORK_STREAK_3" | "HOMEWORK_STREAK_7" | "HOMEWORK_STREAK_30"
-  | "ALL_HOMEWORK_WEEK" | "EARLY_SUBMISSION" | "PERFECT_WEEK" | "GRADE_FIVE"
-  | "PERFECT_MONTH" | "TOP_STUDENT" | "LEVEL_5" | "LEVEL_10" | "LEVEL_20"
-  | "XP_1000" | "XP_5000" | "XP_10000" | "HELPFUL_STUDENT" | "NIGHT_OWL"
-  | "EARLY_BIRD" | "SPEEDRUNNER";
+type AchievementType =
+  | "FIRST_HOMEWORK"
+  | "HOMEWORK_STREAK_3"
+  | "HOMEWORK_STREAK_7"
+  | "HOMEWORK_STREAK_30"
+  | "ALL_HOMEWORK_WEEK"
+  | "EARLY_SUBMISSION"
+  | "PERFECT_WEEK"
+  | "GRADE_FIVE"
+  | "PERFECT_MONTH"
+  | "TOP_STUDENT"
+  | "LEVEL_5"
+  | "LEVEL_10"
+  | "LEVEL_20"
+  | "XP_1000"
+  | "XP_5000"
+  | "XP_10000"
+  | "HELPFUL_STUDENT"
+  | "NIGHT_OWL"
+  | "EARLY_BIRD"
+  | "SPEEDRUNNER";
 
 // Localization map for Serbian achievement names
 const ACHIEVEMENT_NAMES: Record<AchievementType, string> = {
@@ -168,16 +183,20 @@ export default function AchievementsDashboard() {
     try {
       setChecking(true);
       const result = await checkAchievementsAction();
-      
+
       if (result.error) {
         throw new Error(result.error);
       }
-      
+
       if (result.data && result.data.newUnlocks > 0) {
-        toast.success(`🏆 Otključano ${result.data.newUnlocks} novih postignuća!`);
+        toast.success(
+          `🏆 Otključano ${result.data.newUnlocks} novih postignuća!`,
+        );
         if (isMountedRef.current) {
           setShowCelebration(true);
-          setStatusMessage(`Otključano ${result.data.newUnlocks} novih postignuća`);
+          setStatusMessage(
+            `Otključano ${result.data.newUnlocks} novih postignuća`,
+          );
         }
       } else {
         toast.info("Nema novih postignuća");
@@ -185,7 +204,7 @@ export default function AchievementsDashboard() {
           setStatusMessage("Nema novih postignuća");
         }
       }
-      
+
       await refresh();
     } catch (error) {
       console.error("Error checking achievements:", error);
@@ -218,9 +237,9 @@ export default function AchievementsDashboard() {
     );
   }
 
-  // Cast data to AchievementsData to match the interface if needed, 
+  // Cast data to AchievementsData to match the interface if needed,
   // though the hook should return compatible structure.
-  // The hook returns StoredGamificationData which has string dates, 
+  // The hook returns StoredGamificationData which has string dates,
   // while the component expects Date objects in some places.
   // We handle the date formatting in the render.
   const { achievements, progress, stats } = data as unknown as AchievementsData;
@@ -228,12 +247,12 @@ export default function AchievementsDashboard() {
   // Memoize filtered progress to avoid recalculation on every render
   const inProgressAchievements = useMemo(
     () => progress.filter((p) => (p.progress || 0) > 0),
-    [progress]
+    [progress],
   );
 
   const lockedAchievements = useMemo(
     () => progress.filter((p) => (p.progress || 0) === 0),
-    [progress]
+    [progress],
   );
 
   // Safe celebration complete handler
@@ -245,13 +264,16 @@ export default function AchievementsDashboard() {
 
   return (
     <div className="container py-8 space-y-6">
-      <Celebration trigger={showCelebration} onComplete={handleCelebrationComplete} />
-      
+      <Celebration
+        trigger={showCelebration}
+        onComplete={handleCelebrationComplete}
+      />
+
       {/* Aria-live region for screen readers */}
       <output aria-live="polite" className="sr-only">
         {statusMessage}
       </output>
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -271,7 +293,11 @@ export default function AchievementsDashboard() {
                 : "bg-amber-100 text-amber-700"
             }`}
             role="status"
-            aria-label={isOnline ? "Povezani ste na internet" : "Radite offline - podaci su lokalno sačuvani"}
+            aria-label={
+              isOnline
+                ? "Povezani ste na internet"
+                : "Radite offline - podaci su lokalno sačuvani"
+            }
           >
             {isOnline ? (
               <>
@@ -312,85 +338,85 @@ export default function AchievementsDashboard() {
           aria-label="Statistika postignuća"
         >
           <motion.div variants={staggerItem}>
-            <Card 
+            <Card
               className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-0"
               role="group"
               aria-label={`Otključano ${stats.total} postignuća`}
             >
               <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Otključano</p>
-                  <p className="text-3xl font-bold text-yellow-700">
-                    {stats.total}
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Otključano</p>
+                    <p className="text-3xl font-bold text-yellow-700">
+                      {stats.total}
+                    </p>
+                  </div>
+                  <Trophy className="w-12 h-12 text-yellow-500 opacity-20" />
                 </div>
-                <Trophy className="w-12 h-12 text-yellow-500 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        <motion.div variants={staggerItem}>
-          <Card 
-            className="bg-gradient-to-br from-blue-50 to-blue-100 border-0"
-            role="group"
-            aria-label={`Ukupno ${stats.totalXP} XP bodova`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Ukupno XP</p>
-                  <p className="text-3xl font-bold text-blue-700">
-                    {stats.totalXP}
-                  </p>
+          <motion.div variants={staggerItem}>
+            <Card
+              className="bg-gradient-to-br from-blue-50 to-blue-100 border-0"
+              role="group"
+              aria-label={`Ukupno ${stats.totalXP} XP bodova`}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Ukupno XP</p>
+                    <p className="text-3xl font-bold text-blue-700">
+                      {stats.totalXP}
+                    </p>
+                  </div>
+                  <Star className="w-12 h-12 text-blue-500 opacity-20" />
                 </div>
-                <Star className="w-12 h-12 text-blue-500 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        <motion.div variants={staggerItem}>
-          <Card 
-            className="bg-gradient-to-br from-purple-50 to-purple-100 border-0"
-            role="group"
-            aria-label={`Nivo ${stats.level}`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Nivo</p>
-                  <p className="text-3xl font-bold text-purple-700">
-                    {stats.level}
-                  </p>
+          <motion.div variants={staggerItem}>
+            <Card
+              className="bg-gradient-to-br from-purple-50 to-purple-100 border-0"
+              role="group"
+              aria-label={`Nivo ${stats.level}`}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Nivo</p>
+                    <p className="text-3xl font-bold text-purple-700">
+                      {stats.level}
+                    </p>
+                  </div>
+                  <Zap className="w-12 h-12 text-purple-500 opacity-20" />
                 </div>
-                <Zap className="w-12 h-12 text-purple-500 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        <motion.div variants={staggerItem}>
-          <Card 
-            className="bg-gradient-to-br from-green-50 to-green-100 border-0"
-            role="group"
-            aria-label={`${inProgressAchievements.length} postignuća u toku`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Napredak</p>
-                  <p className="text-3xl font-bold text-green-700">
-                    {inProgressAchievements.length}
-                  </p>
+          <motion.div variants={staggerItem}>
+            <Card
+              className="bg-gradient-to-br from-green-50 to-green-100 border-0"
+              role="group"
+              aria-label={`${inProgressAchievements.length} postignuća u toku`}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Napredak</p>
+                    <p className="text-3xl font-bold text-green-700">
+                      {inProgressAchievements.length}
+                    </p>
+                  </div>
+                  <Target className="w-12 h-12 text-green-500 opacity-20" />
                 </div>
-                <Target className="w-12 h-12 text-green-500 opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </motion.div>
-      </motion.div>
       </SectionErrorBoundary>
 
       {/* Unlocked Achievements */}
@@ -398,78 +424,77 @@ export default function AchievementsDashboard() {
         <SectionErrorBoundary sectionName="Otključana Postignuća">
           <div>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <CheckCircle2 className="w-6 h-6 text-green-500" />
-            Otključana Postignuća
-          </h2>
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            {achievements.map((achievement) => (
-              <motion.div key={achievement.id} variants={staggerItem}>
-                <Card
-                  className={`border-0 bg-gradient-to-br ${
-                    ACHIEVEMENT_COLORS[achievement.achievementType] ||
-                    "from-gray-400 to-gray-600"
-                  } text-white hover:shadow-lg transition-all`}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
-                        {ACHIEVEMENT_ICONS[achievement.achievementType] || (
-                          <Award className="w-6 h-6" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg mb-1">
-                          {achievement.title}
-                        </h3>
-                        <p className="text-sm opacity-90 mb-2">
-                          {achievement.description}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <Badge
-                            variant="secondary"
-                            className="bg-white/20 text-white"
-                          >
-                            +{achievement.xpReward} XP
-                          </Badge>
-                          <span className="text-xs opacity-75">
-                            {format(
-                              new Date(achievement.unlockedAt),
-                              "dd. MMM yyyy",
-                              { locale: sr }
-                            )}
-                          </span>
+              <CheckCircle2 className="w-6 h-6 text-green-500" />
+              Otključana Postignuća
+            </h2>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            >
+              {achievements.map((achievement) => (
+                <motion.div key={achievement.id} variants={staggerItem}>
+                  <Card
+                    className={`border-0 bg-gradient-to-br ${
+                      ACHIEVEMENT_COLORS[achievement.achievementType] ||
+                      "from-gray-400 to-gray-600"
+                    } text-white hover:shadow-lg transition-all`}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                          {ACHIEVEMENT_ICONS[achievement.achievementType] || (
+                            <Award className="w-6 h-6" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg mb-1">
+                            {achievement.title}
+                          </h3>
+                          <p className="text-sm opacity-90 mb-2">
+                            {achievement.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <Badge
+                              variant="secondary"
+                              className="bg-white/20 text-white"
+                            >
+                              +{achievement.xpReward} XP
+                            </Badge>
+                            <span className="text-xs opacity-75">
+                              {format(
+                                new Date(achievement.unlockedAt),
+                                "dd. MMM yyyy",
+                                { locale: sr },
+                              )}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </SectionErrorBoundary>
       )}
 
       {/* Progress Achievements */}
       {inProgressAchievements.length > 0 && (
         <SectionErrorBoundary sectionName="Postignuća u Toku">
-        <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Lock className="w-6 h-6 text-gray-500" />
-            U Toku
-          </h2>
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            {inProgressAchievements.map((item) => {
+          <div>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Lock className="w-6 h-6 text-gray-500" />U Toku
+            </h2>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            >
+              {inProgressAchievements.map((item) => {
                 const progressPercentage =
                   ((item.progress || 0) / (item.maxProgress || 1)) * 100;
 
@@ -504,26 +529,26 @@ export default function AchievementsDashboard() {
                   </motion.div>
                 );
               })}
-          </motion.div>
-        </div>
+            </motion.div>
+          </div>
         </SectionErrorBoundary>
       )}
 
       {/* Locked Achievements */}
       {lockedAchievements.length > 0 && (
         <SectionErrorBoundary sectionName="Zaključana Postignuća">
-        <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Lock className="w-6 h-6 text-gray-400" />
-            Zaključano
-          </h2>
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-          >
-            {lockedAchievements.map((item) => (
+          <div>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Lock className="w-6 h-6 text-gray-400" />
+              Zaključano
+            </h2>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+            >
+              {lockedAchievements.map((item) => (
                 <motion.div key={item.type} variants={staggerItem}>
                   <Card className="border border-gray-200 bg-white opacity-50">
                     <CardContent className="p-4">
@@ -541,8 +566,8 @@ export default function AchievementsDashboard() {
                   </Card>
                 </motion.div>
               ))}
-          </motion.div>
-        </div>
+            </motion.div>
+          </div>
         </SectionErrorBoundary>
       )}
     </div>

@@ -1,7 +1,7 @@
 // Notification Preferences Page
 
-import { NotificationPreferencesSettings } from "@/components/features/settings/notification-preferences";
 import { PageHeader } from "@/components/features/page-header";
+import { NotificationPreferencesSettings } from "@/components/features/settings/notification-preferences";
 
 export default function NotificationPreferencesPage() {
   return (

@@ -73,7 +73,7 @@ export class AsyncQueue {
    */
   clear(): void {
     this.queue.forEach((item) => {
-      item.reject(new Error('Queue cleared'));
+      item.reject(new Error("Queue cleared"));
     });
     this.queue = [];
   }
@@ -88,4 +88,3 @@ export const uploadQueue = new AsyncQueue(2); // Max 2 concurrent uploads
  * Global async queue for API calls
  */
 export const apiQueue = new AsyncQueue(5); // Max 5 concurrent API calls
-

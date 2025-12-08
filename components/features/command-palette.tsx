@@ -16,24 +16,24 @@
  * @module components/features/command-palette
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Search,
-  Home,
-  BookOpen,
   Award,
+  BookOpen,
   Calendar,
   CalendarDays,
-  Settings,
+  ChevronRight,
+  Home,
   Plus,
   RefreshCw,
+  Search,
+  Settings,
   X,
-  ChevronRight,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getShortcutDisplay, DEFAULT_SHORTCUTS } from "@/lib/shortcuts/config";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { log } from "@/lib/logger";
+import { DEFAULT_SHORTCUTS, getShortcutDisplay } from "@/lib/shortcuts/config";
 
 interface Command {
   id: string;
@@ -74,7 +74,7 @@ export function CommandPalette({
       category: "navigation",
       keywords: ["dashboard", "pocetna", "početna", "home"],
       shortcut: getShortcutDisplay(
-        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-dashboard")!
+        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-dashboard")!,
       ),
     },
     {
@@ -86,7 +86,7 @@ export function CommandPalette({
       category: "navigation",
       keywords: ["homework", "domaci", "domaći", "zadaci"],
       shortcut: getShortcutDisplay(
-        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-homework")!
+        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-homework")!,
       ),
     },
     {
@@ -98,7 +98,7 @@ export function CommandPalette({
       category: "navigation",
       keywords: ["grades", "ocene", "marks"],
       shortcut: getShortcutDisplay(
-        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-grades")!
+        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-grades")!,
       ),
     },
     {
@@ -110,7 +110,7 @@ export function CommandPalette({
       category: "navigation",
       keywords: ["schedule", "raspored", "casovi", "časovi"],
       shortcut: getShortcutDisplay(
-        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-schedule")!
+        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-schedule")!,
       ),
     },
     {
@@ -122,7 +122,7 @@ export function CommandPalette({
       category: "navigation",
       keywords: ["calendar", "kalendar", "events", "dogadjaji", "događaji"],
       shortcut: getShortcutDisplay(
-        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-calendar")!
+        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-calendar")!,
       ),
     },
     {
@@ -134,7 +134,7 @@ export function CommandPalette({
       category: "navigation",
       keywords: ["settings", "podesavanja", "podešavanja", "config"],
       shortcut: getShortcutDisplay(
-        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-settings")!
+        DEFAULT_SHORTCUTS.find((s) => s.id === "nav-settings")!,
       ),
     },
 
@@ -146,7 +146,15 @@ export function CommandPalette({
       icon: Plus,
       action: () => router.push("/dashboard/domaci/novi"),
       category: "actions",
-      keywords: ["new", "create", "novi", "kreiraj", "homework", "domaci", "domaći"],
+      keywords: [
+        "new",
+        "create",
+        "novi",
+        "kreiraj",
+        "homework",
+        "domaci",
+        "domaći",
+      ],
     },
     {
       id: "refresh-data",
@@ -157,7 +165,7 @@ export function CommandPalette({
       category: "actions",
       keywords: ["refresh", "reload", "osvezi", "osveži", "sync"],
       shortcut: getShortcutDisplay(
-        DEFAULT_SHORTCUTS.find((s) => s.id === "refresh-data")!
+        DEFAULT_SHORTCUTS.find((s) => s.id === "refresh-data")!,
       ),
     },
   ];
@@ -169,7 +177,7 @@ export function CommandPalette({
         const labelMatch = cmd.label.toLowerCase().includes(searchText);
         const descMatch = cmd.description?.toLowerCase().includes(searchText);
         const keywordMatch = cmd.keywords?.some((kw) =>
-          kw.toLowerCase().includes(searchText)
+          kw.toLowerCase().includes(searchText),
         );
 
         return labelMatch || descMatch || keywordMatch;
@@ -191,7 +199,7 @@ export function CommandPalette({
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setSelectedIndex((prev) =>
-          Math.min(prev + 1, filteredCommands.length - 1)
+          Math.min(prev + 1, filteredCommands.length - 1),
         );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
@@ -240,7 +248,7 @@ export function CommandPalette({
       // Close palette
       onClose();
     },
-    [onClose, onCommand]
+    [onClose, onCommand],
   );
 
   if (!isOpen) return null;
@@ -371,7 +379,8 @@ export function CommandPalette({
               </span>
             </div>
             <span>
-              <kbd className="rounded bg-background px-1.5 py-0.5">Esc</kbd> Zatvori
+              <kbd className="rounded bg-background px-1.5 py-0.5">Esc</kbd>{" "}
+              Zatvori
             </span>
           </div>
         </motion.div>
@@ -401,9 +410,7 @@ function CommandItem({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
-        isSelected
-          ? "bg-primary text-primary-foreground"
-          : "hover:bg-muted"
+        isSelected ? "bg-primary text-primary-foreground" : "hover:bg-muted"
       }`}
     >
       <Icon className="h-5 w-5 shrink-0" />
@@ -412,7 +419,9 @@ function CommandItem({
         {command.description && (
           <div
             className={`text-xs ${
-              isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+              isSelected
+                ? "text-primary-foreground/80"
+                : "text-muted-foreground"
             }`}
           >
             {command.description}

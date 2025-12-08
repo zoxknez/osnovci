@@ -20,8 +20,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  setUser: (user) =>
-    set({ user, isAuthenticated: !!user, isLoading: false }),
+  setUser: (user) => set({ user, isAuthenticated: !!user, isLoading: false }),
   logout: () => set({ user: null, isAuthenticated: false }),
 }));
 
@@ -98,21 +97,21 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     }),
   addNotification: (notification) => {
     const settings = useSettingsStore.getState().notifications;
-    
+
     // Map notification types to settings keys
     let shouldShow = true;
     const type = notification.type.toUpperCase();
-    
+
     if (type.includes("GRADE") || type.includes("OCEN")) {
-        shouldShow = settings.grades;
+      shouldShow = settings.grades;
     } else if (type.includes("HOMEWORK") || type.includes("DOMAC")) {
-        shouldShow = settings.homework;
+      shouldShow = settings.homework;
     } else if (type.includes("SCHEDULE") || type.includes("RASPORED")) {
-        shouldShow = settings.schedule;
+      shouldShow = settings.schedule;
     } else if (type.includes("MESSAGE") || type.includes("PORUK")) {
-        shouldShow = settings.messages;
+      shouldShow = settings.messages;
     }
-    
+
     if (!shouldShow) return;
 
     set((state) => ({

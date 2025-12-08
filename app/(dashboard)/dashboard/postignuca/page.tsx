@@ -1,15 +1,15 @@
 "use client";
 
-import { lazy, Suspense } from "react";
 import { Loader } from "lucide-react";
-import { useSession } from "@/hooks/use-session";
 import { redirect } from "next/navigation";
+import { lazy, Suspense } from "react";
+import { useSession } from "@/hooks/use-session";
 
 // Lazy load Achievements Dashboard - heavy gamification component
-const AchievementsDashboard = lazy(() => 
-  import("@/components/gamification/achievements-dashboard").then((mod) => ({ 
-    default: mod.default 
-  }))
+const AchievementsDashboard = lazy(() =>
+  import("@/components/gamification/achievements-dashboard").then((mod) => ({
+    default: mod.default,
+  })),
 );
 
 export default function AchievementsPage() {
@@ -28,11 +28,13 @@ export default function AchievementsPage() {
   }
 
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center py-12">
-        <Loader className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
       <AchievementsDashboard />
     </Suspense>
   );

@@ -4,13 +4,13 @@
  * Logs all moderation actions to database
  */
 
+import type { ContentType, ModerationStatus } from "@prisma/client";
 import prisma from "@/lib/db/prisma";
-import { ContentType, ModerationStatus } from "@prisma/client";
 import { log } from "@/lib/logger";
-import { ContentFilter, PIIDetector, AgeFilter } from "./content-filter";
+import { AgeFilter, ContentFilter, PIIDetector } from "./content-filter";
 import {
-  moderateTextWithAI,
   getRecommendedAction,
+  moderateTextWithAI,
   type OpenAIModerationResult,
 } from "./openai-moderation";
 
@@ -43,7 +43,7 @@ export interface ModerationOutput {
  * Main moderation function - combines all checks
  */
 export async function moderateContent(
-  input: ModerationInput
+  input: ModerationInput,
 ): Promise<ModerationOutput> {
   const warnings: string[] = [];
   const flaggedWords: string[] = [];
@@ -56,9 +56,7 @@ export async function moderateContent(
     // 1. Profanity Filter (local, instant)
     const profanityCheck = ContentFilter.check(input.text);
     if (!profanityCheck.safe) {
-      warnings.push(
-        `Profanity detected: ${profanityCheck.flagged.join(", ")}`
-      );
+      warnings.push(`Profanity detected: ${profanityCheck.flagged.join(", ")}`);
       flaggedWords.push(...profanityCheck.flagged);
       moderated = profanityCheck.filtered;
       notifyParent = profanityCheck.notifyParent;
@@ -67,7 +65,9 @@ export async function moderateContent(
     // 2. PII Detection (personal information)
     const piiCheck = PIIDetector.detect(moderated);
     if (piiCheck.detected) {
-      warnings.push(`Personal information detected: ${piiCheck.types.join(", ")}`);
+      warnings.push(
+        `Personal information detected: ${piiCheck.types.join(", ")}`,
+      );
       moderated = piiCheck.masked;
       notifyParent = true;
     }
@@ -83,9 +83,7 @@ export async function moderateContent(
     // 4. AI Moderation (OpenAI - async, more thorough)
     aiResult = await moderateTextWithAI(input.text);
     if (aiResult.flagged) {
-      warnings.push(
-        `AI flagged: ${aiResult.flaggedCategories.join(", ")}`
-      );
+      warnings.push(`AI flagged: ${aiResult.flaggedCategories.join(", ")}`);
       flaggedCategories.push(...aiResult.flaggedCategories);
 
       const aiAction = getRecommendedAction(aiResult);
@@ -99,8 +97,15 @@ export async function moderateContent(
 
     // 6. Determine final action
     const finalSeverity = determineSeverity(profanityCheck.severity, aiResult);
-    const finalAction = determineAction(profanityCheck.action, aiResult, piiCheck.detected);
-    const finalStatus = determineStatus(finalAction, aiResult?.flagged || false);
+    const finalAction = determineAction(
+      profanityCheck.action,
+      aiResult,
+      piiCheck.detected,
+    );
+    const finalStatus = determineStatus(
+      finalAction,
+      aiResult?.flagged || false,
+    );
 
     // 7. Log to database
     const moderationLog = await prisma.moderationLog.create({
@@ -114,7 +119,9 @@ export async function moderateContent(
         status: finalStatus,
         flagged: aiResult?.flagged || !profanityCheck.safe || piiCheck.detected,
         severity: finalSeverity,
-        ...(flaggedWords.length > 0 && { flaggedWords: JSON.stringify(flaggedWords) }),
+        ...(flaggedWords.length > 0 && {
+          flaggedWords: JSON.stringify(flaggedWords),
+        }),
         ...(aiResult
           ? {
               categories: {
@@ -138,8 +145,8 @@ export async function moderateContent(
 
     // 8. Notify parent if needed (async, non-blocking)
     if (notifyParent && input.studentId) {
-      notifyParentAsync(input.studentId, moderationLog.id, warnings).catch((err) =>
-        log.error("Failed to notify parent", err)
+      notifyParentAsync(input.studentId, moderationLog.id, warnings).catch(
+        (err) => log.error("Failed to notify parent", err),
       );
     }
 
@@ -162,7 +169,8 @@ export async function moderateContent(
       flaggedWords,
       flaggedCategories,
       notifyParent,
-      ...(finalAction === "block" && warnings[0] && { blockReason: warnings[0] }),
+      ...(finalAction === "block" &&
+        warnings[0] && { blockReason: warnings[0] }),
       moderationLogId: moderationLog.id,
     };
   } catch (error) {
@@ -208,7 +216,7 @@ export async function moderateContent(
  * Batch moderate multiple contents
  */
 export async function moderateContents(
-  inputs: ModerationInput[]
+  inputs: ModerationInput[],
 ): Promise<ModerationOutput[]> {
   return Promise.all(inputs.map(moderateContent));
 }
@@ -218,7 +226,7 @@ export async function moderateContents(
  */
 function determineSeverity(
   profanitySeverity: string,
-  aiResult: OpenAIModerationResult | null
+  aiResult: OpenAIModerationResult | null,
 ): "none" | "mild" | "moderate" | "severe" | "critical" {
   const severityLevels = ["none", "mild", "moderate", "severe", "critical"];
 
@@ -226,7 +234,12 @@ function determineSeverity(
   const aiLevel = aiResult ? severityLevels.indexOf(aiResult.severity) : 0;
 
   const maxLevel = Math.max(profanityLevel, aiLevel);
-  return severityLevels[maxLevel] as "none" | "mild" | "moderate" | "severe" | "critical";
+  return severityLevels[maxLevel] as
+    | "none"
+    | "mild"
+    | "moderate"
+    | "severe"
+    | "critical";
 }
 
 /**
@@ -235,11 +248,16 @@ function determineSeverity(
 function determineAction(
   profanityAction: string,
   aiResult: OpenAIModerationResult | null,
-  hasPII: boolean
+  hasPII: boolean,
 ): "allow" | "warn" | "filter" | "block" | "flag" {
   const actionPriority = { block: 4, flag: 3, filter: 2, warn: 1, allow: 0 };
 
-  let maxAction = profanityAction as "allow" | "warn" | "filter" | "block" | "flag";
+  let maxAction = profanityAction as
+    | "allow"
+    | "warn"
+    | "filter"
+    | "block"
+    | "flag";
   let maxPriority = actionPriority[maxAction] || 0;
 
   if (aiResult) {
@@ -261,10 +279,7 @@ function determineAction(
 /**
  * Determine moderation status
  */
-function determineStatus(
-  action: string,
-  aiFlagged: boolean
-): ModerationStatus {
+function determineStatus(action: string, aiFlagged: boolean): ModerationStatus {
   if (action === "block") return "REJECTED";
   if (action === "flag" || aiFlagged) return "FLAGGED";
   if (action === "allow") return "APPROVED";
@@ -277,7 +292,7 @@ function determineStatus(
 async function notifyParentAsync(
   studentId: string,
   moderationLogId: string,
-  warnings: string[]
+  warnings: string[],
 ): Promise<void> {
   try {
     // Find student and guardian link

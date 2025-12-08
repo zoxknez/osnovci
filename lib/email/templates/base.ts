@@ -17,10 +17,7 @@ export interface EmailTemplate {
 /**
  * Base HTML template wrapper with consistent styling
  */
-export function createBaseTemplate(
-  content: string,
-  title: string,
-): string {
+export function createBaseTemplate(content: string, title: string): string {
   return `<!DOCTYPE html>
 <html lang="sr">
 <head>
@@ -187,11 +184,11 @@ export function createBaseTemplate(
  */
 export function escapeHtml(text: string): string {
   const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   };
   return text.replace(/[&<>"']/g, (m) => map[m] ?? m);
 }
@@ -202,14 +199,13 @@ export function escapeHtml(text: string): string {
 export function createPlainText(html: string): string {
   // Remove HTML tags and convert to plain text
   return html
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#039;/g, "'")
-    .replace(/\n\s*\n/g, '\n\n')
+    .replace(/\n\s*\n/g, "\n\n")
     .trim();
 }
-

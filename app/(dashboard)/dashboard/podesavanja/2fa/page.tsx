@@ -16,7 +16,7 @@ import {
   Smartphone,
   X,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,13 +38,15 @@ export default function TwoFactorSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEnabling, setIsEnabling] = useState(false);
   const [isDisabling, setIsDisabling] = useState(false);
-  
+
   // Setup flow states
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [password, setPassword] = useState("");
   const [setupData, setSetupData] = useState<Setup2FAData | null>(null);
   const [verificationToken, setVerificationToken] = useState("");
-  const [setupStep, setSetupStep] = useState<"password" | "scan" | "verify" | "backup">("password");
+  const [setupStep, setSetupStep] = useState<
+    "password" | "scan" | "verify" | "backup"
+  >("password");
 
   // Check 2FA status on mount
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function TwoFactorSettingsPage() {
     try {
       const response = await fetch("/api/auth/2fa/status");
       const data = await response.json();
-      
+
       if (response.ok) {
         setTwoFactorEnabled(data.enabled);
       }
@@ -182,7 +184,7 @@ export default function TwoFactorSettingsPage() {
     const text = setupData.backupCodes
       .map((code, i) => `${i + 1}. ${code}`)
       .join("\n");
-    
+
     navigator.clipboard.writeText(text);
     toast.success("Backup kodovi kopirani u clipboard!");
   };
@@ -192,7 +194,7 @@ export default function TwoFactorSettingsPage() {
 
     const text = [
       "OSNOVCI - 2FA BACKUP KODOVI",
-      "=" .repeat(50),
+      "=".repeat(50),
       "",
       "⚠️ VAŽNO: Čuvaj ove kodove na sigurnom mestu!",
       "- Svaki kod se može koristiti samo jednom",
@@ -203,7 +205,7 @@ export default function TwoFactorSettingsPage() {
       "",
       ...setupData.backupCodes.map((code, i) => `${i + 1}. ${code}`),
       "",
-      "=" .repeat(50),
+      "=".repeat(50),
       `Generisano: ${new Date().toLocaleString("sr-Latn")}`,
     ].join("\n");
 
@@ -244,9 +246,7 @@ export default function TwoFactorSettingsPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Dvofaktorska Autentifikacija (2FA)
           </h1>
-          <p className="text-gray-600">
-            Dodatni sloj zaštite za tvoj nalog
-          </p>
+          <p className="text-gray-600">Dodatni sloj zaštite za tvoj nalog</p>
         </motion.div>
 
         {/* Status Card */}
@@ -268,11 +268,13 @@ export default function TwoFactorSettingsPage() {
                     : "Tvoj nalog nije zaštićen sa 2FA"}
                 </CardDescription>
               </div>
-              <div className={`px-4 py-2 rounded-full font-semibold ${
-                twoFactorEnabled
-                  ? "bg-green-100 text-green-800"
-                  : "bg-orange-100 text-orange-800"
-              }`}>
+              <div
+                className={`px-4 py-2 rounded-full font-semibold ${
+                  twoFactorEnabled
+                    ? "bg-green-100 text-green-800"
+                    : "bg-orange-100 text-orange-800"
+                }`}
+              >
                 {twoFactorEnabled ? "Omogućeno" : "Onemogućeno"}
               </div>
             </div>
@@ -291,7 +293,8 @@ export default function TwoFactorSettingsPage() {
               <div className="space-y-4">
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-sm text-green-800">
-                    ✅ Pri svakoj prijavi će biti potreban 6-cifreni kod iz Authenticator aplikacije
+                    ✅ Pri svakoj prijavi će biti potreban 6-cifreni kod iz
+                    Authenticator aplikacije
                   </p>
                 </div>
                 <Button
@@ -322,10 +325,12 @@ export default function TwoFactorSettingsPage() {
             </CardHeader>
             <CardContent className="text-sm text-gray-600 space-y-2">
               <p>
-                Dvofaktorska autentifikacija (2FA) dodaje dodatni sloj sigurnosti za tvoj nalog.
+                Dvofaktorska autentifikacija (2FA) dodaje dodatni sloj
+                sigurnosti za tvoj nalog.
               </p>
               <p>
-                Pored lozinke, potreban ti je i 6-cifreni kod iz mobilne aplikacije.
+                Pored lozinke, potreban ti je i 6-cifreni kod iz mobilne
+                aplikacije.
               </p>
             </CardContent>
           </Card>
@@ -338,15 +343,9 @@ export default function TwoFactorSettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-gray-600 space-y-2">
-              <p>
-                1. Instaliraj Google Authenticator ili Authy
-              </p>
-              <p>
-                2. Skeniraj QR kod
-              </p>
-              <p>
-                3. Unesi 6-cifreni kod pri svakoj prijavi
-              </p>
+              <p>1. Instaliraj Google Authenticator ili Authy</p>
+              <p>2. Skeniraj QR kod</p>
+              <p>3. Unesi 6-cifreni kod pri svakoj prijavi</p>
             </CardContent>
           </Card>
         </div>
@@ -360,7 +359,7 @@ export default function TwoFactorSettingsPage() {
               className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600" />
-              
+
               <div className="p-6">
                 {/* Step: Password Verification */}
                 {setupStep === "password" && !twoFactorEnabled && (
@@ -468,7 +467,9 @@ export default function TwoFactorSettingsPage() {
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
                         <QrCode className="h-8 w-8 text-purple-600" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">Skeniraj QR Kod</h2>
+                      <h2 className="text-2xl font-bold mb-2">
+                        Skeniraj QR Kod
+                      </h2>
                       <p className="text-gray-600">
                         Koristi Google Authenticator ili Authy
                       </p>
@@ -521,7 +522,11 @@ export default function TwoFactorSettingsPage() {
                       label="6-cifreni kod"
                       type="text"
                       value={verificationToken}
-                      onChange={(e) => setVerificationToken(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      onChange={(e) =>
+                        setVerificationToken(
+                          e.target.value.replace(/\D/g, "").slice(0, 6),
+                        )
+                      }
                       placeholder="123456"
                       maxLength={6}
                       disabled={isEnabling}
@@ -556,7 +561,9 @@ export default function TwoFactorSettingsPage() {
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
                         <Key className="h-8 w-8 text-yellow-600" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">Sačuvaj Backup Kodove</h2>
+                      <h2 className="text-2xl font-bold mb-2">
+                        Sačuvaj Backup Kodove
+                      </h2>
                       <p className="text-gray-600">
                         Potrebni su ako izgubiš pristup telefonu
                       </p>
@@ -567,7 +574,10 @@ export default function TwoFactorSettingsPage() {
                         <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                         <div className="text-sm text-yellow-900">
                           <p className="font-semibold mb-1">⚠️ VAŽNO!</p>
-                          <p>Svaki kod se može koristiti samo jednom. Čuvaj ih na sigurnom mestu!</p>
+                          <p>
+                            Svaki kod se može koristiti samo jednom. Čuvaj ih na
+                            sigurnom mestu!
+                          </p>
                         </div>
                       </div>
 

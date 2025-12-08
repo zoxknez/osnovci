@@ -1,7 +1,7 @@
 /**
  * Welcome Email Template
  */
-import { createBaseTemplate, type EmailTemplate } from './base';
+import { createBaseTemplate, type EmailTemplate } from "./base";
 
 export function createWelcomeEmailTemplate(userName: string): EmailTemplate {
   const content = `
@@ -17,8 +17,8 @@ export function createWelcomeEmailTemplate(userName: string): EmailTemplate {
     <p>Sretno sa učenjem! 🚀</p>
   `;
 
-  const html = createBaseTemplate(content, '🎉 Dobrodošao/la u Osnovci!');
-  
+  const html = createBaseTemplate(content, "🎉 Dobrodošao/la u Osnovci!");
+
   const text = `
 Dobrodošao/la u Osnovci!
 
@@ -39,7 +39,7 @@ Osnovci - Aplikacija za Učenike i Roditelje
   `.trim();
 
   return {
-    subject: '🎉 Dobrodošao/la u Osnovci!',
+    subject: "🎉 Dobrodošao/la u Osnovci!",
     html,
     text,
   };
@@ -47,12 +47,11 @@ Osnovci - Aplikacija za Učenike i Roditelje
 
 function escapeHtml(text: string): string {
   const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   };
   return text.replace(/[&<>"']/g, (m) => map[m] ?? m);
 }
-

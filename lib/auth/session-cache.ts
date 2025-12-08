@@ -1,16 +1,16 @@
 /**
  * Session Caching Layer - Redis cache for session validation
  * Reduces database load by caching session validation results
- * 
+ *
  * Performance improvement: ~90% reduction in DB queries for session checks
  */
 
-import { redis } from '@/lib/upstash';
-import { validateSession as dbValidateSession } from './session-manager';
-import { log } from '@/lib/logger';
+import { log } from "@/lib/logger";
+import { redis } from "@/lib/upstash";
+import { validateSession as dbValidateSession } from "./session-manager";
 
 const SESSION_CACHE_TTL = 300; // 5 minutes
-const SESSION_CACHE_PREFIX = 'session:cache:';
+const SESSION_CACHE_PREFIX = "session:cache:";
 
 interface CachedSession {
   valid: boolean;
@@ -34,11 +34,11 @@ export async function validateSessionCached(token: string): Promise<{
   if (redis) {
     try {
       const cached = await redis.get<CachedSession>(cacheKey);
-      
+
       if (cached) {
         const age = Date.now() - cached.cachedAt;
-        
-        log.debug('Session cache hit', {
+
+        log.debug("Session cache hit", {
           age: Math.floor(age / 1000),
           valid: cached.valid,
         });
@@ -50,13 +50,13 @@ export async function validateSessionCached(token: string): Promise<{
         };
       }
     } catch (error) {
-      log.warn('Redis cache read failed, falling back to DB', { error });
+      log.warn("Redis cache read failed, falling back to DB", { error });
     }
   }
 
   // Cache miss or Redis unavailable - query database
-  log.debug('Session cache miss - querying database');
-  
+  log.debug("Session cache miss - querying database");
+
   const result = await dbValidateSession(token);
 
   // Cache the result (even if invalid - prevents repeated DB queries for invalid tokens)
@@ -70,13 +70,13 @@ export async function validateSessionCached(token: string): Promise<{
       };
 
       await redis.set(cacheKey, cacheData, { ex: SESSION_CACHE_TTL });
-      
-      log.debug('Session cached', {
+
+      log.debug("Session cached", {
         valid: result.valid,
         ttl: SESSION_CACHE_TTL,
       });
     } catch (error) {
-      log.warn('Redis cache write failed', { error });
+      log.warn("Redis cache write failed", { error });
       // Continue without caching - not critical
     }
   }
@@ -91,12 +91,14 @@ export async function invalidateSessionCache(token: string): Promise<void> {
   if (!redis) return;
 
   const cacheKey = `${SESSION_CACHE_PREFIX}${token}`;
-  
+
   try {
     await redis.del(cacheKey);
-    log.debug('Session cache invalidated', { token: token.substring(0, 8) + '...' });
+    log.debug("Session cache invalidated", {
+      token: token.substring(0, 8) + "...",
+    });
   } catch (error) {
-    log.warn('Failed to invalidate session cache', { error });
+    log.warn("Failed to invalidate session cache", { error });
   }
 }
 
@@ -110,26 +112,27 @@ export async function clearAllSessionCaches(): Promise<number> {
     // Scan for all session cache keys
     const keys: string[] = [];
     let cursor = 0;
-    
+
     do {
       const result = await redis.scan(cursor, {
         match: `${SESSION_CACHE_PREFIX}*`,
         count: 100,
       });
-      
-      cursor = typeof result[0] === 'string' ? parseInt(result[0], 10) : result[0];
+
+      cursor =
+        typeof result[0] === "string" ? parseInt(result[0], 10) : result[0];
       keys.push(...result[1]);
     } while (cursor !== 0);
 
     // Delete in batches
     if (keys.length > 0) {
       await redis.del(...keys);
-      log.info('All session caches cleared', { count: keys.length });
+      log.info("All session caches cleared", { count: keys.length });
     }
 
     return keys.length;
   } catch (error) {
-    log.error('Failed to clear session caches', { error });
+    log.error("Failed to clear session caches", { error });
     return 0;
   }
 }
@@ -142,20 +145,21 @@ export async function getSessionCacheStats(): Promise<{
   memoryUsage: string;
 }> {
   if (!redis) {
-    return { totalCached: 0, memoryUsage: '0 KB' };
+    return { totalCached: 0, memoryUsage: "0 KB" };
   }
 
   try {
     const keys: string[] = [];
     let cursor = 0;
-    
+
     do {
       const result = await redis.scan(cursor, {
         match: `${SESSION_CACHE_PREFIX}*`,
         count: 100,
       });
-      
-      cursor = typeof result[0] === 'string' ? parseInt(result[0], 10) : result[0];
+
+      cursor =
+        typeof result[0] === "string" ? parseInt(result[0], 10) : result[0];
       keys.push(...result[1]);
     } while (cursor !== 0);
 
@@ -164,10 +168,13 @@ export async function getSessionCacheStats(): Promise<{
 
     return {
       totalCached: keys.length,
-      memoryUsage: memoryKB > 1024 ? `${(memoryKB / 1024).toFixed(2)} MB` : `${memoryKB} KB`,
+      memoryUsage:
+        memoryKB > 1024
+          ? `${(memoryKB / 1024).toFixed(2)} MB`
+          : `${memoryKB} KB`,
     };
   } catch (error) {
-    log.error('Failed to get cache stats', { error });
-    return { totalCached: 0, memoryUsage: 'Unknown' };
+    log.error("Failed to get cache stats", { error });
+    return { totalCached: 0, memoryUsage: "Unknown" };
   }
 }

@@ -6,9 +6,9 @@ import {
   sendActivityNotification,
   sendFamilyLink,
   sendFlaggedContent,
+  sendParentalAlert,
   sendParentalConsent,
   sendWeeklyReport,
-  sendParentalAlert,
 } from "./service";
 
 /**

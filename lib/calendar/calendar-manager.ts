@@ -3,8 +3,18 @@
  * Advanced calendar with day/week/month/agenda views and drag-drop scheduling
  */
 
+import {
+  addDays,
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { prisma } from "@/lib/db/prisma";
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays, format, isSameDay } from "date-fns";
 
 export interface CalendarEvent {
   id: string;
@@ -39,7 +49,7 @@ export interface CalendarDay {
 export async function getCalendarEvents(
   studentId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<CalendarEvent[]> {
   const events: CalendarEvent[] = [];
 
@@ -79,16 +89,18 @@ export async function getCalendarEvents(
   let currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     const dayOfWeek = format(currentDate, "EEEE").toUpperCase();
-    
+
     const dayEntries = scheduleEntries.filter(
-      (entry) => entry.dayOfWeek === dayOfWeek
+      (entry) => entry.dayOfWeek === dayOfWeek,
     );
 
     for (const entry of dayEntries) {
       // Skip entries without subject (custom events)
       if (!entry.subject) continue;
 
-      const [startHour = 0, startMinute = 0] = entry.startTime.split(":").map(Number);
+      const [startHour = 0, startMinute = 0] = entry.startTime
+        .split(":")
+        .map(Number);
       const [endHour = 0, endMinute = 0] = entry.endTime.split(":").map(Number);
 
       const startTime = new Date(currentDate);
@@ -162,7 +174,7 @@ export async function getCalendarEvents(
  */
 export async function getDayView(
   studentId: string,
-  date: Date
+  date: Date,
 ): Promise<{
   date: Date;
   events: CalendarEvent[];
@@ -174,12 +186,12 @@ export async function getDayView(
   const events = await getCalendarEvents(
     studentId,
     startOfDay(date),
-    endOfDay(date)
+    endOfDay(date),
   );
 
   // Group events by hour
   const timeSlots: Array<{ hour: number; events: CalendarEvent[] }> = [];
-  
+
   for (let hour = 0; hour < 24; hour++) {
     const hourEvents = events.filter((event) => {
       if (event.isAllDay) return hour === 8; // Show all-day events at 8 AM
@@ -198,7 +210,7 @@ export async function getDayView(
  */
 export async function getWeekView(
   studentId: string,
-  date: Date
+  date: Date,
 ): Promise<{
   weekStart: Date;
   weekEnd: Date;
@@ -217,7 +229,7 @@ export async function getWeekView(
   for (let i = 0; i < 7; i++) {
     const dayDate = addDays(weekStart, i);
     const dayEvents = events.filter((event) =>
-      isSameDay(event.startTime, dayDate)
+      isSameDay(event.startTime, dayDate),
     );
 
     days.push({ date: dayDate, events: dayEvents });
@@ -231,7 +243,7 @@ export async function getWeekView(
  */
 export async function getMonthView(
   studentId: string,
-  date: Date
+  date: Date,
 ): Promise<{
   monthStart: Date;
   monthEnd: Date;
@@ -253,7 +265,7 @@ export async function getMonthView(
   let currentDate = new Date(calendarStart);
   while (currentDate <= calendarEnd) {
     const dayEvents = events.filter((event) =>
-      isSameDay(event.startTime, currentDate)
+      isSameDay(event.startTime, currentDate),
     );
 
     currentWeek.push({
@@ -285,7 +297,7 @@ export async function getMonthView(
  */
 export async function getAgendaView(
   studentId: string,
-  days: number = 7
+  days: number = 7,
 ): Promise<
   Array<{
     date: Date;
@@ -302,7 +314,7 @@ export async function getAgendaView(
   for (let i = 0; i < days; i++) {
     const dayDate = addDays(startDate, i);
     const dayEvents = events.filter((event) =>
-      isSameDay(event.startTime, dayDate)
+      isSameDay(event.startTime, dayDate),
     );
 
     agenda.push({ date: dayDate, events: dayEvents });
@@ -320,7 +332,7 @@ export async function getAgendaView(
  */
 export async function rescheduleHomework(
   homeworkId: string,
-  newDueDate: Date
+  newDueDate: Date,
 ): Promise<{ success: boolean; message: string }> {
   try {
     await prisma.homework.update({
@@ -346,7 +358,7 @@ export async function createCustomEvent(
     endTime: Date;
     isAllDay?: boolean;
     color?: string;
-  }
+  },
 ): Promise<{ id: string; title: string }> {
   // Store custom events in ScheduleEntry table with a special marker
   const event = await prisma.scheduleEntry.create({
@@ -373,7 +385,7 @@ export async function updateEventTime(
   eventId: string,
   eventType: string,
   newStartTime: Date,
-  newEndTime: Date
+  newEndTime: Date,
 ): Promise<{ success: boolean; message: string }> {
   try {
     if (eventType === "homework") {
@@ -382,7 +394,9 @@ export async function updateEventTime(
         data: { dueDate: newStartTime },
       });
     } else if (eventType === "schedule") {
-      const scheduleId = eventId.replace("schedule-", "").split("-")[0] as string;
+      const scheduleId = eventId
+        .replace("schedule-", "")
+        .split("-")[0] as string;
       await prisma.scheduleEntry.update({
         where: { id: scheduleId },
         data: {
@@ -403,7 +417,7 @@ export async function updateEventTime(
  * Delete custom event
  */
 export async function deleteCustomEvent(
-  eventId: string
+  eventId: string,
 ): Promise<{ success: boolean }> {
   try {
     await prisma.scheduleEntry.delete({
@@ -426,7 +440,7 @@ export async function checkConflicts(
   studentId: string,
   startTime: Date,
   endTime: Date,
-  excludeEventId?: string
+  excludeEventId?: string,
 ): Promise<{
   hasConflict: boolean;
   conflicts: Array<{
@@ -439,7 +453,7 @@ export async function checkConflicts(
   const events = await getCalendarEvents(
     studentId,
     startOfDay(startTime),
-    endOfDay(startTime)
+    endOfDay(startTime),
   );
 
   const conflicts = events.filter((event) => {
@@ -476,7 +490,7 @@ export async function checkConflicts(
 export async function getFreeTimeSlots(
   studentId: string,
   date: Date,
-  slotDuration: number = 60 // minutes
+  slotDuration: number = 60, // minutes
 ): Promise<
   Array<{
     startTime: Date;
@@ -487,7 +501,7 @@ export async function getFreeTimeSlots(
   const dayEvents = await getCalendarEvents(
     studentId,
     startOfDay(date),
-    endOfDay(date)
+    endOfDay(date),
   );
 
   // Define working hours (7 AM - 10 PM)
@@ -511,8 +525,9 @@ export async function getFreeTimeSlots(
 
   for (const event of busySlots) {
     if (currentTime < event.startTime) {
-      const duration = (event.startTime.getTime() - currentTime.getTime()) / (1000 * 60);
-      
+      const duration =
+        (event.startTime.getTime() - currentTime.getTime()) / (1000 * 60);
+
       if (duration >= slotDuration) {
         freeSlots.push({
           startTime: new Date(currentTime),
@@ -529,8 +544,9 @@ export async function getFreeTimeSlots(
 
   // Check for free time after last event
   if (currentTime < workingEnd) {
-    const duration = (workingEnd.getTime() - currentTime.getTime()) / (1000 * 60);
-    
+    const duration =
+      (workingEnd.getTime() - currentTime.getTime()) / (1000 * 60);
+
     if (duration >= slotDuration) {
       freeSlots.push({
         startTime: new Date(currentTime),
@@ -589,7 +605,7 @@ function getPriorityColor(priority: string): string {
 export async function exportToICalendar(
   studentId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<string> {
   const events = await getCalendarEvents(studentId, startDate, endDate);
 
@@ -605,11 +621,11 @@ export async function exportToICalendar(
     ical += `DTSTART:${formatICalDate(event.startTime)}\r\n`;
     ical += `DTEND:${formatICalDate(event.endTime)}\r\n`;
     ical += `SUMMARY:${event.title}\r\n`;
-    
+
     if (event.description) {
       ical += `DESCRIPTION:${event.description.replace(/\n/g, "\\n")}\r\n`;
     }
-    
+
     if (event.room) {
       ical += `LOCATION:${event.room}\r\n`;
     }
@@ -623,8 +639,5 @@ export async function exportToICalendar(
 }
 
 function formatICalDate(date: Date): string {
-  return date
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d+/, "");
+  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
 }

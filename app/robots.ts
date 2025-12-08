@@ -5,7 +5,7 @@
 
 import type { MetadataRoute } from "next";
 
-const BASE_URL = process.env['NEXT_PUBLIC_APP_URL'] || "https://osnovci.rs";
+const BASE_URL = process.env["NEXT_PUBLIC_APP_URL"] || "https://osnovci.rs";
 
 export default function robots(): MetadataRoute.Robots {
   return {

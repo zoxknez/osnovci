@@ -19,17 +19,14 @@ export function useOfflineSchedule() {
     }
   }, []);
 
-  const cacheSchedule = useCallback(
-    async (schedule: StoredSchedule[]) => {
-      try {
-        await offlineStorage.saveSchedule(schedule);
-        setOfflineSchedule(schedule);
-      } catch {
-        // Failed to cache schedule
-      }
-    },
-    [],
-  );
+  const cacheSchedule = useCallback(async (schedule: StoredSchedule[]) => {
+    try {
+      await offlineStorage.saveSchedule(schedule);
+      setOfflineSchedule(schedule);
+    } catch {
+      // Failed to cache schedule
+    }
+  }, []);
 
   // Load offline items on mount
   useEffect(() => {

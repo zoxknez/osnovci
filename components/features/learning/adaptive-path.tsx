@@ -5,11 +5,23 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { BookOpen, Clock, Target, TrendingUp, Lightbulb } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  BookOpen,
+  Clock,
+  Lightbulb,
+  Loader,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Loader } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface LearningRecommendation {
@@ -27,7 +39,9 @@ interface AdaptivePathProps {
 }
 
 export function AdaptivePath({ studentId }: AdaptivePathProps) {
-  const [recommendations, setRecommendations] = useState<LearningRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<
+    LearningRecommendation[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<{
     strengths: string[];
@@ -43,9 +57,12 @@ export function AdaptivePath({ studentId }: AdaptivePathProps) {
   const loadRecommendations = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/learning/recommendations?studentId=${studentId}`, {
-        credentials: "include",
-      });
+      const response = await fetch(
+        `/api/learning/recommendations?studentId=${studentId}`,
+        {
+          credentials: "include",
+        },
+      );
       if (!response.ok) throw new Error("Failed to load recommendations");
       const data = await response.json();
       setRecommendations(data.recommendations || []);
@@ -117,7 +134,11 @@ export function AdaptivePath({ studentId }: AdaptivePathProps) {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {profile.strengths.map((subject) => (
-                    <Badge key={subject} variant="outline" className="bg-green-50 text-green-700">
+                    <Badge
+                      key={subject}
+                      variant="outline"
+                      className="bg-green-50 text-green-700"
+                    >
                       {subject}
                     </Badge>
                   ))}
@@ -131,7 +152,11 @@ export function AdaptivePath({ studentId }: AdaptivePathProps) {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {profile.weaknesses.map((subject) => (
-                    <Badge key={subject} variant="outline" className="bg-orange-50 text-orange-700">
+                    <Badge
+                      key={subject}
+                      variant="outline"
+                      className="bg-orange-50 text-orange-700"
+                    >
                       {subject}
                     </Badge>
                   ))}
@@ -140,10 +165,16 @@ export function AdaptivePath({ studentId }: AdaptivePathProps) {
             )}
             <div className="text-sm text-gray-600">
               <p>
-                <strong>Najbolje vreme za učenje:</strong> {profile.optimalStudyTime}
+                <strong>Najbolje vreme za učenje:</strong>{" "}
+                {profile.optimalStudyTime}
               </p>
               <p>
-                <strong>Način učenja:</strong> {profile.learningStyle === "visual" ? "Vizuelno" : profile.learningStyle === "auditory" ? "Auditivno" : "Kinestetički"}
+                <strong>Način učenja:</strong>{" "}
+                {profile.learningStyle === "visual"
+                  ? "Vizuelno"
+                  : profile.learningStyle === "auditory"
+                    ? "Auditivno"
+                    : "Kinestetički"}
               </p>
             </div>
           </CardContent>
@@ -176,7 +207,7 @@ export function AdaptivePath({ studentId }: AdaptivePathProps) {
                     "border-l-4",
                     rec.priority === "high" && "border-l-red-500",
                     rec.priority === "medium" && "border-l-yellow-500",
-                    rec.priority === "low" && "border-l-blue-500"
+                    rec.priority === "low" && "border-l-blue-500",
                   )}
                 >
                   <CardContent className="p-4">
@@ -188,16 +219,24 @@ export function AdaptivePath({ studentId }: AdaptivePathProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             {getTypeIcon(rec.type)}
-                            <h4 className="font-semibold truncate">{rec.title}</h4>
+                            <h4 className="font-semibold truncate">
+                              {rec.title}
+                            </h4>
                             <Badge className={getPriorityColor(rec.priority)}>
-                              {rec.priority === "high" ? "Visok" : rec.priority === "medium" ? "Srednji" : "Nizak"}
+                              {rec.priority === "high"
+                                ? "Visok"
+                                : rec.priority === "medium"
+                                  ? "Srednji"
+                                  : "Nizak"}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {rec.description}
+                          </p>
                           <div className="flex items-center gap-4 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              ~{rec.estimatedTime} min
+                              <Clock className="h-3 w-3" />~{rec.estimatedTime}{" "}
+                              min
                             </span>
                             <Badge variant="outline" className="text-xs">
                               {rec.subject}
@@ -219,4 +258,3 @@ export function AdaptivePath({ studentId }: AdaptivePathProps) {
     </div>
   );
 }
-

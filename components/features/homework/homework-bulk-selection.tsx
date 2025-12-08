@@ -5,9 +5,9 @@
 
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
 import { CheckSquare2, Square } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface HomeworkBulkSelectionProps {
@@ -87,4 +87,3 @@ export function HomeworkItemCheckbox({
     />
   );
 }
-

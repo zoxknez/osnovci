@@ -1,8 +1,7 @@
 // Advanced UI Patterns - Reusable Components Library
 "use client";
 
-import { type ReactNode, memo } from "react";
-import { cn } from "@/lib/utils";
+import { memo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 /**
  * Stats Card - Optimized for dashboard metrics
@@ -41,7 +41,7 @@ export const StatsCard = memo(function StatsCard({
   className,
 }: StatsCardProps) {
   const Wrapper = onClick ? "button" : "div";
-  
+
   return (
     <Wrapper
       onClick={onClick}
@@ -60,10 +60,14 @@ export const StatsCard = memo(function StatsCard({
             <p className="text-xs text-gray-500 mt-1">{description}</p>
           )}
           {trend && (
-            <div className={cn(
-              "inline-flex items-center gap-1 mt-2 text-xs font-medium px-2 py-1 rounded-full",
-              trend.isPositive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-            )}>
+            <div
+              className={cn(
+                "inline-flex items-center gap-1 mt-2 text-xs font-medium px-2 py-1 rounded-full",
+                trend.isPositive
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700",
+              )}
+            >
               <span>{trend.isPositive ? "↑" : "↓"}</span>
               <span>{trend.value}%</span>
               <span className="opacity-75">{trend.label}</span>
@@ -100,15 +104,17 @@ export const FeatureCard = memo(function FeatureCard({
 }: FeatureCardProps) {
   return (
     <Card className="relative overflow-hidden hover:shadow-2xl transition-all duration-300 group">
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
-      
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`}
+      />
+
       <CardHeader>
         <div className="h-12 w-12 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
           {icon}
         </div>
         <CardTitle className="text-xl">{title}</CardTitle>
       </CardHeader>
-      
+
       <CardContent>
         <CardDescription className="text-base leading-relaxed">
           {description}
@@ -226,7 +232,7 @@ export const ActionBar = memo(function ActionBar({
           </Button>
         ))}
       </div>
-      
+
       {primaryAction && (
         <Button
           size="lg"
@@ -262,7 +268,7 @@ export const ListItem = memo(function ListItem({
   className,
 }: ListItemProps) {
   const Wrapper = onClick ? "button" : "div";
-  
+
   return (
     <Wrapper
       onClick={onClick}
@@ -279,19 +285,15 @@ export const ListItem = memo(function ListItem({
           </div>
         </div>
       )}
-      
+
       <div className="flex-1 min-w-0">
         <h4 className="font-semibold text-gray-900 truncate">{title}</h4>
         {description && (
           <p className="text-sm text-gray-600 truncate">{description}</p>
         )}
       </div>
-      
-      {rightContent && (
-        <div className="flex-shrink-0">
-          {rightContent}
-        </div>
-      )}
+
+      {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
     </Wrapper>
   );
 });
@@ -317,7 +319,7 @@ export const BadgeGroup = memo(function BadgeGroup({
     warning: "bg-orange-100 text-orange-700",
     error: "bg-red-100 text-red-700",
   };
-  
+
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
       {items.map((item, index) => (

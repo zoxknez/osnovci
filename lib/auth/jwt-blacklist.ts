@@ -1,20 +1,25 @@
 /**
  * JWT Token Blacklist - Session Invalidation System
  * Critical Security Feature: Prevents stolen JWT access after logout
- * 
+ *
  * Uses Redis for distributed blacklist with automatic expiration
  */
 
-import { redis } from '@/lib/upstash';
-import { log } from '@/lib/logger';
+import { log } from "@/lib/logger";
+import { redis } from "@/lib/upstash";
 
-const BLACKLIST_PREFIX = 'jwt:blacklist:';
+const BLACKLIST_PREFIX = "jwt:blacklist:";
 const DEFAULT_TTL = 7 * 24 * 60 * 60; // 7 days (match JWT expiration)
 
 interface BlacklistEntry {
   token: string;
   userId: string;
-  reason: 'logout' | 'security' | 'password_change' | '2fa_enabled' | 'admin_revoke';
+  reason:
+    | "logout"
+    | "security"
+    | "password_change"
+    | "2fa_enabled"
+    | "admin_revoke";
   timestamp: number;
   expiresAt: number;
 }
@@ -26,13 +31,13 @@ interface BlacklistEntry {
 export async function blacklistToken(
   token: string,
   userId: string,
-  reason: BlacklistEntry['reason'] = 'logout',
-  ttlSeconds: number = DEFAULT_TTL
+  reason: BlacklistEntry["reason"] = "logout",
+  ttlSeconds: number = DEFAULT_TTL,
 ): Promise<boolean> {
   if (!redis) {
-    log.error('Redis not available - cannot blacklist token', { 
-      userId, 
-      reason 
+    log.error("Redis not available - cannot blacklist token", {
+      userId,
+      reason,
     });
     return false;
   }
@@ -43,22 +48,22 @@ export async function blacklistToken(
     userId,
     reason,
     timestamp: Date.now(),
-    expiresAt: Date.now() + (ttlSeconds * 1000),
+    expiresAt: Date.now() + ttlSeconds * 1000,
   };
 
   try {
     await redis.set(key, entry, { ex: ttlSeconds });
-    
-    log.info('JWT token blacklisted', {
+
+    log.info("JWT token blacklisted", {
       userId,
       reason,
       ttl: ttlSeconds,
-      tokenPreview: token.substring(0, 16) + '...',
+      tokenPreview: token.substring(0, 16) + "...",
     });
 
     return true;
   } catch (error) {
-    log.error('Failed to blacklist token', { error, userId });
+    log.error("Failed to blacklist token", { error, userId });
     return false;
   }
 }
@@ -71,8 +76,8 @@ export async function isTokenBlacklisted(token: string): Promise<boolean> {
   if (!redis) {
     // FALLBACK: Without Redis, we can't maintain blacklist
     // This is a security degradation - log warning
-    log.warn('Redis unavailable - blacklist check skipped', {
-      tokenPreview: token.substring(0, 16) + '...',
+    log.warn("Redis unavailable - blacklist check skipped", {
+      tokenPreview: token.substring(0, 16) + "...",
     });
     return false;
   }
@@ -81,9 +86,9 @@ export async function isTokenBlacklisted(token: string): Promise<boolean> {
 
   try {
     const entry = await redis.get<BlacklistEntry>(key);
-    
+
     if (entry) {
-      log.warn('Blacklisted token access attempt', {
+      log.warn("Blacklisted token access attempt", {
         userId: entry.userId,
         reason: entry.reason,
         blacklistedAt: new Date(entry.timestamp).toISOString(),
@@ -93,7 +98,7 @@ export async function isTokenBlacklisted(token: string): Promise<boolean> {
 
     return false;
   } catch (error) {
-    log.error('Blacklist check failed', { error });
+    log.error("Blacklist check failed", { error });
     // FAIL CLOSED: If check fails, treat as blacklisted for security
     return true;
   }
@@ -105,16 +110,16 @@ export async function isTokenBlacklisted(token: string): Promise<boolean> {
  */
 export async function blacklistAllUserTokens(
   userId: string,
-  reason: BlacklistEntry['reason'] = 'security'
+  reason: BlacklistEntry["reason"] = "security",
 ): Promise<number> {
   if (!redis) {
-    log.error('Redis not available - cannot blacklist user tokens', { userId });
+    log.error("Redis not available - cannot blacklist user tokens", { userId });
     return 0;
   }
 
   try {
     // Get all active sessions for user from database
-    const { prisma } = await import('@/lib/db/prisma');
+    const { prisma } = await import("@/lib/db/prisma");
     const sessions = await prisma.session.findMany({
       where: {
         userId,
@@ -135,7 +140,7 @@ export async function blacklistAllUserTokens(
       where: { userId },
     });
 
-    log.info('All user tokens blacklisted', {
+    log.info("All user tokens blacklisted", {
       userId,
       reason,
       count: blacklisted,
@@ -143,7 +148,7 @@ export async function blacklistAllUserTokens(
 
     return blacklisted;
   } catch (error) {
-    log.error('Failed to blacklist all user tokens', { error, userId });
+    log.error("Failed to blacklist all user tokens", { error, userId });
     return 0;
   }
 }
@@ -158,12 +163,12 @@ export async function removeFromBlacklist(token: string): Promise<boolean> {
 
   try {
     await redis.del(key);
-    log.info('Token removed from blacklist', {
-      tokenPreview: token.substring(0, 16) + '...',
+    log.info("Token removed from blacklist", {
+      tokenPreview: token.substring(0, 16) + "...",
     });
     return true;
   } catch (error) {
-    log.error('Failed to remove token from blacklist', { error });
+    log.error("Failed to remove token from blacklist", { error });
     return false;
   }
 }
@@ -182,15 +187,16 @@ export async function getBlacklistStats(): Promise<{
   try {
     const keys: string[] = [];
     let cursor = 0;
-    
+
     // Scan for all blacklisted tokens
     do {
       const result = await redis.scan(cursor, {
         match: `${BLACKLIST_PREFIX}*`,
         count: 100,
       });
-      
-      cursor = typeof result[0] === 'string' ? parseInt(result[0], 10) : result[0];
+
+      cursor =
+        typeof result[0] === "string" ? parseInt(result[0], 10) : result[0];
       keys.push(...result[1]);
     } while (cursor !== 0);
 
@@ -208,7 +214,7 @@ export async function getBlacklistStats(): Promise<{
       byReason,
     };
   } catch (error) {
-    log.error('Failed to get blacklist stats', { error });
+    log.error("Failed to get blacklist stats", { error });
     return { totalBlacklisted: 0, byReason: {} };
   }
 }
@@ -223,21 +229,22 @@ export async function cleanupExpiredBlacklist(): Promise<number> {
   try {
     const keys: string[] = [];
     let cursor = 0;
-    
+
     do {
       const result = await redis.scan(cursor, {
         match: `${BLACKLIST_PREFIX}*`,
         count: 100,
       });
-      
-      cursor = typeof result[0] === 'string' ? parseInt(result[0], 10) : result[0];
+
+      cursor =
+        typeof result[0] === "string" ? parseInt(result[0], 10) : result[0];
       keys.push(...result[1]);
     } while (cursor !== 0);
 
     // Check each entry for expiration
     let removed = 0;
     const now = Date.now();
-    
+
     for (const key of keys) {
       const entry = await redis.get<BlacklistEntry>(key);
       if (entry && entry.expiresAt < now) {
@@ -246,10 +253,10 @@ export async function cleanupExpiredBlacklist(): Promise<number> {
       }
     }
 
-    log.info('Expired blacklist entries cleaned up', { count: removed });
+    log.info("Expired blacklist entries cleaned up", { count: removed });
     return removed;
   } catch (error) {
-    log.error('Failed to cleanup expired blacklist', { error });
+    log.error("Failed to cleanup expired blacklist", { error });
     return 0;
   }
 }

@@ -1,8 +1,8 @@
 // Optimized Image Component - With blur placeholders and lazy loading
 "use client";
 
-import { useState } from "react";
 import NextImage, { type ImageProps as NextImageProps } from "next/image";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface OptimizedImageProps extends Omit<NextImageProps, "placeholder"> {
@@ -103,7 +103,9 @@ export function AvatarImage({
     .toUpperCase()
     .slice(0, 2);
 
-  const fallbackImage = fallback || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%233b82f6' width='100' height='100'/%3E%3Ctext fill='white' font-family='sans-serif' font-size='40' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3E${initials}%3C/text%3E%3C/svg%3E`;
+  const fallbackImage =
+    fallback ||
+    `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%233b82f6' width='100' height='100'/%3E%3Ctext fill='white' font-family='sans-serif' font-size='40' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3E${initials}%3C/text%3E%3C/svg%3E`;
 
   return (
     <div
@@ -206,11 +208,7 @@ export function BackgroundImage({
       {overlay && (
         <div className={cn("absolute inset-0", overlayClasses[overlay])} />
       )}
-      {children && (
-        <div className="relative z-10">
-          {children}
-        </div>
-      )}
+      {children && <div className="relative z-10">{children}</div>}
     </div>
   );
 }

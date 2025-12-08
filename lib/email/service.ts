@@ -3,29 +3,34 @@
  * Uses template system and retry logic for reliable email delivery
  */
 
-import { log } from '@/lib/logger';
-import { env } from '@/lib/env';
-import { queueEmail } from './queue';
-import { createTransporter } from './transporter';
-import { sendEmailWithRetry, isValidEmail, sanitizeEmail, type EmailResult } from './utils';
-import { createVerificationEmailTemplate } from './templates/verification';
-import { createWelcomeEmailTemplate } from './templates/welcome';
-import { createFamilyLinkTemplate } from './templates/family-link';
-import { createParentalConsentTemplate } from './templates/parental-consent';
-import { createActivityNotificationTemplate } from './templates/activity-notification';
-import { createFlaggedContentTemplate } from './templates/flagged-content';
-import { createWeeklyReportTemplate } from './templates/weekly-report';
-import { createParentalAlertTemplate } from './templates/parental-alert';
-import type { WeeklyReportData } from '@/lib/reports/weekly-report-generator';
+import { env } from "@/lib/env";
+import { log } from "@/lib/logger";
+import type { WeeklyReportData } from "@/lib/reports/weekly-report-generator";
+import { queueEmail } from "./queue";
+import { createActivityNotificationTemplate } from "./templates/activity-notification";
+import { createFamilyLinkTemplate } from "./templates/family-link";
+import { createFlaggedContentTemplate } from "./templates/flagged-content";
+import { createParentalAlertTemplate } from "./templates/parental-alert";
+import { createParentalConsentTemplate } from "./templates/parental-consent";
+import { createVerificationEmailTemplate } from "./templates/verification";
+import { createWeeklyReportTemplate } from "./templates/weekly-report";
+import { createWelcomeEmailTemplate } from "./templates/welcome";
+import { createTransporter } from "./transporter";
+import {
+  type EmailResult,
+  isValidEmail,
+  sanitizeEmail,
+  sendEmailWithRetry,
+} from "./utils";
 
 /**
  * Get email from address with fallback
  */
 function getEmailFrom(): string {
-  if (!env.EMAIL_FROM && process.env.NODE_ENV === 'production') {
-    log.error('EMAIL_FROM environment variable is missing in production!');
+  if (!env.EMAIL_FROM && process.env.NODE_ENV === "production") {
+    log.error("EMAIL_FROM environment variable is missing in production!");
   }
-  return env.EMAIL_FROM || 'noreply@osnovci.app';
+  return env.EMAIL_FROM || "noreply@osnovci.app";
 }
 
 /**
@@ -42,13 +47,16 @@ export async function sendVerificationEmail(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
     // Create verification URL
-    const baseUrl = env.NEXTAUTH_URL || 
-      (process.env['VERCEL_URL'] ? `https://${process.env['VERCEL_URL']}` : 'http://localhost:3000');
+    const baseUrl =
+      env.NEXTAUTH_URL ||
+      (process.env["VERCEL_URL"]
+        ? `https://${process.env["VERCEL_URL"]}`
+        : "http://localhost:3000");
     const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
 
     // Generate email template
@@ -61,11 +69,11 @@ export async function sendVerificationEmail(
       text: template.text,
       html: template.html,
       from: getEmailFrom(),
-      priority: 'high', // Verification emails are high priority
+      priority: "high", // Verification emails are high priority
     });
 
     if (result.queued) {
-      log.info('Verification email queued', {
+      log.info("Verification email queued", {
         to: sanitizedEmail,
         jobId: result.jobId,
       });
@@ -77,18 +85,19 @@ export async function sendVerificationEmail(
     } else if (result.sentImmediately) {
       return {
         success: true,
-        messageId: 'immediate',
+        messageId: "immediate",
       };
     }
 
     return {
       success: false,
-      error: 'Failed to queue email',
+      error: "Failed to queue email",
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send verification email', {
+    log.error("Failed to send verification email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -112,7 +121,7 @@ export async function sendWelcomeEmail(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
@@ -128,14 +137,15 @@ export async function sendWelcomeEmail(
     });
 
     if (result.success) {
-      log.info('Welcome email sent', { to: sanitizedEmail });
+      log.info("Welcome email sent", { to: sanitizedEmail });
     }
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send welcome email', {
+    log.error("Failed to send welcome email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -160,7 +170,7 @@ export async function sendFamilyLink(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
@@ -176,14 +186,15 @@ export async function sendFamilyLink(
     });
 
     if (result.success) {
-      log.info('Family link email sent', { to: sanitizedEmail });
+      log.info("Family link email sent", { to: sanitizedEmail });
     }
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send family link email', {
+    log.error("Failed to send family link email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -208,12 +219,15 @@ export async function sendParentalConsent(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
     const transporter = createTransporter();
-    const template = createParentalConsentTemplate(verificationCode, studentName);
+    const template = createParentalConsentTemplate(
+      verificationCode,
+      studentName,
+    );
 
     const result = await sendEmailWithRetry(transporter, {
       from: getEmailFrom(),
@@ -224,14 +238,15 @@ export async function sendParentalConsent(
     });
 
     if (result.success) {
-      log.info('Parental consent email sent', { to: sanitizedEmail });
+      log.info("Parental consent email sent", { to: sanitizedEmail });
     }
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send parental consent email', {
+    log.error("Failed to send parental consent email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -257,7 +272,7 @@ export async function sendActivityNotification(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
@@ -277,7 +292,7 @@ export async function sendActivityNotification(
     });
 
     if (result.success) {
-      log.info('Activity notification email sent', {
+      log.info("Activity notification email sent", {
         to: sanitizedEmail,
         activityType,
       });
@@ -285,9 +300,10 @@ export async function sendActivityNotification(
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send activity notification email', {
+    log.error("Failed to send activity notification email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -313,12 +329,16 @@ export async function sendFlaggedContent(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
     const transporter = createTransporter();
-    const template = createFlaggedContentTemplate(fileName, reasons, studentName);
+    const template = createFlaggedContentTemplate(
+      fileName,
+      reasons,
+      studentName,
+    );
 
     const result = await sendEmailWithRetry(transporter, {
       from: getEmailFrom(),
@@ -329,7 +349,7 @@ export async function sendFlaggedContent(
     });
 
     if (result.success) {
-      log.info('Flagged content email sent', {
+      log.info("Flagged content email sent", {
         to: sanitizedEmail,
         fileName,
       });
@@ -337,9 +357,10 @@ export async function sendFlaggedContent(
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send flagged content email', {
+    log.error("Failed to send flagged content email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -365,12 +386,16 @@ export async function sendWeeklyReport(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
     const transporter = createTransporter();
-    const template = createWeeklyReportTemplate(guardianName, report, viewOnlineUrl);
+    const template = createWeeklyReportTemplate(
+      guardianName,
+      report,
+      viewOnlineUrl,
+    );
 
     const result = await sendEmailWithRetry(transporter, {
       from: getEmailFrom(),
@@ -381,14 +406,15 @@ export async function sendWeeklyReport(
     });
 
     if (result.success) {
-      log.info('Weekly report email sent', { to: sanitizedEmail });
+      log.info("Weekly report email sent", { to: sanitizedEmail });
     }
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send weekly report email', {
+    log.error("Failed to send weekly report email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -413,7 +439,7 @@ export async function sendParentalAlert(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
@@ -426,11 +452,11 @@ export async function sendParentalAlert(
       subject: template.subject,
       text: template.text,
       html: template.html,
-      priority: 'high',
+      priority: "high",
     });
 
     if (result.success) {
-      log.info('Parental alert email sent', {
+      log.info("Parental alert email sent", {
         to: sanitizedEmail,
         alertType,
       });
@@ -438,9 +464,10 @@ export async function sendParentalAlert(
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send parental alert email', {
+    log.error("Failed to send parental alert email", {
       to: toEmail,
       error: errorMessage,
     });
@@ -467,7 +494,7 @@ export async function sendCustomEmail(
     if (!isValidEmail(sanitizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: "Invalid email address",
       };
     }
 
@@ -482,14 +509,15 @@ export async function sendCustomEmail(
     });
 
     if (result.success) {
-      log.info('Custom email sent', { to: sanitizedEmail, subject });
+      log.info("Custom email sent", { to: sanitizedEmail, subject });
     }
 
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    log.error('Failed to send custom email', {
+    log.error("Failed to send custom email", {
       to: toEmail,
       subject,
       error: errorMessage,

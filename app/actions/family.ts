@@ -1,17 +1,21 @@
 "use server";
 
-import { z } from "zod";
-import { auth } from "@/lib/auth/config";
-import { prisma } from "@/lib/db/prisma";
-import { log } from "@/lib/logger";
-import { revalidatePath } from "next/cache";
 import { hash } from "bcryptjs";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import {
   InitiateFamilyLinkSchema,
   QueryFamilySchema,
   UpdatePermissionsSchema,
 } from "@/lib/api/schemas/family";
-import { initiateLink, childApproves, sendGuardianVerificationEmail } from "@/lib/auth/stranger-danger";
+import { auth } from "@/lib/auth/config";
+import {
+  childApproves,
+  initiateLink,
+  sendGuardianVerificationEmail,
+} from "@/lib/auth/stranger-danger";
+import { prisma } from "@/lib/db/prisma";
+import { log } from "@/lib/logger";
 
 // Schemas
 const initiateLinkByQRSchema = z.object({
@@ -26,13 +30,16 @@ const approveLinkSchema = z.object({
 
 // Actions
 
-export async function getFamilyMembersAction(params: z.infer<typeof QueryFamilySchema>) {
+export async function getFamilyMembersAction(
+  params: z.infer<typeof QueryFamilySchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = QueryFamilySchema.safeParse(params);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const { page, limit, status, role, sortBy, order } = validated.data;
 
@@ -119,13 +126,16 @@ export async function getFamilyMembersAction(params: z.infer<typeof QueryFamilyS
   }
 }
 
-export async function initiateFamilyLinkAction(data: z.infer<typeof InitiateFamilyLinkSchema>) {
+export async function initiateFamilyLinkAction(
+  data: z.infer<typeof InitiateFamilyLinkSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = InitiateFamilyLinkSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const student = await prisma.student.findFirst({
       where: { userId: session.user.id },
@@ -145,7 +155,10 @@ export async function initiateFamilyLinkAction(data: z.infer<typeof InitiateFami
     });
 
     if (existingLink?.isActive) {
-      return { success: false, error: "Ovaj email je već povezan sa ovim detetom" };
+      return {
+        success: false,
+        error: "Ovaj email je već povezan sa ovim detetom",
+      };
     }
 
     let guardian = await prisma.user.findUnique({
@@ -233,13 +246,16 @@ export async function initiateFamilyLinkAction(data: z.infer<typeof InitiateFami
   }
 }
 
-export async function updateFamilyPermissionsAction(data: z.infer<typeof UpdatePermissionsSchema>) {
+export async function updateFamilyPermissionsAction(
+  data: z.infer<typeof UpdatePermissionsSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = UpdatePermissionsSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const link = await prisma.link.findUnique({
       where: { id: validated.data.guardianId },
@@ -313,21 +329,28 @@ export async function removeFamilyMemberAction(linkId: string) {
   }
 }
 
-export async function initiateLinkByQRAction(data: z.infer<typeof initiateLinkByQRSchema>) {
+export async function initiateLinkByQRAction(
+  data: z.infer<typeof initiateLinkByQRSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = initiateLinkByQRSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const guardian = await prisma.guardian.findUnique({
       where: { userId: session.user.id },
     });
 
-    if (!guardian) return { success: false, error: "Samo roditelji mogu skenirati QR kod" };
+    if (!guardian)
+      return { success: false, error: "Samo roditelji mogu skenirati QR kod" };
 
-    const result = await initiateLink(validated.data.studentQRData, guardian.id);
+    const result = await initiateLink(
+      validated.data.studentQRData,
+      guardian.id,
+    );
 
     return { success: true, data: result };
   } catch (error) {
@@ -336,13 +359,16 @@ export async function initiateLinkByQRAction(data: z.infer<typeof initiateLinkBy
   }
 }
 
-export async function approveLinkAction(data: z.infer<typeof approveLinkSchema>) {
+export async function approveLinkAction(
+  data: z.infer<typeof approveLinkSchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
     const validated = approveLinkSchema.safeParse(data);
-    if (!validated.success) return { success: false, error: "Validation error" };
+    if (!validated.success)
+      return { success: false, error: "Validation error" };
 
     const student = await prisma.student.findFirst({
       where: { userId: session.user.id },
@@ -357,11 +383,17 @@ export async function approveLinkAction(data: z.infer<typeof approveLinkSchema>)
     const result = await childApproves(validated.data.linkCode, student.id);
 
     if (!result.success) {
-      return { success: false, error: result.message || "Failed to approve link" };
+      return {
+        success: false,
+        error: result.message || "Failed to approve link",
+      };
     }
 
     if (validated.data.guardianEmail) {
-      await sendGuardianVerificationEmail(validated.data.linkCode, validated.data.guardianEmail);
+      await sendGuardianVerificationEmail(
+        validated.data.linkCode,
+        validated.data.guardianEmail,
+      );
     }
 
     revalidatePath("/family");
@@ -390,12 +422,12 @@ export async function generateStudentQRAction() {
 
     // Generate a 6-digit link code for this student
     const linkCode = Math.random().toString().substring(2, 8).toUpperCase();
-    
+
     // Store this temporary code (expires in 24 hours)
     // We can use the Link model with a placeholder guardian or a separate temp storage
     // For simplicity, we'll return the student ID encoded with the code
     const qrData = `OSNOVCI_LINK:${student.id}:${linkCode}`;
-    
+
     return {
       success: true,
       data: {

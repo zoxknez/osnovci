@@ -1,37 +1,37 @@
 /**
  * useOfflineMode Hook
- * 
+ *
  * Provides offline functionality and sync status to React components
  */
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useState } from "react";
+import { getEventsAction } from "@/app/actions/events";
+import { getGradesAction } from "@/app/actions/grades";
 import { getHomeworkAction } from "@/app/actions/homework";
 import { getScheduleAction } from "@/app/actions/schedule";
-import { getGradesAction } from "@/app/actions/grades";
-import { getEventsAction } from "@/app/actions/events";
 import {
-  initOfflineDB,
-  cacheHomework,
-  getCachedHomework,
-  cacheSchedule,
-  getCachedSchedule,
-  cacheGrades,
-  getCachedGrades,
-  cacheEvents,
-  getCachedEvents,
   addPendingAction,
+  cacheEvents,
+  cacheGrades,
+  cacheHomework,
+  cacheSchedule,
+  getCachedEvents,
+  getCachedGrades,
+  getCachedHomework,
+  getCachedSchedule,
   getStorageEstimate,
+  initOfflineDB,
   isOfflineModeAvailable,
 } from "@/lib/offline/indexeddb";
 import {
-  registerBackgroundSync,
-  hasPendingSync,
-  getPendingSyncStats,
-  setupSyncListeners,
   forceSyncNow,
+  getPendingSyncStats,
+  hasPendingSync,
+  registerBackgroundSync,
+  setupSyncListeners,
 } from "@/lib/offline/sync-manager";
 
 interface OfflineState {
@@ -103,7 +103,11 @@ export function useOfflineMode() {
     };
 
     const handleSyncComplete = async () => {
-      setState((prev) => ({ ...prev, lastSyncTime: new Date(), isSyncing: false }));
+      setState((prev) => ({
+        ...prev,
+        lastSyncTime: new Date(),
+        isSyncing: false,
+      }));
       await updatePendingStats();
     };
 
@@ -157,7 +161,12 @@ export function useOfflineMode() {
 
     try {
       // Fetch and cache homework
-      const homeworkRes = await getHomeworkAction({ page: 1, limit: 50, sortBy: "dueDate", order: "asc" });
+      const homeworkRes = await getHomeworkAction({
+        page: 1,
+        limit: 50,
+        sortBy: "dueDate",
+        order: "asc",
+      });
       if (homeworkRes.success && homeworkRes.data?.data) {
         await cacheHomework(homeworkRes.data.data);
       }
@@ -190,7 +199,9 @@ export function useOfflineMode() {
 
   // Get offline data
   const getOfflineData = useCallback(
-    async <T,>(type: "homework" | "schedule" | "grades" | "events"): Promise<T[]> => {
+    async <T>(
+      type: "homework" | "schedule" | "grades" | "events",
+    ): Promise<T[]> => {
       if (!session?.user?.id) return [];
 
       try {
@@ -211,7 +222,7 @@ export function useOfflineMode() {
         return [];
       }
     },
-    [session]
+    [session],
   );
 
   // Add offline action
@@ -219,20 +230,24 @@ export function useOfflineMode() {
     async (
       action: "create" | "update" | "delete" | "upload",
       entity: "homework" | "attachment" | "note",
-      data: any
+      data: any,
     ) => {
       try {
         const actionId = await addPendingAction(action, entity, data);
         await updatePendingStats();
-        
-        console.log("[useOfflineMode] Offline action added", { actionId, action, entity });
+
+        console.log("[useOfflineMode] Offline action added", {
+          actionId,
+          action,
+          entity,
+        });
         return actionId;
       } catch (error) {
         console.error("[useOfflineMode] Failed to add offline action", error);
         throw error;
       }
     },
-    [updatePendingStats]
+    [updatePendingStats],
   );
 
   // Sync now
@@ -244,7 +259,7 @@ export function useOfflineMode() {
     try {
       setState((prev) => ({ ...prev, isSyncing: true }));
       const result = await forceSyncNow();
-      
+
       setState((prev) => ({
         ...prev,
         isSyncing: false,

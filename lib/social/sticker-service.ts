@@ -28,7 +28,9 @@ export async function getStickers() {
  * Send a sticker to another student
  * Handles XP deduction and logging
  */
-export async function sendSticker(request: SendStickerRequest): Promise<SendStickerResponse> {
+export async function sendSticker(
+  request: SendStickerRequest,
+): Promise<SendStickerResponse> {
   const { senderId, receiverId, stickerId, message } = request;
 
   try {
@@ -38,7 +40,9 @@ export async function sendSticker(request: SendStickerRequest): Promise<SendStic
     }
 
     // 2. Get sticker cost and sender's XP
-    const sticker = await prisma.sticker.findUnique({ where: { id: stickerId } });
+    const sticker = await prisma.sticker.findUnique({
+      where: { id: stickerId },
+    });
     if (!sticker) {
       return { success: false, error: "Sticker not found" };
     }
@@ -81,7 +85,6 @@ export async function sendSticker(request: SendStickerRequest): Promise<SendStic
       stickerLogId: result.logEntry.id,
       remainingXp: result.updatedSender.xp,
     };
-
   } catch (error) {
     log.error("Send Sticker Error", { error, senderId, receiverId, stickerId });
     return { success: false, error: "Failed to send sticker" };
@@ -98,9 +101,9 @@ export async function getReceivedStickers(studentId: string, limit = 20) {
     take: limit,
     include: {
       sender: {
-        select: { name: true, avatar: true }
+        select: { name: true, avatar: true },
       },
-      sticker: true
-    }
+      sticker: true,
+    },
   });
 }

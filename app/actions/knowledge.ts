@@ -1,8 +1,8 @@
 "use server";
 
+import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { z } from "zod";
 
 const createResourceSchema = z.object({
   subjectId: z.string().min(1),
@@ -20,7 +20,7 @@ type ActionResponse<T = unknown> = {
 
 export async function getKnowledgeResourcesAction(
   subjectId?: string,
-  type?: string
+  type?: string,
 ): Promise<ActionResponse> {
   try {
     const session = await auth();
@@ -58,7 +58,7 @@ export async function getKnowledgeResourcesAction(
 }
 
 export async function createKnowledgeResourceAction(
-  data: z.infer<typeof createResourceSchema>
+  data: z.infer<typeof createResourceSchema>,
 ): Promise<ActionResponse> {
   try {
     const session = await auth();
@@ -97,7 +97,9 @@ export async function createKnowledgeResourceAction(
   }
 }
 
-export async function deleteKnowledgeResourceAction(id: string): Promise<ActionResponse> {
+export async function deleteKnowledgeResourceAction(
+  id: string,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -135,7 +137,10 @@ export async function deleteKnowledgeResourceAction(id: string): Promise<ActionR
   }
 }
 
-export async function togglePinKnowledgeResourceAction(id: string, isPinned: boolean): Promise<ActionResponse> {
+export async function togglePinKnowledgeResourceAction(
+  id: string,
+  isPinned: boolean,
+): Promise<ActionResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

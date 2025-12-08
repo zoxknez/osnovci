@@ -143,7 +143,7 @@ button:focus-visible,
 
 /* === DYSLEXIA-FRIENDLY MODE === */
 .dyslexia-mode {
-  font-family: 'OpenDyslexic', 'Comic Sans MS', Arial, sans-serif;
+  font-family: "OpenDyslexic", "Comic Sans MS", Arial, sans-serif;
   font-size: 1.1em;
   line-height: 1.8;
   letter-spacing: 0.05em;
@@ -412,7 +412,9 @@ select:valid {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* === LANDMARK REGIONS === */
@@ -463,7 +465,12 @@ select:valid {
   }
 
   /* Avoid page breaks in important elements */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     page-break-after: avoid;
   }
 

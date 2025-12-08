@@ -24,9 +24,12 @@ export class CacheManager<T = unknown> {
 
     // Cleanup expired entries every 5 minutes
     if (typeof window === "undefined") {
-      setInterval(() => {
-        this.cleanup();
-      }, 5 * 60 * 1000);
+      setInterval(
+        () => {
+          this.cleanup();
+        },
+        5 * 60 * 1000,
+      );
     }
   }
 
@@ -137,4 +140,3 @@ export class CacheManager<T = unknown> {
  */
 export const emailTemplateCache = new CacheManager<string>(100, 3600000); // 1 hour
 export const queryResultCache = new CacheManager<any>(500, 300000); // 5 minutes
-

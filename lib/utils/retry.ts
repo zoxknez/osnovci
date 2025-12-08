@@ -18,7 +18,7 @@ export interface RetryOptions {
  */
 export async function retry<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const {
     maxRetries = 3,
@@ -35,23 +35,25 @@ export async function retry<T>(
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (attempt < maxRetries) {
         const delay = Math.min(
-          initialDelay * Math.pow(backoffMultiplier, attempt),
-          maxDelay
+          initialDelay * backoffMultiplier ** attempt,
+          maxDelay,
         );
 
-        log.warn(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms`, {
-          error: lastError.message,
-        });
+        log.warn(
+          `Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms`,
+          {
+            error: lastError.message,
+          },
+        );
 
         if (onRetry) {
           onRetry(attempt + 1, lastError);
         }
 
         await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
       }
     }
   }
@@ -64,7 +66,7 @@ export async function retry<T>(
  */
 export async function retryWithJitter<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const {
     maxRetries = 3,
@@ -80,18 +82,17 @@ export async function retryWithJitter<T>(
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (attempt < maxRetries) {
         const baseDelay = Math.min(
-          initialDelay * Math.pow(backoffMultiplier, attempt),
-          maxDelay
+          initialDelay * backoffMultiplier ** attempt,
+          maxDelay,
         );
         // Add jitter: random 0-30% of base delay
         const jitter = baseDelay * 0.3 * Math.random();
         const delay = baseDelay + jitter;
 
         await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
       }
     }
   }

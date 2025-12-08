@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { offlineStorage } from "@/lib/db/offline-storage";
-import { log } from "@/lib/logger";
 import { getProfileAction } from "@/app/actions/profile";
 import type { ProfileData } from "@/components/features/profile/types";
+import { offlineStorage } from "@/lib/db/offline-storage";
+import { log } from "@/lib/logger";
 
 // Extended profile data from API that includes streak
 interface ApiProfileData {
@@ -80,13 +80,13 @@ export function useOfflineProfile() {
             if (result.data) {
               const data = result.data;
               const apiProfile = data.profile as ApiProfileData;
-              
+
               const profileData: ProfileData = {
                 ...DEFAULT_PROFILE,
                 name: apiProfile.name || "",
                 school: apiProfile.school || "",
                 // Note: Some fields might not be in FullProfile yet, using defaults or available data
-                // grade: apiProfile.grade || 1, 
+                // grade: apiProfile.grade || 1,
                 // class: apiProfile.class || "",
                 // birthDate: apiProfile.birthDate || null,
                 // address: apiProfile.address || "",
@@ -98,19 +98,24 @@ export function useOfflineProfile() {
                 completedHomework: data.stats?.completedHomework || 0,
                 streak: apiProfile.streak || 0,
               };
-              
+
               setProfile(profileData);
               setStats(userStats);
               toastShownRef.current = false; // Reset on success
-              
+
               // Cache to IndexedDB
-              await offlineStorage.saveProfile({ profile: profileData, stats: userStats });
+              await offlineStorage.saveProfile({
+                profile: profileData,
+                stats: userStats,
+              });
               setIsOffline(false);
               setLoading(false);
               return;
             }
           } catch (error) {
-            log.warn("Failed to fetch profile online, falling back to cache", { error });
+            log.warn("Failed to fetch profile online, falling back to cache", {
+              error,
+            });
           }
         }
 
@@ -119,29 +124,31 @@ export function useOfflineProfile() {
         if (cached) {
           // Handle both old (direct profile) and new ({profile, stats}) formats
           const cachedData = cached as CachedProfileData | ProfileData;
-          
-          if ('profile' in cachedData && cachedData.profile) {
-             setProfile(cachedData.profile);
-             setStats(cachedData.stats || null);
+
+          if ("profile" in cachedData && cachedData.profile) {
+            setProfile(cachedData.profile);
+            setStats(cachedData.stats || null);
           } else {
-             setProfile(cachedData as ProfileData); // Legacy format
-             setStats(null);
+            setProfile(cachedData as ProfileData); // Legacy format
+            setStats(null);
           }
-          
+
           setIsOffline(true);
           if (navigator.onLine && !toastShownRef.current) {
-             toastShownRef.current = true;
-             toast.info("Prikazujem sačuvani profil (problem sa mrežom)");
+            toastShownRef.current = true;
+            toast.info("Prikazujem sačuvani profil (problem sa mrežom)");
           }
         } else {
-           // If no cache and offline/error
-           if (!navigator.onLine) {
-             setIsOffline(true);
-             if (!toastShownRef.current) {
-               toastShownRef.current = true;
-               toast.error("Nema sačuvanog profila. Proverite internet konekciju.");
-             }
-           }
+          // If no cache and offline/error
+          if (!navigator.onLine) {
+            setIsOffline(true);
+            if (!toastShownRef.current) {
+              toastShownRef.current = true;
+              toast.error(
+                "Nema sačuvanog profila. Proverite internet konekciju.",
+              );
+            }
+          }
         }
       } catch (error) {
         log.error("Error in profile fetch", error);

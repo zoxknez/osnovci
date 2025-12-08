@@ -1,6 +1,6 @@
 /**
  * Weekly Progress Report - Nedeljni Pregled Napretka
- * 
+ *
  * Vizualni prikaz napretka učenika kroz sedmicu:
  * - Grafikon aktivnosti po danima
  * - Statistike domaćih zadataka
@@ -10,19 +10,19 @@
 
 "use client";
 
-import { useMemo } from "react";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Minus,
+import {
+  Award,
   Calendar,
   CheckCircle2,
   Clock,
+  Flame,
+  Minus,
   Star,
-  Award,
   Target,
-  Flame
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -43,39 +43,52 @@ interface WeeklyProgressProps {
 }
 
 const DAYS_SHORT = ["Pon", "Uto", "Sre", "Čet", "Pet", "Sub", "Ned"];
-const DAYS_FULL = ["Ponedeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota", "Nedelja"];
+const DAYS_FULL = [
+  "Ponedeljak",
+  "Utorak",
+  "Srijeda",
+  "Četvrtak",
+  "Petak",
+  "Subota",
+  "Nedelja",
+];
 
 // Generišu se mock podaci ako nisu proslijeđeni
 function generateMockWeekData(weekOffset: number = 0): DayData[] {
   const today = new Date();
   const currentDayIndex = (today.getDay() + 6) % 7; // 0 = Monday
-  
+
   return DAYS_FULL.map((day, index) => {
     const date = new Date(today);
-    date.setDate(date.getDate() - currentDayIndex + index - (weekOffset * 7));
-    
+    date.setDate(date.getDate() - currentDayIndex + index - weekOffset * 7);
+
     const isPast = date < today;
     const isToday = date.toDateString() === today.toDateString();
-    
+
     return {
       day,
       date,
       homeworkCompleted: isPast || isToday ? Math.floor(Math.random() * 4) : 0,
-      minutesStudied: isPast || isToday ? Math.floor(Math.random() * 90) + 15 : 0,
+      minutesStudied:
+        isPast || isToday ? Math.floor(Math.random() * 90) + 15 : 0,
       xpEarned: isPast || isToday ? Math.floor(Math.random() * 150) + 25 : 0,
     };
   });
 }
 
 // Izračunaj trend
-function calculateTrend(current: number, previous: number): {
+function calculateTrend(
+  current: number,
+  previous: number,
+): {
   trend: "up" | "down" | "same";
   percentage: number;
 } {
-  if (previous === 0) return { trend: current > 0 ? "up" : "same", percentage: 0 };
-  
+  if (previous === 0)
+    return { trend: current > 0 ? "up" : "same", percentage: 0 };
+
   const diff = ((current - previous) / previous) * 100;
-  
+
   if (Math.abs(diff) < 5) return { trend: "same", percentage: 0 };
   return {
     trend: diff > 0 ? "up" : "down",
@@ -87,10 +100,11 @@ function calculateTrend(current: number, previous: number): {
 function getMotivationalMessage(
   completedHomework: number,
   totalHomework: number,
-  trend: "up" | "down" | "same"
+  trend: "up" | "down" | "same",
 ): string {
-  const completionRate = totalHomework > 0 ? completedHomework / totalHomework : 0;
-  
+  const completionRate =
+    totalHomework > 0 ? completedHomework / totalHomework : 0;
+
   if (completionRate >= 1) {
     return "🏆 Savršena sedmica! Sve si završio/la!";
   }
@@ -114,14 +128,26 @@ export function WeeklyProgress({
 }: WeeklyProgressProps) {
   // Izračunaj statistike
   const stats = useMemo(() => {
-    const totalCompleted = currentWeek.reduce((sum, d) => sum + d.homeworkCompleted, 0);
-    const totalMinutes = currentWeek.reduce((sum, d) => sum + d.minutesStudied, 0);
+    const totalCompleted = currentWeek.reduce(
+      (sum, d) => sum + d.homeworkCompleted,
+      0,
+    );
+    const totalMinutes = currentWeek.reduce(
+      (sum, d) => sum + d.minutesStudied,
+      0,
+    );
     const totalXP = currentWeek.reduce((sum, d) => sum + d.xpEarned, 0);
-    
-    const prevCompleted = previousWeek.reduce((sum, d) => sum + d.homeworkCompleted, 0);
-    const prevMinutes = previousWeek.reduce((sum, d) => sum + d.minutesStudied, 0);
+
+    const prevCompleted = previousWeek.reduce(
+      (sum, d) => sum + d.homeworkCompleted,
+      0,
+    );
+    const prevMinutes = previousWeek.reduce(
+      (sum, d) => sum + d.minutesStudied,
+      0,
+    );
     const prevXP = previousWeek.reduce((sum, d) => sum + d.xpEarned, 0);
-    
+
     return {
       completed: totalCompleted,
       minutes: totalMinutes,
@@ -133,23 +159,29 @@ export function WeeklyProgress({
   }, [currentWeek, previousWeek]);
 
   // Max vrijednost za skaliranje grafa
-  const maxHomework = Math.max(...currentWeek.map(d => d.homeworkCompleted), 1);
+  const maxHomework = Math.max(
+    ...currentWeek.map((d) => d.homeworkCompleted),
+    1,
+  );
 
   // Današnji dan
   const today = new Date();
   const todayIndex = (today.getDay() + 6) % 7;
 
   const message = getMotivationalMessage(
-    stats.completed, 
+    stats.completed,
     totalHomeworkThisWeek,
-    stats.completedTrend.trend
+    stats.completedTrend.trend,
   );
 
   const TrendIcon = ({ trend }: { trend: "up" | "down" | "same" }) => {
     switch (trend) {
-      case "up": return <TrendingUp className="w-4 h-4 text-green-500" />;
-      case "down": return <TrendingDown className="w-4 h-4 text-red-500" />;
-      default: return <Minus className="w-4 h-4 text-gray-400" />;
+      case "up":
+        return <TrendingUp className="w-4 h-4 text-green-500" />;
+      case "down":
+        return <TrendingDown className="w-4 h-4 text-red-500" />;
+      default:
+        return <Minus className="w-4 h-4 text-gray-400" />;
     }
   };
 
@@ -168,7 +200,7 @@ export function WeeklyProgress({
               <p className="text-xs text-white/80 mt-0.5">{message}</p>
             </div>
           </div>
-          
+
           {streak >= 3 && (
             <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-lg">
               <Flame className="w-4 h-4 text-orange-300" />
@@ -185,18 +217,19 @@ export function WeeklyProgress({
             <CheckCircle2 className="w-4 h-4 text-green-500" />
             Završeni zadaci po danima
           </h4>
-          
+
           <div className="flex items-end justify-between gap-2 h-24">
             {currentWeek.map((day, index) => {
-              const height = maxHomework > 0 
-                ? (day.homeworkCompleted / maxHomework) * 100 
-                : 0;
+              const height =
+                maxHomework > 0
+                  ? (day.homeworkCompleted / maxHomework) * 100
+                  : 0;
               const isToday = index === todayIndex;
               const isPast = index < todayIndex;
-              
+
               return (
-                <div 
-                  key={day.day} 
+                <div
+                  key={day.day}
                   className="flex-1 flex flex-col items-center gap-1"
                 >
                   {/* Bar */}
@@ -204,34 +237,38 @@ export function WeeklyProgress({
                     <div
                       className={cn(
                         "w-full max-w-8 rounded-t-lg transition-all duration-500",
-                        isToday 
+                        isToday
                           ? "bg-gradient-to-t from-blue-500 to-blue-400"
                           : isPast
                             ? day.homeworkCompleted > 0
                               ? "bg-gradient-to-t from-green-500 to-green-400"
                               : "bg-gray-200"
-                            : "bg-gray-100"
+                            : "bg-gray-100",
                       )}
                       style={{ height: `${Math.max(height, 4)}%` }}
                     />
                   </div>
-                  
+
                   {/* Count */}
-                  <span className={cn(
-                    "text-xs font-medium",
-                    isToday ? "text-blue-600" : "text-gray-500"
-                  )}>
+                  <span
+                    className={cn(
+                      "text-xs font-medium",
+                      isToday ? "text-blue-600" : "text-gray-500",
+                    )}
+                  >
                     {day.homeworkCompleted}
                   </span>
-                  
+
                   {/* Day label */}
-                  <span className={cn(
-                    "text-xs",
-                    isToday ? "text-blue-600 font-medium" : "text-gray-400"
-                  )}>
+                  <span
+                    className={cn(
+                      "text-xs",
+                      isToday ? "text-blue-600 font-medium" : "text-gray-400",
+                    )}
+                  >
                     {DAYS_SHORT[index]}
                   </span>
-                  
+
                   {/* Today indicator */}
                   {isToday && (
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
@@ -256,10 +293,14 @@ export function WeeklyProgress({
             <div className="flex items-center gap-1">
               <span className="text-xs text-gray-500">Završeno</span>
               {stats.completedTrend.percentage > 0 && (
-                <span className={cn(
-                  "text-xs font-medium",
-                  stats.completedTrend.trend === "up" ? "text-green-600" : "text-red-600"
-                )}>
+                <span
+                  className={cn(
+                    "text-xs font-medium",
+                    stats.completedTrend.trend === "up"
+                      ? "text-green-600"
+                      : "text-red-600",
+                  )}
+                >
                   {stats.completedTrend.trend === "up" ? "+" : "-"}
                   {stats.completedTrend.percentage}%
                 </span>
@@ -279,10 +320,14 @@ export function WeeklyProgress({
             <div className="flex items-center gap-1">
               <span className="text-xs text-gray-500">Učenja</span>
               {stats.minutesTrend.percentage > 0 && (
-                <span className={cn(
-                  "text-xs font-medium",
-                  stats.minutesTrend.trend === "up" ? "text-green-600" : "text-red-600"
-                )}>
+                <span
+                  className={cn(
+                    "text-xs font-medium",
+                    stats.minutesTrend.trend === "up"
+                      ? "text-green-600"
+                      : "text-red-600",
+                  )}
+                >
                   {stats.minutesTrend.trend === "up" ? "+" : "-"}
                   {stats.minutesTrend.percentage}%
                 </span>
@@ -302,10 +347,14 @@ export function WeeklyProgress({
             <div className="flex items-center gap-1">
               <span className="text-xs text-gray-500">XP</span>
               {stats.xpTrend.percentage > 0 && (
-                <span className={cn(
-                  "text-xs font-medium",
-                  stats.xpTrend.trend === "up" ? "text-green-600" : "text-red-600"
-                )}>
+                <span
+                  className={cn(
+                    "text-xs font-medium",
+                    stats.xpTrend.trend === "up"
+                      ? "text-green-600"
+                      : "text-red-600",
+                  )}
+                >
                   {stats.xpTrend.trend === "up" ? "+" : "-"}
                   {stats.xpTrend.percentage}%
                 </span>
@@ -331,14 +380,14 @@ export function WeeklyProgress({
                 "h-full rounded-full transition-all duration-500",
                 stats.completed >= totalHomeworkThisWeek
                   ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                  : "bg-gradient-to-r from-blue-500 to-indigo-500"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-500",
               )}
-              style={{ 
-                width: `${Math.min((stats.completed / totalHomeworkThisWeek) * 100, 100)}%` 
+              style={{
+                width: `${Math.min((stats.completed / totalHomeworkThisWeek) * 100, 100)}%`,
               }}
             />
           </div>
-          
+
           {stats.completed >= totalHomeworkThisWeek && (
             <div className="flex items-center gap-2 mt-2 text-green-600">
               <Award className="w-4 h-4" />

@@ -1,11 +1,11 @@
 "use client";
 
-import { getCalendarViewAction } from "@/app/actions/calendar";
-import { useEffect, useState } from "react";
 import { format, isToday } from "date-fns";
-import { CalendarEvent } from "./calendar-event";
+import { useEffect, useState } from "react";
+import { getCalendarViewAction } from "@/app/actions/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { CalendarEvent } from "./calendar-event";
 
 interface CalendarDay {
   date: Date;
@@ -102,7 +102,7 @@ export function MonthView({ studentId, date, onEventClick }: MonthViewProps) {
             className={cn(
               "min-h-[120px] bg-white p-2 dark:bg-gray-900",
               !day.isCurrentMonth && "bg-gray-50 dark:bg-gray-800/50",
-              isToday(day.date) && "ring-2 ring-blue-500 ring-inset"
+              isToday(day.date) && "ring-2 ring-blue-500 ring-inset",
             )}
           >
             {/* Day number */}
@@ -113,8 +113,8 @@ export function MonthView({ studentId, date, onEventClick }: MonthViewProps) {
                   isToday(day.date)
                     ? "bg-blue-600 text-white"
                     : day.isCurrentMonth
-                    ? "text-gray-900 dark:text-gray-100"
-                    : "text-gray-400 dark:text-gray-600"
+                      ? "text-gray-900 dark:text-gray-100"
+                      : "text-gray-400 dark:text-gray-600",
                 )}
               >
                 {format(day.date, "d")}

@@ -1,37 +1,42 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  CreateHomeworkInput, 
-  UpdateHomeworkInput, 
-  HomeworkResponse, 
-  PaginatedHomework 
-} from "@/lib/api/schemas/homework";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { 
-  createHomeworkAction, 
-  updateHomeworkAction, 
-  getHomeworkAction, 
+import {
+  completeHomeworkAction,
+  createHomeworkAction,
   deleteHomeworkAction,
-  completeHomeworkAction
+  getHomeworkAction,
+  updateHomeworkAction,
 } from "@/app/actions/homework";
+import type {
+  CreateHomeworkInput,
+  HomeworkResponse,
+  PaginatedHomework,
+  UpdateHomeworkInput,
+} from "@/lib/api/schemas/homework";
 
 // Keys for React Query
 export const homeworkKeys = {
   all: ["homework"] as const,
   lists: () => [...homeworkKeys.all, "list"] as const,
-  list: (filters: Record<string, unknown>) => [...homeworkKeys.lists(), filters] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...homeworkKeys.lists(), filters] as const,
   details: () => [...homeworkKeys.all, "detail"] as const,
   detail: (id: string) => [...homeworkKeys.details(), id] as const,
 };
 
 // Fetch homework list
-async function fetchHomework(filters: Record<string, unknown> = {}): Promise<PaginatedHomework> {
+async function fetchHomework(
+  filters: Record<string, unknown> = {},
+): Promise<PaginatedHomework> {
   const result = await getHomeworkAction(filters as any);
   if (result.error) throw new Error(result.error);
   return result.data;
 }
 
 // Create homework
-export async function createHomework(data: CreateHomeworkInput): Promise<HomeworkResponse> {
+export async function createHomework(
+  data: CreateHomeworkInput,
+): Promise<HomeworkResponse> {
   // Use Server Action
   const result = await createHomeworkAction(data);
   if (result.error) {
@@ -41,7 +46,13 @@ export async function createHomework(data: CreateHomeworkInput): Promise<Homewor
 }
 
 // Update homework
-async function updateHomework({ id, data }: { id: string; data: UpdateHomeworkInput }): Promise<HomeworkResponse> {
+async function updateHomework({
+  id,
+  data,
+}: {
+  id: string;
+  data: UpdateHomeworkInput;
+}): Promise<HomeworkResponse> {
   // Use Server Action
   const result = await updateHomeworkAction(id, data);
   if (result.error) {
@@ -114,12 +125,12 @@ export function useDeleteHomework() {
 
 export function useMarkHomeworkComplete() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
-        const result = await completeHomeworkAction(id);
-        if (result.error) throw new Error(result.error);
-        return result.data;
+      const result = await completeHomeworkAction(id);
+      if (result.error) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: homeworkKeys.lists() });

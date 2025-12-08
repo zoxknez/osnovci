@@ -3,29 +3,29 @@
  * Easy-to-use wrapper for API routes with tiered rate limiting
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { enhancedRateLimit, TieredRateLimitPresets } from "@/lib/security/enhanced-rate-limit";
+import { type NextRequest, NextResponse } from "next/server";
+import {
+  enhancedRateLimit,
+  type TieredRateLimitPresets,
+} from "@/lib/security/enhanced-rate-limit";
 
 /**
  * Apply enhanced rate limiting to an API route
- * 
+ *
  * @example
  * ```ts
  * export async function GET(request: NextRequest) {
  *   const rateLimitResult = await applyRateLimit(request, "api");
  *   if (!rateLimitResult.success) return rateLimitResult.response;
- *   
+ *
  *   // Process request...
  * }
  * ```
  */
 export async function applyRateLimit(
   request: NextRequest,
-  preset: keyof typeof TieredRateLimitPresets = "api"
-): Promise<
-  | { success: true }
-  | { success: false; response: NextResponse }
-> {
+  preset: keyof typeof TieredRateLimitPresets = "api",
+): Promise<{ success: true } | { success: false; response: NextResponse }> {
   const result = await enhancedRateLimit(request, preset);
 
   if (!result.success) {
@@ -47,9 +47,10 @@ export async function applyRateLimit(
       response: NextResponse.json(
         {
           error: "Too Many Requests",
-          message: result.violations >= 3
-            ? "Previše pokušaja. Vaš nalog je privremeno blokiran."
-            : "Previše zahteva. Pokušajte ponovo kasnije.",
+          message:
+            result.violations >= 3
+              ? "Previše pokušaja. Vaš nalog je privremeno blokiran."
+              : "Previše zahteva. Pokušajte ponovo kasnije.",
           violations: result.violations,
           backoffMultiplier: result.backoffMultiplier,
           retryAfter: Math.ceil((result.reset - Date.now()) / 1000),
@@ -60,7 +61,7 @@ export async function applyRateLimit(
         {
           status: 429,
           headers,
-        }
+        },
       ),
     };
   }
@@ -73,18 +74,27 @@ export async function applyRateLimit(
  */
 export function addRateLimitHeaders(
   response: NextResponse,
-  result: { limit: number; remaining: number; reset: number; violations?: number; backoffMultiplier?: number }
+  result: {
+    limit: number;
+    remaining: number;
+    reset: number;
+    violations?: number;
+    backoffMultiplier?: number;
+  },
 ): NextResponse {
   response.headers.set("X-RateLimit-Limit", String(result.limit));
   response.headers.set("X-RateLimit-Remaining", String(result.remaining));
   response.headers.set("X-RateLimit-Reset", String(result.reset));
-  
+
   if (result.violations !== undefined) {
     response.headers.set("X-RateLimit-Violations", String(result.violations));
   }
-  
+
   if (result.backoffMultiplier !== undefined) {
-    response.headers.set("X-RateLimit-Backoff", String(result.backoffMultiplier));
+    response.headers.set(
+      "X-RateLimit-Backoff",
+      String(result.backoffMultiplier),
+    );
   }
 
   return response;

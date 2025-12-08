@@ -5,8 +5,19 @@
 
 "use client";
 
+import {
+  Calendar,
+  CheckCircle2,
+  Download,
+  Flag,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useState } from "react";
-import { CheckCircle2, Trash2, Calendar, Flag, Download, X } from "lucide-react";
+import {
+  showErrorToast,
+  showSuccessToast,
+} from "@/components/features/error-toast";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,14 +25,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { showSuccessToast, showErrorToast } from "@/components/features/error-toast";
 import { cn } from "@/lib/utils";
 
 interface HomeworkBulkActionsProps {
   selectedIds: string[];
   onComplete: (ids: string[]) => Promise<void>;
   onDelete: (ids: string[]) => Promise<void>;
-  onUpdatePriority: (ids: string[], priority: "NORMAL" | "IMPORTANT" | "URGENT") => Promise<void>;
+  onUpdatePriority: (
+    ids: string[],
+    priority: "NORMAL" | "IMPORTANT" | "URGENT",
+  ) => Promise<void>;
   onUpdateDueDate: (ids: string[], date: Date) => Promise<void>;
   onExport: (ids: string[]) => Promise<void>;
   onClearSelection: () => void;
@@ -46,7 +59,7 @@ export function HomeworkBulkActions({
 
   const handleAction = async (
     action: () => Promise<void>,
-    successMessage: string
+    successMessage: string,
   ) => {
     setIsProcessing(true);
     try {
@@ -65,28 +78,30 @@ export function HomeworkBulkActions({
   const handleComplete = () => {
     handleAction(
       () => onComplete(selectedIds),
-      `✅ ${selectedIds.length} zadataka označeno kao urađeno!`
+      `✅ ${selectedIds.length} zadataka označeno kao urađeno!`,
     );
   };
 
   const handleDelete = () => {
     if (
       !confirm(
-        `Da li ste sigurni da želite da obrišete ${selectedIds.length} zadataka?`
+        `Da li ste sigurni da želite da obrišete ${selectedIds.length} zadataka?`,
       )
     ) {
       return;
     }
     handleAction(
       () => onDelete(selectedIds),
-      `🗑️ ${selectedIds.length} zadataka obrisano!`
+      `🗑️ ${selectedIds.length} zadataka obrisano!`,
     );
   };
 
-  const handlePriorityChange = (priority: "NORMAL" | "IMPORTANT" | "URGENT") => {
+  const handlePriorityChange = (
+    priority: "NORMAL" | "IMPORTANT" | "URGENT",
+  ) => {
     handleAction(
       () => onUpdatePriority(selectedIds, priority),
-      `📌 Prioritet ažuriran za ${selectedIds.length} zadataka!`
+      `📌 Prioritet ažuriran za ${selectedIds.length} zadataka!`,
     );
   };
 
@@ -94,7 +109,7 @@ export function HomeworkBulkActions({
     if (!selectedDate) return;
     handleAction(
       () => onUpdateDueDate(selectedIds, new Date(selectedDate)),
-      `📅 Rok ažuriran za ${selectedIds.length} zadataka!`
+      `📅 Rok ažuriran za ${selectedIds.length} zadataka!`,
     );
     setShowDatePicker(false);
     setSelectedDate("");
@@ -103,7 +118,7 @@ export function HomeworkBulkActions({
   const handleExport = () => {
     handleAction(
       () => onExport(selectedIds),
-      `📥 Export započet za ${selectedIds.length} zadataka!`
+      `📥 Export započet za ${selectedIds.length} zadataka!`,
     );
   };
 
@@ -112,12 +127,10 @@ export function HomeworkBulkActions({
       className={cn(
         "fixed bottom-4 left-1/2 -translate-x-1/2 z-50",
         "bg-blue-600 text-white rounded-full shadow-lg px-4 py-2",
-        "flex items-center gap-3 animate-in slide-in-from-bottom-5"
+        "flex items-center gap-3 animate-in slide-in-from-bottom-5",
       )}
     >
-      <span className="font-medium text-sm">
-        {selectedIds.length} izabrano
-      </span>
+      <span className="font-medium text-sm">{selectedIds.length} izabrano</span>
 
       <div className="h-6 w-px bg-blue-400" />
 
@@ -233,4 +246,3 @@ export function HomeworkBulkActions({
     </div>
   );
 }
-

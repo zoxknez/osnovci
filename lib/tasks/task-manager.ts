@@ -3,8 +3,8 @@
  * Subtasks, dependencies, templates, recurring tasks, bulk actions
  */
 
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
-import { Prisma } from "@prisma/client";
 
 // ============================================
 // SUBTASK MANAGEMENT
@@ -20,7 +20,7 @@ export async function createSubtasks(
     description?: string;
     estimatedMinutes?: number;
     order?: number;
-  }>
+  }>,
 ): Promise<Array<{ id: string; title: string; order: number }>> {
   // Get parent homework to copy relevant fields
   const parent = await prisma.homework.findUnique({
@@ -60,8 +60,8 @@ export async function createSubtasks(
           title: true,
           order: true,
         },
-      })
-    )
+      }),
+    ),
   );
 
   return createdSubtasks;
@@ -72,13 +72,13 @@ export async function createSubtasks(
  */
 export async function reorderSubtasks(
   _parentId: string,
-  subtaskIds: string[]
+  subtaskIds: string[],
 ): Promise<void> {
   const updates = subtaskIds.map((id, index) =>
     prisma.homework.update({
       where: { id },
       data: { order: index },
-    })
+    }),
   );
 
   await prisma.$transaction(updates);
@@ -131,7 +131,7 @@ export async function calculateHomeworkProgress(homeworkId: string): Promise<{
 
   const totalSubtasks = homework.subtasks.length;
   const completedSubtasks = homework.subtasks.filter(
-    (s) => s.status === "SUBMITTED"
+    (s) => s.status === "SUBMITTED",
   ).length;
 
   return {
@@ -151,7 +151,10 @@ export async function calculateHomeworkProgress(homeworkId: string): Promise<{
 export async function createDependency(
   taskId: string,
   dependsOnId: string,
-  dependencyType: "FINISH_TO_START" | "START_TO_START" | "FINISH_TO_FINISH" = "FINISH_TO_START"
+  dependencyType:
+    | "FINISH_TO_START"
+    | "START_TO_START"
+    | "FINISH_TO_FINISH" = "FINISH_TO_START",
 ): Promise<{ id: string }> {
   // Prevent circular dependencies
   const existingDependencies = await getAllDependencies(dependsOnId);
@@ -184,7 +187,7 @@ export async function removeDependency(dependencyId: string): Promise<void> {
  */
 async function getAllDependencies(
   taskId: string,
-  visited = new Set<string>()
+  visited = new Set<string>(),
 ): Promise<Array<{ taskId: string; dependsOnId: string }>> {
   if (visited.has(taskId)) return [];
   visited.add(taskId);
@@ -195,7 +198,7 @@ async function getAllDependencies(
   });
 
   const nested = await Promise.all(
-    dependencies.map((d) => getAllDependencies(d.dependsOnId, visited))
+    dependencies.map((d) => getAllDependencies(d.dependsOnId, visited)),
   );
 
   return [...dependencies, ...nested.flat()];
@@ -302,7 +305,7 @@ export async function createTaskTemplate(
       description?: string;
       estimatedMinutes?: number;
     }>;
-  }
+  },
 ): Promise<{ id: string; title: string }> {
   // Create main template task
   const template = await prisma.homework.create({
@@ -322,7 +325,7 @@ export async function createTaskTemplate(
   if (data.subtasks && data.subtasks.length > 0) {
     await createSubtasks(
       template.id,
-      data.subtasks.map((s, index) => ({ ...s, order: index }))
+      data.subtasks.map((s, index) => ({ ...s, order: index })),
     );
   }
 
@@ -335,7 +338,7 @@ export async function createTaskTemplate(
 export async function createFromTemplate(
   templateId: string,
   dueDate: Date,
-  priority?: "LOW" | "NORMAL" | "HIGH"
+  priority?: "LOW" | "NORMAL" | "HIGH",
 ): Promise<{ id: string; title: string }> {
   const template = await prisma.homework.findUnique({
     where: { id: templateId, isTemplate: true },
@@ -376,7 +379,7 @@ export async function createFromTemplate(
         ...(s.description && { description: s.description }),
         ...(s.estimatedMinutes && { estimatedMinutes: s.estimatedMinutes }),
         order: s.order,
-      }))
+      })),
     );
   }
 
@@ -388,7 +391,7 @@ export async function createFromTemplate(
  */
 export async function getTemplates(
   studentId: string,
-  subjectId?: string
+  subjectId?: string,
 ): Promise<
   Array<{
     id: string;
@@ -438,7 +441,7 @@ export async function createRecurringTask(
     recurrenceRule: string; // "DAILY", "WEEKLY", "MONTHLY"
     startDate: Date;
     endDate?: Date;
-  }
+  },
 ): Promise<{ id: string; title: string }> {
   const task = await prisma.homework.create({
     data: {
@@ -466,7 +469,7 @@ export async function createRecurringTask(
 async function generateRecurringInstances(
   parentId: string,
   startDate: Date,
-  endDate?: Date
+  endDate?: Date,
 ): Promise<void> {
   const parent = await prisma.homework.findUnique({
     where: { id: parentId, isRecurring: true },
@@ -477,7 +480,7 @@ async function generateRecurringInstances(
   const instances: Prisma.HomeworkCreateManyInput[] = [];
   const maxDate = endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-  let currentDate = new Date(startDate);
+  const currentDate = new Date(startDate);
 
   while (currentDate <= maxDate) {
     instances.push({
@@ -517,7 +520,7 @@ async function generateRecurringInstances(
  * Mark multiple tasks as completed
  */
 export async function bulkCompleteHomework(
-  homeworkIds: string[]
+  homeworkIds: string[],
 ): Promise<{ count: number }> {
   const result = await prisma.homework.updateMany({
     where: { id: { in: homeworkIds } },
@@ -535,7 +538,7 @@ export async function bulkCompleteHomework(
  */
 export async function bulkUpdatePriority(
   homeworkIds: string[],
-  priority: "NORMAL" | "IMPORTANT" | "URGENT"
+  priority: "NORMAL" | "IMPORTANT" | "URGENT",
 ): Promise<{ count: number }> {
   const result = await prisma.homework.updateMany({
     where: { id: { in: homeworkIds } },
@@ -550,7 +553,7 @@ export async function bulkUpdatePriority(
  */
 export async function bulkUpdateDueDate(
   homeworkIds: string[],
-  dueDate: Date
+  dueDate: Date,
 ): Promise<{ count: number }> {
   const result = await prisma.homework.updateMany({
     where: { id: { in: homeworkIds } },
@@ -564,7 +567,7 @@ export async function bulkUpdateDueDate(
  * Bulk delete homework
  */
 export async function bulkDeleteHomework(
-  homeworkIds: string[]
+  homeworkIds: string[],
 ): Promise<{ count: number }> {
   const result = await prisma.homework.deleteMany({
     where: { id: { in: homeworkIds } },
@@ -576,9 +579,7 @@ export async function bulkDeleteHomework(
 /**
  * Get bulk action preview (what will be affected)
  */
-export async function getBulkActionPreview(
-  homeworkIds: string[]
-): Promise<{
+export async function getBulkActionPreview(homeworkIds: string[]): Promise<{
   count: number;
   items: Array<{
     id: string;
@@ -619,7 +620,7 @@ export async function getBulkActionPreview(
 export async function getTaskAnalytics(
   studentId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<{
   totalTasks: number;
   completedTasks: number;
@@ -645,7 +646,7 @@ export async function getTaskAnalytics(
       acc[t.priority] = (acc[t.priority] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
   const tasksByStatus = tasks.reduce(
@@ -653,12 +654,12 @@ export async function getTaskAnalytics(
       acc[t.status] = (acc[t.status] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
   // Calculate average completion time
   const completedWithTime = tasks.filter(
-    (t) => t.status === "SUBMITTED" && t.actualMinutes
+    (t) => t.status === "SUBMITTED" && t.actualMinutes,
   );
   const avgCompletionTime =
     completedWithTime.length > 0

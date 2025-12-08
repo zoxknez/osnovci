@@ -14,6 +14,12 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  bulkUpdateNotificationPreferencesAction,
+  getNotificationPreferencesAction,
+  resetNotificationPreferencesAction,
+  updateNotificationPreferenceAction,
+} from "@/app/actions/notifications";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,12 +28,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { 
-  getNotificationPreferencesAction, 
-  updateNotificationPreferenceAction, 
-  bulkUpdateNotificationPreferencesAction, 
-  resetNotificationPreferencesAction 
-} from "@/app/actions/notifications";
 
 interface NotificationPreference {
   eventType: string;
@@ -161,7 +161,9 @@ export function NotificationPreferencesSettings() {
 
       if (result.success) {
         await loadPreferences();
-        toast.success(`${result.data.count} podešavanja ažuriranih`, { duration: 2000 });
+        toast.success(`${result.data.count} podešavanja ažuriranih`, {
+          duration: 2000,
+        });
       } else {
         toast.error("Greška pri bulk ažuriranju");
       }
@@ -173,7 +175,9 @@ export function NotificationPreferencesSettings() {
   };
 
   const handleResetToDefaults = async () => {
-    if (!confirm("Da li si siguran da želiš da vratiš na default podešavanja?")) {
+    if (
+      !confirm("Da li si siguran da želiš da vratiš na default podešavanja?")
+    ) {
       return;
     }
 
@@ -278,8 +282,7 @@ export function NotificationPreferencesSettings() {
       {Object.entries(preferences).map(([category, items]) => {
         if (items.length === 0) return null;
 
-        const info =
-          CATEGORY_INFO[category as keyof typeof CATEGORY_INFO];
+        const info = CATEGORY_INFO[category as keyof typeof CATEGORY_INFO];
 
         return (
           <motion.div

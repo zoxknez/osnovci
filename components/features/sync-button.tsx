@@ -5,8 +5,7 @@
 
 "use client";
 
-import { useOfflineMode } from "@/hooks/use-offline-mode";
-import { RefreshCw, Cloud, Check } from "lucide-react";
+import { Check, Cloud, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -14,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useOfflineMode } from "@/hooks/use-offline-mode";
 
 interface SyncButtonProps {
   variant?: "default" | "outline" | "ghost";

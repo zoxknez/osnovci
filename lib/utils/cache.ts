@@ -60,9 +60,12 @@ export const memoryCache = new MemoryCache();
 
 // Auto cleanup every 5 minutes
 if (typeof window !== "undefined") {
-  setInterval(() => {
-    memoryCache.cleanup();
-  }, 5 * 60 * 1000);
+  setInterval(
+    () => {
+      memoryCache.cleanup();
+    },
+    5 * 60 * 1000,
+  );
 }
 
 /**
@@ -71,10 +74,10 @@ if (typeof window !== "undefined") {
 export async function cachedFetch<T>(
   url: string,
   options?: RequestInit,
-  ttl: number = 5 * 60 * 1000
+  ttl: number = 5 * 60 * 1000,
 ): Promise<T> {
   const cacheKey = `fetch:${url}:${JSON.stringify(options)}`;
-  
+
   // Check cache
   const cached = memoryCache.get<T>(cacheKey);
   if (cached) {
@@ -86,10 +89,9 @@ export async function cachedFetch<T>(
   if (!response.ok) {
     throw new Error(`Fetch failed: ${response.statusText}`);
   }
-  
+
   const data = await response.json();
   memoryCache.set(cacheKey, data, ttl);
-  
+
   return data;
 }
-

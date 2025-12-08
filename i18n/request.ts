@@ -1,8 +1,8 @@
 // i18n/request.ts
 // next-intl configuration for server-side translations
 
+import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
-import { headers, cookies } from "next/headers";
 
 // Supported locales
 export const locales = ["sr", "sr-Cyrl", "en"] as const;

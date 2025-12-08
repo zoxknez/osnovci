@@ -57,15 +57,20 @@ export function GradesList({ grades, limit = 10 }: GradesListProps) {
                     {grade.subject.name}
                   </p>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] px-1.5 py-0 h-5"
+                    >
                       {grade.category}
                     </Badge>
                     <span>•</span>
-                    <span>{new Date(grade.date).toLocaleDateString("sr-RS")}</span>
+                    <span>
+                      {new Date(grade.date).toLocaleDateString("sr-RS")}
+                    </span>
                   </div>
                 </div>
               </div>
-              
+
               {grade.description && (
                 <p className="text-sm text-gray-400 italic hidden sm:block max-w-[200px] truncate">
                   "{grade.description}"
@@ -78,4 +83,3 @@ export function GradesList({ grades, limit = 10 }: GradesListProps) {
     </Card>
   );
 }
-

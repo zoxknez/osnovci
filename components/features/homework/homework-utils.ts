@@ -4,9 +4,7 @@
  */
 
 export function getDaysUntil(date: Date): string {
-  const diff = Math.ceil(
-    (date.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-  );
+  const diff = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   if (diff < 0) return "Rok prošao";
   if (diff === 0) return "Danas";
   if (diff === 1) return "Sutra";
@@ -50,4 +48,3 @@ export function getStatusBadgeVariant(status: string): {
       };
   }
 }
-

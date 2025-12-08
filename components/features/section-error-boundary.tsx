@@ -6,8 +6,8 @@
 
 "use client";
 
-import { Component, type ReactNode } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { Component, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { log } from "@/lib/logger";
@@ -41,9 +41,13 @@ export class SectionErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: { componentStack: string }) {
-    log.error(`Section error boundary caught error in ${this.props.sectionName || "unknown section"}`, error, {
-      componentStack: errorInfo.componentStack,
-    });
+    log.error(
+      `Section error boundary caught error in ${this.props.sectionName || "unknown section"}`,
+      error,
+      {
+        componentStack: errorInfo.componentStack,
+      },
+    );
   }
 
   handleReset = () => {
@@ -72,7 +76,7 @@ export class SectionErrorBoundary extends Component<Props, State> {
                   Greška u sekciji
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  {this.props.sectionName 
+                  {this.props.sectionName
                     ? `Došlo je do greške u sekciji "${this.props.sectionName}".`
                     : "Došlo je do greške u ovoj sekciji."}
                 </p>
@@ -95,4 +99,3 @@ export class SectionErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

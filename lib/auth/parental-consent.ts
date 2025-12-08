@@ -1,10 +1,10 @@
 // Parental Consent System - Complete COPPA/GDPR Compliance
 // Generate, store, verify, and manage parental consent codes
 
+import { randomInt } from "node:crypto";
 import { ConsentStatus } from "@prisma/client";
 import prisma from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { randomInt } from "node:crypto";
 
 // ============================================
 // CONSENT CODE GENERATION
@@ -132,7 +132,10 @@ export async function createConsentRequest({
       expiresAt: consent.expiresAt,
     };
   } catch (error) {
-    log.error("Error creating consent request", error, { studentId, parentEmail });
+    log.error("Error creating consent request", error, {
+      studentId,
+      parentEmail,
+    });
     return { success: false, error: "Database error" };
   }
 }
@@ -171,14 +174,12 @@ export async function verifyConsentCode({
     }
 
     // 🛡️ CRITICAL SECURITY: Rate limiting check
-    const {
-      canAttemptConsentVerification,
-      recordConsentAttempt,
-    } = await import("@/lib/security/consent-rate-limiter");
+    const { canAttemptConsentVerification, recordConsentAttempt } =
+      await import("@/lib/security/consent-rate-limiter");
 
     const rateLimitCheck = await canAttemptConsentVerification(
       code,
-      ipAddress || "unknown"
+      ipAddress || "unknown",
     );
 
     if (!rateLimitCheck.allowed) {
@@ -189,7 +190,8 @@ export async function verifyConsentCode({
       });
       return {
         success: false,
-        error: rateLimitCheck.reason || "Too many attempts. Please try again later.",
+        error:
+          rateLimitCheck.reason || "Too many attempts. Please try again later.",
       };
     }
 
@@ -213,7 +215,7 @@ export async function verifyConsentCode({
         code,
         false,
         ipAddress || "unknown",
-        userAgent || "unknown"
+        userAgent || "unknown",
       );
       log.warn("Consent code not found", { code, ipAddress });
       return { success: false, error: "Invalid code" };
@@ -232,7 +234,7 @@ export async function verifyConsentCode({
         code,
         true,
         ipAddress || "unknown",
-        userAgent || "unknown"
+        userAgent || "unknown",
       );
       return {
         success: true,
@@ -252,9 +254,13 @@ export async function verifyConsentCode({
         code,
         false,
         ipAddress || "unknown",
-        userAgent || "unknown"
+        userAgent || "unknown",
       );
-      log.warn("Consent code expired", { code, consentId: consent.id, ipAddress });
+      log.warn("Consent code expired", {
+        code,
+        consentId: consent.id,
+        ipAddress,
+      });
       return { success: false, error: "Code expired" };
     }
 
@@ -265,9 +271,13 @@ export async function verifyConsentCode({
         code,
         false,
         ipAddress || "unknown",
-        userAgent || "unknown"
+        userAgent || "unknown",
       );
-      log.warn("Consent code revoked", { code, consentId: consent.id, ipAddress });
+      log.warn("Consent code revoked", {
+        code,
+        consentId: consent.id,
+        ipAddress,
+      });
       return { success: false, error: "Code revoked" };
     }
 
@@ -300,7 +310,7 @@ export async function verifyConsentCode({
       code,
       true,
       ipAddress || "unknown",
-      userAgent || "unknown"
+      userAgent || "unknown",
     );
 
     log.info("Parental consent verified", {

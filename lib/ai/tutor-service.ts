@@ -1,8 +1,16 @@
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
+import {
+  adjustForAge,
+  filterResponseForChildren,
+} from "./child-content-filter";
 import { generateTutorResponse, isGeminiAvailable } from "./gemini-client";
-import { filterResponseForChildren, adjustForAge } from "./child-content-filter";
-import { getSubjectPrompt, getRandomEncouragement, FALLBACK_RESPONSES, IMAGE_ANALYSIS_PROMPT } from "./prompt-templates";
+import {
+  FALLBACK_RESPONSES,
+  getRandomEncouragement,
+  getSubjectPrompt,
+  IMAGE_ANALYSIS_PROMPT,
+} from "./prompt-templates";
 
 export interface AiTutorRequest {
   studentId: string;
@@ -24,9 +32,18 @@ export interface AiTutorResponse {
  * Process a question using the AI Tutor
  * Uses Gemini Pro for intelligent, child-friendly responses
  */
-export async function askAiTutor(request: AiTutorRequest): Promise<AiTutorResponse> {
+export async function askAiTutor(
+  request: AiTutorRequest,
+): Promise<AiTutorResponse> {
   try {
-    const { studentId, subjectId, query, imageUrl, imageBase64, imageMimeType } = request;
+    const {
+      studentId,
+      subjectId,
+      query,
+      imageUrl,
+      imageBase64,
+      imageMimeType,
+    } = request;
 
     if (!query && !imageUrl && !imageBase64) {
       return { success: false, error: "Pitanje ili slika je obavezna" };
@@ -35,7 +52,7 @@ export async function askAiTutor(request: AiTutorRequest): Promise<AiTutorRespon
     // Get student info for age-appropriate responses
     const student = await prisma.student.findUnique({
       where: { id: studentId },
-      select: { 
+      select: {
         birthDate: true,
         grade: true,
       },
@@ -64,7 +81,7 @@ export async function askAiTutor(request: AiTutorRequest): Promise<AiTutorRespon
     if (isGeminiAvailable()) {
       // Build the full query with subject context
       let fullQuery = query || "";
-      
+
       if (subjectName) {
         fullQuery = `[Predmet: ${subjectName}]\n\n${getSubjectPrompt(subjectName)}\n\n${fullQuery}`;
       }
@@ -86,10 +103,10 @@ export async function askAiTutor(request: AiTutorRequest): Promise<AiTutorRespon
       if (geminiResponse.success && geminiResponse.response) {
         // Filter response for child safety
         aiResponse = filterResponseForChildren(geminiResponse.response);
-        
+
         // Adjust for age
         aiResponse = adjustForAge(aiResponse, studentAge);
-        
+
         // Add encouragement if not present
         if (!aiResponse.includes("🌟") && !aiResponse.includes("💪")) {
           aiResponse += `\n\n${getRandomEncouragement()}`;
@@ -100,7 +117,11 @@ export async function askAiTutor(request: AiTutorRequest): Promise<AiTutorRespon
       }
     } else {
       // Gemini not available, use intelligent fallback
-      aiResponse = generateFallbackResponse(query, subjectName, imageUrl || imageBase64);
+      aiResponse = generateFallbackResponse(
+        query,
+        subjectName,
+        imageUrl || imageBase64,
+      );
     }
 
     // Save the interaction to the database
@@ -127,12 +148,11 @@ export async function askAiTutor(request: AiTutorRequest): Promise<AiTutorRespon
       response: aiResponse,
       sessionId: session.id,
     };
-
   } catch (error) {
     log.error("AI Tutor Error", { error, studentId: request.studentId });
-    return { 
-      success: false, 
-      error: "Došlo je do greške. Pokušaj ponovo. 🔄" 
+    return {
+      success: false,
+      error: "Došlo je do greške. Pokušaj ponovo. 🔄",
     };
   }
 }
@@ -141,17 +161,21 @@ export async function askAiTutor(request: AiTutorRequest): Promise<AiTutorRespon
  * Generate intelligent fallback response when AI is not available
  */
 function generateFallbackResponse(
-  query: string | undefined, 
+  query: string | undefined,
   subject: string | undefined,
-  hasImage: string | undefined
+  hasImage: string | undefined,
 ): string {
   let response = FALLBACK_RESPONSES.unavailable;
 
   if (query) {
     // Provide some basic guidance based on keywords
     const lowerQuery = query.toLowerCase();
-    
-    if (subject?.toLowerCase().includes("matematika") || lowerQuery.includes("izračunaj") || lowerQuery.includes("koliko")) {
+
+    if (
+      subject?.toLowerCase().includes("matematika") ||
+      lowerQuery.includes("izračunaj") ||
+      lowerQuery.includes("koliko")
+    ) {
       response = `📐 **Matematika - Saveti za rešavanje:**
 
 1. **Pročitaj zadatak pažljivo** - šta se traži?
@@ -163,7 +187,11 @@ function generateFallbackResponse(
 ${getRandomEncouragement()}
 
 _AI Tutor nije trenutno dostupan, ali siguran sam da možeš sam!_`;
-    } else if (subject?.toLowerCase().includes("srpski") || lowerQuery.includes("gramatika") || lowerQuery.includes("pravopis")) {
+    } else if (
+      subject?.toLowerCase().includes("srpski") ||
+      lowerQuery.includes("gramatika") ||
+      lowerQuery.includes("pravopis")
+    ) {
       response = `📝 **Srpski jezik - Saveti:**
 
 1. **Pročitaj tekst više puta**
@@ -205,9 +233,9 @@ export async function getAiTutorHistory(studentId: string, limit = 20) {
       take: limit,
       include: {
         subject: {
-          select: { name: true, color: true, icon: true }
-        }
-      }
+          select: { name: true, color: true, icon: true },
+        },
+      },
     });
     return history;
   } catch (error) {
@@ -221,29 +249,30 @@ export async function getAiTutorHistory(studentId: string, limit = 20) {
  */
 export async function getAiTutorStats(studentId: string) {
   try {
-    const [totalSessions, sessionsBySubject, recentActivity] = await Promise.all([
-      // Total sessions count
-      prisma.aiTutorSession.count({
-        where: { studentId },
-      }),
-      
-      // Sessions grouped by subject
-      prisma.aiTutorSession.groupBy({
-        by: ["subjectId"],
-        where: { studentId },
-        _count: true,
-      }),
-      
-      // Recent 7 days activity
-      prisma.aiTutorSession.count({
-        where: {
-          studentId,
-          createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    const [totalSessions, sessionsBySubject, recentActivity] =
+      await Promise.all([
+        // Total sessions count
+        prisma.aiTutorSession.count({
+          where: { studentId },
+        }),
+
+        // Sessions grouped by subject
+        prisma.aiTutorSession.groupBy({
+          by: ["subjectId"],
+          where: { studentId },
+          _count: true,
+        }),
+
+        // Recent 7 days activity
+        prisma.aiTutorSession.count({
+          where: {
+            studentId,
+            createdAt: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            },
           },
-        },
-      }),
-    ]);
+        }),
+      ]);
 
     return {
       totalSessions,

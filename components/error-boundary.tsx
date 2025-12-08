@@ -167,7 +167,10 @@ interface SectionErrorState {
   error: Error | null;
 }
 
-export class SectionErrorBoundary extends Component<SectionErrorBoundaryProps, SectionErrorState> {
+export class SectionErrorBoundary extends Component<
+  SectionErrorBoundaryProps,
+  SectionErrorState
+> {
   constructor(props: SectionErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -181,7 +184,11 @@ export class SectionErrorBoundary extends Component<SectionErrorBoundaryProps, S
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error(`❌ SectionErrorBoundary [${this.props.sectionName || 'unknown'}] caught error:`, error, errorInfo);
+    console.error(
+      `❌ SectionErrorBoundary [${this.props.sectionName || "unknown"}] caught error:`,
+      error,
+      errorInfo,
+    );
 
     // Capture to Sentry
     Sentry.captureException(error, {
@@ -218,7 +225,10 @@ export class SectionErrorBoundary extends Component<SectionErrorBoundaryProps, S
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">
-                  Greška pri učitavanju {this.props.sectionName ? `"${this.props.sectionName}"` : "sekcije"}
+                  Greška pri učitavanju{" "}
+                  {this.props.sectionName
+                    ? `"${this.props.sectionName}"`
+                    : "sekcije"}
                 </p>
                 <p className="text-xs text-gray-500">
                   Nešto nije u redu. Pokušaj ponovo.

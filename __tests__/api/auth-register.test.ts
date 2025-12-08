@@ -1,9 +1,9 @@
 // API Tests - Auth Routes (Register & Login)
 
+import { hash } from "bcryptjs";
 import { NextRequest } from "next/server";
 import type { MockedFunction } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { hash } from "bcryptjs";
 
 // Set environment variables BEFORE any imports
 process.env.NEXTAUTH_SECRET = "test-secret-for-csrf";
@@ -102,13 +102,10 @@ describe("POST /api/auth/register", () => {
       studentClass: "A",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
     const data = await response.json();
@@ -138,13 +135,10 @@ describe("POST /api/auth/register", () => {
       role: "GUARDIAN",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
     const data = await response.json();
@@ -169,13 +163,10 @@ describe("POST /api/auth/register", () => {
       studentClass: "A",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
     const data = await response.json();
@@ -194,13 +185,10 @@ describe("POST /api/auth/register", () => {
       studentClass: "A",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
     const data = await response.json();
@@ -219,13 +207,10 @@ describe("POST /api/auth/register", () => {
       studentClass: "A",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
     const data = await response.json();
@@ -251,13 +236,10 @@ describe("POST /api/auth/register", () => {
       studentClass: "A",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     await RegisterPOST(request);
 
@@ -288,13 +270,10 @@ describe("POST /api/auth/register", () => {
       studentClass: "A",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
 
@@ -318,13 +297,10 @@ describe("POST /api/auth/register", () => {
       studentClass: "A",
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     await RegisterPOST(request);
 
@@ -346,13 +322,10 @@ describe("POST /api/auth/register", () => {
       // Missing grade and studentClass
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
     const data = await response.json();
@@ -378,13 +351,10 @@ describe("POST /api/auth/register", () => {
       // No grade and studentClass - should be OK
     };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify(requestBody),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    });
 
     const response = await RegisterPOST(request);
 

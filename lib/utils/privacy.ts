@@ -19,7 +19,7 @@
  */
 export function maskLeaderboardName(
   fullName: string,
-  isCurrentUser: boolean = false
+  isCurrentUser: boolean = false,
 ): string {
   // Current user sees their full name
   if (isCurrentUser) {

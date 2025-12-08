@@ -6,21 +6,22 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Gamepad2,
-  Calculator,
   BookA,
   Brain,
+  Calculator,
+  CheckCircle,
+  Clock,
+  Gamepad2,
   Star,
   Trophy,
-  Clock,
-  CheckCircle,
-  XCircle,
   Volume2,
   VolumeX,
+  XCircle,
 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +31,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -144,9 +144,7 @@ export function MiniGames({
             <Gamepad2 className="h-6 w-6" />
             Edukativne Igre
           </h2>
-          <p className="text-muted-foreground">
-            Uči igrajući se i zaradi XP!
-          </p>
+          <p className="text-muted-foreground">Uči igrajući se i zaradi XP!</p>
         </div>
         <Button
           variant="ghost"
@@ -203,7 +201,7 @@ export function MiniGames({
                 <div
                   className={cn(
                     "w-12 h-12 rounded-lg flex items-center justify-center mb-2",
-                    game.color
+                    game.color,
                   )}
                 >
                   <game.icon className="h-6 w-6 text-white" />
@@ -243,7 +241,8 @@ function MathQuiz({
   const [timeLeft, setTimeLeft] = useState(60);
   const [gameOver, setGameOver] = useState(false);
 
-  const totalQuestions = difficulty === "easy" ? 5 : difficulty === "medium" ? 8 : 10;
+  const totalQuestions =
+    difficulty === "easy" ? 5 : difficulty === "medium" ? 8 : 10;
 
   const generateQuestion = useCallback(() => {
     const maxNum =
@@ -252,8 +251,8 @@ function MathQuiz({
       difficulty === "easy"
         ? ["+", "-"]
         : difficulty === "medium"
-        ? ["+", "-", "*"]
-        : ["+", "-", "*", "/"];
+          ? ["+", "-", "*"]
+          : ["+", "-", "*", "/"];
 
     const op = operations[Math.floor(Math.random() * operations.length)];
     let a = Math.floor(Math.random() * maxNum) + 1;
@@ -292,7 +291,7 @@ function MathQuiz({
   }, [difficulty]);
 
   const [questions] = useState(() =>
-    Array.from({ length: totalQuestions }, generateQuestion)
+    Array.from({ length: totalQuestions }, generateQuestion),
   );
 
   useEffect(() => {
@@ -314,7 +313,7 @@ function MathQuiz({
   const handleSubmit = () => {
     const currentQ = questions[currentQuestion];
     if (!currentQ) return;
-    
+
     const isCorrect = parseInt(answer) === currentQ.correctAnswer;
 
     setShowResult(isCorrect);
@@ -383,7 +382,7 @@ function MathQuiz({
   }
 
   const q = questions[currentQuestion];
-  
+
   if (!q) {
     return null;
   }
@@ -433,7 +432,7 @@ function MathQuiz({
             className={cn(
               "text-center text-2xl",
               showResult === true && "border-green-500 bg-green-50",
-              showResult === false && "border-red-500 bg-red-50"
+              showResult === false && "border-red-500 bg-red-50",
             )}
             autoFocus
           />
@@ -529,13 +528,13 @@ function WordScramble({
 
   const scrambledWords = useMemo(
     () => words.map((w) => scrambleWord(w)),
-    [words]
+    [words],
   );
 
   const handleSubmit = () => {
     const currentWord = words[currentIndex];
     if (!currentWord) return;
-    
+
     const isCorrect = guess.toLowerCase() === currentWord.toLowerCase();
     setShowResult(isCorrect);
 
@@ -608,7 +607,10 @@ function WordScramble({
             {currentIndex + 1} / {words.length}
           </Badge>
         </div>
-        <Progress value={((currentIndex + 1) / words.length) * 100} className="mt-4" />
+        <Progress
+          value={((currentIndex + 1) / words.length) * 100}
+          className="mt-4"
+        />
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center">
@@ -644,7 +646,7 @@ function WordScramble({
             className={cn(
               "text-center",
               showResult === true && "border-green-500 bg-green-50",
-              showResult === false && "border-red-500 bg-red-50"
+              showResult === false && "border-red-500 bg-red-50",
             )}
             autoFocus
           />
@@ -731,8 +733,8 @@ function MemoryGame({
 
     setCards((prev) =>
       prev.map((card) =>
-        card.id === cardId ? { ...card, isFlipped: true } : card
-      )
+        card.id === cardId ? { ...card, isFlipped: true } : card,
+      ),
     );
 
     if (newFlipped.length === 2) {
@@ -741,7 +743,7 @@ function MemoryGame({
       const first = newFlipped[0];
       const second = newFlipped[1];
       if (first === undefined || second === undefined) return;
-      
+
       const firstCard = cards[first];
       const secondCard = cards[second];
       if (firstCard && secondCard && firstCard.emoji === secondCard.emoji) {
@@ -750,8 +752,8 @@ function MemoryGame({
           prev.map((card) =>
             card.id === first || card.id === second
               ? { ...card, isMatched: true }
-              : card
-          )
+              : card,
+          ),
         );
         setMatches((prev) => {
           const newMatches = prev + 1;
@@ -768,8 +770,8 @@ function MemoryGame({
             prev.map((card) =>
               card.id === first || card.id === second
                 ? { ...card, isFlipped: false }
-                : card
-            )
+                : card,
+            ),
           );
           setFlippedCards([]);
         }, 1000);
@@ -780,7 +782,8 @@ function MemoryGame({
   if (gameOver) {
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
     const efficiency = Math.max(0, 100 - (moves - pairCount) * 5);
-    const xpEarned = Math.floor((XP_REWARDS[difficulty] * efficiency) / 100) * pairCount;
+    const xpEarned =
+      Math.floor((XP_REWARDS[difficulty] * efficiency) / 100) * pairCount;
 
     const result: GameResult = {
       score: efficiency,
@@ -838,7 +841,7 @@ function MemoryGame({
             "grid gap-2",
             pairCount <= 4 && "grid-cols-4",
             pairCount === 6 && "grid-cols-4",
-            pairCount === 8 && "grid-cols-4"
+            pairCount === 8 && "grid-cols-4",
           )}
         >
           {cards.map((card) => (
@@ -851,7 +854,7 @@ function MemoryGame({
                 card.isFlipped || card.isMatched
                   ? "bg-primary/10"
                   : "bg-muted hover:bg-muted/80",
-                card.isMatched && "bg-green-100"
+                card.isMatched && "bg-green-100",
               )}
               whileTap={{ scale: 0.95 }}
             >

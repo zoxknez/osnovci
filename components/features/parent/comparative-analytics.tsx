@@ -6,20 +6,22 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Calendar,
-  Users,
-  Target,
   Award,
+  BarChart3,
   BookOpen,
+  Calendar,
   Clock,
+  Minus,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -27,8 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -85,18 +85,22 @@ export function ComparativeAnalytics({
   period = "month",
 }: ComparativeAnalyticsProps) {
   const [selectedPeriod, setSelectedPeriod] = useState(period);
-  const [comparisonType, setComparisonType] = useState<"class" | "school">("class");
+  const [comparisonType, setComparisonType] = useState<"class" | "school">(
+    "class",
+  );
 
   // Calculate insights
   const insights = useMemo(() => {
     const aboveAverage = studentData.subjectStats.filter(
-      (s) => s.studentAverage > s.classAverage
+      (s) => s.studentAverage > s.classAverage,
     );
     const belowAverage = studentData.subjectStats.filter(
-      (s) => s.studentAverage < s.classAverage
+      (s) => s.studentAverage < s.classAverage,
     );
     const improving = studentData.subjectStats.filter((s) => s.trend === "up");
-    const declining = studentData.subjectStats.filter((s) => s.trend === "down");
+    const declining = studentData.subjectStats.filter(
+      (s) => s.trend === "down",
+    );
 
     return {
       aboveAverageCount: aboveAverage.length,
@@ -104,17 +108,22 @@ export function ComparativeAnalytics({
       improvingCount: improving.length,
       decliningCount: declining.length,
       topSubject: studentData.subjectStats.reduce((prev, curr) =>
-        curr.studentAverage > prev.studentAverage ? curr : prev
+        curr.studentAverage > prev.studentAverage ? curr : prev,
       ),
       needsAttention: belowAverage.sort(
-        (a, b) => a.studentAverage - a.classAverage - (b.studentAverage - b.classAverage)
+        (a, b) =>
+          a.studentAverage -
+          a.classAverage -
+          (b.studentAverage - b.classAverage),
       )[0],
     };
   }, [studentData]);
 
   const TrendIcon = ({ trend }: { trend: "up" | "down" | "stable" }) => {
-    if (trend === "up") return <TrendingUp className="h-4 w-4 text-green-500" />;
-    if (trend === "down") return <TrendingDown className="h-4 w-4 text-red-500" />;
+    if (trend === "up")
+      return <TrendingUp className="h-4 w-4 text-green-500" />;
+    if (trend === "down")
+      return <TrendingDown className="h-4 w-4 text-red-500" />;
     return <Minus className="h-4 w-4 text-gray-500" />;
   };
 
@@ -133,7 +142,12 @@ export function ComparativeAnalytics({
         </div>
 
         <div className="flex gap-2">
-          <Select value={selectedPeriod} onValueChange={(v: "week" | "month" | "semester") => setSelectedPeriod(v)}>
+          <Select
+            value={selectedPeriod}
+            onValueChange={(v: "week" | "month" | "semester") =>
+              setSelectedPeriod(v)
+            }
+          >
             <SelectTrigger className="w-[140px]">
               <Calendar className="h-4 w-4 mr-2" />
               <SelectValue />
@@ -177,7 +191,11 @@ export function ComparativeAnalytics({
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Top {Math.round((studentData.classRank / studentData.totalStudents) * 100)}%
+              Top{" "}
+              {Math.round(
+                (studentData.classRank / studentData.totalStudents) * 100,
+              )}
+              %
             </p>
           </CardContent>
         </Card>
@@ -187,19 +205,23 @@ export function ComparativeAnalytics({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Opšti prosek</p>
-                <p className="text-3xl font-bold">{studentData.overallAverage.toFixed(2)}</p>
+                <p className="text-3xl font-bold">
+                  {studentData.overallAverage.toFixed(2)}
+                </p>
               </div>
               <Badge
-                variant={studentData.overallAverage >= 4.5 ? "default" : "secondary"}
+                variant={
+                  studentData.overallAverage >= 4.5 ? "default" : "secondary"
+                }
                 className="text-lg"
               >
                 {studentData.overallAverage >= 4.5
                   ? "Odličan"
                   : studentData.overallAverage >= 3.5
-                  ? "Vrlo dobar"
-                  : studentData.overallAverage >= 2.5
-                  ? "Dobar"
-                  : "Dovoljan"}
+                    ? "Vrlo dobar"
+                    : studentData.overallAverage >= 2.5
+                      ? "Dobar"
+                      : "Dovoljan"}
               </Badge>
             </div>
           </CardContent>
@@ -280,8 +302,8 @@ export function ComparativeAnalytics({
                                 {subject.trend === "up"
                                   ? "Poboljšanje"
                                   : subject.trend === "down"
-                                  ? "Pad"
-                                  : "Stabilno"}
+                                    ? "Pad"
+                                    : "Stabilno"}
                               </span>
                             </div>
                           </div>
@@ -293,7 +315,7 @@ export function ComparativeAnalytics({
                           <p
                             className={cn(
                               "text-sm font-medium",
-                              isAbove ? "text-green-500" : "text-red-500"
+                              isAbove ? "text-green-500" : "text-red-500",
                             )}
                           >
                             {isAbove ? "+" : ""}
@@ -348,7 +370,9 @@ export function ComparativeAnalytics({
                   <Clock className="h-5 w-5" />
                   Vreme učenja
                 </CardTitle>
-                <CardDescription>Nedeljno vreme provedeno u učenju</CardDescription>
+                <CardDescription>
+                  Nedeljno vreme provedeno u učenju
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -371,7 +395,9 @@ export function ComparativeAnalytics({
                   <div>
                     <div className="flex justify-between mb-2 text-muted-foreground">
                       <span>Prosek razreda</span>
-                      <span>{studentData.activityStats.classAverageHours}h</span>
+                      <span>
+                        {studentData.activityStats.classAverageHours}h
+                      </span>
                     </div>
                     <Progress
                       value={
@@ -392,7 +418,9 @@ export function ComparativeAnalytics({
                   <Target className="h-5 w-5" />
                   Završenost domaćih
                 </CardTitle>
-                <CardDescription>Stopa završetka domaćih zadataka</CardDescription>
+                <CardDescription>
+                  Stopa završetka domaćih zadataka
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -407,7 +435,9 @@ export function ComparativeAnalytics({
                       <p className="text-2xl font-bold text-muted-foreground">
                         {studentData.activityStats.classCompletionRate}%
                       </p>
-                      <p className="text-sm text-muted-foreground">Prosek razreda</p>
+                      <p className="text-sm text-muted-foreground">
+                        Prosek razreda
+                      </p>
                     </div>
                   </div>
                   <Badge
@@ -438,12 +468,16 @@ export function ComparativeAnalytics({
                     <p className="text-5xl font-bold text-primary">
                       {studentData.activityStats.streakDays}
                     </p>
-                    <p className="text-sm text-muted-foreground">dana zaredom</p>
+                    <p className="text-sm text-muted-foreground">
+                      dana zaredom
+                    </p>
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between text-sm mb-2">
                       <span>Prosek razreda</span>
-                      <span>{studentData.activityStats.classAverageStreak} dana</span>
+                      <span>
+                        {studentData.activityStats.classAverageStreak} dana
+                      </span>
                     </div>
                     <div className="relative h-8 bg-muted rounded-full overflow-hidden">
                       <div
@@ -451,7 +485,10 @@ export function ComparativeAnalytics({
                         style={{
                           width: `${
                             (studentData.activityStats.classAverageStreak /
-                              Math.max(studentData.activityStats.streakDays, 30)) *
+                              Math.max(
+                                studentData.activityStats.streakDays,
+                                30,
+                              )) *
                             100
                           }%`,
                         }}
@@ -461,7 +498,10 @@ export function ComparativeAnalytics({
                         style={{
                           width: `${
                             (studentData.activityStats.streakDays /
-                              Math.max(studentData.activityStats.streakDays, 30)) *
+                              Math.max(
+                                studentData.activityStats.streakDays,
+                                30,
+                              )) *
                             100
                           }%`,
                         }}
@@ -499,7 +539,9 @@ export function ComparativeAnalytics({
                   <p className="text-4xl font-bold text-muted-foreground">
                     +{studentData.xpProgress.classAverageWeekly}
                   </p>
-                  <p className="text-sm text-muted-foreground">Prosek razreda</p>
+                  <p className="text-sm text-muted-foreground">
+                    Prosek razreda
+                  </p>
                 </div>
               </div>
 
@@ -513,7 +555,7 @@ export function ComparativeAnalytics({
                       (studentData.xpProgress.weeklyEarned /
                         Math.max(
                           studentData.xpProgress.weeklyEarned,
-                          studentData.xpProgress.classAverageWeekly
+                          studentData.xpProgress.classAverageWeekly,
                         )) *
                       100
                     }
@@ -550,11 +592,14 @@ export function ComparativeAnalytics({
           </CardHeader>
           <CardContent>
             <p>
-              <strong>{insights.needsAttention.subjectName}</strong> je predmet gde bi
-              dodatna pažnja mogla pomoći. Trenutni prosek je{" "}
-              <strong>{insights.needsAttention.studentAverage.toFixed(2)}</strong>,
-              dok je prosek razreda{" "}
-              <strong>{insights.needsAttention.classAverage.toFixed(2)}</strong>.
+              <strong>{insights.needsAttention.subjectName}</strong> je predmet
+              gde bi dodatna pažnja mogla pomoći. Trenutni prosek je{" "}
+              <strong>
+                {insights.needsAttention.studentAverage.toFixed(2)}
+              </strong>
+              , dok je prosek razreda{" "}
+              <strong>{insights.needsAttention.classAverage.toFixed(2)}</strong>
+              .
             </p>
             <div className="flex gap-2 mt-4">
               <Button variant="outline" size="sm">

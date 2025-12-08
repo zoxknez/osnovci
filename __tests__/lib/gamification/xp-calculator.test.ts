@@ -1,6 +1,6 @@
 // XP Calculator Tests
 import { describe, expect, it } from "vitest";
-import { calculateXP, calculateLevel } from "@/lib/gamification/xp-calculator";
+import { calculateLevel, calculateXP } from "@/lib/gamification/xp-calculator";
 
 describe("XP Calculator", () => {
   describe("calculateXP", () => {

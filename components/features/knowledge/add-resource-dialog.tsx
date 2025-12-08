@@ -1,3 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,9 +22,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useKnowledge } from "@/hooks/use-knowledge";
-import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
-import { useState } from "react";
 
 export function AddResourceDialog() {
   const [open, setOpen] = useState(false);
@@ -52,7 +52,10 @@ export function AddResourceDialog() {
         type,
         content,
         subjectId,
-        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        tags: tags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
       },
       {
         onSuccess: () => {
@@ -62,7 +65,7 @@ export function AddResourceDialog() {
           setTags("");
           setSubjectId("");
         },
-      }
+      },
     );
   };
 

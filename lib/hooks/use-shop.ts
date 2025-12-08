@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { 
-  getShopItemsAction, 
-  getInventoryAction, 
-  buyItemAction, 
-  equipItemAction 
+import {
+  buyItemAction,
+  equipItemAction,
+  getInventoryAction,
+  getShopItemsAction,
 } from "@/app/actions/shop";
 
 export const shopKeys = {
@@ -54,7 +54,13 @@ export function useEquipItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ itemId, equipped }: { itemId: string; equipped: boolean }) => {
+    mutationFn: async ({
+      itemId,
+      equipped,
+    }: {
+      itemId: string;
+      equipped: boolean;
+    }) => {
       const result = await equipItemAction(itemId, equipped);
       if (result.error) throw new Error(result.error);
       return result.data;

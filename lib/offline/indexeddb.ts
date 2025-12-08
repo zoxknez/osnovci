@@ -1,19 +1,19 @@
 /**
  * IndexedDB Manager for Offline Storage
- * 
+ *
  * Handles:
  * - Homework data caching
  * - Schedule caching
  * - Attachment storage (images, PDFs)
  * - Pending actions queue (for sync when online)
  * - Grades and events caching
- * 
+ *
  * Schema Version: 1
  */
 
-import { openDB, DBSchema, IDBPDatabase } from "idb";
-import { log } from "@/lib/logger";
+import { type DBSchema, type IDBPDatabase, openDB } from "idb";
 import LZString from "lz-string";
+import { log } from "@/lib/logger";
 
 // Compression helpers
 function compress(str: string | null): string | null {
@@ -53,9 +53,13 @@ interface OfflineDB extends DBSchema {
       cachedAt: number;
       synced: boolean;
     };
-    indexes: { "by-student": string; "by-due-date": string; "by-status": string };
+    indexes: {
+      "by-student": string;
+      "by-due-date": string;
+      "by-status": string;
+    };
   };
-  
+
   schedule: {
     key: string;
     value: {
@@ -70,7 +74,7 @@ interface OfflineDB extends DBSchema {
     };
     indexes: { "by-student": string; "by-day": string };
   };
-  
+
   attachments: {
     key: string;
     value: {
@@ -86,7 +90,7 @@ interface OfflineDB extends DBSchema {
     };
     indexes: { "by-homework": string };
   };
-  
+
   pendingActions: {
     key: number;
     value: {
@@ -99,7 +103,7 @@ interface OfflineDB extends DBSchema {
     };
     indexes: { "by-entity": string };
   };
-  
+
   grades: {
     key: string;
     value: {
@@ -114,7 +118,7 @@ interface OfflineDB extends DBSchema {
     };
     indexes: { "by-student": string; "by-subject": string };
   };
-  
+
   events: {
     key: string;
     value: {
@@ -128,7 +132,7 @@ interface OfflineDB extends DBSchema {
     };
     indexes: { "by-student": string; "by-date": string };
   };
-  
+
   metadata: {
     key: string;
     value: {
@@ -137,7 +141,7 @@ interface OfflineDB extends DBSchema {
       updatedAt: number;
     };
   };
-  
+
   family: {
     key: string;
     value: {
@@ -166,7 +170,9 @@ export async function initOfflineDB(): Promise<IDBPDatabase<OfflineDB>> {
       upgrade(db) {
         // Homework store
         if (!db.objectStoreNames.contains("homework")) {
-          const homeworkStore = db.createObjectStore("homework", { keyPath: "id" });
+          const homeworkStore = db.createObjectStore("homework", {
+            keyPath: "id",
+          });
           homeworkStore.createIndex("by-student", "studentId");
           homeworkStore.createIndex("by-due-date", "dueDate");
           homeworkStore.createIndex("by-status", "status");
@@ -174,14 +180,18 @@ export async function initOfflineDB(): Promise<IDBPDatabase<OfflineDB>> {
 
         // Schedule store
         if (!db.objectStoreNames.contains("schedule")) {
-          const scheduleStore = db.createObjectStore("schedule", { keyPath: "id" });
+          const scheduleStore = db.createObjectStore("schedule", {
+            keyPath: "id",
+          });
           scheduleStore.createIndex("by-student", "studentId");
           scheduleStore.createIndex("by-day", "dayOfWeek");
         }
 
         // Attachments store
         if (!db.objectStoreNames.contains("attachments")) {
-          const attachmentStore = db.createObjectStore("attachments", { keyPath: "id" });
+          const attachmentStore = db.createObjectStore("attachments", {
+            keyPath: "id",
+          });
           attachmentStore.createIndex("by-homework", "homeworkId");
         }
 
@@ -263,8 +273,8 @@ export async function getCachedHomework(studentId: string): Promise<any[]> {
   const db = await initOfflineDB();
   const index = db.transaction("homework").store.index("by-student");
   const data = await index.getAll(studentId);
-  
-  return data.map(hw => ({
+
+  return data.map((hw) => ({
     ...hw,
     description: decompress(hw.description),
     notes: decompress(hw.notes),
@@ -317,7 +327,7 @@ export async function cacheAttachment(
     mimeType: string;
     fileSize: number;
     thumbnail?: string;
-  }
+  },
 ): Promise<void> {
   const db = await initOfflineDB();
 
@@ -333,7 +343,11 @@ export async function cacheAttachment(
     cachedAt: Date.now(),
   });
 
-  log.info("[IndexedDB] Cached attachment", { id, fileName, size: metadata.fileSize });
+  log.info("[IndexedDB] Cached attachment", {
+    id,
+    fileName,
+    size: metadata.fileSize,
+  });
 }
 
 /**
@@ -348,7 +362,9 @@ export async function getCachedAttachment(id: string): Promise<Blob | null> {
 /**
  * Get all attachments for homework
  */
-export async function getCachedHomeworkAttachments(homeworkId: string): Promise<any[]> {
+export async function getCachedHomeworkAttachments(
+  homeworkId: string,
+): Promise<any[]> {
   const db = await initOfflineDB();
   const index = db.transaction("attachments").store.index("by-homework");
   return await index.getAll(homeworkId);
@@ -360,7 +376,7 @@ export async function getCachedHomeworkAttachments(homeworkId: string): Promise<
 export async function addPendingAction(
   action: "create" | "update" | "delete" | "upload",
   entity: "homework" | "attachment" | "note",
-  data: any
+  data: any,
 ): Promise<number> {
   const db = await initOfflineDB();
 
@@ -399,7 +415,7 @@ export async function removePendingAction(id: number): Promise<void> {
 export async function incrementPendingActionRetries(id: number): Promise<void> {
   const db = await initOfflineDB();
   const action = await db.get("pendingActions", id);
-  
+
   if (action) {
     action.retries += 1;
     await db.put("pendingActions", action);
@@ -470,7 +486,7 @@ export async function getCachedEvents(studentId: string): Promise<any[]> {
   const index = db.transaction("events").store.index("by-student");
   const data = await index.getAll(studentId);
 
-  return data.map(event => ({
+  return data.map((event) => ({
     ...event,
     description: decompress(event.description),
   }));
@@ -502,10 +518,10 @@ export async function getMetadata(key: string): Promise<any | null> {
  */
 export async function clearOfflineData(): Promise<void> {
   const db = await initOfflineDB();
-  
+
   const tx = db.transaction(
     ["homework", "schedule", "attachments", "grades", "events", "metadata"],
-    "readwrite"
+    "readwrite",
   );
 
   await Promise.all([

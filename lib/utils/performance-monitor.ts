@@ -112,10 +112,8 @@ class PerformanceMonitor {
    * Get summary statistics
    */
   getSummary(): Record<string, { count: number; avg: number; max: number }> {
-    const summary: Record<
-      string,
-      { count: number; avg: number; max: number }
-    > = {};
+    const summary: Record<string, { count: number; avg: number; max: number }> =
+      {};
 
     for (const metric of this.metrics) {
       if (!summary[metric.name]) {
@@ -125,7 +123,8 @@ class PerformanceMonitor {
       const stats = summary[metric.name]!;
       stats.count++;
       stats.max = Math.max(stats.max, metric.duration);
-      stats.avg = (stats.avg * (stats.count - 1) + metric.duration) / stats.count;
+      stats.avg =
+        (stats.avg * (stats.count - 1) + metric.duration) / stats.count;
     }
 
     return summary;
@@ -151,22 +150,21 @@ export function measurePerformance<T extends (...args: any[]) => any>(
       if (result instanceof Promise) {
         return result
           .then((value) => {
-            performanceMonitor['recordMetric'](name, duration);
+            performanceMonitor["recordMetric"](name, duration);
             return value;
           })
           .catch((error) => {
-            performanceMonitor['recordMetric'](name, duration, { error: true });
+            performanceMonitor["recordMetric"](name, duration, { error: true });
             throw error;
           });
       }
 
-      performanceMonitor['recordMetric'](name, duration);
+      performanceMonitor["recordMetric"](name, duration);
       return result;
     } catch (error) {
       const duration = performance.now() - start;
-      performanceMonitor['recordMetric'](name, duration, { error: true });
+      performanceMonitor["recordMetric"](name, duration, { error: true });
       throw error;
     }
   }) as T;
 }
-

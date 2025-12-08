@@ -1,17 +1,17 @@
 "use client";
 
-import { Wifi, WifiOff, Trophy } from "lucide-react";
-import { PageHeader } from "@/components/features/page-header";
-import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { DemoModeBanner } from "@/components/features/dashboard/demo-mode-banner";
-import { StreakBanner } from "@/components/features/dashboard/streak-banner";
-import { DailyTip } from "@/components/features/dashboard/daily-tip";
-import { QuickStats } from "@/components/features/dashboard/quick-stats";
-import { TodaySchedule } from "@/components/features/dashboard/today-schedule";
+import { Trophy, Wifi, WifiOff } from "lucide-react";
 import { ActiveHomework } from "@/components/features/dashboard/active-homework";
-import { DashboardSkeleton } from "@/components/features/dashboard/dashboard-skeleton";
-import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
 import { AdaptiveLearningWidget } from "@/components/features/dashboard/adaptive-learning-widget";
+import { DailyTip } from "@/components/features/dashboard/daily-tip";
+import { DashboardSkeleton } from "@/components/features/dashboard/dashboard-skeleton";
+import { DemoModeBanner } from "@/components/features/dashboard/demo-mode-banner";
+import { QuickStats } from "@/components/features/dashboard/quick-stats";
+import { StreakBanner } from "@/components/features/dashboard/streak-banner";
+import { TodaySchedule } from "@/components/features/dashboard/today-schedule";
+import { PageHeader } from "@/components/features/page-header";
+import { SectionErrorBoundary } from "@/components/features/section-error-boundary";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 export default function DashboardPage() {
   const {
@@ -27,7 +27,7 @@ export default function DashboardPage() {
     completedHomeworkCount,
     isOnline,
     now,
-    currentUser
+    currentUser,
   } = useDashboardData();
 
   if (loading) {
@@ -75,7 +75,9 @@ export default function DashboardPage() {
                   <Trophy className="h-6 w-6" />
                   <span className="font-bold text-lg">Level {level}</span>
                 </div>
-                <span className="text-sm opacity-90 font-semibold">{xp} XP</span>
+                <span className="text-sm opacity-90 font-semibold">
+                  {xp} XP
+                </span>
               </div>
 
               {/* Progress bar */}
@@ -115,9 +117,13 @@ export default function DashboardPage() {
       )}
 
       <SectionErrorBoundary sectionName="Quick Stats">
-        <QuickStats 
+        <QuickStats
           todayClassesCount={todayClasses.length}
-          activeHomeworkCount={homework.filter((h) => h.status !== "DONE" && h.status !== "SUBMITTED").length}
+          activeHomeworkCount={
+            homework.filter(
+              (h) => h.status !== "DONE" && h.status !== "SUBMITTED",
+            ).length
+          }
           completedHomeworkCount={completedHomeworkCount}
         />
       </SectionErrorBoundary>

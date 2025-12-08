@@ -1,6 +1,6 @@
 /**
  * Performance Metrics Dashboard
- * 
+ *
  * Displays real-time performance metrics:
  * - Web Vitals scores
  * - API response times
@@ -11,10 +11,10 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { getApiStats } from "@/lib/performance/monitor";
-import { getMetrics } from "@/lib/monitoring/rum";
 import { Activity, Database, Gauge, TrendingUp, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getMetrics } from "@/lib/monitoring/rum";
+import { getApiStats } from "@/lib/performance/monitor";
 
 interface MetricCard {
   title: string;
@@ -49,7 +49,10 @@ export function PerformanceMetricsDashboard() {
           title: "Avg API Response",
           value: `${apiStats.averageDuration}ms`,
           icon: <Zap className="h-5 w-5" />,
-          color: apiStats.averageDuration < 500 ? "text-green-600" : "text-yellow-600",
+          color:
+            apiStats.averageDuration < 500
+              ? "text-green-600"
+              : "text-yellow-600",
           trend: "neutral",
         },
         {
@@ -118,11 +121,15 @@ export function PerformanceMetricsDashboard() {
                   metric.trend === "up"
                     ? "text-green-600"
                     : metric.trend === "down"
-                    ? "text-red-600"
-                    : "text-gray-600"
+                      ? "text-red-600"
+                      : "text-gray-600"
                 }`}
               >
-                {metric.trend === "up" ? "↑" : metric.trend === "down" ? "↓" : "→"}
+                {metric.trend === "up"
+                  ? "↑"
+                  : metric.trend === "down"
+                    ? "↓"
+                    : "→"}
               </span>
             )}
           </div>

@@ -26,8 +26,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import React from "react";
-import { cn } from "@/lib/utils";
 import { getLeaderboardAction } from "@/app/actions/gamification";
+import { cn } from "@/lib/utils";
 
 type LeaderboardPeriod = "all-time" | "weekly" | "monthly";
 
@@ -81,13 +81,13 @@ export function Leaderboard({
       const result = await getLeaderboardAction(activePeriod);
       if (result.success && result.data) {
         setData({
-            entries: result.data.leaderboard,
-            currentUserRank: result.data.currentUserRank?.rank,
-            totalPlayers: result.data.totalPlayers,
-            nextResetTime: result.data.resetsAt?.toISOString(),
+          entries: result.data.leaderboard,
+          currentUserRank: result.data.currentUserRank?.rank,
+          totalPlayers: result.data.totalPlayers,
+          nextResetTime: result.data.resetsAt?.toISOString(),
         });
       } else {
-         throw new Error(result.error);
+        throw new Error(result.error);
       }
     } catch (error) {
       console.error("Failed to load leaderboard:", error);

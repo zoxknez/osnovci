@@ -1,9 +1,9 @@
 // Account Lockout Tests
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  clearLockout,
   isAccountLocked,
   recordLoginAttempt,
-  clearLockout,
 } from "@/lib/auth/account-lockout";
 
 // Mock Upstash Redis
@@ -34,9 +34,7 @@ describe("Account Lockout", () => {
 
     it("should return locked after 5 failed attempts", async () => {
       const { redis } = await import("@/lib/upstash");
-      vi.mocked(redis.get).mockResolvedValue(
-        (Date.now() + 900000).toString(),
-      );
+      vi.mocked(redis.get).mockResolvedValue((Date.now() + 900000).toString());
 
       const result = await isAccountLocked("test@example.com");
 

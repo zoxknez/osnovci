@@ -46,7 +46,7 @@ export function exportGradesToPDF(
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-      doc.text('Izveštaj o ocenama', 105, 20, { align: 'center' });
+  doc.text("Izveštaj o ocenama", 105, 20, { align: "center" });
 
   // ========================================
   // INFO SEKCIJA

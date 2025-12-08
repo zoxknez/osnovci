@@ -1,9 +1,16 @@
 "use server";
 
+import {
+  endOfMonth,
+  endOfWeek,
+  format,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+} from "date-fns";
 import { auth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
 import { log } from "@/lib/logger";
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, subDays } from "date-fns";
 
 type ActionResponse<T = any> = {
   data?: T;
@@ -14,10 +21,10 @@ export async function getParentalAnalyticsAction(
   studentId: string,
   period: "week" | "month" | "custom" = "week",
   customStart?: string,
-  customEnd?: string
+  customEnd?: string,
 ): Promise<ActionResponse> {
   const session = await auth();
-  
+
   try {
     if (!session?.user?.id) {
       return { error: "Unauthorized" };
@@ -98,11 +105,17 @@ export async function getParentalAnalyticsAction(
       generatedAt: new Date().toISOString(),
     };
 
-    log.info("Parental analytics generated", { guardianId: guardian.id, studentId, period });
+    log.info("Parental analytics generated", {
+      guardianId: guardian.id,
+      studentId,
+      period,
+    });
 
     return { data: analytics };
   } catch (error) {
-    log.error("Error fetching parental analytics", error, { userId: session?.user?.id });
+    log.error("Error fetching parental analytics", error, {
+      userId: session?.user?.id,
+    });
     return { error: "Failed to fetch analytics" };
   }
 }
@@ -110,7 +123,11 @@ export async function getParentalAnalyticsAction(
 /**
  * Homework completion statistics
  */
-async function getHomeworkStatistics(studentId: string, startDate: Date, endDate: Date) {
+async function getHomeworkStatistics(
+  studentId: string,
+  startDate: Date,
+  endDate: Date,
+) {
   const homework = await prisma.homework.findMany({
     where: {
       studentId,
@@ -126,12 +143,23 @@ async function getHomeworkStatistics(studentId: string, startDate: Date, endDate
   });
 
   const total = homework.length;
-  const completed = homework.filter((h) => h.status === "DONE" || h.status === "REVIEWED").length;
-  const pending = homework.filter((h) => h.status === "ASSIGNED" || h.status === "IN_PROGRESS").length;
-  const overdue = homework.filter((h) => h.status !== "DONE" && h.status !== "REVIEWED" && new Date(h.dueDate) < new Date()).length;
+  const completed = homework.filter(
+    (h) => h.status === "DONE" || h.status === "REVIEWED",
+  ).length;
+  const pending = homework.filter(
+    (h) => h.status === "ASSIGNED" || h.status === "IN_PROGRESS",
+  ).length;
+  const overdue = homework.filter(
+    (h) =>
+      h.status !== "DONE" &&
+      h.status !== "REVIEWED" &&
+      new Date(h.dueDate) < new Date(),
+  ).length;
 
   // Completion rate by day
-  const dailyCompletion: { [key: string]: { completed: number; assigned: number } } = {};
+  const dailyCompletion: {
+    [key: string]: { completed: number; assigned: number };
+  } = {};
   homework.forEach((h) => {
     const day = format(new Date(h.createdAt), "yyyy-MM-dd");
     if (!dailyCompletion[day]) {
@@ -155,7 +183,10 @@ async function getHomeworkStatistics(studentId: string, startDate: Date, endDate
     dailyCompletion: Object.entries(dailyCompletion).map(([date, data]) => ({
       date,
       ...data,
-      rate: data.assigned > 0 ? Math.round((data.completed / data.assigned) * 100) : 0,
+      rate:
+        data.assigned > 0
+          ? Math.round((data.completed / data.assigned) * 100)
+          : 0,
     })),
     avgCompletionTime: Math.round(avgCompletionTime * 10) / 10, // Round to 1 decimal
     withAttachments: homework.filter((h) => h.attachments.length > 0).length,
@@ -165,7 +196,11 @@ async function getHomeworkStatistics(studentId: string, startDate: Date, endDate
 /**
  * Grade statistics and trends
  */
-async function getGradeStatistics(studentId: string, startDate: Date, endDate: Date) {
+async function getGradeStatistics(
+  studentId: string,
+  startDate: Date,
+  endDate: Date,
+) {
   const grades = await prisma.grade.findMany({
     where: {
       studentId,
@@ -196,18 +231,29 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
   }
 
   const gradeNumbers = grades.map((g) => parseFloat(g.grade) || 0);
-  const average = gradeNumbers.reduce((sum, n) => sum + n, 0) / gradeNumbers.length;
+  const average =
+    gradeNumbers.reduce((sum, n) => sum + n, 0) / gradeNumbers.length;
   const highest = Math.max(...gradeNumbers);
   const lowest = Math.min(...gradeNumbers);
 
   // Calculate trend (comparing first half vs second half)
   const midpoint = Math.floor(gradeNumbers.length / 2);
-  const firstHalfAvg = gradeNumbers.slice(0, midpoint).reduce((sum, n) => sum + n, 0) / midpoint;
-  const secondHalfAvg = gradeNumbers.slice(midpoint).reduce((sum, n) => sum + n, 0) / (gradeNumbers.length - midpoint);
-  const trend = secondHalfAvg > firstHalfAvg + 0.5 ? "improving" : secondHalfAvg < firstHalfAvg - 0.5 ? "declining" : "stable";
+  const firstHalfAvg =
+    gradeNumbers.slice(0, midpoint).reduce((sum, n) => sum + n, 0) / midpoint;
+  const secondHalfAvg =
+    gradeNumbers.slice(midpoint).reduce((sum, n) => sum + n, 0) /
+    (gradeNumbers.length - midpoint);
+  const trend =
+    secondHalfAvg > firstHalfAvg + 0.5
+      ? "improving"
+      : secondHalfAvg < firstHalfAvg - 0.5
+        ? "declining"
+        : "stable";
 
   // Group by subject
-  const bySubject: { [key: string]: { count: number; sum: number; name: string } } = {};
+  const bySubject: {
+    [key: string]: { count: number; sum: number; name: string };
+  } = {};
   grades.forEach((g) => {
     if (!bySubject[g.subjectId]) {
       bySubject[g.subjectId] = { count: 0, sum: 0, name: g.subject.name };
@@ -261,7 +307,11 @@ async function getGradeStatistics(studentId: string, startDate: Date, endDate: D
 /**
  * Time spent analytics (from activity logs)
  */
-async function getTimeSpentAnalytics(studentId: string, startDate: Date, endDate: Date) {
+async function getTimeSpentAnalytics(
+  studentId: string,
+  startDate: Date,
+  endDate: Date,
+) {
   const activities = await prisma.activityLog.findMany({
     where: {
       studentId,
@@ -287,7 +337,8 @@ async function getTimeSpentAnalytics(studentId: string, startDate: Date, endDate
     if (!currentSession) {
       currentSession = { start: timestamp, end: timestamp, actions: 1 };
     } else {
-      const timeDiff = (timestamp.getTime() - currentSession.end.getTime()) / (1000 * 60); // minutes
+      const timeDiff =
+        (timestamp.getTime() - currentSession.end.getTime()) / (1000 * 60); // minutes
       if (timeDiff <= 30) {
         currentSession.end = timestamp;
         currentSession.actions++;
@@ -316,7 +367,8 @@ async function getTimeSpentAnalytics(studentId: string, startDate: Date, endDate
     totalMinutes: Math.round(totalMinutes),
     totalHours: Math.round((totalMinutes / 60) * 10) / 10,
     sessions: sessions.length,
-    avgSessionMinutes: sessions.length > 0 ? Math.round(totalMinutes / sessions.length) : 0,
+    avgSessionMinutes:
+      sessions.length > 0 ? Math.round(totalMinutes / sessions.length) : 0,
     dailyBreakdown: Object.entries(dailyTime).map(([date, minutes]) => ({
       date,
       minutes: Math.round(minutes),
@@ -328,7 +380,11 @@ async function getTimeSpentAnalytics(studentId: string, startDate: Date, endDate
 /**
  * Subject performance comparison
  */
-async function getSubjectPerformance(studentId: string, startDate: Date, endDate: Date) {
+async function getSubjectPerformance(
+  studentId: string,
+  startDate: Date,
+  endDate: Date,
+) {
   const [grades, homework] = await Promise.all([
     prisma.grade.findMany({
       where: {
@@ -395,10 +451,15 @@ async function getSubjectPerformance(studentId: string, startDate: Date, endDate
   return Object.entries(subjects).map(([id, data]) => ({
     subjectId: id,
     subjectName: data.name,
-    gradeAverage: data.gradeCount > 0 ? Math.round((data.gradeSum / data.gradeCount) * 100) / 100 : null,
+    gradeAverage:
+      data.gradeCount > 0
+        ? Math.round((data.gradeSum / data.gradeCount) * 100) / 100
+        : null,
     gradeCount: data.gradeCount,
     homeworkCompletionRate:
-      data.homeworkTotal > 0 ? Math.round((data.homeworkCompleted / data.homeworkTotal) * 100) : null,
+      data.homeworkTotal > 0
+        ? Math.round((data.homeworkCompleted / data.homeworkTotal) * 100)
+        : null,
     homeworkTotal: data.homeworkTotal,
   }));
 }
@@ -413,30 +474,59 @@ async function getWeeklyComparison(studentId: string) {
   const previousWeekStart = startOfWeek(subDays(now, 7), { weekStartsOn: 1 });
   const previousWeekEnd = endOfWeek(subDays(now, 7), { weekStartsOn: 1 });
 
-  const [currentWeekHomework, previousWeekHomework, currentWeekGrades, previousWeekGrades] = await Promise.all([
+  const [
+    currentWeekHomework,
+    previousWeekHomework,
+    currentWeekGrades,
+    previousWeekGrades,
+  ] = await Promise.all([
     prisma.homework.findMany({
-      where: { studentId, createdAt: { gte: currentWeekStart, lte: currentWeekEnd } },
+      where: {
+        studentId,
+        createdAt: { gte: currentWeekStart, lte: currentWeekEnd },
+      },
     }),
     prisma.homework.findMany({
-      where: { studentId, createdAt: { gte: previousWeekStart, lte: previousWeekEnd } },
+      where: {
+        studentId,
+        createdAt: { gte: previousWeekStart, lte: previousWeekEnd },
+      },
     }),
     prisma.grade.findMany({
-      where: { studentId, date: { gte: currentWeekStart, lte: currentWeekEnd } },
+      where: {
+        studentId,
+        date: { gte: currentWeekStart, lte: currentWeekEnd },
+      },
     }),
     prisma.grade.findMany({
-      where: { studentId, date: { gte: previousWeekStart, lte: previousWeekEnd } },
+      where: {
+        studentId,
+        date: { gte: previousWeekStart, lte: previousWeekEnd },
+      },
     }),
   ]);
 
-  const currentCompleted = currentWeekHomework.filter((h) => h.status === "DONE" || h.status === "REVIEWED").length;
-  const previousCompleted = previousWeekHomework.filter((h) => h.status === "DONE" || h.status === "REVIEWED").length;
+  const currentCompleted = currentWeekHomework.filter(
+    (h) => h.status === "DONE" || h.status === "REVIEWED",
+  ).length;
+  const previousCompleted = previousWeekHomework.filter(
+    (h) => h.status === "DONE" || h.status === "REVIEWED",
+  ).length;
 
-  const currentGradeAvg = currentWeekGrades.length > 0
-    ? currentWeekGrades.reduce((sum, g) => sum + (parseFloat(g.grade) || 0), 0) / currentWeekGrades.length
-    : 0;
-  const previousGradeAvg = previousWeekGrades.length > 0
-    ? previousWeekGrades.reduce((sum, g) => sum + (parseFloat(g.grade) || 0), 0) / previousWeekGrades.length
-    : 0;
+  const currentGradeAvg =
+    currentWeekGrades.length > 0
+      ? currentWeekGrades.reduce(
+          (sum, g) => sum + (parseFloat(g.grade) || 0),
+          0,
+        ) / currentWeekGrades.length
+      : 0;
+  const previousGradeAvg =
+    previousWeekGrades.length > 0
+      ? previousWeekGrades.reduce(
+          (sum, g) => sum + (parseFloat(g.grade) || 0),
+          0,
+        ) / previousWeekGrades.length
+      : 0;
 
   return {
     currentWeek: {
@@ -477,7 +567,10 @@ async function getAchievementProgress(studentId: string) {
     return { total: 0, totalPoints: 0, recent: [] };
   }
 
-  const totalPoints = gamification.achievements.reduce((sum, a) => sum + a.xpReward, 0);
+  const totalPoints = gamification.achievements.reduce(
+    (sum, a) => sum + a.xpReward,
+    0,
+  );
 
   return {
     total: gamification.achievements.length,

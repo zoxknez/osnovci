@@ -5,11 +5,11 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import { Wifi, WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { useSyncStore } from "@/store";
 import { cn } from "@/lib/utils";
+import { useSyncStore } from "@/store";
 
 export function ConnectionStatus() {
   const { isOnline } = useSyncStore();
@@ -32,14 +32,14 @@ export function ConnectionStatus() {
     <div
       className={cn(
         "fixed bottom-4 right-4 z-50 transition-all duration-300",
-        wasOffline && isOnline ? "animate-bounce" : ""
+        wasOffline && isOnline ? "animate-bounce" : "",
       )}
     >
       <Badge
         variant={isOnline ? "default" : "destructive"}
         className={cn(
           "flex items-center gap-2 px-4 py-2 shadow-lg",
-          wasOffline && isOnline && "bg-green-500"
+          wasOffline && isOnline && "bg-green-500",
         )}
       >
         {isOnline ? (
@@ -57,4 +57,3 @@ export function ConnectionStatus() {
     </div>
   );
 }
-

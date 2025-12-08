@@ -1,4 +1,8 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { log } from "@/lib/logger";
 
@@ -10,7 +14,9 @@ const REGION = process.env["STORAGE_REGION"] || "eu-central-1";
 // S3 Client (works for AWS S3, Cloudflare R2, MinIO, DigitalOcean Spaces)
 const s3Client = new S3Client({
   region: REGION,
-  ...(process.env["STORAGE_ENDPOINT"] ? { endpoint: process.env["STORAGE_ENDPOINT"] } : {}),
+  ...(process.env["STORAGE_ENDPOINT"]
+    ? { endpoint: process.env["STORAGE_ENDPOINT"] }
+    : {}),
   credentials: {
     accessKeyId: process.env["STORAGE_ACCESS_KEY"] || "",
     secretAccessKey: process.env["STORAGE_SECRET_KEY"] || "",
@@ -35,10 +41,10 @@ export class StorageService {
   static async upload(
     file: Buffer,
     key: string,
-    mimeType: string
+    mimeType: string,
   ): Promise<UploadResult> {
     if (STORAGE_PROVIDER === "local") {
-      return this.uploadLocal(file, key);
+      return StorageService.uploadLocal(file, key);
     }
 
     try {
@@ -116,7 +122,7 @@ export class StorageService {
         Bucket: BUCKET_NAME,
         Key: key,
       });
-      
+
       // Note: This generates a PUT url, for GET use GetObjectCommand
       // But usually we serve public files directly via CDN
       return await getSignedUrl(s3Client, command, { expiresIn });
@@ -129,7 +135,10 @@ export class StorageService {
   /**
    * Local upload fallback (Development only)
    */
-  private static async uploadLocal(file: Buffer, key: string): Promise<UploadResult> {
+  private static async uploadLocal(
+    file: Buffer,
+    key: string,
+  ): Promise<UploadResult> {
     const { writeFile, mkdir } = await import("node:fs/promises");
     const { join, dirname } = await import("node:path");
 

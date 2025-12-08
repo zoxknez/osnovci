@@ -1,12 +1,12 @@
 /**
  * Email Worker - Background Processing for BullMQ Queue
- * 
+ *
  * This worker processes email jobs from the Redis queue.
  * It can run:
  * 1. On Vercel as a background function (automatic)
  * 2. Standalone with: node --loader ts-node/esm workers/email-worker.ts
  * 3. In Docker container
- * 
+ *
  * Features:
  * - Automatic retry with exponential backoff
  * - Concurrent job processing
@@ -14,22 +14,22 @@
  * - Graceful shutdown
  */
 
-import { Worker, type Job } from 'bullmq';
-import { type EmailJobData } from '@/lib/email/queue';
-import { sendCustomEmail as sendEmail } from '@/lib/email/service';
-import { log } from '@/lib/logger';
-import { redis } from '@/lib/upstash';
+import { type Job, Worker } from "bullmq";
+import type { EmailJobData } from "@/lib/email/queue";
+import { sendCustomEmail as sendEmail } from "@/lib/email/service";
+import { log } from "@/lib/logger";
+import { redis } from "@/lib/upstash";
 
 // Graceful shutdown handler
 let isShuttingDown = false;
 
-process.on('SIGTERM', () => {
-  log.info('SIGTERM received, shutting down gracefully...');
+process.on("SIGTERM", () => {
+  log.info("SIGTERM received, shutting down gracefully...");
   isShuttingDown = true;
 });
 
-process.on('SIGINT', () => {
-  log.info('SIGINT received, shutting down gracefully...');
+process.on("SIGINT", () => {
+  log.info("SIGINT received, shutting down gracefully...");
   isShuttingDown = true;
 });
 
@@ -38,14 +38,14 @@ process.on('SIGINT', () => {
  */
 async function processEmailJob(job: Job<EmailJobData>) {
   if (isShuttingDown) {
-    log.warn('Worker shutting down, skipping job', { jobId: job.id });
+    log.warn("Worker shutting down, skipping job", { jobId: job.id });
     return;
   }
 
   const { to, subject, html, text, priority } = job.data;
 
   try {
-    log.info('Processing email job', {
+    log.info("Processing email job", {
       jobId: job.id,
       to,
       subject,
@@ -54,14 +54,9 @@ async function processEmailJob(job: Job<EmailJobData>) {
     });
 
     // Send email via transport
-    const result = await sendEmail(
-      to,
-      subject,
-      html || text || '',
-      text
-    );
+    const result = await sendEmail(to, subject, html || text || "", text);
 
-    log.info('Email sent successfully', {
+    log.info("Email sent successfully", {
       jobId: job.id,
       to,
       subject,
@@ -70,12 +65,12 @@ async function processEmailJob(job: Job<EmailJobData>) {
 
     // Track success metric (optional)
     if (priority) {
-      await trackEmailMetric('sent', priority);
+      await trackEmailMetric("sent", priority);
     }
 
     return result;
   } catch (error) {
-    log.error('Email job failed', {
+    log.error("Email job failed", {
       jobId: job.id,
       to,
       subject,
@@ -85,7 +80,7 @@ async function processEmailJob(job: Job<EmailJobData>) {
 
     // Track failure metric
     if (priority) {
-      await trackEmailMetric('failed', priority);
+      await trackEmailMetric("failed", priority);
     }
 
     // Re-throw to trigger BullMQ retry
@@ -96,17 +91,17 @@ async function processEmailJob(job: Job<EmailJobData>) {
 /**
  * Track email metrics in Redis
  */
-async function trackEmailMetric(type: 'sent' | 'failed', priority: string) {
+async function trackEmailMetric(type: "sent" | "failed", priority: string) {
   if (!redis) return;
 
   try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
     const key = `email:metrics:${today}:${priority}:${type}`;
-    
+
     await redis.incr(key);
     await redis.expire(key, 30 * 24 * 60 * 60); // Keep for 30 days
   } catch (error) {
-    log.warn('Failed to track email metric', { error });
+    log.warn("Failed to track email metric", { error });
   }
 }
 
@@ -117,9 +112,9 @@ function handleWorkerError(error: Error) {
   log.error('Email worker error', { error });
 
   // Report to Sentry (if configured)
-  if (process.env['SENTRY_DSN']) {
+  if (process.env["SENTRY_DSN"]) {
     try {
-      const Sentry = require('@sentry/node');
+      const Sentry = require("@sentry/node");
       Sentry.captureException(error);
     } catch {
       // Sentry not available
@@ -132,16 +127,16 @@ function handleWorkerError(error: Error) {
  */
 export function startEmailWorker() {
   if (!redis) {
-    log.error('Redis not configured - email worker cannot start');
+    log.error("Redis not configured - email worker cannot start");
     return null;
   }
 
   const worker = new Worker('email-queue', processEmailJob, {
     connection: {
-      host: process.env['REDIS_HOST'] || 'localhost',
-      port: Number(process.env['REDIS_PORT']) || 6379,
+      host: process.env["REDIS_HOST"] || 'localhost',
+      port: Number(process.env["REDIS_PORT"]) || 6379,
       // For Upstash Redis, use TLS
-      ...(process.env['UPSTASH_REDIS_REST_URL'] && {
+      ...(process.env["UPSTASH_REDIS_REST_URL"] && {
         tls: {},
       }),
     },
@@ -152,15 +147,15 @@ export function startEmailWorker() {
     },
   });
 
-  worker.on('completed', (job) => {
-    log.info('Email job completed', { 
-      jobId: job.id, 
-      to: job.data.to 
+  worker.on("completed", (job) => {
+    log.info("Email job completed", {
+      jobId: job.id,
+      to: job.data.to,
     });
   });
 
-  worker.on('failed', (job, error) => {
-    log.error('Email job failed permanently', {
+  worker.on("failed", (job, error) => {
+    log.error("Email job failed permanently", {
       jobId: job?.id,
       to: job?.data.to,
       error,
@@ -168,11 +163,11 @@ export function startEmailWorker() {
     });
   });
 
-  worker.on('error', handleWorkerError);
+  worker.on("error", handleWorkerError);
 
-  log.info('Email worker started', {
+  log.info("Email worker started", {
     concurrency: 5,
-    rateLimit: '10 jobs/sec',
+    rateLimit: "10 jobs/sec",
   });
 
   return worker;
@@ -180,25 +175,25 @@ export function startEmailWorker() {
 
 // Auto-start if running as standalone script
 if (require.main === module) {
-  log.info('Starting standalone email worker...');
-  
+  log.info("Starting standalone email worker...");
+
   const worker = startEmailWorker();
-  
+
   if (worker) {
     // Keep process alive
-    process.on('SIGTERM', async () => {
-      log.info('Closing email worker...');
+    process.on("SIGTERM", async () => {
+      log.info("Closing email worker...");
       await worker.close();
       process.exit(0);
     });
 
-    process.on('SIGINT', async () => {
-      log.info('Closing email worker...');
+    process.on("SIGINT", async () => {
+      log.info("Closing email worker...");
       await worker.close();
       process.exit(0);
     });
   } else {
-    log.error('Failed to start email worker');
+    log.error("Failed to start email worker");
     process.exit(1);
   }
 }

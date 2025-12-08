@@ -5,12 +5,16 @@
 
 "use client";
 
-import { useState } from "react";
 import { Eye, Palette, Ruler, Volume2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -18,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 
 interface DyslexiaSettings {
@@ -49,24 +55,35 @@ export function DyslexiaSettings() {
 
   const applySettings = () => {
     const root = document.documentElement;
-    
+
     if (settings.enabled) {
       root.classList.add("dyslexia-mode");
       root.setAttribute("data-dyslexia", "true");
-      
+
       // Apply CSS variables
-      root.style.setProperty("--dysl-letter-spacing", `${settings.letterSpacing}px`);
-      root.style.setProperty("--dysl-word-spacing", `${settings.wordSpacing}px`);
+      root.style.setProperty(
+        "--dysl-letter-spacing",
+        `${settings.letterSpacing}px`,
+      );
+      root.style.setProperty(
+        "--dysl-word-spacing",
+        `${settings.wordSpacing}px`,
+      );
       root.style.setProperty("--dysl-line-height", `${settings.lineHeight}`);
       root.style.setProperty("--dysl-font-size", `${settings.fontSize}px`);
-      
+
       // Apply color overlay
       if (settings.colorOverlay !== "none") {
         root.classList.add(`dyslexia-overlay-${settings.colorOverlay}`);
       } else {
-        root.classList.remove("dyslexia-overlay-yellow", "dyslexia-overlay-blue", "dyslexia-overlay-green", "dyslexia-overlay-pink");
+        root.classList.remove(
+          "dyslexia-overlay-yellow",
+          "dyslexia-overlay-blue",
+          "dyslexia-overlay-green",
+          "dyslexia-overlay-pink",
+        );
       }
-      
+
       // Apply reading ruler
       if (settings.readingRuler) {
         root.classList.add("dyslexia-reading-ruler");
@@ -77,14 +94,14 @@ export function DyslexiaSettings() {
       root.classList.remove("dyslexia-mode");
       root.removeAttribute("data-dyslexia");
     }
-    
+
     // Save to localStorage
     localStorage.setItem("dyslexia-settings", JSON.stringify(settings));
   };
 
   const handleSettingChange = <K extends keyof DyslexiaSettings>(
     key: K,
-    value: DyslexiaSettings[K]
+    value: DyslexiaSettings[K],
   ) => {
     setSettings((prev) => {
       const updated = { ...prev, [key]: value };
@@ -130,7 +147,9 @@ export function DyslexiaSettings() {
           <Switch
             id="dyslexia-enabled"
             checked={settings.enabled}
-            onCheckedChange={(checked) => handleSettingChange("enabled", checked)}
+            onCheckedChange={(checked) =>
+              handleSettingChange("enabled", checked)
+            }
           />
         </div>
 
@@ -149,7 +168,9 @@ export function DyslexiaSettings() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="opendyslexic">OpenDyslexic (preporučeno)</SelectItem>
+                  <SelectItem value="opendyslexic">
+                    OpenDyslexic (preporučeno)
+                  </SelectItem>
                   <SelectItem value="comic-sans">Comic Sans</SelectItem>
                   <SelectItem value="arial">Arial</SelectItem>
                 </SelectContent>
@@ -160,11 +181,15 @@ export function DyslexiaSettings() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Razmak između slova</Label>
-                <span className="text-sm text-gray-500">{settings.letterSpacing}px</span>
+                <span className="text-sm text-gray-500">
+                  {settings.letterSpacing}px
+                </span>
               </div>
               <Slider
                 value={[settings.letterSpacing]}
-                onValueChange={([value]) => handleSettingChange("letterSpacing", value ?? 0)}
+                onValueChange={([value]) =>
+                  handleSettingChange("letterSpacing", value ?? 0)
+                }
                 min={0}
                 max={5}
                 step={0.5}
@@ -175,11 +200,15 @@ export function DyslexiaSettings() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Razmak između reči</Label>
-                <span className="text-sm text-gray-500">{settings.wordSpacing}px</span>
+                <span className="text-sm text-gray-500">
+                  {settings.wordSpacing}px
+                </span>
               </div>
               <Slider
                 value={[settings.wordSpacing]}
-                onValueChange={([value]) => handleSettingChange("wordSpacing", value ?? 0)}
+                onValueChange={([value]) =>
+                  handleSettingChange("wordSpacing", value ?? 0)
+                }
                 min={0}
                 max={10}
                 step={0.5}
@@ -190,11 +219,15 @@ export function DyslexiaSettings() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Visina linije</Label>
-                <span className="text-sm text-gray-500">{settings.lineHeight.toFixed(1)}</span>
+                <span className="text-sm text-gray-500">
+                  {settings.lineHeight.toFixed(1)}
+                </span>
               </div>
               <Slider
                 value={[settings.lineHeight]}
-                onValueChange={([value]) => handleSettingChange("lineHeight", value ?? 1.5)}
+                onValueChange={([value]) =>
+                  handleSettingChange("lineHeight", value ?? 1.5)
+                }
                 min={1.2}
                 max={2.0}
                 step={0.1}
@@ -205,11 +238,15 @@ export function DyslexiaSettings() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Veličina fonta</Label>
-                <span className="text-sm text-gray-500">{settings.fontSize}px</span>
+                <span className="text-sm text-gray-500">
+                  {settings.fontSize}px
+                </span>
               </div>
               <Slider
                 value={[settings.fontSize]}
-                onValueChange={([value]) => handleSettingChange("fontSize", value ?? 16)}
+                onValueChange={([value]) =>
+                  handleSettingChange("fontSize", value ?? 16)
+                }
                 min={16}
                 max={24}
                 step={1}
@@ -247,7 +284,10 @@ export function DyslexiaSettings() {
             {/* Reading Ruler */}
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="reading-ruler" className="flex items-center gap-2">
+                <Label
+                  htmlFor="reading-ruler"
+                  className="flex items-center gap-2"
+                >
                   <Ruler className="h-4 w-4" />
                   Reading Ruler
                 </Label>
@@ -258,7 +298,9 @@ export function DyslexiaSettings() {
               <Switch
                 id="reading-ruler"
                 checked={settings.readingRuler}
-                onCheckedChange={(checked) => handleSettingChange("readingRuler", checked)}
+                onCheckedChange={(checked) =>
+                  handleSettingChange("readingRuler", checked)
+                }
               />
             </div>
 
@@ -266,7 +308,10 @@ export function DyslexiaSettings() {
             {ttsSupported && (
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="text-to-speech" className="flex items-center gap-2">
+                  <Label
+                    htmlFor="text-to-speech"
+                    className="flex items-center gap-2"
+                  >
                     <Volume2 className="h-4 w-4" />
                     Text-to-Speech
                   </Label>
@@ -277,7 +322,9 @@ export function DyslexiaSettings() {
                 <Switch
                   id="text-to-speech"
                   checked={settings.textToSpeech}
-                  onCheckedChange={(checked) => handleSettingChange("textToSpeech", checked)}
+                  onCheckedChange={(checked) =>
+                    handleSettingChange("textToSpeech", checked)
+                  }
                 />
               </div>
             )}
@@ -287,8 +334,8 @@ export function DyslexiaSettings() {
               <Label>Pregled</Label>
               <div className="mt-2 p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm">
-                  Ovo je primer teksta sa primenjenim podešavanjima. Kako ti se čini?
-                  Da li je lakše za čitanje?
+                  Ovo je primer teksta sa primenjenim podešavanjima. Kako ti se
+                  čini? Da li je lakše za čitanje?
                 </p>
               </div>
             </div>
@@ -298,4 +345,3 @@ export function DyslexiaSettings() {
     </Card>
   );
 }
-

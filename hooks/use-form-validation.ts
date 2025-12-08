@@ -3,7 +3,7 @@
  * Provides real-time validation feedback
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { z } from "zod";
 import { showErrorToast } from "@/components/features/error-toast";
 
@@ -34,7 +34,9 @@ export function useFormValidation<T extends Record<string, any>>({
     (field: keyof T, value: unknown): string | null => {
       try {
         // Create a partial schema for this field - only works for ZodObject schemas
-        const schemaAny = schema as unknown as { shape?: Record<string, z.ZodTypeAny> };
+        const schemaAny = schema as unknown as {
+          shape?: Record<string, z.ZodTypeAny>;
+        };
         const fieldSchema = schemaAny.shape?.[field as string];
         if (!fieldSchema) return null;
 
@@ -47,7 +49,7 @@ export function useFormValidation<T extends Record<string, any>>({
         return "Neispravna vrednost";
       }
     },
-    [schema]
+    [schema],
   );
 
   /**
@@ -78,7 +80,7 @@ export function useFormValidation<T extends Record<string, any>>({
         return { isValid: false, errors: [] };
       }
     },
-    [schema, onValidationError]
+    [schema, onValidationError],
   );
 
   /**
@@ -87,7 +89,9 @@ export function useFormValidation<T extends Record<string, any>>({
   const handleSubmit = useCallback(
     async (data: T) => {
       setIsSubmitting(true);
-      setTouched(Object.keys(data).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+      setTouched(
+        Object.keys(data).reduce((acc, key) => ({ ...acc, [key]: true }), {}),
+      );
 
       const validation = validate(data);
       if (!validation.isValid) {
@@ -110,7 +114,7 @@ export function useFormValidation<T extends Record<string, any>>({
         setIsSubmitting(false);
       }
     },
-    [validate, onSubmit]
+    [validate, onSubmit],
   );
 
   /**
@@ -151,4 +155,3 @@ export function useFormValidation<T extends Record<string, any>>({
     clearErrors,
   };
 }
-

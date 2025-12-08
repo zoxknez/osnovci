@@ -12,7 +12,9 @@ export const isValidDate = (dateString: string | null | undefined): boolean => {
 /**
  * Formats a date string safely, returning null if invalid
  */
-export const formatDateSafe = (dateString: string | null | undefined): string | null => {
+export const formatDateSafe = (
+  dateString: string | null | undefined,
+): string | null => {
   if (!isValidDate(dateString) || !dateString) return null;
   return new Date(dateString).toISOString().split("T")[0] ?? null;
 };
@@ -22,7 +24,7 @@ export const formatDateSafe = (dateString: string | null | undefined): string | 
  */
 export const getDateDisplayValue = (
   dateString: string | null | undefined,
-  calculateAge: (date: string) => number
+  calculateAge: (date: string) => number,
 ): string => {
   if (!isValidDate(dateString) || !dateString) return "Nije postavljeno";
   const date = new Date(dateString);

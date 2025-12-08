@@ -1,6 +1,4 @@
-import { auth } from "@/lib/auth/config";
 import { redirect } from "next/navigation";
-import prisma from "@/lib/db/prisma";
 import GradeAnalytics from "@/components/analytics/grade-analytics";
 import {
   Select,
@@ -9,6 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { auth } from "@/lib/auth/config";
+import prisma from "@/lib/db/prisma";
 
 export default async function GradeAnalyticsPage({
   searchParams,
@@ -55,10 +55,10 @@ export default async function GradeAnalyticsPage({
   } else if (user.guardian) {
     // User is a guardian - show selected student or first linked student
     const selectedLink = user.guardian.links.find(
-      (link: any) => link.studentId === params.studentId
+      (link: any) => link.studentId === params.studentId,
     );
     const activeLink = selectedLink || user.guardian.links[0];
-    
+
     studentId = activeLink?.studentId || "";
 
     if (!studentId) {
@@ -66,7 +66,8 @@ export default async function GradeAnalyticsPage({
         <div className="container py-8">
           <h1 className="text-2xl font-bold mb-4">Analitika Ocena</h1>
           <p className="text-muted-foreground">
-            Nemate povezanih učenika. Povežite učenika da biste videli analitiku.
+            Nemate povezanih učenika. Povežite učenika da biste videli
+            analitiku.
           </p>
         </div>
       );
@@ -88,7 +89,7 @@ export default async function GradeAnalyticsPage({
             Praćenje napretka i predviđanje budućih rezultata za {studentName}
           </p>
         </div>
-        
+
         {/* Student Selector for Guardians */}
         {multipleStudents && user.guardian && (
           <form action={`/dashboard/ocene/analitika`} method="get">

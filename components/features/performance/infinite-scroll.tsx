@@ -5,9 +5,9 @@
 
 "use client";
 
+import { Loader } from "lucide-react";
 import { useEffect } from "react";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { Loader } from "lucide-react";
 
 interface InfiniteScrollProps {
   onLoadMore: () => void;
@@ -26,10 +26,12 @@ export function InfiniteScroll({
   loader,
   threshold = 0.1,
 }: InfiniteScrollProps) {
-  const [loadMoreRef, isIntersecting] = useIntersectionObserver<HTMLDivElement>({
-    threshold,
-    rootMargin: "100px",
-  });
+  const [loadMoreRef, isIntersecting] = useIntersectionObserver<HTMLDivElement>(
+    {
+      threshold,
+      rootMargin: "100px",
+    },
+  );
 
   useEffect(() => {
     if (isIntersecting && hasMore && !isLoading) {
@@ -42,12 +44,9 @@ export function InfiniteScroll({
       {children}
       {hasMore && (
         <div ref={loadMoreRef} className="flex justify-center py-8">
-          {loader || (
-            <Loader className="h-6 w-6 animate-spin text-blue-500" />
-          )}
+          {loader || <Loader className="h-6 w-6 animate-spin text-blue-500" />}
         </div>
       )}
     </>
   );
 }
-

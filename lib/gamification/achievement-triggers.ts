@@ -1,5 +1,5 @@
+import { AchievementType, type NotificationType } from "@prisma/client";
 import prisma from "@/lib/db/prisma";
-import { AchievementType, NotificationType } from "@prisma/client";
 import { log } from "@/lib/logger";
 
 // Achievement unlock logic
@@ -12,7 +12,7 @@ interface AchievementCheck {
 
 // Check all achievements for a student
 export async function checkAndUnlockAchievements(
-  studentId: string
+  studentId: string,
 ): Promise<AchievementCheck[]> {
   try {
     const results: AchievementCheck[] = [];
@@ -30,9 +30,7 @@ export async function checkAndUnlockAchievements(
     }
 
     // Get all unlocked achievement types
-    const unlockedTypes = new Set(
-      gamification.achievements.map((a) => a.type)
-    );
+    const unlockedTypes = new Set(gamification.achievements.map((a) => a.type));
 
     // Check each achievement type
     for (const achievementType of Object.values(AchievementType)) {
@@ -60,7 +58,7 @@ export async function checkAndUnlockAchievements(
 // Check specific achievement
 async function checkAchievement(
   studentId: string,
-  type: AchievementType
+  type: AchievementType,
 ): Promise<AchievementCheck> {
   try {
     switch (type) {
@@ -220,7 +218,7 @@ async function checkAchievement(
 async function checkHomeworkCount(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
@@ -236,7 +234,9 @@ async function checkHomeworkCount(
   };
 }
 
-async function checkAllHomeworkWeek(studentId: string): Promise<AchievementCheck> {
+async function checkAllHomeworkWeek(
+  studentId: string,
+): Promise<AchievementCheck> {
   const now = new Date();
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - now.getDay() + 1);
@@ -269,7 +269,9 @@ async function checkAllHomeworkWeek(studentId: string): Promise<AchievementCheck
   };
 }
 
-async function checkAllHomeworkMonth(studentId: string): Promise<AchievementCheck> {
+async function checkAllHomeworkMonth(
+  studentId: string,
+): Promise<AchievementCheck> {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -303,7 +305,7 @@ async function checkAllHomeworkMonth(studentId: string): Promise<AchievementChec
 async function checkStreak(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
@@ -324,7 +326,7 @@ async function checkStreak(
 async function checkLevel(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
@@ -345,7 +347,7 @@ async function checkLevel(
 async function checkXP(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
@@ -363,7 +365,9 @@ async function checkXP(
 
 // ==================== GRADE ACHIEVEMENTS ====================
 
-async function checkFirstGradeFive(studentId: string): Promise<AchievementCheck> {
+async function checkFirstGradeFive(
+  studentId: string,
+): Promise<AchievementCheck> {
   const count = await prisma.grade.count({
     where: { studentId, grade: "5" },
   });
@@ -379,7 +383,7 @@ async function checkFirstGradeFive(studentId: string): Promise<AchievementCheck>
 async function checkGradeFiveStreak(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const grades = await prisma.grade.findMany({
     where: { studentId },
@@ -423,7 +427,8 @@ async function checkPerfectWeek(studentId: string): Promise<AchievementCheck> {
     },
   });
 
-  const allPerfect = grades.length > 0 && grades.every((g) => parseFloat(g.grade) === 5);
+  const allPerfect =
+    grades.length > 0 && grades.every((g) => parseFloat(g.grade) === 5);
 
   return {
     type: "PERFECT_WEEK",
@@ -445,7 +450,8 @@ async function checkPerfectMonth(studentId: string): Promise<AchievementCheck> {
     },
   });
 
-  const allPerfect = grades.length >= 5 && grades.every((g) => parseFloat(g.grade) === 5);
+  const allPerfect =
+    grades.length >= 5 && grades.every((g) => parseFloat(g.grade) === 5);
 
   return {
     type: "PERFECT_MONTH",
@@ -458,7 +464,7 @@ async function checkPerfectMonth(studentId: string): Promise<AchievementCheck> {
 async function checkGradeAverage(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const grades = await prisma.grade.findMany({
     where: { studentId },
@@ -519,7 +525,9 @@ async function checkNightOwl(studentId: string): Promise<AchievementCheck> {
   };
 }
 
-async function checkWeekendWarrior(studentId: string): Promise<AchievementCheck> {
+async function checkWeekendWarrior(
+  studentId: string,
+): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
   });
@@ -537,7 +545,7 @@ async function checkWeekendWarrior(studentId: string): Promise<AchievementCheck>
 async function checkEarlySubmissionCount(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
@@ -573,7 +581,7 @@ async function checkSpeedDemon(studentId: string): Promise<AchievementCheck> {
 async function checkSpeedrunner(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
@@ -589,7 +597,9 @@ async function checkSpeedrunner(
   };
 }
 
-async function checkLightningFast(studentId: string): Promise<AchievementCheck> {
+async function checkLightningFast(
+  studentId: string,
+): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
   });
@@ -606,7 +616,9 @@ async function checkLightningFast(studentId: string): Promise<AchievementCheck> 
 
 // ==================== SUBJECT ACHIEVEMENTS ====================
 
-async function checkSubjectMaster(studentId: string): Promise<AchievementCheck> {
+async function checkSubjectMaster(
+  studentId: string,
+): Promise<AchievementCheck> {
   const grades = await prisma.grade.findMany({
     where: { studentId },
     include: { subject: true },
@@ -635,7 +647,9 @@ async function checkSubjectMaster(studentId: string): Promise<AchievementCheck> 
   };
 }
 
-async function checkAllSubjectsFive(studentId: string): Promise<AchievementCheck> {
+async function checkAllSubjectsFive(
+  studentId: string,
+): Promise<AchievementCheck> {
   const subjects = await prisma.subject.findMany();
   const grades = await prisma.grade.findMany({
     where: { studentId },
@@ -662,14 +676,19 @@ async function checkAllSubjectsFive(studentId: string): Promise<AchievementCheck
   };
 }
 
-async function checkSubjectSpecialist(studentId: string): Promise<AchievementCheck> {
+async function checkSubjectSpecialist(
+  studentId: string,
+): Promise<AchievementCheck> {
   const grades = await prisma.grade.findMany({
     where: { studentId },
   });
 
   const subjectCounts = new Map<string, number>();
   for (const grade of grades) {
-    subjectCounts.set(grade.subjectId, (subjectCounts.get(grade.subjectId) || 0) + 1);
+    subjectCounts.set(
+      grade.subjectId,
+      (subjectCounts.get(grade.subjectId) || 0) + 1,
+    );
   }
 
   const maxCount = Math.max(...Array.from(subjectCounts.values()), 0);
@@ -697,7 +716,9 @@ async function checkHelper(studentId: string): Promise<AchievementCheck> {
   };
 }
 
-async function checkSocialButterfly(studentId: string): Promise<AchievementCheck> {
+async function checkSocialButterfly(
+  studentId: string,
+): Promise<AchievementCheck> {
   const count = await prisma.activityLog.count({
     where: { studentId },
   });
@@ -728,7 +749,7 @@ async function checkTeamPlayer(studentId: string): Promise<AchievementCheck> {
 async function checkConsistency(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
@@ -744,7 +765,9 @@ async function checkConsistency(
   };
 }
 
-async function checkPerfectionist(studentId: string): Promise<AchievementCheck> {
+async function checkPerfectionist(
+  studentId: string,
+): Promise<AchievementCheck> {
   const gamification = await prisma.gamification.findUnique({
     where: { studentId },
   });
@@ -772,7 +795,7 @@ async function checkComebackKid(studentId: string): Promise<AchievementCheck> {
   }
 
   const daysSinceLastActivity = Math.floor(
-    (new Date().getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24)
+    (new Date().getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   return {
@@ -833,7 +856,8 @@ async function checkTopStudent(studentId: string): Promise<AchievementCheck> {
     take: 1,
   });
 
-  const isTop = allGamifications.length > 0 && allGamifications[0]?.studentId === studentId;
+  const isTop =
+    allGamifications.length > 0 && allGamifications[0]?.studentId === studentId;
 
   return {
     type: "TOP_STUDENT",
@@ -846,7 +870,7 @@ async function checkTopStudent(studentId: string): Promise<AchievementCheck> {
 async function checkLeaderboardRank(
   studentId: string,
   type: AchievementType,
-  target: number
+  target: number,
 ): Promise<AchievementCheck> {
   const allGamifications = await prisma.gamification.findMany({
     where: { showOnLeaderboard: true },
@@ -868,7 +892,7 @@ async function checkLeaderboardRank(
 
 async function unlockAchievement(
   studentId: string,
-  type: AchievementType
+  type: AchievementType,
 ): Promise<void> {
   try {
     const gamification = await prisma.gamification.findUnique({
@@ -999,10 +1023,33 @@ function getAchievementXP(type: AchievementType): number {
   return xpMap[type] || 50;
 }
 
-function getAchievementRarity(type: AchievementType): "COMMON" | "RARE" | "EPIC" | "LEGENDARY" {
-  const legendary = ["PERFECT_MONTH", "GRADE_AVG_50", "ALL_SUBJECTS_5", "TOP_STUDENT", "STREAK_100", "OVERACHIEVER"];
-  const epic = ["HOMEWORK_100", "STREAK_60", "LEVEL_50", "PERFECTIONIST", "LEADERBOARD_TOP_3", "COLLECTOR"];
-  const rare = ["HOMEWORK_50", "STREAK_30", "LEVEL_30", "PERFECT_WEEK", "SUBJECT_MASTER", "LEADERBOARD_TOP_10"];
+function getAchievementRarity(
+  type: AchievementType,
+): "COMMON" | "RARE" | "EPIC" | "LEGENDARY" {
+  const legendary = [
+    "PERFECT_MONTH",
+    "GRADE_AVG_50",
+    "ALL_SUBJECTS_5",
+    "TOP_STUDENT",
+    "STREAK_100",
+    "OVERACHIEVER",
+  ];
+  const epic = [
+    "HOMEWORK_100",
+    "STREAK_60",
+    "LEVEL_50",
+    "PERFECTIONIST",
+    "LEADERBOARD_TOP_3",
+    "COLLECTOR",
+  ];
+  const rare = [
+    "HOMEWORK_50",
+    "STREAK_30",
+    "LEVEL_30",
+    "PERFECT_WEEK",
+    "SUBJECT_MASTER",
+    "LEADERBOARD_TOP_10",
+  ];
 
   if (legendary.includes(type)) return "LEGENDARY";
   if (epic.includes(type)) return "EPIC";
@@ -1188,7 +1235,7 @@ function getAchievementDescription(type: AchievementType): string {
 
 async function sendAchievementNotification(
   studentId: string,
-  type: AchievementType
+  type: AchievementType,
 ): Promise<void> {
   try {
     const student = await prisma.student.findUnique({
@@ -1206,19 +1253,25 @@ async function sendAchievementNotification(
       },
     });
   } catch (error) {
-    log.error("Error sending achievement notification", error, { studentId, type });
+    log.error("Error sending achievement notification", error, {
+      studentId,
+      type,
+    });
   }
 }
 
 // Trigger achievement check on specific events
 export async function triggerAchievementCheck(
   studentId: string,
-  event: "HOMEWORK_COMPLETED" | "GRADE_RECEIVED" | "LEVEL_UP" | "XP_GAINED"
+  event: "HOMEWORK_COMPLETED" | "GRADE_RECEIVED" | "LEVEL_UP" | "XP_GAINED",
 ): Promise<void> {
   try {
     log.info("Triggering achievement check", { studentId, event });
     await checkAndUnlockAchievements(studentId);
   } catch (error) {
-    log.error("Error triggering achievement check", error, { studentId, event });
+    log.error("Error triggering achievement check", error, {
+      studentId,
+      event,
+    });
   }
 }
